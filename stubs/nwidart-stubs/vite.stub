@@ -13,7 +13,7 @@ export default defineConfig({
             buildDirectory: 'build-$LOWER_NAME$',
             input: [
                 __dirname + '/resources/assets/sass/app.scss',
-                __dirname + '/resources/assets/js/app.js'
+                __dirname + '/resources/assets/js/app.tsx'
             ],
             refresh: true,
         }),
@@ -22,5 +22,5 @@ export default defineConfig({
 
 //export const paths = [
 //    'Modules/$STUDLY_NAME$/resources/assets/sass/app.scss',
-//    'Modules/$STUDLY_NAME$/resources/assets/js/app.js',
+//    'Modules/$STUDLY_NAME$/resources/assets/js/app.tsx',
 //];

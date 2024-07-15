@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Eksternal\Http\Controllers\EksternalController;
+use Modules\Eksternal\Http\Controllers\AppController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +14,4 @@ use Modules\Eksternal\Http\Controllers\EksternalController;
 |
 */
 
-Route::group([], function () {
-    Route::resource('eksternal', EksternalController::class)->names('eksternal');
-});
+Route::get('/app', [AppController::class, 'index']);

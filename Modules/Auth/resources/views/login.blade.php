@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="text-center mb-20">
-        <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-50px h-md-100px" alt=""/>
+        <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-100px h-md-150px" alt=""/>
     </div>
 
     <!--begin::Form-->
@@ -30,9 +30,9 @@
         <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
             <div></div>
             <!--begin::Link-->
-            <span class="text-gray-500">
-                Hubungi administrator jika memiliki kendala
-            </span>
+            <a href="#">
+                Lupa Password?
+            </a>
             <!--end::Link-->
         </div>
         <!--end::Wrapper-->

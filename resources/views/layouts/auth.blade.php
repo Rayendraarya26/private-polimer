@@ -14,7 +14,19 @@
     <link href="{{asset('assets/plugins/global/plugins.bundle.css')}}" rel="stylesheet" type="text/css"/>
     <link href="{{asset('assets/css/style.bundle.css')}}" rel="stylesheet" type="text/css"/>
     <!--end::Global Stylesheets Bundle-->
-    <script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
+    <style>
+        .separator::after {
+            content: "|"; /* Your separator character, can be changed to anything */
+            margin-left: 8px; /* Adjust the spacing as needed */
+            color: #000; /* Adjust the color as needed */
+        }
+
+        .separator:last-child::after {
+            content: ""; /* Remove the separator from the last item */
+        }
+    </style>
+
+
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -50,37 +62,31 @@
         }</style>
     <!--end::Page bg image-->
     <!--begin::Authentication - Sign-in -->
-    <div class="d-flex flex-column flex-lg-row flex-column-fluid">
-        <!--begin::Aside-->
-        <div class="d-flex flex-lg-row-fluid">
-            <!--begin::Content-->
-            <div class="d-flex flex-column flex-center pb-0 pb-lg-10 p-10 w-100">
-                <!--begin::Image-->
-                <img class="theme-light-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20"
-                     src="{{asset('assets/media/auth/agency.png')}}" alt=""/>
-                <img class="theme-dark-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20"
-                     src="{{asset('assets/media/auth/agency-dark.png')}}" alt=""/>
-                <!--end::Image-->
-                <!--begin::Title-->
-                <h1 class="text-gray-800 fs-2qx fw-bold text-center mb-7">{{ config('app.name') }}</h1>
-                <!--end::Title-->
-                <!--begin::Text-->
-                <div class="text-gray-600 fs-base text-center fw-semibold">
-                    ARC (Aplikasi Regulation Center) adalah aplikasi yang digunakan untuk mengelola regulasi yang ada di BANK Kalteng
-                    <!--end::Text-->
-                </div>
-                <!--end::Content-->
-            </div>
-        </div>
-        <!--begin::Aside-->
+    <div class="d-flex flex-column flex-lg-row flex-column-fluid justify-content-center">
         <!--begin::Body-->
-        <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12">
+        <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center p-12">
             <!--begin::Wrapper-->
-            <div class="bg-body d-flex flex-column flex-center rounded-4 w-md-600px p-10 w-100">
+            <div class="d-flex flex-column flex-center rounded-4 w-md-800px p-10 w-100">
                 <!--begin::Content-->
                 <div class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px w-100">
+                    <div class="d-flex flex-row gap-5">
+                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                            Tracking
+                        </a>
+                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                            Panduan
+                        </a>
+                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                            FAQ
+                        </a>
+                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                            About
+                        </a>
+                    </div>
+
+
                     <!--begin::Wrapper-->
-                    <div class="d-flex flex-center flex-column flex-column-fluid pb-15 pb-lg-20">
+                    <div class="d-flex flex-center flex-column flex-column-fluid">
                         @if ($errors->any())
                             <div class="alert alert-danger w-100" role="alert">
                                 {!! implode('', $errors->all('<li>:message</li>')) !!}
@@ -98,6 +104,11 @@
                     <!--end::Wrapper-->
                 </div>
                 <!--end::Content-->
+
+                {{--add image footer stick to bottom--}}
+                <div class="text-center">
+                    <img src="{{ asset('assets/media/logos/polimer-tagline.png') }}" class="h-50px h-md-100px" alt=""/>
+                </div>
             </div>
             <!--end::Wrapper-->
         </div>

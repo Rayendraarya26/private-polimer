@@ -1,0 +1,18 @@
+services:
+    bbkkp_polimer:
+        build:
+            context: .
+            dockerfile: ./docker/dockerfile/app.Dockerfile
+        restart: unless-stopped
+        tty: true
+        volumes:
+            - ./:/var/www
+        networks:
+            - bbkkp_network
+        ports:
+            - "4700:80"
+
+#Docker Networks
+networks:
+    bbkkp_network:
+        external: true

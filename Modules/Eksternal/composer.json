@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/eksternal",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Eksternal\\": "app/",
+            "Modules\\Eksternal\\Database\\Factories\\": "database/factories/",
+            "Modules\\Eksternal\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Eksternal\\Tests\\": "tests/"
+        }
+    }
+}

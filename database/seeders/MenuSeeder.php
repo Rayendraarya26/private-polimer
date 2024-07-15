@@ -101,7 +101,7 @@ class MenuSeeder extends Seeder
                 ]
             ],
             [
-                'name'      => 'Master',
+                'name'      => 'Admin',
                 'parent'    => null,
                 'desc'      => 'Management Master',
                 'is_active' => 'yes',

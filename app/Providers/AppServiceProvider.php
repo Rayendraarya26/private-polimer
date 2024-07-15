@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Passport\Client;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,5 +26,7 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+
+        Passport::useClientModel(Client::class);
     }
 }

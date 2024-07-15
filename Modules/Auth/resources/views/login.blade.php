@@ -15,7 +15,7 @@
         <div class="fv-row mb-8">
             <!--begin::Email-->
             <input type="text" placeholder="Email" name="email" autocomplete="off" aria-label="email" autofocus
-                   class="form-control bg-transparent" value="kemal@mailinator.com"/>
+                   class="form-control bg-transparent" value="dolkode@mailinator.com"/>
             <!--end::Email-->
         </div>
         <!--end::Input group=-->

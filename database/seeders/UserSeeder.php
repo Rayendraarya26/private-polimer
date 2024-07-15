@@ -15,9 +15,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            ['name' => 'Aldino Kemal', 'email' => 'kemal@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT],
-            ['name' => 'Adam Smith', 'email' => 'adam@mailinator.com', 'password' => 'password', 'group' => SysGroup::PELANGGAN],
-            ['name' => 'Ariel', 'email' => 'ariel@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '1234567890'],
+            ['name' => 'Developer', 'email' => 'dolkode@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT],
+            ['name' => 'Pelanggan', 'email' => 'pelanggan@mailinator.com', 'password' => 'password', 'group' => SysGroup::PELANGGAN],
+            ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '1234567890'],
         ];
 
         foreach ($data as $item) {

@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api')->group(function () {
     Route::get('user', function (Request $request) {
-        return $request->user();
+        return responseJSON("success", [
+            'id'                    => $request->user()->id,
+            'name'                  => $request->user()->name,
+            'email'                 => $request->user()->email,
+            'force_update_password' => $request->user()->force_update_password,
+            'picture'               => \Illuminate\Support\Facades\Storage::disk('public')->url($request->user()->picture),
+            'last_login'            => $request->user()->last_login,
+        ]);
     });
 });

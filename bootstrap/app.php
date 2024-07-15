@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\SysGroup;
+use App\Http\Middleware\Restriction;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,9 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectTo(
             guests: '/auth/login',
-            users: '/dashboard'
+            users: function (Request $request) {
+                if (in_array($request->session()->get('group_selected'), [SysGroup::ADMIN->value, SysGroup::ROOT->value])) {
+                    return '/dashboard';
+                }
+                return '/app';
+            }
         );
-        $middleware->alias(['restrict' => \App\Http\Middleware\Restriction::class]);
+
+        $middleware->alias(['restrict' => Restriction::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

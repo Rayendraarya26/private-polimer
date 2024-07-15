@@ -3,6 +3,7 @@
 namespace Modules\Auth\Http\Controllers;
 
 use App\Enums\Option;
+use App\Enums\SysGroup;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
 use Illuminate\Http\Request;
@@ -80,7 +81,11 @@ class LoginController
             return redirect('/account/security')->with('message', 'Anda harus mengganti password terlebih dahulu.');
         }
 
-        return redirect()->intended(route('home'));
+        if (in_array($groupSelectedId, [SysGroup::ADMIN->value, SysGroup::ROOT->value])) {
+            return redirect()->intended(route('home'));
+        }
+
+        return redirect()->intended(route('app'));
     }
 
     public function switchRole(Request $request) // Khusus yang sudah login

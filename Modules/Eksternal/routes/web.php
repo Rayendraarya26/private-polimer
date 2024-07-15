@@ -14,4 +14,5 @@ use Modules\Eksternal\Http\Controllers\AppController;
 |
 */
 
-Route::get('/app', [AppController::class, 'index']);
+Route::get('/app', [AppController::class, 'index'])
+    ->middleware(['auth']);

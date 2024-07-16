@@ -1,16 +1,20 @@
-import React, { memo } from "react"
-// import { Routes, Route } from "react-router-dom"
-// import TestPage from "./pages/test"
+import React, { lazy, memo } from "react"
+import { Routes, Route } from "react-router-dom"
+
+// layouts
+const PrivateLayout = lazy(() => import('./layouts/PrivateLayout'))
+
+// pages
+const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 
 const AppRoutes: React.FC = () => {
   return (
-    <div>[routes goes here]</div>
+    <Routes>
+      <Route element={<PrivateLayout/>}>
+        <Route path='/dashboard' element={<DashboardPage/>}/>
+      </Route>
+    </Routes>
   )
-  // return (
-  //   <Routes>
-  //     <Route index element={<TestPage/>}/>
-  //   </Routes>
-  // )
 }
 
 export default memo(AppRoutes)

@@ -1,7 +1,16 @@
 import 'bootstrap/dist/css/bootstrap.css';
+import React from 'react';
+import { HashRouter } from "react-router-dom"
+import { createRoot } from 'react-dom/client';
+import AppRoutes from './routes';
 
-import {createRoot} from 'react-dom/client';
+const rootElement = document.getElementById('app')
 
-const root = createRoot(document.getElementById('app'));
-
-root.render(<h1>Hello, world! aw</h1>)
+if (rootElement) {
+  const root = createRoot(rootElement)
+  root.render(
+    <HashRouter>
+      <AppRoutes/>
+    </HashRouter>
+  )
+}

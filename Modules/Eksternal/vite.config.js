@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
     build: {
@@ -8,6 +9,9 @@ export default defineConfig({
         manifest: true,
     },
     plugins: [
+        react({
+            include: '**/*.tsx'
+        }),
         laravel({
             publicDirectory: '../../public',
             buildDirectory: 'build-eksternal',
@@ -16,8 +20,10 @@ export default defineConfig({
                 __dirname + '/resources/assets/js/app.js'
             ],
             refresh: true,
-        }),
+        })
     ],
+    root: './resources/js',
+    main: './resources/js/app.tsx',
 });
 
 //export const paths = [

@@ -26,6 +26,8 @@
         }
     </style>
 
+    @stack('styles')
+
 
 </head>
 <!--end::Head-->
@@ -69,17 +71,17 @@
             <div class="d-flex flex-column flex-center rounded-4 w-md-800px p-10 w-100">
                 <!--begin::Content-->
                 <div class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px w-100">
-                    <div class="d-flex flex-row gap-5">
-                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                    <div class="d-flex flex-row justify-content-center gap-5">
+                        <a href="#" class="text-center fw-bold text-decoration-underline">
                             Tracking
                         </a>
-                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                        <a href="#" class="text-center fw-bold text-decoration-underline">
                             Panduan
                         </a>
-                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                        <a href="#" class="text-center fw-bold text-decoration-underline">
                             FAQ
                         </a>
-                        <a href="#" class="text-center separator fw-bold text-decoration-underline">
+                        <a href="#" class="text-center fw-bold text-decoration-underline">
                             About
                         </a>
                     </div>

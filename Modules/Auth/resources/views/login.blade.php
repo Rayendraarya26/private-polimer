@@ -2,10 +2,22 @@
 
 @section('title', 'Login')
 
+@push('styles')
+    <style>
+        .app-logo {
+            height: 4rem;
+        }
+
+        @media screen and (min-width: 768px) {
+            .app-logo {
+                height: 8rem !important;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
-    <div class="text-center mb-20">
-        <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-100px h-md-150px" alt=""/>
-    </div>
+    <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mt-15 mb-10" alt=""/>
 
     <!--begin::Form-->
     <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ url()->current() }}" method="post">

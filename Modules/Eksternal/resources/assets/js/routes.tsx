@@ -12,6 +12,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route element={<PrivateLayout/>}>
         <Route path='/dashboard' element={<DashboardPage/>}/>
+        <Route path='/payment-history' element={<DashboardPage/>}/>
       </Route>
     </Routes>
   )

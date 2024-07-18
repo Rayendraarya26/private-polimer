@@ -13,9 +13,9 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
-        $moduleSystem    = 'Modules\System\Http\Controllers';
-        $moduleAdmin    = 'Modules\Admin\Http\Controllers';
-        $menus           = [
+        $moduleSystem = 'Modules\System\Http\Controllers';
+        $moduleAdmin  = 'Modules\Admin\Http\Controllers';
+        $menus        = [
             [
                 'name'      => 'System',
                 'parent'    => null,
@@ -125,6 +125,24 @@ class MenuSeeder extends Seeder
                             ['name' => 'edit', 'controller' => $moduleAdmin . '\BannerController@edit'],
                             ['name' => 'update', 'controller' => $moduleAdmin . '\BannerController@update'],
                             ['name' => 'delete', 'controller' => $moduleAdmin . '\BannerController@destroy'],
+                        ]
+                    ],
+                    [
+                        'name'      => 'Integrasi SSO',
+                        'desc'      => 'Mengatur aplikasi client ID dan secret',
+                        'is_active' => 'yes',
+                        'order'     => 80,
+                        'icon'      => 'fa-regular fa-key',
+                        'action'    => [
+                            ['name' => 'index', 'controller' => $moduleAdmin . '\IntegrasiSsoController@index'],
+                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\IntegrasiSsoController@ajax'],
+                            ['name' => 'add', 'controller' => $moduleAdmin . '\IntegrasiSsoController@create'],
+                            ['name' => 'detail', 'controller' => $moduleAdmin . '\IntegrasiSsoController@show'],
+                            ['name' => 'store', 'controller' => $moduleAdmin . '\IntegrasiSsoController@store'],
+                            ['name' => 'edit', 'controller' => $moduleAdmin . '\IntegrasiSsoController@edit'],
+                            ['name' => 'update', 'controller' => $moduleAdmin . '\IntegrasiSsoController@update'],
+                            ['name' => 'regenerateSecret', 'controller' => $moduleAdmin . '\IntegrasiSsoController@regenerateSecret'],
+                            ['name' => 'delete', 'controller' => $moduleAdmin . '\IntegrasiSsoController@destroy'],
                         ]
                     ],
                 ]

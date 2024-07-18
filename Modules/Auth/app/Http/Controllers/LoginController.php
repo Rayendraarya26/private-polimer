@@ -4,6 +4,8 @@ namespace Modules\Auth\Http\Controllers;
 
 use App\Enums\Option;
 use App\Enums\SysGroup;
+use App\Models\Db1\OauthAccessToken;
+use App\Models\Db1\OauthAuthCode;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
 use Illuminate\Http\Request;
@@ -85,7 +87,7 @@ class LoginController
             return redirect()->intended(route('home'));
         }
 
-        return redirect()->intended(route('app'));
+        return redirect()->intended(route('app') . '/#/dashboard');
     }
 
     public function switchRole(Request $request) // Khusus yang sudah login
@@ -107,11 +109,14 @@ class LoginController
 
     public function logout(Request $request)
     {
+        // remove oauth token related with user
+        OauthAuthCode::where('user_id', Auth::id())->delete();
+        OauthAccessToken::where('user_id', Auth::id())->delete();
+
         Auth::logout();
 
         session()->invalidate();
         session()->regenerateToken();
-
 
         return redirect(route("auth.login"));
     }

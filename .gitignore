@@ -23,4 +23,4 @@ yarn-error.log
 html
 *.log
 config/credential.json
-supervisord.pid
+supervisord.*

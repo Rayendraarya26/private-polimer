@@ -29,6 +29,12 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 
 RUN install-php-extensions pdo_mysql exif pcntl bcmath gd imagick excimer zip
 
+# Install nodejs and npm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+ENV NVM_DIR="/root/.nvm"
+RUN . "$NVM_DIR/nvm.sh" && nvm install --lts
+ENV PATH="/root/.nvm/versions/node/$(node -v)/bin:${PATH}"
+
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\OauthClientAccesibility;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,9 +19,11 @@ return new class extends Migration
             $table->string('secret', 100)->nullable();
             $table->string('provider')->nullable();
             $table->text('redirect');
-            $table->boolean('personal_access_client');
-            $table->boolean('password_client');
-            $table->boolean('revoked');
+            $table->enum('accessibility', OauthClientAccesibility::toArray())->default(OauthClientAccesibility::PUBLIC);
+            $table->boolean('display')->default(true);
+            $table->boolean('personal_access_client')->default(false);
+            $table->boolean('password_client')->default(false);
+            $table->boolean('revoked')->default(false);
             $table->timestamps();
         });
     }

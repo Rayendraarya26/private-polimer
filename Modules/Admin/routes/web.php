@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\BannerController;
+use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +15,11 @@ use Modules\Admin\Http\Controllers\BannerController;
 |
 */
 
-Route::prefix('/admin/setting')->middleware(['auth', 'restrict'])->group(function () {
-    Route::get('banner/ajax', [BannerController::class, 'ajax']);
-    Route::resource('banner', BannerController::class)->except('show');
+Route::prefix('/admin')->middleware(['auth', 'restrict'])->group(function () {
+    Route::get('setting-banner/ajax', [BannerController::class, 'ajax']);
+    Route::resource('setting-banner', BannerController::class)->except('show');
+
+    Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
+    Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);
+    Route::resource('integrasi-sso', IntegrasiSsoController::class);
 });

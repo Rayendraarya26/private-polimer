@@ -22,6 +22,7 @@
     <!--begin::Form-->
     <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ url()->current() }}" method="post">
         @csrf
+        <input name='recaptcha' type='hidden'/>
 
         <!--begin::Input group=-->
         <div class="fv-row mb-8">
@@ -149,6 +150,16 @@
                 }
             };
 
+            // recaptcha
+            const initRecaptcha = function () {
+                grecaptcha.ready(function() {
+                    grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'}).then(function(token) {
+                        const recaptchaInput = document.querySelector('[name="recaptcha"]')
+                        if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
+                    });
+                });
+            };
+
             // Public functions
             return {
                 // Initialization
@@ -157,6 +168,7 @@
                     submitButton = document.querySelector('#kt_sign_in_submit');
 
                     handleValidation();
+                    initRecaptcha();
 
                     if (isValidUrl(submitButton.closest('form').getAttribute('action'))) {
                         handleSubmitAjax(); // use for ajax submit

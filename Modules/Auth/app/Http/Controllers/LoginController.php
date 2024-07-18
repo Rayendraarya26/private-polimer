@@ -8,6 +8,7 @@ use App\Models\Db1\OauthAccessToken;
 use App\Models\Db1\OauthAuthCode;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
+use App\Traits\CaptchaTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -16,7 +17,7 @@ use Modules\Auth\Traits\KemenperinApiTrait;
 
 class LoginController
 {
-    use AuthTrait, KemenperinApiTrait;
+    use AuthTrait, KemenperinApiTrait, CaptchaTrait;
 
     const MAX_ATTEMPTS = 3;
 
@@ -27,13 +28,19 @@ class LoginController
 
     public function processLogin(Request $request)
     {
-        $credentials = $request->validate([
-            'recaptcha' => 'required',
+        $input = $request->validate([
+            'recaptcha' => config('google.recaptcha.enabled') ? 'required' : 'nullable',
             'email'     => 'required|email',
             'password'  => 'required'
         ]);
 
-        $rateLimiterKey = $request->ip() . 'login' . $credentials['email'];
+        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($input['recaptcha'])) {
+            return back()->onlyInput('email')->withErrors([
+                'message' => 'Captcha tidak valid.'
+            ]);
+        }
+
+        $rateLimiterKey = $request->ip() . 'login' . $input['email'];
 
         if (RateLimiter::tooManyAttempts($rateLimiterKey, self::MAX_ATTEMPTS)) {
             return back()->onlyInput('email')->withErrors([
@@ -41,13 +48,16 @@ class LoginController
             ]);
         }
 
-        $loginAttempt = Auth::attempt($credentials);
+        $loginAttempt = Auth::attempt([
+            'email'    => $input['email'],
+            'password' => $input['password']
+        ]);
         if (!$loginAttempt) {
             // Add Rate Limiting here
             RateLimiter::increment($rateLimiterKey);
             $attemptLeft = RateLimiter::retriesLeft($rateLimiterKey, self::MAX_ATTEMPTS);
             if ($attemptLeft === 0) {
-                $user = SysUser::where('email', '=', $credentials['email'])->first();
+                $user = SysUser::where('email', '=', $input['email'])->first();
                 if ($user) {
                     $user->is_banned = Option::YES;
                     $user->save();

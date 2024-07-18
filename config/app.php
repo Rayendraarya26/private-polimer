@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'intranet' => [
+        'url' => env('INTRANET_URL'),
+        'debug' => (bool)env('INTRANET_DEBUG'),
+        'cookie_name' => 'intranet_cookie',
+    ],
 ];

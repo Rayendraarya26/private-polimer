@@ -12,10 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\Auth\Traits\AuthTrait;
+use Modules\Auth\Traits\KemenperinApiTrait;
 
 class LoginController
 {
-    use AuthTrait;
+    use AuthTrait, KemenperinApiTrait;
 
     const MAX_ATTEMPTS = 3;
 
@@ -26,7 +27,11 @@ class LoginController
 
     public function processLogin(Request $request)
     {
-        $credentials = $request->validate(['email' => 'required|email', 'password' => 'required']);
+        $credentials = $request->validate([
+            'recaptcha' => 'required',
+            'email'     => 'required|email',
+            'password'  => 'required'
+        ]);
 
         $rateLimiterKey = $request->ip() . 'login' . $credentials['email'];
 

@@ -6,6 +6,7 @@ use App\Enums\Option;
 use App\Enums\SysGroup;
 use App\Models\Db1\OauthAccessToken;
 use App\Models\Db1\OauthAuthCode;
+use App\Models\Db1\OauthClient;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
 use App\Traits\CaptchaTrait;
@@ -21,9 +22,11 @@ class LoginController
 
     const MAX_ATTEMPTS = 3;
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('auth::login');
+        return view('auth::login')->with([
+            'oauthClient' => $this->searchOauthClient($request)
+        ]);
     }
 
     public function processLogin(Request $request)
@@ -134,5 +137,21 @@ class LoginController
         session()->regenerateToken();
 
         return redirect(route("auth.login"));
+    }
+
+    private function searchOauthClient(Request $request)
+    {
+        $intended = $request->session()->get('url.intended');
+        if (!$intended) return null;
+
+        $url = parse_url($intended);
+        if (!isset($url['query'])) return null;
+
+        parse_str($url['query'], $query);
+        $clientId = $query['client_id'];
+
+        if (!$clientId) return null;
+
+        return OauthClient::find($clientId);
     }
 }

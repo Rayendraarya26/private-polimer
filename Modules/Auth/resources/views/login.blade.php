@@ -5,6 +5,12 @@
 @section('content')
     <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mt-15 mb-10" alt=""/>
 
+    @if($oauthClient)
+        <div class="alert alert-info w-100">
+            <p>Login untuk lanjut ke <b>{{ $oauthClient->name }}</b></p>
+        </div>
+    @endif
+
     <!--begin::Form-->
     <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ url()->current() }}" method="post">
         @csrf

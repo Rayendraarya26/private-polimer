@@ -24,6 +24,16 @@
         .separator:last-child::after {
             content: ""; /* Remove the separator from the last item */
         }
+
+        .app-logo {
+            height: 4rem;
+        }
+
+        @media screen and (min-width: 768px) {
+        .app-logo {
+            height: 8rem !important;
+        }
+        }
     </style>
 
     @stack('styles')

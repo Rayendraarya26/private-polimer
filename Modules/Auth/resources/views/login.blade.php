@@ -2,20 +2,6 @@
 
 @section('title', 'Login')
 
-@push('styles')
-    <style>
-        .app-logo {
-            height: 4rem;
-        }
-
-        @media screen and (min-width: 768px) {
-            .app-logo {
-                height: 8rem !important;
-            }
-        }
-    </style>
-@endpush
-
 @section('content')
     <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mt-15 mb-10" alt=""/>
 
@@ -43,7 +29,7 @@
         <div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
             <div></div>
             <!--begin::Link-->
-            <a href="#">
+            <a href="{{ route('auth.forget-password') }}">
                 Lupa Password?
             </a>
             <!--end::Link-->

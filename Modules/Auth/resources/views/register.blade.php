@@ -2,20 +2,6 @@
 
 @section('title', 'Register')
 
-@push('styles')
-  <style>
-    .app-logo {
-      height: 4rem;
-    }
-
-    @media screen and (min-width: 768px) {
-      .app-logo {
-        height: 8rem !important;
-      }
-    }
-  </style>
-@endpush
-
 @section('content')
   <img 
     alt=""

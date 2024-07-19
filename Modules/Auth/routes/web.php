@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Auth\Http\Controllers\LoginController;
 use Modules\Auth\Http\Controllers\RegisterController;
+use Modules\Auth\Http\Controllers\ForgetPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +23,11 @@ Route::prefix('auth')->middleware(['guest'])->group(function () {
     Route::get('/register', [RegisterController::class, 'index'])->name('auth.register');
     Route::post('/register', [RegisterController::class, 'processRegister']);
 
-    /*Route::get('/forget-password', [ForgetPasswordController::class, 'forgetPassword'])->name('password.reset');
+    Route::get('/forget-password', [ForgetPasswordController::class, 'forgetPassword'])->name('auth.forget-password');
     Route::post('/forget-password', [ForgetPasswordController::class, 'sendResetLinkEmail']);
+
     Route::get('/new-password', [ForgetPasswordController::class, 'newPassword']);
-    Route::post('/new-password', [ForgetPasswordController::class, 'setNewPassword']);*/
+    Route::post('/new-password', [ForgetPasswordController::class, 'setNewPassword']);
 });
 
 Route::post('switch-role', [LoginController::class, 'switchRole'])->name('switch_role')->middleware('web');

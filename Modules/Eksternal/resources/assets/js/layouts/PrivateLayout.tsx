@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from "react"
+import React, { memo, Suspense, useEffect } from "react"
 import { Outlet } from "react-router-dom"
 import styled from "styled-components"
 import Sidebar from "../components/layouts/private/Sidebar"
@@ -8,6 +8,7 @@ import clsx from "clsx"
 import { RootState } from "../store"
 import { useDispatch } from "react-redux"
 import { setWindowWidth } from "../store/common"
+import { Spinner } from "react-bootstrap"
 
 const PrivateLayoutContainer = styled.div`
   width: 100%;
@@ -53,6 +54,13 @@ const LayoutContent = styled.div`
   height: 100%;
 `
 
+const FallbackContainer = styled.div`
+  width: 100%;
+  height: 85dvh;
+  display: grid;
+  place-items: center;
+`
+
 const PrivateLayout: React.FC = () => {
   const isShowSidebar = useSelector(({ common }: RootState) => common.isShowSidebar)
   const dispatch = useDispatch()
@@ -71,7 +79,18 @@ const PrivateLayout: React.FC = () => {
       <LayoutContent className="px-0">
         <Navbar/>
         <div className="w-100 p-3 p-md-4">
-          <Outlet/>
+          <Suspense 
+            fallback={(
+              <FallbackContainer>
+                <Spinner 
+                  animation="border"
+                  variant="primary"
+                />
+              </FallbackContainer>
+            )}
+          >
+            <Outlet/>
+          </Suspense>
         </div>
       </LayoutContent>
     </PrivateLayoutContainer>

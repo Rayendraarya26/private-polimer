@@ -2,17 +2,34 @@ import React, { lazy, memo } from "react"
 import { Routes, Route } from "react-router-dom"
 
 // layouts
-const PrivateLayout = lazy(() => import('./layouts/PrivateLayout'))
+import PrivateLayout from './layouts/PrivateLayout'
 
 // pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
+const PaymentHistoryPage = lazy(() => import('./pages/payment-history/PaymentHistoryPage'))
+const SatisfactionSurveyPage = lazy(() => import('./pages/satisfaction-survey/SatisfactionSurveyPage'))
+const ComplaintPage = lazy(() => import('./pages/complaint/ComplaintPage'))
+const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPage'))
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route element={<PrivateLayout/>}>
-        <Route path='/dashboard' element={<DashboardPage/>}/>
-        <Route path='/payment-history' element={<DashboardPage/>}/>
+        <Route path='/dashboard'>
+          <Route index element={<DashboardPage/>}/>
+        </Route>
+        <Route path='/payment-history'>
+          <Route index element={<PaymentHistoryPage/>}/>
+        </Route>
+        <Route path='/satisfaction-survey'>
+          <Route index element={<SatisfactionSurveyPage/>}/>
+        </Route>
+        <Route path='/complaint'>
+          <Route index element={<ComplaintPage/>}/>
+        </Route>
+        <Route path='/ask-questions'>
+          <Route index element={<AskQuestionsPage/>}/>
+        </Route>
       </Route>
     </Routes>
   )

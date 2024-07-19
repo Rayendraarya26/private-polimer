@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Auth\Http\Controllers\LoginController;
+use Modules\Auth\Http\Controllers\RegisterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,9 @@ use Modules\Auth\Http\Controllers\LoginController;
 Route::prefix('auth')->middleware(['guest'])->group(function () {
     Route::get('/login', [LoginController::class, 'index'])->name('auth.login');
     Route::post('/login', [LoginController::class, 'processLogin']);
+
+    Route::get('/register', [RegisterController::class, 'index'])->name('auth.register');
+    Route::post('/register', [RegisterController::class, 'processRegister']);
 
     /*Route::get('/forget-password', [ForgetPasswordController::class, 'forgetPassword'])->name('password.reset');
     Route::post('/forget-password', [ForgetPasswordController::class, 'sendResetLinkEmail']);

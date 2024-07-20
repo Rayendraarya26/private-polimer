@@ -81,7 +81,7 @@
             <div class="d-flex flex-column flex-center rounded-4 w-md-800px p-10 w-100">
                 <!--begin::Content-->
                 <div id="content-wrapper" class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px w-100">
-                    <div class="d-flex flex-row justify-content-center gap-5">
+                    <div class="d-flex flex-row justify-content-center gap-5 pb-10">
                         <a href="#" class="text-center fw-bold text-decoration-underline">
                             Tracking
                         </a>

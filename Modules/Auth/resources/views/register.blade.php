@@ -6,7 +6,7 @@
   <img 
     alt=""
     src="{{ asset('assets/media/logos/polimer-logo.svg') }}"
-    class="app-logo mt-15 mb-10"
+    class="app-logo mb-20"
   />
 
   <!--begin::Form-->

@@ -3,7 +3,7 @@
 @section('title', 'Login')
 
 @section('content')
-    <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mt-15 mb-10" alt=""/>
+    <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mb-20" alt=""/>
 
     @if($oauthClient)
         <div class="alert alert-info w-100">

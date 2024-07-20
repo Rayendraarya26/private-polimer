@@ -3,12 +3,6 @@
 @section('title', 'Register')
 
 @section('content')
-  <img 
-    alt=""
-    src="{{ asset('assets/media/logos/polimer-logo.svg') }}"
-    class="app-logo mb-20"
-  />
-
   <!--begin::Form-->
   <form 
     class="form w-100"
@@ -426,12 +420,12 @@
           case 1:
             document.querySelector('#kt_sign_up_client_type').classList.remove('d-none');
             document.querySelector('#kt_sign_up_data').classList.add('d-none');
-            document.getElementById('content-wrapper').classList.add('w-md-400px');  
+            document.getElementById('content-wrapper').classList.remove('app-auth-form-wider');
           break;
           case 2:
             document.querySelector('#kt_sign_up_client_type').classList.add('d-none');
             document.querySelector('#kt_sign_up_data').classList.remove('d-none');
-            document.getElementById('content-wrapper').classList.remove('w-md-400px');  
+            document.getElementById('content-wrapper').classList.add('app-auth-form-wider');
           break;
           default:
           break;

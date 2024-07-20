@@ -3,8 +3,6 @@
 @section('title', 'Login')
 
 @section('content')
-    <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mb-20" alt=""/>
-
     @if($oauthClient)
         <div class="alert alert-info w-100">
             <p>Login untuk lanjut ke <b>{{ $oauthClient->name }}</b></p>

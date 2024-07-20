@@ -3,14 +3,13 @@
 @section('title', 'Login')
 
 @section('content')
-    <img src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mb-20" alt=""/>
     <!--begin::Form-->
     <form class="form w-100" novalidate="novalidate" id="kt_form" action="{{ url()->current() }}" method="post">
         @csrf
         <!--begin::Heading-->
-        <div class="text-center mb-11">
+        <div class="text-center mb-6">
             <!--begin::Title-->
-            <h1 class="text-gray-900 fw-bolder mb-3">
+            <h1 class="text-gray-900 fw-bolder mb-1">
                 @lang('Reset Password')
             </h1>
             <!--end::Title-->
@@ -21,7 +20,7 @@
         <!--begin::Heading-->
 
         <!--begin::Input group=-->
-        <div class="fv-row mb-8">
+        <div class="fv-row mb-7">
             <!--begin::Email-->
             <input type="text" placeholder="Email" name="email" autocomplete="off"
                    class="form-control bg-transparent" value="kemal@mailinator.com"/>

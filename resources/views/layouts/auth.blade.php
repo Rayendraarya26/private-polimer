@@ -25,14 +25,45 @@
             content: ""; /* Remove the separator from the last item */
         }
 
+        .app-auth-container {
+            width: 100%;
+            min-height: 100dvh;
+            padding: 3rem;
+        }
+
+        .app-auth-content {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .app-auth-form {
+            width: 100%;
+            min-height: 50dvh;
+            display: flex;
+            justify-content: center;
+        }
+
         .app-logo {
-            height: 4rem;
+            height: 6rem;
+        }
+
+        .app-bottom-image {
+            height: 8rem;
         }
 
         @media screen and (min-width: 768px) {
-        .app-logo {
-            height: 8rem !important;
-        }
+            .app-logo {
+                height: 8rem !important;
+            }
+            .app-auth-form {
+                max-width: 32rem;
+            }
+            .app-auth-form-wider {
+                max-width: 48rem !important;
+            }
         }
     </style>
 
@@ -63,7 +94,7 @@
     }</script>
 <!--end::Theme mode setup on page load-->
 <!--begin::Root-->
-<div class="d-flex flex-column flex-root" id="kt_app_root">
+<div class="app-auth-container" id="kt_app_root">
     <!--begin::Page bg image-->
     <style>body {
             background-image: url('{{asset('assets/media/auth/bg10.jpeg')}}');
@@ -73,60 +104,43 @@
             background-image: url('{{asset('assets/media/auth/bg10-dark.jpeg')}}');
         }</style>
     <!--end::Page bg image-->
-    <!--begin::Authentication - Sign-in -->
-    <div class="d-flex flex-column flex-lg-row flex-column-fluid justify-content-center">
-        <!--begin::Body-->
-        <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center p-12">
-            <!--begin::Wrapper-->
-            <div class="d-flex flex-column flex-center rounded-4 w-md-800px p-10 w-100">
-                <!--begin::Content-->
-                <div id="content-wrapper" class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-400px w-100">
-                    <div class="d-flex flex-row justify-content-center gap-5 pb-10">
-                        <a href="#" class="text-center fw-bold text-decoration-underline">
-                            Tracking
-                        </a>
-                        <a href="#" class="text-center fw-bold text-decoration-underline">
-                            Panduan
-                        </a>
-                        <a href="#" class="text-center fw-bold text-decoration-underline">
-                            FAQ
-                        </a>
-                        <a href="#" class="text-center fw-bold text-decoration-underline">
-                            About
-                        </a>
-                    </div>
-
-
-                    <!--begin::Wrapper-->
-                    <div class="d-flex flex-center flex-column flex-column-fluid">
-                        @if ($errors->any())
-                            <div class="alert alert-danger w-100" role="alert">
-                                {!! implode('', $errors->all('<li>:message</li>')) !!}
-                            </div>
-                        @endif
-                        @if(session('message'))
-                            <div class="alert alert-success" role="alert">
-                                {{ session('message') }}
-                            </div>
-                        @endif
-                        <!--begin::Form-->
-                        @yield('content')
-                        <!--end::Form-->
-                    </div>
-                    <!--end::Wrapper-->
-                </div>
-                <!--end::Content-->
-
-                {{--add image footer stick to bottom--}}
-                <div class="text-center">
-                    <img src="{{ asset('assets/media/logos/polimer-tagline.png') }}" class="h-50px h-md-100px" alt=""/>
-                </div>
-            </div>
-            <!--end::Wrapper-->
+    <div class="app-auth-content">
+        <div class="d-flex flex-row justify-content-center gap-5 pb-10">
+            <a href="#" class="text-center fw-bold text-decoration-underline">
+                Tracking
+            </a>
+            <a href="#" class="text-center fw-bold text-decoration-underline">
+                Panduan
+            </a>
+            <a href="#" class="text-center fw-bold text-decoration-underline">
+                FAQ
+            </a>
+            <a href="#" class="text-center fw-bold text-decoration-underline">
+                About
+            </a>
         </div>
-        <!--end::Body-->
+        <img draggable="false" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mb-20" alt=""/>
+        <div id="content-wrapper" class="app-auth-form">
+            <div class="d-flex flex-center flex-column w-100">
+                @if ($errors->any())
+                    <div class="alert alert-danger w-100" role="alert">
+                        {!! implode('', $errors->all('<li>:message</li>')) !!}
+                    </div>
+                @endif
+                @if(session('message'))
+                    <div class="alert alert-success" role="alert">
+                        {{ session('message') }}
+                    </div>
+                @endif
+                
+                @yield('content')
+            </div>
+        </div>
+
+        <div class="w-100 d-flex justify-content-center">
+            <img draggable="false" src="{{ asset('assets/media/logos/polimer-tagline.png') }}" class="app-bottom-image" alt=""/>
+        </div>
     </div>
-    <!--end::Authentication - Sign-in-->
 </div>
 <!--end::Root-->
 <!--begin::Javascript-->

@@ -119,7 +119,7 @@
                 About
             </a>
         </div>
-        <img draggable="false" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo mb-20" alt=""/>
+        <img draggable="false" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo" alt=""/>
         <div id="content-wrapper" class="app-auth-form">
             <div class="d-flex flex-center flex-column w-100">
                 @if ($errors->any())

@@ -1,5 +1,5 @@
 import React, { lazy, memo } from "react"
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 
 // layouts
 import PrivateLayout from './layouts/PrivateLayout'
@@ -30,6 +30,10 @@ const AppRoutes: React.FC = () => {
         <Route path='/ask-questions'>
           <Route index element={<AskQuestionsPage/>}/>
         </Route>
+        <Route
+          path="*"
+          element={<Navigate to="/dashboard" replace />}
+        />
       </Route>
     </Routes>
   )

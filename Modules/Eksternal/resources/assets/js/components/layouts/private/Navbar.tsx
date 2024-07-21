@@ -1,11 +1,12 @@
 import { memo } from "react"
 import { Nav, Navbar } from "react-bootstrap"
-import { Bell, Menu } from "react-feather"
+import { Menu } from "react-feather"
 import { useSelector } from "react-redux"
 import styled from "styled-components"
 import { RootState } from "../../../store"
 import { useDispatch } from "react-redux"
 import { setShowSidebar } from "../../../store/common"
+import Notifications from './Notifications'
 
 const StyledNavbar = styled(Navbar)`
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -44,7 +45,7 @@ const NavBar: React.FC = () => {
             <Nav.Link href="#link" className="d-none d-md-block">FAQ</Nav.Link>
             <Nav.Link href="#about" className="d-none d-md-block">About</Nav.Link>
             <Nav.Item className="align-self-center">
-              <Bell/>
+              <Notifications/>
             </Nav.Item>
             <Nav.Item className="align-self-center">
               <div>

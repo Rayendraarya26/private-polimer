@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 if (in_array($request->session()->get('group_selected'), [SysGroup::ADMIN->value, SysGroup::ROOT->value])) {
                     return '/dashboard';
                 }
-                return '/app';
+                return '/app/#/dashboard';
             }
         );
 

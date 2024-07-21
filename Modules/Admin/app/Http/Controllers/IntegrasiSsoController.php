@@ -155,6 +155,7 @@ class IntegrasiSsoController extends Controller
             'secret',
             'redirect',
             'revoked',
+            'accessibility',
             'created_at',
             'updated_at',
         ]);

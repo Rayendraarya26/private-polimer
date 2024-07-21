@@ -11,6 +11,7 @@ class AppController extends Controller
 {
     public function index()
     {
+        // redirect to /app/#/dashboard if url only /app
         return view('eksternal::app');
     }
 }

@@ -105,7 +105,7 @@ class LoginController
             return redirect()->intended(route('home'));
         }
 
-        return redirect()->intended(route('app') . '/#/dashboard');
+        return redirect()->intended(url('/app/#/dashboard'));
     }
 
     public function switchRole(Request $request) // Khusus yang sudah login

@@ -48,7 +48,7 @@
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
                         <th>Aplikasi</th>
                         <th>Client ID</th>
-                        <th>Client Secret</th>
+                        <th>Accessibility</th>
                         <th>Redirect URL</th>
                         <th>Tgl Diperbarui</th>
                         <th class="text-end min-w-100px">Aksi</th>
@@ -144,7 +144,7 @@
                     columns: [
                         { data: 'name' },
                         { data: 'id' },
-                        { data: 'secret' },
+                        { data: 'accessibility' },
                         { data: 'redirect' },
                         { data: 'updated_at' },
                         { data: null },

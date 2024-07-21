@@ -207,24 +207,36 @@
                 />
               </div>
               <div class="fv-row">
-                <input 
-                  type="password"
-                  placeholder="Password"
-                  name="account_password"
-                  autocomplete="off"
-                  aria-label="account_password"
-                  class="form-control bg-transparent"
-                />
+                <div class="input-group">
+                  <input 
+                    type="password"
+                    placeholder="Password"
+                    name="account_password"
+                    autocomplete="off"
+                    aria-label="account_password"
+                    class="form-control bg-transparent"
+                  />
+                  <span id="password-toggle" class="input-group-text" style="cursor: pointer;">
+                    <i id="show-password-icon" class="fas fa-eye d-none"></i>
+                    <i id="hide-password-icon" class="fas fa-eye-slash"></i>
+                  </span>
+                </div>
               </div>
               <div class="fv-row">
-                <input 
-                  type="password"
-                  placeholder="Ulangi Password"
-                  name="account_password_retype"
-                  autocomplete="off"
-                  aria-label="account_password_retype"
-                  class="form-control bg-transparent"
-                />
+                <div class="input-group">
+                  <input 
+                    type="password"
+                    placeholder="Ulangi Password"
+                    name="account_password_retype"
+                    autocomplete="off"
+                    aria-label="account_password_retype"
+                    class="form-control bg-transparent"
+                  />
+                  <span id="password-retype-toggle" class="input-group-text" style="cursor: pointer;">
+                    <i id="show-password-retype-icon" class="fas fa-eye d-none"></i>
+                    <i id="hide-password-retype-icon" class="fas fa-eye-slash"></i>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -489,6 +501,45 @@
         });
       };
 
+
+      const handlePasswordToggle = function () {
+        const toggleElement = document.getElementById('password-toggle')
+        if (toggleElement) {
+          toggleElement.addEventListener('click', function() {
+            const passwordInput = document.querySelector('[name="account_password"]')
+            const showPasswordIcon = document.getElementById('show-password-icon')
+            const hidePasswordIcon = document.getElementById('hide-password-icon')
+            const isShowPassword = passwordInput.getAttribute('type') === 'text'
+            passwordInput.setAttribute('type', isShowPassword ? 'password' : 'text')
+            if (isShowPassword) {
+              showPasswordIcon.classList.add('d-none')
+              hidePasswordIcon.classList.remove('d-none')
+            } else {
+              showPasswordIcon.classList.remove('d-none')
+              hidePasswordIcon.classList.add('d-none')
+            }
+          })
+        }
+
+        const toggleElement2 = document.getElementById('password-retype-toggle')
+        if (toggleElement2) {
+          toggleElement2.addEventListener('click', function() {
+            const passwordInput = document.querySelector('[name="account_password_retype"]')
+            const showPasswordIcon = document.getElementById('show-password-retype-icon')
+            const hidePasswordIcon = document.getElementById('hide-password-retype-icon')
+            const isShowPassword = passwordInput.getAttribute('type') === 'text'
+            passwordInput.setAttribute('type', isShowPassword ? 'password' : 'text')
+            if (isShowPassword) {
+              showPasswordIcon.classList.add('d-none')
+              hidePasswordIcon.classList.remove('d-none')
+            } else {
+              showPasswordIcon.classList.remove('d-none')
+              hidePasswordIcon.classList.add('d-none')
+            }
+          })
+        }
+      }
+
       // Public functions
       return {
         // Initialization
@@ -497,6 +548,7 @@
           initRecaptcha();
           handleSubmitClientType();
           handleValidation();
+          handlePasswordToggle();
 
           backButton.addEventListener('click', function() {
             switchStep(1)

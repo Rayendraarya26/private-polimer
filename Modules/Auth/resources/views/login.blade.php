@@ -17,15 +17,36 @@
         <!--begin::Input group=-->
         <div class="fv-row mb-8">
             <!--begin::Email-->
-            <input type="text" placeholder="Email" name="email" autocomplete="off" aria-label="email" autofocus
-                   class="form-control bg-transparent" value="dolkode@mailinator.com"/>
+            <input 
+                type="text"
+                placeholder="Email"
+                name="email"
+                autocomplete="off"
+                aria-label="email"
+                autofocus
+                class="form-control bg-transparent"
+                value="dolkode@mailinator.com"
+            />
             <!--end::Email-->
         </div>
         <!--end::Input group=-->
         <div class="fv-row mb-3">
             <!--begin::Password-->
-            <input type="password" placeholder="Kata Sandi" name="password" autocomplete="off" aria-label="password"
-                   class="form-control bg-transparent" value="password"/>
+            <div class="input-group">
+                <input 
+                    type="password"
+                    placeholder="Kata Sandi"
+                    name="password"
+                    autocomplete="off"
+                    aria-label="password"
+                    class="form-control bg-transparent"
+                    value="password"
+                />
+                <span id="password-toggle" class="input-group-text" style="cursor: pointer;">
+                    <i id="show-password-icon" class="fas fa-eye d-none"></i>
+                    <i id="hide-password-icon" class="fas fa-eye-slash"></i>
+                </span>
+            </div>
             <!--end::Password-->
         </div>
         <!--end::Input group=-->
@@ -153,6 +174,26 @@
                 });
             };
 
+            const handlePasswordToggle = function () {
+                const toggleElement = document.getElementById('password-toggle')
+                if (toggleElement) {
+                    toggleElement.addEventListener('click', function() {
+                        const passwordInput = document.querySelector('[name="password"]')
+                        const showPasswordIcon = document.getElementById('show-password-icon')
+                        const hidePasswordIcon = document.getElementById('hide-password-icon')
+                        const isShowPassword = passwordInput.getAttribute('type') === 'text'
+                        passwordInput.setAttribute('type', isShowPassword ? 'password' : 'text')
+                        if (isShowPassword) {
+                            showPasswordIcon.classList.add('d-none')
+                            hidePasswordIcon.classList.remove('d-none')
+                        } else {
+                            showPasswordIcon.classList.remove('d-none')
+                            hidePasswordIcon.classList.add('d-none')
+                        }
+                    })
+                }
+            }
+
             // Public functions
             return {
                 // Initialization
@@ -162,6 +203,7 @@
 
                     handleValidation();
                     initRecaptcha();
+                    handlePasswordToggle();
 
                     if (isValidUrl(submitButton.closest('form').getAttribute('action'))) {
                         handleSubmitAjax(); // use for ajax submit

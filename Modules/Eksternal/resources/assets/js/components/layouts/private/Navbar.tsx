@@ -7,6 +7,7 @@ import { RootState } from "../../../store"
 import { useDispatch } from "react-redux"
 import { setShowSidebar } from "../../../store/common"
 import Notifications from './Notifications'
+import UserProfile from "./UserProfile"
 
 const StyledNavbar = styled(Navbar)`
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -17,14 +18,6 @@ const StyledNavbar = styled(Navbar)`
 //   object-fit: cover;
 //   object-position: center;
 // `
-
-const AvatarImage = styled.img`
-  width: 2.25rem;
-  aspect-ratio: 1/1;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center;
-`
 
 const NavBar: React.FC = () => {
   const isShowSidebar = useSelector(({ common }: RootState) => common.isShowSidebar)
@@ -48,17 +41,7 @@ const NavBar: React.FC = () => {
               <Notifications/>
             </Nav.Item>
             <Nav.Item className="align-self-center">
-              <div>
-                <div className="d-flex align-items-center gap-2">
-                  <AvatarImage 
-                    draggable='false'
-                    src="https://placehold.co/400x400"
-                  />
-                  <div className="d-none d-md-block">
-                    <div className="fw-semibold">User Fullname</div>
-                  </div>
-                </div>
-              </div>
+              <UserProfile/>
             </Nav.Item>
           </Nav>
         </Navbar>

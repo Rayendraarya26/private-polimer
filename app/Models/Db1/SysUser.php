@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Modules\Auth\Notifications\ResetPasswordNotification;
 
 class SysUser extends Authenticatable
 {
@@ -65,12 +66,12 @@ class SysUser extends Authenticatable
         ];
     }
 
-//    public function sendPasswordResetNotification($token): void
-//    {
-//        $url = url('/auth/new-password?token=' . $token . '&email=' . $this->email);
-//
-//        $this->notify(new ResetPasswordNotification($url));
-//    }
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = url('/auth/new-password?token=' . $token . '&email=' . $this->email);
+
+        $this->notify(new ResetPasswordNotification($url));
+    }
 
     public function sys_user_groups(): HasMany
     {

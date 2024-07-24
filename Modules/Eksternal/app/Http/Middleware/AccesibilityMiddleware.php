@@ -46,11 +46,10 @@ class AccesibilityMiddleware
             }
 
             // Check if the user group is allowed to access the client
-            if ($oauthClient && $oauthClient->accessibility === OauthClientAccesibility::PRIVATE->value &&
+            if ($oauthClient && $userGroup &&
+                $oauthClient->accessibility === OauthClientAccesibility::PRIVATE &&
                 $userGroup->group_id == SysGroup::PELANGGAN->value) {
-                return response()->json([
-                    'message' => 'Unauthorized'
-                ], 401);
+                return responseJSON('error', 'Anda tidak memiliki akses ke aplikasi ini.', 403, 'Forbidden');
             }
         }
 

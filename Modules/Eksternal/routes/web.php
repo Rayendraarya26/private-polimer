@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 
 /*
@@ -17,3 +18,8 @@ use Modules\Eksternal\Http\Controllers\AppController;
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware(['auth']);
+
+// Semua API Eksternal didefinisikan disini
+Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
+    Route::get('user', [UserController::class, 'user']);
+});

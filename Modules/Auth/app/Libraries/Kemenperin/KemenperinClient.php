@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Auth\Traits;
+namespace Modules\Auth\Libraries\Kemenperin;
 
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
@@ -8,10 +8,8 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Modules\Auth\Classes\KemenperinPegawai;
-use Modules\Auth\Classes\KemenperinResponseLogin;
 
-trait KemenperinApiTrait
+class KemenperinClient
 {
     private PendingRequest $http;
 
@@ -51,12 +49,12 @@ trait KemenperinApiTrait
      * @param string $accountId
      * @param string $password
      *
-     * @return KemenperinResponseLogin
+     * @return KemenperinResponseLogin|null
      */
-    public function postLogin(string $accountId, string $password): KemenperinResponseLogin
+    public function postLogin(string $accountId, string $password): KemenperinResponseLogin|null
     {
-        $result = new KemenperinResponseLogin();
         try {
+            $result     = new KemenperinResponseLogin();
             $apiUrl     = "/login";
             $apiPayload = ['username' => $accountId, 'password' => $password];
 
@@ -96,10 +94,12 @@ trait KemenperinApiTrait
 
             return $result;
         } catch (Exception $e) {
-            $result->success = false;
-            $result->message = $e->getMessage();
-
-            return $result;
+            Log::withContext([
+                'account_id' => $accountId,
+                'file'       => $e->getFile(),
+                'line'       => $e->getLine()
+            ])->error($e->getMessage());
+            return null;
         }
 
     }
@@ -110,29 +110,28 @@ trait KemenperinApiTrait
      *
      * @param $nip
      *
-     * @return KemenperinPegawai
+     *
+     * @return KemenperinPegawai|null
      * @throws ConnectionException
      */
-    public function getPegawaiByNIP($nip): KemenperinPegawai
+    public function getPegawaiByNIP($nip): KemenperinPegawai|null
     {
         $apiUrl        = "/sipegi/getDataPegawai";
         $apiQueryParam = ['nip' => $nip];
 
         $response = $this->http->get($apiUrl, $apiQueryParam);
 
-        $result = new KemenperinPegawai();
-
         if ($response->successful()) {
             $dataBody = $response->json();
 
-            $result->success = true;
+            $result          = new KemenperinPegawai();
             $result->message = $dataBody['keterangan'];
             $result->set($dataBody['data']);
+            return $result;
         } else {
-            $result->success = false;
-            $result->message = "Data tidak ditemukan";
+            Log::error(sprintf("getPegawaiByNIP failed: headers: %s | body: %s", json_encode($response->headers()),
+                    json_encode($response->body())) . $response->body());
+            return null;
         }
-
-        return $result;
     }
 }

@@ -26,7 +26,6 @@ class SysUser extends Authenticatable
         'name',
         'username',
         'nip',
-        'nip_baru',
         'email',
         'email_verified_at',
         'password',

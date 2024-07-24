@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Auth\Classes;
+namespace Modules\Auth\Libraries\Kemenperin;
 
 class KemenperinResponseLogin
 {

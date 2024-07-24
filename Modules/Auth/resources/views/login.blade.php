@@ -17,12 +17,12 @@
         <!--begin::Input group=-->
         <div class="fv-row mb-8">
             <!--begin::Email-->
-            <input 
+            <input
                 type="text"
-                placeholder="Email"
-                name="email"
+                placeholder="Account ID (Email/NIP)"
+                name="account_id"
                 autocomplete="off"
-                aria-label="email"
+                aria-label="account_id"
                 autofocus
                 class="form-control bg-transparent"
                 value="dolkode@mailinator.com"
@@ -33,7 +33,7 @@
         <div class="fv-row mb-3">
             <!--begin::Password-->
             <div class="input-group">
-                <input 
+                <input
                     type="password"
                     placeholder="Kata Sandi"
                     name="password"
@@ -99,15 +99,11 @@
                     form,
                     {
                         fields: {
-                            'email': {
+                            'account_id': {
                                 validators: {
-                                    regexp: {
-                                        regexp: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                        message: 'Email tidak valid',
-                                    },
                                     notEmpty: {
-                                        message: 'Email tidak boleh kosong'
-                                    }
+                                        message: 'Account ID tidak boleh kosong'
+                                    },
                                 }
                             },
                             'password': {

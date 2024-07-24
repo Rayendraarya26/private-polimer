@@ -109,6 +109,52 @@
     }
 </script>
 <!--end::Vendors Javascript-->
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+        getMessaging,
+        getToken,
+        onMessage
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-messaging.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyB5p-phArvIO4HS9sZ9978zFvaU82TUlCI",
+        authDomain: "balaikulit-yogya.firebaseapp.com",
+        projectId: "balaikulit-yogya",
+        storageBucket: "balaikulit-yogya.appspot.com",
+        messagingSenderId: "54843566382",
+        appId: "1:54843566382:web:874577fb0b2f1ee16d72bf"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.register('{!!  url("firebase-messaging-sw.js")  !!}')
+    }
+
+    // Request Notif Permission
+    Notification.requestPermission()
+        .then((permission) => {
+            if (permission === 'granted') {
+
+                getToken(messaging, { vapidKey: "BO0Ju3wjfqdcs5gJywGHBK84NoAZAzF_N3g7xzWjXWQv_w2V9oiiDJMI3GD3FZu2xXYTUoopolnwItX7hqRYjK0" })
+                    .then(token => {
+                        axios.post(`{{ route('sync-token') }}`, { token })
+                    })
+
+                onMessage(messaging, (payload) => {
+                    console.log('Message received. ', payload);
+                });
+            }
+        })
+</script>
+
 @stack('scripts')
 <!--end::Javascript-->
 </body>

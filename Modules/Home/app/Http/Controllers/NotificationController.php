@@ -65,13 +65,13 @@ class NotificationController
             ['agent' => $request->header('User-agent'), 'ip' => $request->getClientIp()]
         );
 
-        return responseJSON(200, null, "sinkronisasi berhasil");
+        return responseJSON("sinkronisasi berhasil");
     }
 
     public function tes()
     {
-        $libNotif = new Notification(auth()->id(), "Ini judul", 'ini pesan', 'https://google.com');
-        $libNotif->sendInBackground();
+        $libNotif = new Notification(auth()->id(), "Ini judul", 'ini pesan', url('/'));
+        $libNotif->send();
 
         $libMailer = new Mailer();
         $libMailer->subject('Test Mailer')

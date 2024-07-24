@@ -3,7 +3,17 @@
     <div class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-35px h-35px"
          data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
          data-kt-menu-placement="bottom-end" id="kt_menu_item_wow">
-        <i class="fa-duotone fa-bell fs-2 {{ $total > 0 ? 'text-primary' : '' }}"></i>
+        <div>
+            <i class="position-relative">
+                <i class="fa-duotone fa-bell fs-2 {{ $total > 0 ? 'text-primary' : '' }}"></i>
+                @if($total > 0)
+                    <span class="position-absolute top-100 start-100 translate-middle badge badge-circle badge-primary">
+                        {{$total}}
+                    </span>
+                @endif
+            </i>
+        </div>
+
     </div>
 
     <!--begin::Menu-->
@@ -13,8 +23,10 @@
         <div class="d-flex flex-column bgi-no-repeat rounded-top"
              style="background-image:url('{{asset('assets/media/misc/menu-header-bg.jpg')}}')">
             <!--begin::Title-->
-            <h3 class="text-white fw-semibold px-9 mt-10 mb-6">Notifikasi
-                @if($total > 0)<span class="fs-8 opacity-75 ps-3">{{ $total }} belum terbaca</span></h3>@endif
+            <h3 class="text-white fw-semibold px-9 mt-10 mb-6">
+                Notifikasi
+                @if($total > 0)<span class="fs-8 opacity-75 ps-3">{{ $total }} belum terbaca</span>@endif
+            </h3>
             <!--end::Title-->
         </div>
         <!--end::Heading-->
@@ -42,7 +54,8 @@
                 @else
                     <div class="scroll-y mh-325px my-5 px-8">
                         @foreach($notif as $n)
-                            <a href="{{ url('/notifications/open/' . $n->id) }}" class="text-gray-800 text-hover-primary fw-semibold">
+                            <a href="{{ url('/notifications/open/' . $n->id) }}"
+                               class="text-gray-800 text-hover-primary fw-semibold">
                                 <!--begin::Item-->
                                 <div class="d-flex flex-stack py-4 {{ $n->is_read == 'no' ? 'text-primary' : '' }}">
                                     <!--begin::Section-->

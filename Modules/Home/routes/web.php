@@ -25,7 +25,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get("open/{id}", [NotificationController::class, 'open']);
         Route::get("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
         Route::get("/tes", [NotificationController::class, 'tes']);
-        Route::post("/ajax/sync-token", [NotificationController::class, 'ajaxSyncToken']);
+        Route::post("/ajax/sync-token", [NotificationController::class, 'ajaxSyncToken'])->name('sync-token');
     });
 
     Route::prefix('account')->group(function () {

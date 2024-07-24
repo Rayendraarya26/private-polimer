@@ -12,10 +12,6 @@ class SysUserFbtoken extends Model
 
     protected $table = 'sys_user_fbtoken';
 
-    protected $hidden = [
-        'token'
-    ];
-
     protected $fillable = [
         'user_id',
         'token',

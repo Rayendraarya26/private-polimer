@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
+use Modules\Eksternal\Http\Middleware\AccesibilityMiddleware;
 
 /*
  *--------------------------------------------------------------------------
@@ -15,6 +15,7 @@ use Modules\Eksternal\Http\Controllers\Api\UserController;
  *
 */
 
-Route::middleware('auth:api')->group(function () {
-    Route::get('user', [UserController::class, 'user']);
-});
+Route::middleware(['auth:api', AccesibilityMiddleware::class])
+    ->group(function () {
+        Route::get('user', [UserController::class, 'user']);
+    });

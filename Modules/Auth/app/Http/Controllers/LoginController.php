@@ -2,6 +2,7 @@
 
 namespace Modules\Auth\Http\Controllers;
 
+use App\Enums\OauthClientAccesibility;
 use App\Enums\Option;
 use App\Enums\SysGroup;
 use App\Models\Db1\OauthAccessToken;
@@ -155,14 +156,24 @@ class LoginController
             ]);
         }
 
-        // update last login
-        Auth::user()->last_login = now();
-        Auth::user()->save();
 
         // set session
         $groupData = $user->sys_user_groups->where('is_default', 'yes')->first();
         $this->setAccess($groupData->group_id, $groupData->sys_group->name);
         $request->session()->regenerate();
+
+        $client = $this->searchOauthClient($request);
+        if ($client?->accessibility === OauthClientAccesibility::PRIVATE && $groupData->group_id === SysGroup::PELANGGAN->value) {
+            Auth::logout();
+            $request->session()->flush();
+            return back()->onlyInput('account_id')->withErrors([
+                'message' => 'Anda tidak memiliki akses ke aplikasi ini.'
+            ]);
+        }
+
+        // update last login
+        Auth::user()->last_login = now();
+        Auth::user()->save();
 
         // redirect to intended page
         if ($groupData->group_id === SysGroup::PELANGGAN->value) {

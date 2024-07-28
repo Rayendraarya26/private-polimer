@@ -18,11 +18,11 @@ class KemenperinClient
      */
     public function __construct()
     {
-        if (empty(config('app.intranet.url'))) {
+        if (empty(config('intranet.url'))) {
             throw new Exception("INTRANET URL CANNOT EMPTY");
         }
-        $this->http = Http::baseUrl(config('app.intranet.url'))
-            ->withOptions(['debug' => config('app.intranet.debug')])
+        $this->http = Http::baseUrl(config('intranet.url'))
+            ->withOptions(['debug' => config('intranet.debug')])
             ->acceptJson()
             ->timeout(5);
     }
@@ -35,7 +35,7 @@ class KemenperinClient
      */
     private function mustLogin(): void
     {
-        $cookie = Session::get(config('app.intranet.cookie_name'));
+        $cookie = Session::get(config('intranet.cookie_name'));
         if (empty($cookie)) {
             throw new Exception("YOU HAVE TO LOGIN INTRANET FIRST");
         }
@@ -66,7 +66,7 @@ class KemenperinClient
                 if (array_key_exists('status', $dataBody)) {
                     if ($dataBody['status'] == 1) {
                         $dataHeaderCookie = $response->header('Set-Cookie');
-                        Session::put(config('app.intranet_cookie_name'), $dataHeaderCookie);
+                        Session::put(config('intranet_cookie_name'), $dataHeaderCookie);
 
                         $result->success  = true;
                         $result->message  = $dataBody['keterangan'];

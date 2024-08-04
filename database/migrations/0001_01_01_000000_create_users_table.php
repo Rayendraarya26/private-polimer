@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('nip')->nullable()->unique();
             $table->string('email')->unique();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->enum('is_banned', ['yes', 'no'])->default(Option::NO);
             $table->enum('2fa_enable', ['yes', 'no'])->default(Option::NO);
             $table->string('2fa_secret')->nullable();

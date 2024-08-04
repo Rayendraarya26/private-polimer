@@ -27,12 +27,10 @@ class SysUser extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
-        'username',
         'nip',
         'email',
         'email_verified_at',
         'password',
-        'is_active',
         'is_banned',
         'force_update_password',
         'remember_token',

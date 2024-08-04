@@ -49,10 +49,11 @@ class UserSeeder extends Seeder
     private function createPelangganPerorangan(): void
     {
         // create pelanggan peroangan
-        $user           = new SysUser();
-        $user->name     = 'Perorangan';
-        $user->email    = 'perorangan@mailinator.com';
-        $user->password = bcrypt('password');
+        $user                    = new SysUser();
+        $user->name              = 'Perorangan';
+        $user->email             = 'perorangan@mailinator.com';
+        $user->password          = bcrypt('password');
+        $user->email_verified_at = now();
         $user->save();
 
         // create group

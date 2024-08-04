@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -26,7 +27,7 @@ return new class extends Migration {
 
             // Fields for Perusahaan
             $table->string('nama')->nullable();
-            $table->string('alamat')->nullable();
+            $table->text('alamat')->nullable();
             $table->string('badan_hukum')->nullable();
             $table->string('jenis')->nullable();
             $table->string('pemilik')->nullable();
@@ -82,10 +83,10 @@ return new class extends Migration {
 
             // Fields for Instansi
             $table->string('nama')->nullable();
-            $table->string('alamat')->nullable();
+            $table->text('alamat')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
-            $table->string('jenis_kelamin')->nullable();
+            $table->enum('jenis_kelamin', PelangganGender::toArray())->nullable();
             $table->string('kewarganegaraan')->nullable();
             $table->string('nik')->nullable();
             $table->string('surel')->nullable();

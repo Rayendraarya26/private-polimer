@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pelanggan;
@@ -73,7 +74,7 @@ class UserSeeder extends Seeder
             'alamat'              => 'Jl. Pribadi No. 123, Bandung',
             'tempat_lahir'        => 'Bandung',
             'tanggal_lahir'       => '1980-01-01',
-            'jenis_kelamin'       => 'Laki-laki',
+            'jenis_kelamin'       => PelangganGender::LAKI,
             'kewarganegaraan'     => 'WNI',
             'nik'                 => '1234567890123456',
             'surel'               => 'ahmad.zulfikar@example.com',

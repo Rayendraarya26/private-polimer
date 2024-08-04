@@ -181,7 +181,6 @@
                         </th>
                         <th>User</th>
                         <th>Roles</th>
-                        <th>Is Active</th>
                         <th>Is Banned</th>
                         <th>Joined Date</th>
                         <th class="text-end min-w-100px">Actions</th>
@@ -289,7 +288,6 @@
                         { data: 'id' },
                         { data: 'name' },
                         { data: 'group_name' },
-                        { data: 'is_active' },
                         { data: 'is_banned' },
                         { data: 'created_at' },
                         { data: null },
@@ -337,12 +335,6 @@
                         },
                         {
                             targets: 3,
-                            render: function (value) {
-                                return value === "yes" ? `<span class="badge badge-light-success">Active</span>` : `<span class="badge badge-light-danger">Inactive</span>`;
-                            }
-                        },
-                        {
-                            targets: 4,
                             render: function (data) {
                                 return data === "yes" ? `<span class="badge badge-light-danger">Banned</span>` : `<span class="badge badge-light-success">No</span>`;
                             }
@@ -443,7 +435,6 @@
                         }
                     });
 
-                    if (!_.isEmpty(activeValue)) dt.column(findColumnIndex('is_active')).search(activeValue).draw();
                     if (!_.isEmpty(bannedValue)) dt.column(findColumnIndex('is_banned')).search(bannedValue).draw();
                 });
             };

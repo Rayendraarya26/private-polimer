@@ -5,8 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -17,9 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('nip')->nullable()->unique();
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('is_active', ['yes', 'no'])->default(Option::YES);
             $table->enum('is_banned', ['yes', 'no'])->default(Option::NO);
             $table->enum('2fa_enable', ['yes', 'no'])->default(Option::NO);
             $table->string('2fa_secret')->nullable();
@@ -28,7 +25,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestampTz('last_login')->nullable();
             $table->timestampTz('password_updated_at')->nullable()->useCurrent();
-            $table->timestampTz('active_at')->nullable();
+            $table->timestampTz('email_verified_at')->nullable();
             $table->timestampTz('banned_at')->nullable();
             $table->timestampsTz();
         });

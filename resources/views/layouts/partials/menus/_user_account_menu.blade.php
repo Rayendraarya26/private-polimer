@@ -5,7 +5,7 @@
         <div class="menu-content d-flex align-items-center px-3">
             <!--begin::Avatar-->
             <div class="symbol symbol-50px me-5">
-                <img alt="Logo" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url(auth()->user()->picture) }}"/>
+                <img alt="Logo" src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->temporaryUrl(auth()->user()->picture, now()->addMinute()) }}"/>
             </div>
             <!--end::Avatar-->
             <!--begin::Username-->

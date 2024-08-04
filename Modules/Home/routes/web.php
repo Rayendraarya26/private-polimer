@@ -17,7 +17,7 @@ use Modules\Home\Http\Controllers\NotificationController;
 |
 */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['custom_auth', 'internal'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('home');
 
     Route::prefix('notifications')->group(function () {

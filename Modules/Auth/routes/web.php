@@ -1,9 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Auth\Http\Controllers\ForgetPasswordController;
 use Modules\Auth\Http\Controllers\LoginController;
 use Modules\Auth\Http\Controllers\RegisterController;
-use Modules\Auth\Http\Controllers\ForgetPasswordController;
+use Modules\Auth\Http\Controllers\VerificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,14 @@ Route::prefix('auth')->middleware(['guest'])->group(function () {
 
     Route::get('/new-password', [ForgetPasswordController::class, 'newPassword']);
     Route::post('/new-password', [ForgetPasswordController::class, 'setNewPassword']);
+});
+
+
+Route::prefix('email')->middleware(['auth'])->group(function () {
+    Route::get('verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
+
+    Route::get('resend-verification', [VerificationController::class, 'resend'])->name('verification.resend');
+    Route::post('resend-verification', [VerificationController::class, 'processResend'])->middleware('throttle:2,1');
 });
 
 Route::post('switch-role', [LoginController::class, 'switchRole'])->name('switch_role')->middleware('web');

@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\SysGroup;
+use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\InternalUserMiddleware;
 use App\Http\Middleware\Restriction;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -26,7 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         );
 
-        $middleware->alias(['restrict' => Restriction::class]);
+        $middleware->alias([
+            'restrict'    => Restriction::class,
+            'custom_auth' => CustomAuthMiddleware::class,
+            'internal'    => InternalUserMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);

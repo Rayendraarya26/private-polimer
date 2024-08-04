@@ -7,7 +7,12 @@
         <div class="alert alert-info w-100">
             <p>Login untuk lanjut ke <b>{{ $oauthClient->name }}</b></p>
         </div>
+    @elseif($isVerify)
+        <div class="alert alert-info w-100">
+            <p>Silahkan login untuk melanjutkan verifikasi</p>
+        </div>
     @endif
+
 
     <!--begin::Form-->
     <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ url()->current() }}" method="post">
@@ -162,8 +167,8 @@
 
             // recaptcha
             const initRecaptcha = function () {
-                grecaptcha.ready(function() {
-                    grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'}).then(function(token) {
+                grecaptcha.ready(function () {
+                    grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' }).then(function (token) {
                         const recaptchaInput = document.querySelector('[name="recaptcha"]')
                         if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
                     });
@@ -173,7 +178,7 @@
             const handlePasswordToggle = function () {
                 const toggleElement = document.getElementById('password-toggle')
                 if (toggleElement) {
-                    toggleElement.addEventListener('click', function() {
+                    toggleElement.addEventListener('click', function () {
                         const passwordInput = document.querySelector('[name="password"]')
                         const showPasswordIcon = document.getElementById('show-password-icon')
                         const hidePasswordIcon = document.getElementById('hide-password-icon')

@@ -11,7 +11,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -88,13 +87,12 @@ class ManageUserController
     public function store(Request $request)
     {
         $request->validate([
-            'name'      => 'required|string',
+            'name'          => 'required|string',
             'email'         => 'required|email|unique:App\Models\Db1\SysUser,email',
             'password'      => 'required|min:4|confirmed',
             'foto'          => 'sometimes|max:500|mimes:jpeg,jpg,png',
             'group'         => 'required',
             'group_default' => 'required',
-            'is_active'     => 'required|in:yes,no',
         ]);
 
         try {
@@ -108,13 +106,12 @@ class ManageUserController
     public function update(Request $request, $id)
     {
         $input = $request->validate([
-            'name'      => 'required|string|min:4',
+            'name'          => 'required|string|min:4',
             'email'         => 'required|email',
             'password'      => 'sometimes|confirmed',
             'foto'          => 'sometimes|max:2048|mimes:jpeg,jpg,png',
             'group'         => 'required',
             'group_default' => 'required',
-            'is_active'     => 'required|in:yes,no',
         ]);
 
         try {
@@ -139,9 +136,8 @@ class ManageUserController
         }
 
         DB::transaction(function () use ($request, $input, $user) {
-            $user->name = $input['name'];
-            $user->email    = $input['email'];
-            $user->is_active = $input['is_active'];
+            $user->name  = $input['name'];
+            $user->email = $input['email'];
             if (!empty($input['password'])) $user->password = bcrypt($input['password']);
             $user->save();
 
@@ -164,6 +160,10 @@ class ManageUserController
                 $img       = ImageManager::imagick()->read($request->file('foto')->getRealPath());
                 $img->scale(300)
                     ->save(Storage::disk('public')->path($imageName), 80);
+
+                // move to aws s3 from public\
+                Storage::disk('s3')->put($imageName, Storage::disk('public')->get($imageName));
+                Storage::disk('public')->delete($imageName);
 
                 $user->picture = $imageName;
                 $user->save();
@@ -191,7 +191,7 @@ class ManageUserController
 
         return Datatables::eloquent($data)
             ->editColumn('picture', function ($data) {
-                return Storage::disk('public')->url($data->picture);
+                return Storage::disk('s3')->temporaryUrl($data->picture, now()->addHour());
             })
             ->addColumn('group_name', function ($item) {
                 return $item->sys_user_groups->map(function ($group) {

@@ -13,10 +13,12 @@ use App\Models\Db1\SysUserGroup;
 use App\Traits\CaptchaTrait;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Modules\Auth\Libraries\Kemenperin\KemenperinClient;
 use Modules\Auth\Traits\AuthTrait;
 
@@ -29,7 +31,8 @@ class LoginController
     public function index(Request $request)
     {
         return view('auth::login')->with([
-            'oauthClient' => $this->searchOauthClient($request)
+            'oauthClient' => $this->searchOauthClient($request),
+            'isVerify'    => $this->isVerifyRequest($request)
         ]);
     }
 
@@ -210,10 +213,18 @@ class LoginController
         if (!isset($url['query'])) return null;
 
         parse_str($url['query'], $query);
-        $clientId = $query['client_id'];
+        $clientId = Arr::get($query, 'client_id');
 
         if (!$clientId) return null;
 
         return OauthClient::find($clientId);
+    }
+
+    private function isVerifyRequest(Request $request)
+    {
+        $intended = $request->session()->get('url.intended');
+        if (!$intended) return null;
+
+        return str_contains($intended, '/email/verify/');
     }
 }

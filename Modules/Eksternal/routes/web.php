@@ -17,7 +17,7 @@ use Modules\Eksternal\Http\Controllers\AppController;
 
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
-    ->middleware(['auth']);
+    ->middleware(['custom_auth']);
 
 // Semua API Eksternal didefinisikan disini
 Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {

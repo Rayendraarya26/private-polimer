@@ -15,7 +15,7 @@ use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 |
 */
 
-Route::prefix('/admin')->middleware(['auth', 'restrict'])->group(function () {
+Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function () {
     Route::get('setting-banner/ajax', [BannerController::class, 'ajax']);
     Route::resource('setting-banner', BannerController::class)->except('show');
 

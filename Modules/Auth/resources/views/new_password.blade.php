@@ -13,6 +13,7 @@
             <!--begin::Title-->
             <h1 class="text-gray-900 fw-bolder mb-3">
                 @lang('Reset Password')
+                <i>{{ $email }}</i>
             </h1>
             <!--end::Title-->
         </div>

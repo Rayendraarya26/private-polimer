@@ -79,36 +79,10 @@
                                 @if(!empty($data->picture))
                                     <div style="text-align: center; justify-content: center">
                                         <img
-                                            src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($data->picture) }}"
+                                            src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->temporaryUrl($data->picture, now()->addMinute()) }}"
                                             style="width: 200px" alt="foto">
                                     </div>
                                 @endif
-                            </div>
-                        </div>
-
-                        <div class="form-group row mb-3">
-                            <label class="col-form-label col-sm-3"
-                                   for="is_active">User Aktif?*</label>
-                            <div class="col-sm-8">
-                                <div class="d-flex flex-row gap-4">
-                                    <div class="form-check form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="radio"
-                                               value="yes" {{$data?->is_active == "yes" ? "checked" : ""}}
-                                               name="is_active" aria-label="is_active"/>
-                                        <label class="form-check-label" for="flexRadioDefault">
-                                            Aktif
-                                        </label>
-                                    </div>
-
-                                    <div class="form-check form-check-custom form-check-solid">
-                                        <input class="form-check-input" type="radio"
-                                               value="no" {{$data?->is_active == "no" ? "checked" : ""}}
-                                               name="is_active" aria-label="is_active"/>
-                                        <label class="form-check-label" for="flexRadioDefault">
-                                            Tidak Aktif
-                                        </label>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

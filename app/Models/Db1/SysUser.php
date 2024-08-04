@@ -2,16 +2,19 @@
 
 namespace App\Models\Db1;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Modules\Auth\Jobs\QueuedPasswordResetJob;
+use Modules\Auth\Jobs\QueueEmailVerificationJob;
 use Modules\Auth\Notifications\ResetPasswordNotification;
 
-class SysUser extends Authenticatable
+class SysUser extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasUuids, HasApiTokens;
 
@@ -35,7 +38,6 @@ class SysUser extends Authenticatable
         'remember_token',
         'last_login',
         'password_updated_at',
-        'active_at',
         'banned_at',
     ];
 
@@ -60,7 +62,7 @@ class SysUser extends Authenticatable
             'force_update_password' => 'boolean',
             'password_updated_at'   => 'datetime',
             'last_login'            => 'datetime',
-            'active_at'             => 'datetime',
+
             'banned_at'             => 'datetime',
         ];
     }
@@ -69,7 +71,17 @@ class SysUser extends Authenticatable
     {
         $url = url('/auth/new-password?token=' . $token . '&email=' . $this->email);
 
-        $this->notify(new ResetPasswordNotification($url));
+        QueuedPasswordResetJob::dispatch($this, $url);
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        QueueEmailVerificationJob::dispatch($this);
+    }
+
+    public function pelanggan(): HasOne
+    {
+        return $this->hasOne(Pelanggan::class, 'data_id')->where('data_type', self::class);
     }
 
     public function sys_user_groups(): HasMany

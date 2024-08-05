@@ -20,7 +20,6 @@ yarn-error.log
 /.idea
 /.vscode
 .DS_Store
-html
 *.log
 config/credential.json
 supervisord.*

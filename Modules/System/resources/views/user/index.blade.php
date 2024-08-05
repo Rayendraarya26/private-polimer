@@ -34,7 +34,7 @@
                             Filter
                         </button>
                         <!--begin::Menu 1-->
-                        <div class="menu menu-sub menu-sub-dropdown w-300px w-md-325px" data-kt-menu="true"
+                        <div class="menu menu-sub menu-sub-dropdown w-150px w-md-225px" data-kt-menu="true"
                              id="kt-toolbar-filter">
                             <!--begin::Header-->
                             <div class="px-7 py-5">
@@ -49,39 +49,6 @@
                             <!--begin::Content-->
                             <div class="px-7 py-5">
                                 <div class="row">
-                                    <!--begin::Input group-->
-                                    <div class="col-md-6">
-                                        <!--begin::Label-->
-                                        <label class="form-label fs-5 fw-semibold mb-3">Is Active:</label>
-                                        <!--end::Label-->
-
-                                        <!--begin::Options-->
-                                        <div class="d-flex flex-start">
-                                            <div class="d-flex flex-column flex-wrap fw-semibold"
-                                                 data-kt-docs-table-filter="filter_active">
-                                                <!--begin::Option-->
-                                                <label
-                                                    class="form-check form-check-sm form-check-custom form-check-solid mb-3">
-                                                    <input class="form-check-input" type="radio" name="filter_active"
-                                                           value="yes"/>
-                                                    <span class="form-check-label text-gray-600">Yes</span>
-                                                </label>
-                                                <!--end::Option-->
-
-                                                <!--begin::Option-->
-                                                <label
-                                                    class="form-check form-check-sm form-check-custom form-check-solid">
-                                                    <input class="form-check-input" type="radio" name="filter_active"
-                                                           value="no"/>
-                                                    <span class="form-check-label text-gray-600">No</span>
-                                                </label>
-                                                <!--end::Option-->
-                                            </div>
-                                            <!--end::Options-->
-                                        </div>
-                                    </div>
-                                    <!--end::Input group-->
-
                                     <!--begin::Input group-->
                                     <div class="col-md-6">
                                         <div class="mb-10">
@@ -423,15 +390,10 @@
                 // Filter datatable on submit
                 filterButton.addEventListener('click', function () {
                     // Get filter values
-                    let activeValue, bannedValue = '';
+                    let bannedValue = '';
                     filter.banned.forEach(r => {
                         if (r.checked) {
                             bannedValue = r.value;
-                        }
-                    });
-                    filter.active.forEach(r => {
-                        if (r.checked) {
-                            activeValue = r.value;
                         }
                     });
 
@@ -462,7 +424,7 @@
                         const customerId = e.target.getAttribute('data-id');
                         const customerName = parent.querySelectorAll('td')[1].innerText;
                         // only get email from customerName
-                        const customerEmail = customerName.split('|')[1].trim();
+                        const customerEmail = customerName.split('\n')[1].trim();
 
                         // SweetAlert2 pop up --- official docs reference: https://sweetalert2.github.io/
                         Swal.fire({

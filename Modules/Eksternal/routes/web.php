@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 
@@ -22,4 +23,9 @@ Route::get('/app', [AppController::class, 'index'])
 // Semua API Eksternal didefinisikan disini
 Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
     Route::get('user', [UserController::class, 'user']);
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
+    });
 });

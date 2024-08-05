@@ -86,11 +86,13 @@ class SyncUserSil extends Command
         $user->email_verified_at = $us->email_verified_at;
         $user->save();
 
-        $userGroup             = new SysUserGroup();
-        $userGroup->user_id    = $user->id;
-        $userGroup->is_default = 'yes';
-        $userGroup->group_id   = $us->level_sistems_id === 16 ? SysGroup::PELANGGAN : SysGroup::PEGAWAI;
-        $userGroup->save();
+        SysUserGroup::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'is_default' => 'yes',
+                'group_id'   => $us->level_sistems_id === 16 ? SysGroup::PELANGGAN : SysGroup::PEGAWAI,
+            ]
+        );
 
         $pelanggan = Pelanggan::updateOrCreate(
             ['user_id' => $user->id],

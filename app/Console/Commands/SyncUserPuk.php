@@ -90,11 +90,13 @@ class SyncUserPuk extends Command
         }
         $user->save();
 
-        $userGroup             = new SysUserGroup();
-        $userGroup->user_id    = $user->id;
-        $userGroup->is_default = 'yes';
-        $userGroup->group_id   = $userPuk->group_name === 'user' ? SysGroup::PELANGGAN : SysGroup::PEGAWAI;
-        $userGroup->save();
+        SysUserGroup::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'is_default' => 'yes',
+                'group_id'   => $userPuk->group_name === 'user' ? SysGroup::PELANGGAN : SysGroup::PEGAWAI,
+            ]
+        );
 
         // create pelanggan
         if ($userPuk->group_name === 'user') {

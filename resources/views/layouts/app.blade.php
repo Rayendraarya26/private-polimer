@@ -84,6 +84,7 @@
 <script src="{{ asset('assets/plugins/global/plugins.bundle.js') }}"></script>
 <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
 <script src="{{ asset('assets/js/vue.global.prod.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 <script>
     axios.defaults.headers.common['X-CSRF-TOKEN'] = "{{ csrf_token() }}";
 </script>

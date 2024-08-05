@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Modules\Auth\Libraries\Kemenperin\KemenperinClient;
 use Modules\Auth\Traits\AuthTrait;
 
@@ -191,7 +190,9 @@ class LoginController
         RateLimiter::increment($rateLimiterKey);
         if (RateLimiter::retriesLeft($rateLimiterKey, self::MAX_ATTEMPTS) === 0) {
             $user = SysUser::where('email', '=', $email)->first();
-            $user?->update(['is_banned' => Option::YES]);
+            if ($user && !$user->sys_user_groups()->where('group_id', '=', SysGroup::ROOT)->exists()) {
+                $user->update(['is_banned' => Option::YES]);
+            }
         }
     }
 
@@ -199,9 +200,9 @@ class LoginController
     {
         $attemptLeft = RateLimiter::retriesLeft($rateLimiterKey, self::MAX_ATTEMPTS);
         if ($attemptLeft === 0) {
-            return 'Akun anda terblokir. Silahkan hubungi Administrator untuk membuka akun.';
+            return 'Mohon menunggu beberapa saat lagi.';
         }
-        return sprintf('Email/NIP/password anda salah. Sisa percobaan %s sebelum akun anda terblokir', $attemptLeft);
+        return 'Email/NIP/password anda salah.';
     }
 
     private function searchOauthClient(Request $request)

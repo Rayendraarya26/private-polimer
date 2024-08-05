@@ -140,13 +140,15 @@
                     e.preventDefault();
 
                     // Validate form
-                    validator.validate().then(function (status) {
+                    validator.validate().then(async function (status) {
                         if (status === 'Valid') {
                             // Show loading indication
                             submitButton.setAttribute('data-kt-indicator', 'on');
 
                             // Disable button to avoid multiple click
                             submitButton.disabled = true;
+
+                            await initRecaptcha();
 
                             // Check axios library docs: https://axios-http.com/docs/intro
                             // submit html form
@@ -166,13 +168,10 @@
             };
 
             // recaptcha
-            const initRecaptcha = function () {
-                grecaptcha.ready(function () {
-                    grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' }).then(function (token) {
-                        const recaptchaInput = document.querySelector('[name="recaptcha"]')
-                        if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
-                    });
-                });
+            const initRecaptcha = async function () {
+                const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
+                const recaptchaInput = document.querySelector('[name="recaptcha"]')
+                if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
             };
 
             const handlePasswordToggle = function () {
@@ -203,7 +202,6 @@
                     submitButton = document.querySelector('#kt_sign_in_submit');
 
                     handleValidation();
-                    initRecaptcha();
                     handlePasswordToggle();
 
                     if (isValidUrl(submitButton.closest('form').getAttribute('action'))) {

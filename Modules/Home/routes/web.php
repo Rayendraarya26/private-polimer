@@ -22,9 +22,7 @@ Route::middleware(['custom_auth', 'internal'])->group(function () {
 
     Route::prefix('notifications')->group(function () {
         Route::get("/", [NotificationController::class, 'index'])->name('notifications');
-        Route::get("open/{id}", [NotificationController::class, 'open']);
         Route::get("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
-        Route::get("/tes", [NotificationController::class, 'tes']);
         Route::post("/ajax/sync-token", [NotificationController::class, 'ajaxSyncToken'])->name('sync-token');
     });
 
@@ -36,3 +34,6 @@ Route::middleware(['custom_auth', 'internal'])->group(function () {
 
     Route::get('/download/{path}', [DownloaderController::class, 'download'])->name('download');
 });
+
+Route::get("notifications/open/{id}", [NotificationController::class, 'open'])->middleware('auth:web');
+Route::get("notifications/tes", [NotificationController::class, 'tes'])->middleware('auth:web');

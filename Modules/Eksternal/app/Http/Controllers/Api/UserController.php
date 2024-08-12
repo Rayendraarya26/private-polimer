@@ -3,6 +3,7 @@
 namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Enums\PelangganJenisPelanggan;
+use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\Pelanggan;
 use Illuminate\Http\Request;
@@ -20,6 +21,8 @@ class UserController extends Controller
             // selected Group
             $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first();
 
+            $isPelanggan = $groupData->group_id === SysGroup::PELANGGAN->value;
+
             return responseJSON("success", [
                 'id'                    => $request->user()->id,
                 'name'                  => $request->user()->name,
@@ -31,7 +34,7 @@ class UserController extends Controller
                     'id'   => $groupData->group_id,
                     'name' => $groupData->sys_group->name,
                 ],
-                'detail'                => $this->extractDetailPelanggan($request->user()->pelanggan),
+                'detail'                => $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : null,
             ]);
         });
     }

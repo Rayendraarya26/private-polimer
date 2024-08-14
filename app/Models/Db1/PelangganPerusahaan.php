@@ -25,7 +25,7 @@ class PelangganPerusahaan extends Model
         'fax',
         'npwp',
         'nib',
-        'akta_pendirian',
+        'no_akta_pendirian',
         'iup',
         'pj_nama',
         'pj_whatsapp',

@@ -15,6 +15,7 @@ class PelangganInstansi extends Model
     protected $fillable = [
         'pelanggan_id',
         'nama',
+        'alamat',
         'pimpinan',
         'telepon',
         'fax',

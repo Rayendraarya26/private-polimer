@@ -22,7 +22,11 @@ Route::get('/app', [AppController::class, 'index'])
 
 // Semua API Eksternal didefinisikan disini
 Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
-    Route::get('user', [UserController::class, 'user']);
+    Route::prefix('user')->group(function () {
+        Route::get('/', [UserController::class, 'index']); // get user
+        Route::patch('/password', [UserController::class, 'updatePassword']);
+        Route::patch('/profile', [UserController::class, 'updateProfile']);
+    });
 
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);

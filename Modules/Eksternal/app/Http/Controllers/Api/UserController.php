@@ -27,6 +27,7 @@ class UserController extends Controller
                 'id'                    => $request->user()->id,
                 'name'                  => $request->user()->name,
                 'email'                 => $request->user()->email,
+                'nip'                   => $request->user()->nip,
                 'force_update_password' => $request->user()->force_update_password,
                 'picture'               => Storage::disk('s3')->temporaryUrl($request->user()->picture, now()->addWeek()),
                 'last_login'            => $request->user()->last_login,

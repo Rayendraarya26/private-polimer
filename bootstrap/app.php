@@ -34,9 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'internal'    => InternalUserMiddleware::class,
         ]);
 
-        $middleware->validateCsrfTokens(except: [
-            'api/eksternal/*',
-        ]);
+//        $middleware->validateCsrfTokens(except: [
+//            'api/eksternal/*',
+//        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);

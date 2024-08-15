@@ -10,6 +10,7 @@ use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganInstansi;
 use App\Models\Db1\PelangganPerorangan;
 use App\Models\Db1\PelangganPerusahaan;
+use App\Traits\CaptchaTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    use CaptchaTrait;
+
     public function index(Request $request)
     {
         $cacheKey = 'user_' . $request->user()->id;
@@ -85,9 +88,14 @@ class UserController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
+            'recaptcha'    => 'required',
             'old_password' => 'required',
             'new_password' => 'required|confirmed|min:8|different:old_password',
         ]);
+
+        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
 
         $user = $request->user();
 
@@ -104,6 +112,14 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
+        $request->validate([
+            'recaptcha' => 'required',
+        ]);
+
+        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
+
         return match ($request->user()->pelanggan->jenis_pelanggan) {
             PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
             PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),

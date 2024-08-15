@@ -17,5 +17,5 @@ use Modules\Eksternal\Http\Middleware\AccesibilityMiddleware;
 
 Route::middleware(['auth:api', AccesibilityMiddleware::class])
     ->group(function () {
-        Route::get('user', [UserController::class, 'user']);
+        Route::get('user', [UserController::class, 'index']);
     });

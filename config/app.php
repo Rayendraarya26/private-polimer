@@ -122,4 +122,20 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+	
+	'slider' => [
+        'max_size'           => 512, // 512KB
+        'allowed_mime_types' => [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/svg+xml',
+            'image/x-icon',
+            'image/webp',
+            'image/bmp',
+            'image/tiff',
+            'image/jpg',
+        ],
+        'path'               => 'slider', // this folder located in /slider s3 bucket
+    ],
 ];

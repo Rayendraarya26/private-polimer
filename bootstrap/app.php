@@ -33,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'custom_auth' => CustomAuthMiddleware::class,
             'internal'    => InternalUserMiddleware::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/eksternal/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);

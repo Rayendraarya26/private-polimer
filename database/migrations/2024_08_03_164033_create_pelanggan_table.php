@@ -38,7 +38,7 @@ return new class extends Migration {
             $table->string('fax')->nullable();
             $table->string('npwp')->nullable();
             $table->string('nib')->nullable();
-            $table->string('akta_pendirian')->nullable();
+            $table->string('no_akta_pendirian')->nullable();
             $table->string('iup')->nullable();
             $table->string('pj_nama')->nullable();
             $table->string('pj_whatsapp')->nullable();
@@ -50,6 +50,8 @@ return new class extends Migration {
             $table->text('dok_lainnya')->nullable()->comment('path to file in storage service');
 
             $table->timestampsTz();
+
+            $table->unique('pelanggan_id');
         });
 
         Schema::create('pelanggan_instansi', function (Blueprint $table) {
@@ -58,6 +60,7 @@ return new class extends Migration {
 
             // Fields for Instansi
             $table->string('nama')->nullable();
+            $table->text('alamat')->nullable();
             $table->string('pimpinan')->nullable();
             $table->string('telepon')->nullable();
             $table->string('fax')->nullable();
@@ -75,6 +78,8 @@ return new class extends Migration {
             $table->text('dok_lainnya')->nullable()->comment('path to file in storage service');
 
             $table->timestampsTz();
+
+            $table->unique('pelanggan_id');
         });
 
         Schema::create('pelanggan_perorangan', function (Blueprint $table) {
@@ -99,6 +104,8 @@ return new class extends Migration {
             $table->text('dok_lainnya')->nullable()->comment('path to file in storage service');
 
             $table->timestampsTz();
+
+            $table->unique('pelanggan_id');
         });
     }
 

@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
     {
         $data = [
             ['name' => 'Developer', 'email' => 'dolkode@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT],
-            ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '1234567890'],
+            ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198112132006041004'],
         ];
 
         foreach ($data as $item) {
@@ -172,8 +172,8 @@ class UserSeeder extends Seeder
             'whatsapp'           => '08123456789',
             'npwp'               => '1234567890',
             'nib'                => '0987654321',
-            'akta_pendirian'     => '/dummy/dummy.pdf',
-            'iup'                => '/dummy/dummy.pdf',
+            'no_akta_pendirian'  => '1234567890',
+            'iup'                => '0987654321',
             'pj_nama'            => 'John Doe',
             'pj_whatsapp'        => '08123456789',
             'pj_surel'           => 'john.doe@example.com',

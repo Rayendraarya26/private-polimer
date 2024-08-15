@@ -6,6 +6,7 @@
     <title>@yield('title') | {{config('app.name')}}</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta name="csrf-token" content="{{ csrf_token() }}" />
     <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}"/>
     <!--begin::Fonts(mandatory for all pages)-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,6 +86,7 @@
 <script src="{{ asset('assets/js/scripts.bundle.js') }}"></script>
 <script src="{{ asset('assets/js/vue.global.prod.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+<script src="{{ asset('assets/js/application.js') }}"></script>
 <script>
     axios.defaults.headers.common['X-CSRF-TOKEN'] = "{{ csrf_token() }}";
 </script>

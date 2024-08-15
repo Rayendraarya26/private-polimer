@@ -16,8 +16,13 @@ use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 */
 
 Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function () {
-    Route::get('setting-banner/ajax', [BannerController::class, 'ajax']);
-    Route::resource('setting-banner', BannerController::class)->except('show');
+    Route::prefix('/setting-banner')->group(function () {
+        Route::get('/', [BannerController::class, 'index']);
+        Route::post('/', [BannerController::class, 'store']);
+        Route::get('/ajax', [BannerController::class, 'ajax']);
+        Route::put('/{id}', [BannerController::class, 'update']);
+        Route::delete('/{id}', [BannerController::class, 'destroy']);
+    });
 
     Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
     Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);

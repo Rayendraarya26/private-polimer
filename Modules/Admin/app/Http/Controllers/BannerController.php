@@ -5,16 +5,21 @@ namespace Modules\Admin\Http\Controllers;
 use App\Classes\Breadcrumbs;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\SettingBanner;
+
+use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BannerController extends Controller
 {
     private string $module = __CLASS__;
-    private string $url = 'admin/setting/banner';
+    private string $url = 'admin/setting-banner';
     private string $view = 'admin::banner';
+
 
     private function defaultParser(): array
     {
@@ -28,8 +33,8 @@ class BannerController extends Controller
     public function index()
     {
         $breadcrumbs = [
-            new Breadcrumbs('Master'),
-            new Breadcrumbs('Divisi', url($this->url)),
+            new Breadcrumbs('Admin'),
+            new Breadcrumbs('Setting Banner', url($this->url)),
         ];
 
         $parser = array_merge($this->defaultParser(), ['breadcrumbs' => $breadcrumbs]);
@@ -37,106 +42,149 @@ class BannerController extends Controller
         return view("$this->view.index")->with($parser);
     }
 
-    public function create()
-    {
-        $breadcrumbs = [
-            new Breadcrumbs('Master'),
-            new Breadcrumbs('Divisi', url($this->url)),
-            new Breadcrumbs('Tambah'),
-        ];
-
-        $parser = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
-            'data'        => null,
-        ]);
-
-        return view("$this->view.upsert")->with($parser);
-    }
-
     public function store(Request $request)
     {
-        try {
-            $data = $this->upsert($request, new SettingBanner());
-            return redirect($this->url)->with('message', sprintf("Berhasil menambahkan data %s", $data->name));
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return back()->withErrors(['message' => $e->getMessage()]);
-        }
-    }
-
-    public function edit($id)
-    {
-        $breadcrumbs = [
-            new Breadcrumbs('Master'),
-            new Breadcrumbs('Divisi', url($this->url)),
-            new Breadcrumbs('Edit'),
-        ];
-
-        $data = SettingBanner::findOrFail($id);
-
-        $parser = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
-            'data'        => $data,
+        $input = $request->validate([
+            'order'       => 'required|integer',
+            'description' => 'nullable',
+            'link'        => 'required|url',
+            'start_at'    => 'nullable',
+            'end_at'      => 'nullable',
+            'is_active'   => 'required|boolean',
+            'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
-        return view("$this->view.upsert")->with($parser);
+        $image = $request->file('image');
+        $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+
+        $banner = new SettingBanner();
+
+        $banner->image_path = $key;
+        $banner->order = $request->order;
+        $banner->description = $request->description;
+        $banner->link = $request->link;
+        $banner->start_at = $request->start_at;
+        $banner->end_at = $request->end_at;
+        $banner->is_active = $request->is_active;
+
+        $banner->save();
+
+        SettingBanner::create($data);
+
+        return responseJSON('Sukses menginput slider');
     }
 
     public function update(Request $request, $id)
     {
-        try {
-            $data = $this->upsert($request, SettingBanner::findOrFail($id));
-            return redirect($this->url)->with('message', sprintf('Berhasil mengubah data %s', $data->name));
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return back()->withErrors(['message' => $e->getMessage()]);
-        }
-    }
-
-    public function destroy($id)
-    {
-        try {
-            $data = SettingBanner::findOrFail($id);
-            $data->delete();
-
-            return responseJSON('Data berhasil dihapus');
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return responseJSON("Anda tidak dapat menghapus data yang sedang digunakan", [], 500);
-        }
-    }
-
-    private function upsert(Request $request, SettingBanner $data)
-    {
         $input = $request->validate([
-            'name' => 'required',
+            'order'       => 'required|integer',
+            'description' => 'nullable',
+            'link'        => 'required|url',
+            'start_at'    => 'nullable',
+            'end_at'      => 'nullable',
+            'is_active'   => 'required|boolean',
         ]);
 
-        $data->fill($input);
-        $data->save();
+        // set null if "null" string
+        foreach ($input as $key => $value) {
+            if ($value === 'null') {
+                $input[$key] = null;
+            }
+        }
 
-        return $data;
+        $banner = SettingBanner::find($id);
+        $banner->order = $request->order;
+        $banner->description = $request->description;
+        $banner->link = $request->link;
+        $banner->start_at = $request->start_at;
+        $banner->end_at = $request->end_at;
+        $banner->is_active = $request->is_active;
+        $banner->save();
+
+        return responseJSON('Sukses mengubah data slider');
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        // get image path
+        $slider     = SettingBanner::find($id);
+        $image_path = $slider->image_path;
+        $slider->delete();
+
+        // delete slider if not in folder "example"
+        if (!str_contains($image_path, 'example')) {
+            // delete image
+            Storage::disk('s3')->delete($image_path);
+        }
+
+        return responseJSON('Sukses menghapus slider');
     }
 
     public function ajax(Request $request)
     {
-        return match ($request->action) {
-            'datatable' => $this->ajax_datatable($request),
+        $request->validate(['action' => 'required']);
+            return match ($request->input('action')) {
+            'slider' => $data = $this->ajax_slider($request),
             default => abort(404),
         };
+
     }
 
-    private function ajax_datatable(Request $request): JsonResponse
+    private function ajax_slider(Request $request): JsonResponse
     {
-        $data = SettingBanner::query()->select([
-            'id',
-            'name',
-            'created_at',
-            'updated_at',
-        ]);
+        $request->validate(['tipe' => 'required|in:aktif,akan-datang,kadaluarsa']);
 
-        return Datatables::eloquent($data)
-            ->addIndexColumn()
-            ->make();
+        $data = match ($request->input('tipe')) {
+            'aktif' => $this->getActiveSlider(),
+            'akan-datang' => $this->getUpcomingSlider(),
+            'kadaluarsa' => $this->getExpiredSlider(),
+            default => abort(404),
+        };
+
+        // add image url
+        foreach ($data as $key => $value) {
+            $data[$key]['image_url'] = Storage::disk('s3')->temporaryUrl(
+                $value['image_path'],
+                now()->addMinutes(5)
+            );
+        }
+
+        return responseJSON('Sukses', $data);
+    }
+
+    private function getActiveSlider(): array|Collection
+    {
+        return SettingBanner::query()
+            ->where('is_active', 1)
+            ->where(function($query) {
+                $query->where('start_at', '<=', date('Y-m-d'))
+                    ->orWhereNull('start_at');
+            })
+            ->where(function ($query) {
+                $query->where('end_at', '>=', date('Y-m-d'))
+                    ->orWhereNull('end_at');
+            })
+            ->orderBy('order')
+            ->get();
+    }
+
+    private function getUpcomingSlider(): array|Collection
+    {
+        return SettingBanner::query()
+            ->where('is_active', 1)
+            ->where('start_at', '>', date('Y-m-d'))
+            ->orderBy('start_at')
+            ->get();
+    }
+
+    private function getExpiredSlider(): array|Collection
+    {
+        return SettingBanner::query()
+            ->where('is_active', 1)
+            ->where('end_at', '<', date('Y-m-d'))
+            ->orWhere('is_active', 0)
+            ->limit(10)
+            ->orderByDesc('updated_at')
+            ->get();
     }
 }

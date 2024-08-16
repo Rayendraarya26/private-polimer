@@ -10,6 +10,7 @@ use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganInstansi;
 use App\Models\Db1\PelangganPerorangan;
 use App\Models\Db1\PelangganPerusahaan;
+use App\Traits\CaptchaTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    use CaptchaTrait;
+
     public function index(Request $request)
     {
         $cacheKey = 'user_' . $request->user()->id;
@@ -85,9 +88,14 @@ class UserController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
+            'recaptcha'    => 'required',
             'old_password' => 'required',
             'new_password' => 'required|confirmed|min:8|different:old_password',
         ]);
+
+        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
 
         $user = $request->user();
 
@@ -104,12 +112,23 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
-        return match ($request->user()->pelanggan->jenis_pelanggan) {
+        $request->validate([
+            'recaptcha' => 'required',
+        ]);
+
+        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
+
+        match ($request->user()->pelanggan->jenis_pelanggan) {
             PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
             PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),
             PelangganJenisPelanggan::BADAN_USAHA->value => $this->updateProfileBadanUsaha($request),
             default => responseJSON('error', 'Jenis pelanggan tidak dikenal.', 400),
         };
+
+        Cache::forget('user_' . $request->user()->id);
+        return responseJSON('success', 'Profil berhasil diperbarui.');
     }
 
     private function updateProfilePerorangan(Request $request): JsonResponse
@@ -162,7 +181,7 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 
     private function updateProfileInstansi(Request $request)
@@ -219,7 +238,7 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 
     private function updateProfileBadanUsaha(Request $request)
@@ -286,6 +305,6 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 }

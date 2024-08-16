@@ -120,12 +120,15 @@ class UserController extends Controller
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 
-        return match ($request->user()->pelanggan->jenis_pelanggan) {
+        match ($request->user()->pelanggan->jenis_pelanggan) {
             PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
             PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),
             PelangganJenisPelanggan::BADAN_USAHA->value => $this->updateProfileBadanUsaha($request),
             default => responseJSON('error', 'Jenis pelanggan tidak dikenal.', 400),
         };
+
+        Cache::forget('user_' . $request->user()->id);
+        return responseJSON('success', 'Profil berhasil diperbarui.');
     }
 
     private function updateProfilePerorangan(Request $request): JsonResponse
@@ -178,7 +181,7 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 
     private function updateProfileInstansi(Request $request)
@@ -235,7 +238,7 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 
     private function updateProfileBadanUsaha(Request $request)
@@ -302,6 +305,6 @@ class UserController extends Controller
 
         $pelanggan->save();
 
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+        return $pelanggan;
     }
 }

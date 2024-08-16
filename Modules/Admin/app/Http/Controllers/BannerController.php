@@ -69,8 +69,6 @@ class BannerController extends Controller
 
         $banner->save();
 
-        SettingBanner::create($data);
-
         return responseJSON('Sukses menginput slider');
     }
 

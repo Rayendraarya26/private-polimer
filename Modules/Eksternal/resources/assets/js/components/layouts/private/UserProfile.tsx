@@ -1,6 +1,9 @@
 import { forwardRef, memo } from "react"
 import { Dropdown } from "react-bootstrap"
 import styled from "styled-components"
+import useProfile from "../../../hooks/useProfile"
+import { getAvatar } from "../../../utils/avatar"
+import { Link } from "react-router-dom"
 
 const AvatarImage = styled.img`
   width: 2.25rem;
@@ -11,6 +14,7 @@ const AvatarImage = styled.img`
 `
 
 const UserProfileToggle = forwardRef<HTMLDivElement, React.HTMLProps<HTMLDivElement>>(({ onClick }, ref) => {
+  const { profile } = useProfile()
   return (
     <div 
       ref={ref}
@@ -23,10 +27,15 @@ const UserProfileToggle = forwardRef<HTMLDivElement, React.HTMLProps<HTMLDivElem
       <div className="d-flex align-items-center gap-2">
         <AvatarImage 
           draggable='false'
-          src="https://placehold.co/400x400"
+          src={getAvatar(profile?.picture, profile?.name)}
+          onError={e => {
+            (e.target as HTMLImageElement).src = getAvatar(null, profile?.name)
+          }}
         />
         <div className="d-none d-md-block">
-          <div className="fw-semibold">User Fullname</div>
+          <div className="fw-semibold">
+            {profile?.name}
+          </div>
         </div>
       </div>
     </div>
@@ -43,8 +52,18 @@ const UserProfile: React.FC = () => {
       <Dropdown>
         <Dropdown.Toggle as={UserProfileToggle}/>
         <Dropdown.Menu align="end" className="mt-2">
-          <Dropdown.Item>Edit Profile</Dropdown.Item>
-          <Dropdown.Item>Ubah Kata Sandi</Dropdown.Item>
+          <Dropdown.Item
+            as={Link}
+            to='/profile/update'
+          >
+            Edit Profile
+          </Dropdown.Item>
+          <Dropdown.Item 
+            as={Link}
+            to='/profile/change-password'
+          >
+            Ubah Kata Sandi
+          </Dropdown.Item>
           <Dropdown.Divider/>
           <Dropdown.Item onClick={onLogout}>Logout</Dropdown.Item>
         </Dropdown.Menu>

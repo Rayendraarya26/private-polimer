@@ -9,6 +9,7 @@ import { RootState } from "../store"
 import { useDispatch } from "react-redux"
 import { setWindowWidth } from "../store/common"
 import { Spinner } from "react-bootstrap"
+import useProfile from "../hooks/useProfile"
 
 const PrivateLayoutContainer = styled.div`
   width: 100%;
@@ -64,8 +65,10 @@ const FallbackContainer = styled.div`
 const PrivateLayout: React.FC = () => {
   const isShowSidebar = useSelector(({ common }: RootState) => common.isShowSidebar)
   const dispatch = useDispatch()
+  const { getMyProfile } = useProfile()
 
   useEffect(() => {
+    getMyProfile()
     const resize = () => dispatch(setWindowWidth(window.innerWidth))
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)

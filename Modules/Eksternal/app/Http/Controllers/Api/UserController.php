@@ -11,10 +11,11 @@ use App\Models\Db1\PelangganInstansi;
 use App\Models\Db1\PelangganPerorangan;
 use App\Models\Db1\PelangganPerusahaan;
 use App\Traits\CaptchaTrait;
-use Illuminate\Http\JsonResponse;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
@@ -100,38 +101,47 @@ class UserController extends Controller
         $user = $request->user();
 
         if (!password_verify($request->old_password, $user->password)) {
-            return responseJSON('error', 'Password lama tidak sesuai.', 400);
+            return responseJSON('Password lama tidak sesuai.', null, 400);
         }
 
         $user->password              = bcrypt($request->new_password);
         $user->force_update_password = false;
         $user->save();
 
-        return responseJSON('success', 'Password berhasil diubah.');
+        return responseJSON('Password berhasil diubah.', null);
     }
 
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'recaptcha' => 'required',
+            'recaptcha' => 'sometimes',
         ]);
 
         if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 
-        match ($request->user()->pelanggan->jenis_pelanggan) {
-            PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
-            PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),
-            PelangganJenisPelanggan::BADAN_USAHA->value => $this->updateProfileBadanUsaha($request),
-            default => responseJSON('error', 'Jenis pelanggan tidak dikenal.', 400),
-        };
+        try {
+            match ($request->user()->pelanggan->jenis_pelanggan) {
+                PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
+                PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),
+                PelangganJenisPelanggan::BADAN_USAHA->value => $this->updateProfileBadanUsaha($request),
+                default => responseJSON('error', 'Jenis pelanggan tidak dikenal.', 400),
+            };
 
-        Cache::forget('user_' . $request->user()->id);
-        return responseJSON('success', 'Profil berhasil diperbarui.');
+            Cache::forget('user_' . $request->user()->id);
+            return responseJSON('success', 'Profil berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::withContext($request->except('recaptcha'))->error($e);
+            return responseJSON($e->getMessage(), [], 500);
+        }
+
     }
 
-    private function updateProfilePerorangan(Request $request): JsonResponse
+    /**
+     * @throws Exception
+     */
+    private function updateProfilePerorangan(Request $request)
     {
         $input = $request->validate([
             'nama'                => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
@@ -146,12 +156,18 @@ class UserController extends Controller
             'pendidikan_terakhir' => 'required|string',
             'npwp'                => 'required|numeric|digits:16',
             'nib'                 => 'nullable|numeric|digits:13',
-            'dok_npwp'            => 'required|file|mimes:pdf|max:5120',
+            'dok_npwp'            => 'nullable|file|mimes:pdf|max:5120',
             'dok_nib'             => 'nullable|file|mimes:pdf|max:5120',
             'dok_lainnya'         => 'nullable|file|mimes:pdf,zip|max:5120',
         ]);
 
-        $pelanggan                      = PelangganPerorangan::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+        $pelanggan = PelangganPerorangan::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+
+        // if dok_npwp empty and no file uploaded, throw error
+        if (empty($pelanggan->dok_npwp) && !$request->hasFile('dok_npwp')) {
+            throw new Exception('NPWP wajib diunggah.');
+        }
+
         $pelanggan->nama                = $input['nama'];
         $pelanggan->alamat              = $input['alamat'];
         $pelanggan->tempat_lahir        = $input['tempat_lahir'];
@@ -241,6 +257,9 @@ class UserController extends Controller
         return $pelanggan;
     }
 
+    /**
+     * @throws Exception
+     */
     private function updateProfileBadanUsaha(Request $request)
     {
         $input = $request->validate([
@@ -261,14 +280,23 @@ class UserController extends Controller
             'pj_nama'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'pj_whatsapp'        => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
             'pj_surel'           => 'required|email:rfc,dns',
-            'dok_npwp'           => 'required|file|mimes:pdf|max:5120',
-            'dok_nib'            => 'required|file|mimes:pdf|max:5120',
+            'dok_npwp'           => 'nullable|file|mimes:pdf|max:5120',
+            'dok_nib'            => 'nullable|file|mimes:pdf|max:5120',
             'dok_akta_pendirian' => 'nullable|file|mimes:pdf|max:5120',
             'dok_iup'            => 'nullable|file|mimes:pdf|max:5120',
             'dok_lainnya'        => 'nullable|file|mimes:pdf,zip|max:5120',
         ]);
 
-        $pelanggan                    = PelangganPerusahaan::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+        $pelanggan = PelangganPerusahaan::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+
+        if (empty($pelanggan->dok_npwp) && !$request->hasFile('dok_npwp')) {
+            throw new Exception('NPWP wajib diunggah.');
+        }
+
+        if (empty($pelanggan->dok_nib) && !$request->hasFile('dok_nib')) {
+            throw new Exception('NIB wajib diunggah.');
+        }
+
         $pelanggan->nama              = $input['nama'];
         $pelanggan->alamat            = $input['alamat'];
         $pelanggan->badan_hukum       = $input['badan_hukum'];

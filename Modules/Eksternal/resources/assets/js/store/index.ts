@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { combineReducers } from 'redux'
 import common from './common'
+import profile from './profile'
 
 const rootReducer = combineReducers({
   common,
+  profile
 })
 
 const store = configureStore({

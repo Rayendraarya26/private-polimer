@@ -7,6 +7,7 @@ export default defineConfig({
         outDir: '../../public/build-eksternal',
         emptyOutDir: true,
         manifest: true,
+        sourcemap: false,
     },
     plugins: [
         react({

@@ -14,58 +14,45 @@
                             {{ config('app.frontend_url') }}
                         </a>
                     </h5>
-                    <div class="card">
-                        <div class="d-flex flex-row-reverse">
-                            <button class="btn btn-primary" @click="handleAddSlider()">
-                                <i class="fas fa-plus"></i> Tambah Banner
-                            </button>
-                        </div>
-                        <ul class="nav nav-pills user-profile-tab border-bottom" id="pills-tab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button
-                                    class="nav-link position-relative rounded-0 active d-flex align-items-center justify-content-center bg-transparent fs-3 py-6 fw-bold"
-                                    id="banner-active" data-bs-toggle="pill"
-                                    data-bs-target="#pills-banner-active"
-                                    type="button" role="tab" aria-controls="pills-banner-active" aria-selected="true">
-                                    Aktif
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button
-                                    class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6 fw-bold"
-                                    id="pills-banner-upcoming-tab" data-bs-toggle="pill"
-                                    data-bs-target="#pills-banner-upcoming"
-                                    type="button" role="tab" aria-controls="pills-banner-upcoming"
-                                    aria-selected="false">
-                                    Akan Datang
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button
-                                    class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6 fw-bold"
-                                    id="pills-banner-expited-tab" data-bs-toggle="pill"
-                                    data-bs-target="#pills-banner-expited" type="button"
-                                    role="tab" aria-controls="pills-banner-expited" aria-selected="false"> Kadaluarsa/Lewat
-                                </button>
-                            </li>
-                        </ul>
-                        <div class="card-body p-4">
-                            <div class="tab-content" id="pills-tabContent">
-                                <div class="tab-pane fade show active" id="pills-banner-active" role="tabpanel"
-                                     aria-labelledby="pills-banner-active-tab" tabindex="0">
-                                    <banner-table :list-slider="listSliderActive"
-                                                  @delete-banner="handleDeleteSlider"></banner-table>
-                                </div>
-                                <div class="tab-pane fade" id="pills-banner-upcoming" role="tabpanel"
-                                     aria-labelledby="pills-banner-upcoming-tab" tabindex="0">
-                                    <banner-table :list-slider="listSliderUpcoming"
-                                                  @delete-banner="handleDeleteSlider"></banner-table>
-                                </div>
-                                <div class="tab-pane fade" id="pills-banner-expited" role="tabpanel"
-                                     aria-labelledby="pills-banner-expited-tab" tabindex="0">
-                                    <banner-table :list-slider="listSliderExpired"
-                                                  @delete-banner="handleDeleteSlider"></banner-table>
-                                </div>
+
+                    <div class="d-flex flex-row-reverse">
+                        <button class="btn btn-primary" @click="handleAddSlider()">
+                            <i class="fas fa-plus"></i> Tambah Banner
+                        </button>
+                    </div>
+                    <ul class="nav nav-tabs nav-line-tabs nav-line-tabs-2x mb-5 fs-6">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-banner-active">
+                                Aktif
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-banner-upcoming">
+                                Akan Datang
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-banner-expired">
+                                Kadaluarsa/Lewat
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="tab-banner-active" role="tabpanel"
+                                 aria-labelledby="tab-banner-active-tab" tabindex="0">
+                                <banner-table :list-slider="listSliderActive"
+                                              @delete-banner="handleDeleteSlider"></banner-table>
+                            </div>
+                            <div class="tab-pane fade" id="tab-banner-upcoming" role="tabpanel"
+                                 aria-labelledby="tab-banner-upcoming" tabindex="0">
+                                <banner-table :list-slider="listSliderUpcoming"
+                                              @delete-banner="handleDeleteSlider"></banner-table>
+                            </div>
+                            <div class="tab-pane fade" id="tab-banner-expired" role="tabpanel"
+                                 aria-labelledby="tab-banner-expired" tabindex="0">
+                                <banner-table :list-slider="listSliderExpired"
+                                              @delete-banner="handleDeleteSlider"></banner-table>
                             </div>
                         </div>
                     </div>
@@ -223,10 +210,10 @@
                             <td>@{{ renderSliderDate(slider) }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">
-                                 <button class="btn btn-sm btn-primary" @click="handleEditSlider(slider)">
+                                 <button class="btn btn-sm btn-primary" @click="handleEditSlider(slider)" title="Edit Banner">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                 <button class="btn btn-sm btn-danger" @click="handleDeleteSlider(slider.id)">
+                                 <button class="btn btn-sm btn-danger" @click="handleDeleteSlider(slider.id)" title="Delete Banner">
                                     <i class="fas fa-trash"></i>
                                 </button>
                              </div>

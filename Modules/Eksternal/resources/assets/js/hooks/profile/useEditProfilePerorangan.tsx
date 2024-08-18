@@ -1,0 +1,169 @@
+import { useMemo, useState } from 'react'
+import { toast } from 'react-hot-toast'
+import * as yup from 'yup'
+import useHookForm from '../useHookForm'
+import { getErrorMessage } from '../../utils/error'
+import useProfile from '../useProfile'
+import { updateProfile } from '../../services/profile'
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
+import { refEducations } from '../../constants/common'
+import { useNavigate } from 'react-router-dom'
+
+export type Fields = {
+  nama: string
+  alamat: string
+  tempat_lahir: string
+  tanggal_lahir: string
+  jenis_kelamin: string
+  kewarganegaraan: string
+  nik: number
+  pendidikan_terakhir: string
+  pendidikan_lainnya?: string | null
+  surel: string
+  whatsapp: string | null
+  npwp: string | null
+  nib?: string | null
+  dok_npwp?: File | null
+  dok_nib?: File | null
+  dok_lainnya?: File | null
+}
+
+export default () => {
+  const navigate = useNavigate()
+  const { profile, getMyProfile } = useProfile()
+  const [submitting, setSubmitting] = useState<boolean>(false)
+  const { executeRecaptcha } = useGoogleReCaptcha()
+
+  const validationSchema = useMemo<yup.SchemaOf<Fields>>(
+    () =>
+      yup.object({
+        nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
+        alamat: yup.string().default('').trim().required('Field ini wajib diisi'),
+        tempat_lahir: yup.string().default('').trim().required('Field ini wajib diisi'),
+        tanggal_lahir: yup.string().default('').trim().required('Field ini wajib diisi'),
+        jenis_kelamin: yup.string().default('').trim().required('Field ini wajib diisi'),
+        kewarganegaraan: yup.string().default('').trim().required('Field ini wajib diisi'),
+        nik: yup.number().required('Field ini wajib diisi').test('len', 'NIK harus 16 digit', val => `${val || ''}`.length === 16),
+        pendidikan_terakhir: yup.string().default('').trim().required('Field ini wajib diisi'),
+        pendidikan_lainnya: yup.string().when('pendidikan_terakhir', {
+          is: (val: string) => val === 'OTHER',
+          then: yup.string().default('').trim().required('Field ini wajib diisi'),
+          otherwise: yup.string().default('').trim().nullable()
+        }),
+        surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
+        whatsapp: yup.string().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        npwp: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NPWP harus 16 digit', val => `${val || ''}`.length === 16),
+        nib: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NIB harus 13 digit', val => `${val || ''}`.length === 13),
+        dok_npwp: yup.mixed()
+          .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
+            return value ? value.size <= 5 * 1024 * 1024 : true
+          })
+          .test('fileType', 'Format file harus PDF', (value) => {
+            return value ? ['application/pdf'].includes(value.type) : true
+          })
+          .required('Field ini wajib diisi'),
+        dok_nib: yup.mixed()
+          .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
+            return value ? value.size <= 5 * 1024 * 1024 : true
+          })
+          .test('fileType', 'Format file harus PDF', (value) => {
+            return value ? ['application/pdf'].includes(value.type) : true
+          })
+          .required('Field ini wajib diisi'),
+        dok_lainnya: yup.mixed()
+          .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
+            return value ? value.size <= 5 * 1024 * 1024 : true
+          })
+          .test('fileType', 'Format file harus PDF/zip', (value) => {
+            return value ? ['application/pdf','application/zip'].includes(value.type) : true
+          })
+          .optional()
+          .nullable(),
+      }),
+    []
+  )
+
+  const defaultValues = useMemo<Fields>(
+    () => {
+      const {
+        nama,
+        alamat,
+        tempat_lahir,
+        tanggal_lahir,
+        jenis_kelamin,
+        kewarganegaraan,
+        nik,
+        pendidikan_terakhir,
+        surel,
+        whatsapp,
+        npwp,
+        nib,
+      } = profile?.detail ?? {}
+
+      const pendidikan_lainnya = pendidikan_terakhir && (refEducations.reduce((arr, r) => r.value !== 'OTHER' ? [...arr, r.value] : arr, [] as string[])).includes(pendidikan_terakhir) ? null : pendidikan_terakhir
+
+      return {
+        nama: nama || '',
+        alamat: alamat || '',
+        tempat_lahir: tempat_lahir || '',
+        tanggal_lahir: tanggal_lahir || '',
+        jenis_kelamin: jenis_kelamin || '',
+        kewarganegaraan: kewarganegaraan || '',
+        nik: nik || 0,
+        pendidikan_terakhir: pendidikan_lainnya ? 'OTHER' : (pendidikan_terakhir || ''),
+        pendidikan_lainnya,
+        surel: surel || '',
+        whatsapp: whatsapp ? (whatsapp.startsWith('62') ? whatsapp.replace('62', '') : whatsapp) : null,
+        npwp: npwp || null,
+        nib: nib || null,
+        dok_npwp: null,
+        dok_nib: null,
+        dok_lainnya: null,
+      }
+    },
+    [profile]
+  )
+
+  const { errors, rhf } = useHookForm<Fields>(defaultValues, validationSchema)
+
+  const onSubmit = rhf.handleSubmit(
+    async ({ pendidikan_lainnya, ...payload }) => {
+      if (!executeRecaptcha) return
+      const toastId = toast.loading('Menyimpan perubahan')
+      try {
+        setSubmitting(true)
+        const recaptcha = await executeRecaptcha()
+        const formData = new FormData()
+        payload = {
+          ...payload,
+          pendidikan_terakhir: payload.pendidikan_terakhir === 'OTHER' ? pendidikan_lainnya : payload.pendidikan_terakhir
+        }
+        Object.entries({ recaptcha, _method: 'patch', ...payload }).map(([key, value]) => {
+          if (value) {
+            if (['whatsapp'].includes(key)) {
+              formData.append(key, `62${value}`)
+            } else {
+              formData.append(key, value)
+            }
+          }
+        })
+        await updateProfile(formData)
+        getMyProfile()
+        toast.success('Profile berhasil diperbarui')
+        navigate(-1)
+      } catch (error) {
+        toast.error(getErrorMessage(error))
+      } finally {
+        setSubmitting(false)
+        toast.remove(toastId)
+      }
+    }
+  )
+
+  return {
+    errors,
+    rhf,
+    submitting,
+    onSubmit
+  }
+}

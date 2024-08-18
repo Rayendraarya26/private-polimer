@@ -10,7 +10,7 @@ const initialState: CommonState = {
   windowWidth: window.innerWidth
 }
 
-const counterSlice = createSlice({
+const slice = createSlice({
   name: 'common',
   initialState,
   reducers: {
@@ -23,5 +23,5 @@ const counterSlice = createSlice({
   },
 })
 
-export const { setShowSidebar, setWindowWidth } = counterSlice.actions
-export default counterSlice.reducer
+export const { setShowSidebar, setWindowWidth } = slice.actions
+export default slice.reducer

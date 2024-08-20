@@ -12,6 +12,7 @@ const ComplaintPage = lazy(() => import('./pages/complaint/ComplaintPage'))
 const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPage'))
 const ChangePasswordPage = lazy(() => import('./pages/profile/ChangePasswordPage'))
 const UpdateProfilePage = lazy(() => import('./pages/profile/UpdateProfilePage'))
+const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'))
 
 const AppRoutes: React.FC = () => {
   return (
@@ -19,6 +20,9 @@ const AppRoutes: React.FC = () => {
       <Route element={<PrivateLayout/>}>
         <Route path='/dashboard'>
           <Route index element={<DashboardPage/>}/>
+        </Route>
+        <Route path='/notifications'>
+          <Route index element={<NotificationsPage/>}/>
         </Route>
         <Route path='/payment-history'>
           <Route index element={<PaymentHistoryPage/>}/>

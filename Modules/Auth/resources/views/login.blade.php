@@ -30,7 +30,7 @@
                 aria-label="account_id"
                 autofocus
                 class="form-control bg-transparent"
-                value="dolkode@mailinator.com"
+                value="{{ old('account_id') ?? 'dolkode@mailinator.com' }}"
             />
             <!--end::Email-->
         </div>

@@ -17,5 +17,8 @@ class DatabaseSeeder extends Seeder
         $this->call(GroupSeeder::class);
         $this->call(UserSeeder::class);
         $this->call(IntegrasiSsoSeeder::class);
+        if (config('app.env') === 'local') {
+            $this->call(NotificationSeeder::class);
+        }
     }
 }

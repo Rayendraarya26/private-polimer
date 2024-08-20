@@ -4,11 +4,13 @@ import { ProfileType } from '../types/profile'
 interface CommonState {
   loading: boolean,
   profile: ProfileType | null
+  unreadNotifCount: number
 }
 
 const initialState: CommonState = {
   loading: true,
-  profile: null
+  profile: null,
+  unreadNotifCount: 0
 }
 
 const slice = createSlice({
@@ -21,8 +23,11 @@ const slice = createSlice({
     setProfile(state, action: PayloadAction<ProfileType | null>) {
       state.profile = action.payload
     },
+    setUnreadNotifCount(state, action: PayloadAction<number>) {
+      state.unreadNotifCount = action.payload
+    },
   },
 })
 
-export const { setLoading, setProfile } = slice.actions
+export const { setLoading, setProfile, setUnreadNotifCount } = slice.actions
 export default slice.reducer

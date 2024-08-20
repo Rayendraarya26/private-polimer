@@ -14,7 +14,7 @@ class NotificationController extends Controller
         $row = min($request->get('row', 10), 50);
 
         $notification = SysUserNotif::where('user_id', auth()->user()->id)
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate($row);
 
         $total = SysUserNotif::where('user_id', auth()->user()->id)
@@ -27,10 +27,11 @@ class NotificationController extends Controller
         return responseJSON("Success", [
             'data'   => $notification->map(function ($item) {
                 return [
-                    'title'   => $item->title,
-                    'content' => $item->content,
-                    'is_read' => $item->is_read,
-                    'link'    => url("notifications/open/{$item->id}"),
+                    'title'         => $item->title,
+                    'content'       => $item->content,
+                    'is_read'       => $item->is_read,
+                    'created_at'    => $item->created_at,
+                    'link'          => url("notifications/open/{$item->id}"),
                 ];
             }),
             'unread' => $unread,

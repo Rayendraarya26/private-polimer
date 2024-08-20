@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->references('id')->on('sys_user')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('title')->nullable();
-            $table->string('content')->nullable();
+            $table->text('content')->nullable();
             $table->string('link')->nullable()->default(null);
             $table->enum('is_read', ['yes', 'no'])->nullable()->default(Option::NO);
             $table->timestampTz('created_at')->nullable()->useCurrent();

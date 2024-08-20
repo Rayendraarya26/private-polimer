@@ -35,6 +35,7 @@ const NotificationsPage: React.FC = () => {
     data,
     setPage,
     getNotifications,
+    markAllAsRead,
   } = useNotifications({ useLoadMore: true })
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const NotificationsPage: React.FC = () => {
           <div style={{ fontSize: '0.85rem' }}>Menampilkan {data.length} dari {total} notifikasi</div>
         </div>
         <div 
+          onClick={markAllAsRead}
           style={{ cursor: 'pointer', fontSize: '0.85rem' }}
           className="text-primary"
         >

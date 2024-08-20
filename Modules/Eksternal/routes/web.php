@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
+use Modules\Eksternal\Http\Controllers\FaqController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,12 @@ use Modules\Eksternal\Http\Controllers\AppController;
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware(['custom_auth']);
+
+Route::prefix('faq')->group(function () {
+    Route::get('/', [FaqController::class, 'index'])->name('faq');
+    Route::get('/{slugLayanan}', [FaqController::class, 'listTopic'])->name('faq.topic');
+    Route::get('/{slugLayanan}/{slugQuestion}', [FaqController::class, 'detailFaq'])->name('faq.detail');
+});
 
 // Semua API Eksternal didefinisikan disini
 Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {

@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models\Db1;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class MasterLayanan extends Model
+{
+    use HasUuids;
+
+    protected $table = 'master_layanan';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'icon',
+    ];
+
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(MasterFaq::class, 'layanan_id');
+    }
+}

@@ -18,9 +18,7 @@ class PertanyaanController extends Controller
 
     public function listTopic()
     {
-        return responseJSON("Success", [
-            'data'   => MasterTopikPertanyaan::query()->get()
-        ]);
+        return responseJSON("Success", MasterTopikPertanyaan::query()->get());
     }
 
 	public function listPertanyaan(Request $request)

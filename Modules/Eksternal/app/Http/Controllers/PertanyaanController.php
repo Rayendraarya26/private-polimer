@@ -29,6 +29,7 @@ class PertanyaanController extends Controller
         $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id);
 
         if ($search) $list_pertanyaan->where('pertanyaan', 'like', '%' . $search . '%');
+        $total = $list_pertanyaan->count();
 
         $list_pertanyaan = $list_pertanyaan
             ->orderByDesc('created_at')
@@ -46,6 +47,7 @@ class PertanyaanController extends Controller
                     'new_reply'   =>  PertanyaanPelangganPesan::where('pertanyaan_id', $item->id)->where('is_replied', 'yes')->where('created_by','!=', auth()->user()->id)->count(),
                 ];
             }),
+            'total' => $total
         ]);
     }
 

@@ -23,4 +23,9 @@ class Pelanggan extends Model
     {
         return $this->morphTo('detail', 'detail_type', 'detail_id');
     }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(SysUser::class, 'user_id');
+    }
 }

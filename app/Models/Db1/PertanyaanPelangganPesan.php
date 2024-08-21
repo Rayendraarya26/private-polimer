@@ -4,7 +4,6 @@ namespace App\Models\Db1;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PertanyaanPelangganPesan extends Model
@@ -19,8 +18,8 @@ class PertanyaanPelangganPesan extends Model
         'pesan',
         'is_replied',
     ];
-	
-	public function user(): BelongsTo
+
+    public function user(): BelongsTo
     {
         return $this->belongsTo(SysUser::class, 'created_by');
     }

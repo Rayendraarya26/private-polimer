@@ -29,10 +29,7 @@ Route::prefix('faq')->group(function () {
 });
 
 Route::prefix('pertanyaan')->group(function () {
-    Route::get('/topic', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
-	Route::prefix('/user')->middleware('auth:web')->group(function () {
-        Route::get('/list-pertanyaan', [PertanyaanController::class, 'listPertanyaan']);
-    });
+    Route::get('/topik', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
 });
 
 // Semua API Eksternal didefinisikan disini
@@ -46,5 +43,14 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
+    });
+
+	Route::prefix('pertanyaan')->group(function () {
+        Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
+        Route::get('/{pesan}', [PertanyaanController::class, 'listPesan']);
+        Route::post("/new-pertanyaan", [PertanyaanController::class, 'newPertanyaan']);
+        Route::post("/{pesan}", [PertanyaanController::class, 'newPesan']);
+        Route::delete("/{pertanyaan}", [PertanyaanController::class, 'deletePertanyaan']);
+        Route::delete("/{pesan}", [PertanyaanController::class, 'deletePesan']);
     });
 });

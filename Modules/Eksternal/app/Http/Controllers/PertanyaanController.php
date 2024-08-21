@@ -3,10 +3,12 @@
 namespace Modules\Eksternal\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Enums\SysGroup;
 use App\Models\Db1\MasterTopikPertanyaan;
+use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class PertanyaanController extends Controller
 {
@@ -16,39 +18,101 @@ class PertanyaanController extends Controller
 
     public function listTopic()
     {
-        $parser = [
-            'listLayanan' => MasterTopikPertanyaan::query()->get(),
-        ];
-		
-		return responseJSON("Success", [
+        return responseJSON("Success", [
             'data'   => MasterTopikPertanyaan::query()->get()
         ]);
     }
-	
+
 	public function listPertanyaan(Request $request)
     {
-        $cacheKey = 'user_' . $request->user()->id;
+        $row = min($request->get('row', 10), 50);
 
-        return Cache::remember($cacheKey, 5 * 60, function () use ($request) {
-            // selected Group
-            $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first();
+        $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
+            ->orderByDesc('created_at')
+            ->paginate($row);
 
-            $isPelanggan = $groupData->group_id === SysGroup::PELANGGAN->value;
+        return responseJSON("Success", [
+            'data'   => $list_pertanyaan->map(function ($item) {
+                return [
+                    'id'            => $item->id,
+                    'topik'         => $item->topik,
+                    'pertanyaan'    => $item->pertanyaan,
+                    'status'        => $item->status,
+                    'created_at'    => $item->created_at,
+                    'total_pesan'   =>  PertanyaanPelangganPesan::where('pertanyaan_id', $item->id)->count(),
+                    'new_reply'   =>  PertanyaanPelangganPesan::where('pertanyaan_id', $item->id)->where('is_replied', 'yes')->where('created_by','!=', auth()->user()->id)->count(),
+                ];
+            }),
+        ]);
+    }
 
-            return responseJSON("success", [
-                'id'                    => $request->user()->id,
-                'name'                  => $request->user()->name,
-                'email'                 => $request->user()->email,
-                'nip'                   => $request->user()->nip,
-                'force_update_password' => $request->user()->force_update_password,
-                'picture'               => Storage::disk('s3')->temporaryUrl($request->user()->picture, now()->addWeek()),
-                'last_login'            => $request->user()->last_login,
-                'group'                 => [
-                    'id'   => $groupData->group_id,
-                    'name' => $groupData->sys_group->name,
-                ],
-                'detail'                => $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : null,
-            ]);
-        });
+    public function listPesan($pertanyaan, Request $request)
+    {
+        $row = min($request->get('row', 10), 50);
+
+        $list_pesan = PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan)
+            ->orderByDesc('created_at')
+            ->paginate($row);
+
+        return responseJSON("Success", [
+            'data'   => $list_pesan->map(function ($item) {
+                return [
+                    'id'            => $item->id,
+                    'pesan'         => $item->pesan,
+                    'is_replied'    => $item->is_replied,
+                    'is_author'     => $item->user->id == auth()->user()->id ? 'ya' : 'tidak',
+                    'created_by'    => $item->user->name,
+                    'created_at'    => $item->created_at
+                ];
+            }),
+        ]);
+    }
+
+    public function newPertanyaan(Request $request)
+    {
+        $request->validate([
+            'topik' => 'required',
+            'pertanyaan' => 'required',
+        ]);
+
+        /**
+         * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+         * return responseJSON('Captcha tidak valid.', [], 400);
+         * }
+         */
+
+        $pertanyaan                 = new PertanyaanPelanggan();
+        $pertanyaan->pelanggan_id   = $request->user()->pelanggan->id;
+        $pertanyaan->pertanyaan     = $request->pertanyaan;
+        $pertanyaan->topik          = $request->topik;
+        $pertanyaan->save();
+
+        return responseJSON('Data pertanyaan berhasil disimpan.', null);
+    }
+
+    public function newPesan($pertanyaan, Request $request)
+    {
+        $request->validate([
+            'pesan' => 'required',
+        ]);
+
+        /**
+         * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+         * return responseJSON('Captcha tidak valid.', [], 400);
+         * }
+         */
+
+        $pesanPertanyaan                  = new PertanyaanPelangganPesan();
+        $pesanPertanyaan->created_by      = auth()->user()->id;
+        $pesanPertanyaan->pesan           = $request->pesan;
+        $pesanPertanyaan->pertanyaan_id   = $pertanyaan;
+        $pesanPertanyaan->is_replied          = 'no';
+        $pesanPertanyaan->save();
+
+        PertanyaanPelangganPesan::where('created_by', '!=', auth()->user()->id)
+            ->where('pertanyaan_id', $pertanyaan)
+            ->update(['is_replied' => 'yes']);
+
+        return responseJSON('Data pesan berhasil disimpan.', null);
     }
 }

@@ -82,6 +82,11 @@ class SysUser extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Pelanggan::class, 'user_id');
     }
 
+    public function pertanyaan_pesans(): HasOne
+    {
+        return $this->hasOne(PertanyaanPelangganPesan::class, 'created_by');
+    }
+
     public function sys_user_groups(): HasMany
     {
         return $this->hasMany(SysUserGroup::class, 'user_id');

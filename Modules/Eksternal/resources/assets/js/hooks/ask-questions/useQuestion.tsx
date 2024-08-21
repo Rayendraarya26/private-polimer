@@ -1,15 +1,32 @@
 import { useCallback, useState } from "react"
 import toast from "react-hot-toast"
-import { getQuestionDetail, submitQuestion } from "../../services/ask-questions"
+import { getQuestionDetail, getQuestionTopics, submitQuestion } from "../../services/ask-questions"
 import { getErrorMessage } from "../../utils/error"
+import { QuestionDetail, QuestionTopic } from "../../types/ask-questions"
 
-export default (uuid: string) => {
+export default () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [submitting, setSubmitting] = useState<boolean>(false)
-  const [detail, setDetail] = useState<unknown | undefined>(undefined)
+  const [topics, setTopics] = useState<QuestionTopic[]>([])
+  const [detail, setDetail] = useState<QuestionDetail | undefined>(undefined)
+
+  const getQuestionTopic = useCallback(
+    async () => {
+      try {
+        setLoading(true)
+        const results = await getQuestionTopics()
+        setTopics(results)
+      } catch (error) {
+        toast.error(getErrorMessage(error))
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   const getQuestion = useCallback(
-    async () => {
+    async (uuid: string) => {
       try {
         setLoading(true)
         const results = await getQuestionDetail(uuid)
@@ -20,14 +37,15 @@ export default (uuid: string) => {
         setLoading(false)
       }
     },
-    [uuid]
+    []
   )
 
   const createQuestion = useCallback(
-    async (question: string) => {
+    async (topic: string, question: string, callback: () => void) => {
       try {
         setSubmitting(true)
-        const results = await submitQuestion({ pertanyaan: question })
+        const results = await submitQuestion({ topik: topic, pertanyaan: question })
+        callback()
         return results
       } catch (error) {
         toast.error(getErrorMessage(error))
@@ -35,14 +53,16 @@ export default (uuid: string) => {
         setSubmitting(false)
       }
     },
-    [uuid]
+    []
   )
 
   return {
     loading,
     submitting,
     detail,
+    topics,
     getQuestion,
+    getQuestionTopic,
     createQuestion
   }
 }

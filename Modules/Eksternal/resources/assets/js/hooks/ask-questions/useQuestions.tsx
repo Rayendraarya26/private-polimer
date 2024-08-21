@@ -3,6 +3,7 @@ import useDebounceValue from "../useDebounceValue"
 import { getAllQuestions } from "../../services/ask-questions"
 import { getErrorMessage } from "../../utils/error"
 import toast from "react-hot-toast"
+import { Question } from "../../types/ask-questions"
 
 type Options = {
   defaultRowSize?: number
@@ -11,7 +12,7 @@ type Options = {
 
 export default (options?: Options) => {
   const [loading, setLoading] = useState<boolean>(false)
-  const [data, setData] = useState<unknown[]>([])
+  const [data, setData] = useState<Question[]>([])
   const [page, setPage] = useState<number>(1)
   const [rows] = useState<number>(options?.defaultRowSize || 20)
   const [total, setTotal] = useState<number>(0)
@@ -29,7 +30,7 @@ export default (options?: Options) => {
         setLoading(true)
         const results = await getAllQuestions({
           page,
-          per_page: rows,
+          rows,
           ...(search ? {search} : {})
         })
         setData(current => {

@@ -1,12 +1,13 @@
 import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
-import React, { memo } from "react"
-import { Card, Form, InputGroup, Table } from "react-bootstrap"
+import React, { memo, useCallback, useEffect } from "react"
+import { Button, Card, Form, InputGroup, Spinner, Table } from "react-bootstrap"
 import { Calendar, MessageCircle, Search } from "react-feather"
 import styled from "styled-components"
 import NewQuestoin from "../../components/ask-questions/NewQuestoin"
 import QuestionDetail from "../../components/ask-questions/QuestionDetail"
 import { useLocation, useNavigate } from "react-router-dom"
+import useQuestions from "../../hooks/ask-questions/useQuestions"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -35,6 +36,13 @@ const AskQuestionsPage: React.FC = () => {
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
   const detailId = new URLSearchParams(search).get('id')
+
+  const { loading, data, page, total, totalPages, getQuestions, changeSearch, setPage, search: query, debouncedSearch } = useQuestions({ useLoadMore: true })
+
+  useEffect(() => {
+    getQuestions()
+  }, [debouncedSearch, page])
+
   return (
     <div className="w-100">
       <Card>
@@ -45,6 +53,8 @@ const AskQuestionsPage: React.FC = () => {
               <Form.Control
                 placeholder="Cari pertanyaan"
                 aria-describedby="search-pertanyaan"
+                value={query}
+                onChange={e => changeSearch(e.target.value)}
               />
               <InputGroup.Text id="search-pertanyaan">
                 <Search/>
@@ -54,35 +64,67 @@ const AskQuestionsPage: React.FC = () => {
         </Card.Header>
         <Card.Body>
           <ScroallbleList className="w-100 d-flex flex-column gap-3 position-relative">
-            {[1,2,3,4,5,6,7,8,9].map(n => (
+            {data.map(r => (
               <QuestionItem 
-                key={n}
-                onClick={() => navigate(`${pathname}?id=${n}`)}
+                key={r.id}
+                onClick={() => navigate(`${pathname}?id=${r.id}`)}
                 className="w-100 border rounded p-3 bg-light"
               >
-                <div className="w-100 fw-medium">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi perferendis expedita unde optio voluptatibus aliquid ipsum porro dolore, libero, vero quasi iusto suscipit pariatur molestias reprehenderit velit voluptatem in. Doloribus?
+                <div 
+                  style={{ fontSize: '0.85rem' }}
+                  className="mb-2"
+                >
+                  Topik: {r.topik}
                 </div>
-                <div className="d-inline-flex align-items-center gap-5 pt-3">
+                <div className="w-100 fw-semibold">
+                  {r.pertanyaan}
+                </div>
+                <div 
+                  style={{ fontSize: '0.75rem' }}
+                  className="d-inline-flex align-items-center gap-5 pt-3"
+                >
                   <div className="d-inline-flex align-items-center gap-2">
-                    <Calendar/>
+                    <Calendar size={12}/>
                     <div>
-                      {format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                      {format(new Date(r.created_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
                     </div>
                   </div>
                   <div className="d-inline-flex align-items-center gap-2">
-                    <MessageCircle/>
-                    <div>3</div>
+                    <MessageCircle size={12}/>
+                    <div>{r.total_pesan}</div>
                   </div>
                 </div>
               </QuestionItem>
             ))}
-            <NewQuestoin/>
+            {(total > 0 && page < totalPages) && (
+              <div className='w-100 d-flex justify-content-center'>
+                <Button 
+                  type="button"
+                  variant="primary"
+                  className="d-inline-flex align-items-center gap-2"
+                  disabled={loading}
+                  onClick={() => setPage(c => c + 1)}
+                >
+                  {loading && <Spinner size="sm"/>}
+                  <div>Load More</div>
+                </Button>
+              </div>
+            )}
+            <NewQuestoin
+              onAfterAdded={useCallback(() => {
+                if (page === 1) {
+                  getQuestions()
+                } else {
+                  setPage(1)
+                }
+              }, [page])}
+            />
           </ScroallbleList>
         </Card.Body>
       </Card>
       <QuestionDetail
         show={!!detailId}
+        id={detailId as string}
         onClose={() => navigate(-1)}
       />
     </div>

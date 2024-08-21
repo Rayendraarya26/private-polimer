@@ -26,8 +26,13 @@ class PertanyaanController extends Controller
 	public function listPertanyaan(Request $request)
     {
         $rows = min($request->get('rows', 10), 50);
+        $search = trim($request->get('search'));
 
-        $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
+        $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id);
+
+        if ($search) $list_pertanyaan->where('pertanyaan', 'like', '%' . $search . '%');
+
+        $list_pertanyaan = $list_pertanyaan
             ->orderByDesc('created_at')
             ->paginate($rows);
 

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUuid('pelanggan_id')->constrained('pelanggan')->cascadeOnDelete();
             $table->string('topik');
             $table->text('pertanyaan');
-            $table->enum('status', ['closed', 'openend'])->default('openend');
+            $table->enum('status', ['closed', 'opened'])->default('opened');
             $table->timestampsTz();
         });
     }

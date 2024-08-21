@@ -25,11 +25,11 @@ class PertanyaanController extends Controller
 
 	public function listPertanyaan(Request $request)
     {
-        $row = min($request->get('row', 10), 50);
+        $rows = min($request->get('rows', 10), 50);
 
         $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
             ->orderByDesc('created_at')
-            ->paginate($row);
+            ->paginate($rows);
 
         return responseJSON("Success", [
             'data'   => $list_pertanyaan->map(function ($item) {
@@ -48,11 +48,11 @@ class PertanyaanController extends Controller
 
     public function listPesan($pertanyaan, Request $request)
     {
-        $row = min($request->get('row', 10), 50);
+        $rows = min($request->get('rows', 10), 50);
 
         $list_pesan = PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan)
             ->orderByDesc('created_at')
-            ->paginate($row);
+            ->paginate($rows);
 
         return responseJSON("Success", [
             'data'   => $list_pesan->map(function ($item) {

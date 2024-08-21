@@ -47,6 +47,7 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
 
 	Route::prefix('pertanyaan')->group(function () {
         Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
+        Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);
         Route::get('/{pesan}', [PertanyaanController::class, 'listPesan']);
         Route::post("/new-pertanyaan", [PertanyaanController::class, 'newPertanyaan']);
         Route::post("/{pesan}", [PertanyaanController::class, 'newPesan']);

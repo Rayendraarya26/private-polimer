@@ -51,6 +51,15 @@ class PertanyaanController extends Controller
         ]);
     }
 
+    public function detailPertanyaan($id, Request $request)
+    {
+        $detail = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
+            ->where('id', $id)->first();
+        
+        if ($detail) return responseJSON("Success", $detail);
+        return responseJSON("Data tidak ditemukan", [], 404);
+    }
+
     public function listPesan($pertanyaan, Request $request)
     {
         $rows = min($request->get('rows', 10), 50);

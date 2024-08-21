@@ -98,6 +98,22 @@ class MenuSeeder extends Seeder
                             ['name' => 'ajaxItems', 'controller' => $moduleSystem . '\ManageMenuActionController@ajaxItems'],
                         ]
                     ],
+					[
+                        'name'      => 'Manage Topik Pertanyaan',
+                        'desc'      => 'Mengatur Topik Pertanyaan',
+                        'is_active' => 'yes',
+                        'order'     => '3',
+                        'icon'      => 'fa-duotone fa-bars',
+                        'action'    => [
+                            ['name' => 'index', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@index'],
+                            ['name' => 'add', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@create'],
+                            ['name' => 'store', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@store'],
+                            ['name' => 'edit', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@edit'],
+                            ['name' => 'update', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@update'],
+                            ['name' => 'delete', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@destroy'],
+                            ['name' => 'ajax', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@ajax'],
+                        ]
+                    ],
                 ]
             ],
             [
@@ -125,6 +141,22 @@ class MenuSeeder extends Seeder
                             ['name' => 'edit', 'controller' => $moduleAdmin . '\BannerController@edit'],
                             ['name' => 'update', 'controller' => $moduleAdmin . '\BannerController@update'],
                             ['name' => 'delete', 'controller' => $moduleAdmin . '\BannerController@destroy'],
+                        ]
+                    ],
+					[
+                        'name'      => 'Manajemen Pertanyaan',
+                        'desc'      => 'Manajemen pertanyaan pelanggan',
+                        'is_active' => 'yes',
+                        'order'     => 20,
+                        'icon'      => 'fa-regular fa-chat',
+                        'action'    => [
+                            ['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
+                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],
+                            ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@create'],
+                            ['name' => 'store', 'controller' => $moduleAdmin . '\PertanyaanController@store'],
+                            ['name' => 'edit', 'controller' => $moduleAdmin . '\PertanyaanController@edit'],
+                            ['name' => 'update', 'controller' => $moduleAdmin . '\PertanyaanController@update'],
+                            ['name' => 'delete', 'controller' => $moduleAdmin . '\PertanyaanController@destroy'],
                         ]
                     ],
                     [

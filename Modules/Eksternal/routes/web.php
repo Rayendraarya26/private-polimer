@@ -5,6 +5,7 @@ use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
+use Modules\Eksternal\Http\Controllers\PertanyaanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,13 @@ Route::prefix('faq')->group(function () {
     Route::get('/', [FaqController::class, 'index'])->name('faq');
     Route::get('/{slugLayanan}', [FaqController::class, 'listTopic'])->name('faq.topic');
     Route::get('/{slugLayanan}/{slugQuestion}', [FaqController::class, 'detailFaq'])->name('faq.detail');
+});
+
+Route::prefix('pertanyaan')->group(function () {
+    Route::get('/topic', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
+	Route::prefix('/user')->middleware('auth:web')->group(function () {
+        Route::get('/list-pertanyaan', [PertanyaanController::class, 'listPertanyaan']);
+    });
 });
 
 // Semua API Eksternal didefinisikan disini

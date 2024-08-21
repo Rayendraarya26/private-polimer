@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\BannerController;
+use Modules\Admin\Http\Controllers\PertanyaanController;
 use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 
 /*
@@ -22,6 +23,10 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
         Route::get('/ajax', [BannerController::class, 'ajax']);
         Route::put('/{id}', [BannerController::class, 'update']);
         Route::delete('/{id}', [BannerController::class, 'destroy']);
+    });
+	
+	Route::prefix('/pertanyaan')->group(function () {
+        Route::get('/', [PertanyaanController::class, 'index']);
     });
 
     Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);

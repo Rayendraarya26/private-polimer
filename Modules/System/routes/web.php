@@ -5,6 +5,7 @@ use Modules\System\Http\Controllers\ManageGroupController;
 use Modules\System\Http\Controllers\ManageMenuActionController;
 use Modules\System\Http\Controllers\ManageMenuController;
 use Modules\System\Http\Controllers\ManageUserController;
+use Modules\System\Http\Controllers\ManageTopikPertanyaanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,4 +39,14 @@ Route::prefix('system')->middleware(['custom_auth', 'restrict'])->group(function
     Route::resource("menu/{id?}/menu-action", ManageMenuActionController::class);
     Route::post('menu/{id}/menu-action/update', [ManageMenuActionController::class, 'update']);
     Route::get('menu/{id}/menu-action/ajax/items', [ManageMenuActionController::class, 'ajaxItems']);
+	
+	Route::prefix('/topik-pertanyaan')->group(function () {
+        Route::get('/', [ManageTopikPertanyaanController::class, 'index']);
+		Route::get('add', [ManageTopikPertanyaanController::class, 'create']);
+        Route::post('/', [ManageTopikPertanyaanController::class, 'store']);
+        Route::get('/ajax', [ManageTopikPertanyaanController::class, 'ajax']);
+		Route::get('{id}/edit', [ManageTopikPertanyaanController::class, 'edit']);
+		Route::put('{id}', [ManageTopikPertanyaanController::class, 'update']);
+        Route::delete('/{id}', [ManageTopikPertanyaanController::class, 'destroy']);
+    });
 });

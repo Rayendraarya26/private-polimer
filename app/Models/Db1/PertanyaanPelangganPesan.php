@@ -23,4 +23,9 @@ class PertanyaanPelangganPesan extends Model
     {
         return $this->belongsTo(SysUser::class, 'created_by');
     }
+
+    public function pertanyaan_pelanggan(): BelongsTo
+    {
+        return $this->belongsTo(PertanyaanPelanggan::class, 'pertanyaan_id');
+    }
 }

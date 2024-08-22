@@ -5,6 +5,7 @@ namespace App\Models\Db1;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Pelanggan extends Model
 {
@@ -28,4 +29,5 @@ class Pelanggan extends Model
     {
         return $this->belongsTo(SysUser::class, 'user_id');
     }
+
 }

@@ -16,7 +16,9 @@ use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 |
 */
 
-Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function () {
+Route::prefix('/admin')
+    // ->middleware(['custom_auth', 'restrict'])
+    ->group(function () {
     Route::prefix('/setting-banner')->group(function () {
         Route::get('/', [BannerController::class, 'index']);
         Route::post('/', [BannerController::class, 'store']);
@@ -24,9 +26,12 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
         Route::put('/{id}', [BannerController::class, 'update']);
         Route::delete('/{id}', [BannerController::class, 'destroy']);
     });
-	
+
 	Route::prefix('/pertanyaan')->group(function () {
         Route::get('/', [PertanyaanController::class, 'index']);
+        Route::get('/{pertanyaan}/add', [PertanyaanController::class, 'add']);
+        Route::post('/{pertanyaan}', [PertanyaanController::class, 'store']);
+        Route::get('/ajax', [PertanyaanController::class, 'ajax']);
     });
 
     Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);

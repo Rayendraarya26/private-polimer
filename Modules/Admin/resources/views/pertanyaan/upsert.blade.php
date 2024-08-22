@@ -1,0 +1,225 @@
+@extends('layouts.app')
+
+@section('title', 'Detail Pertanyaan Pelanggan')
+
+@section('content')
+    <!--begin::Inbox App - Messages -->
+    <div class="d-flex flex-column flex-lg-row">
+        <!--begin::Sidebar-->
+        <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true" data-kt-drawer-name="inbox-aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_inbox_aside_toggle">
+            <!--begin::Sticky aside-->
+            <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky" data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}" data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
+                <!--begin::Aside content-->
+                <div class="card-body">
+                    <!--begin::Menu-->
+                    <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
+                        <!--begin::Menu item-->
+                        <div class="menu-item mb-3">
+                            <!--begin::Inbox-->
+                            <a href="{{ url("$url") }}" class="menu-link @if ($status_message != 'closed') ? active :  @endif">
+                                <span class="menu-icon">
+                                    <i class="fa-solid fa-comment fs-2 me-3"></i>
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </span>
+                                <span class="menu-title fw-bold">Pertanyaan Aktif (Opened)</span>
+                                @if($total_new > 0) <span class="badge badge-light-success">{{$total_new}}</span>@endif
+                            </a>
+                            <!--end::Inbox-->
+                        </div>
+                        <!--end::Menu item-->
+                        <!--begin::Menu item-->
+                        <div class="menu-item mb-3">
+                            <!--begin::Marked-->
+                            <a href="{{ url("$url?status_message=closed") }}" class="menu-link @if ($status_message == 'closed') ? active :  @endif">
+                                <span class="menu-icon">
+                                    <i class="fa-sharp-duotone fa-solid fa-comments fs-2 me-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </span>
+                                <span class="menu-title fw-bold">Arsip Pertanyaan (Closed)</span>
+                            </a>
+                            <!--end::Marked-->
+                        </div>
+                        <!--end::Menu item-->
+                    </div>
+                    <!--end::Menu-->
+                </div>
+                <!--end::Aside content-->
+            </div>
+            <!--end::Sticky aside-->
+        </div>
+        <!--end::Sidebar-->
+        <!--begin::Content-->
+        <div class="flex-lg-row-fluid ms-lg-7 ms-xl-10">
+            <div class="card" id="kt_chat_messenger">
+                <!--begin::Card header-->
+                <div class="card-header" id="kt_chat_messenger_header">
+                    <!--begin::Title-->
+                    <div class="card-title">
+                        <div class="d-flex justify-content-center flex-column me-3">
+                            <h4 class="">Topik Pertanyaan : {{$data->topik}}</h4>
+                            <!--begin::Info-->
+                            <div class="mb-0 lh-1">
+                                <span class="badge badge-success badge-circle w-10px h-10px me-1"></span>
+                                <span class="fs-7 fw-semibold text-muted">Tiket : {{$data->id}}</span>
+                            </div>
+                            <!--end::Info-->
+                        </div>
+                    </div>
+                    <!--end::Title-->
+                    <div class="card-toolbar">
+                        <!--begin::Menu-->
+                        <div class="me-n3">
+                            <button class="btn btn-sm btn-icon btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                <i class="fa-light fa-list-dropdown fs-2"><span class="path1"></span></i>
+                            </button>
+
+                            <!--begin::Menu 3-->
+                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3" data-kt-menu="true" style="">
+                                <!--begin::Heading-->
+                                <div class="menu-item px-3">
+                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                        Close Pertanyaan
+                                    </div>
+                                </div>
+                                <!--end::Heading-->
+                            </div>
+                            <!--end::Menu 3-->
+                        </div>
+                        <!--end::Menu-->
+                    </div>
+                </div>
+                <!--end::Card header-->
+
+                <!--begin::Card body-->
+                <div class="card-body" id="kt_chat_messenger_body">
+                    <!--begin::Messages-->
+                    <div class="scroll-y me-n5 pe-5 h-300px h-lg-auto" data-kt-element="messages" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_header, #kt_app_header, #kt_app_toolbar, #kt_toolbar, #kt_footer, #kt_app_footer, #kt_chat_messenger_header, #kt_chat_messenger_footer" data-kt-scroll-wrappers="#kt_content, #kt_app_content, #kt_chat_messenger_body" data-kt-scroll-offset="5px" style="max-height: 225px;">
+                        <!--begin::Message(in)-->
+                        <div class="d-flex justify-content-start mb-10 ">
+                            <!--begin::Wrapper-->
+                            <div class="d-flex flex-column align-items-start">
+                                <!--begin::User-->
+                                <div class="d-flex align-items-center mb-2">
+                                    <!--begin::Avatar-->
+                                    <div class="symbol  symbol-35px symbol-circle ">
+                                        <div class="symbol-label bg-light-danger">
+                                            <span class="text-danger">U</span>
+                                        </div>
+                                    </div><!--end::Avatar-->
+                                    <!--begin::Details-->
+                                    <div class="ms-3">
+                                        <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1">{{$data->pelanggan->user->name}}</a>
+                                        <span class="text-muted fs-7 mb-1">{{$data->created_at}}</span>
+                                    </div>
+                                    <!--end::Details-->
+
+                                </div>
+                                <!--end::User-->
+
+                                <!--begin::Text-->
+                                <div class="p-5 rounded bg-light-info text-gray-900 fw-semibold mw-lg-400px text-start" data-kt-element="message-text">
+                                    {{$data->pertanyaan}}
+                                </div>
+                                <!--end::Text-->
+                            </div>
+                            <!--end::Wrapper-->
+                        </div>
+                        <!--end::Message(in)-->
+                        @foreach($data->pesans as $pesan)
+                            <!--begin::Message(out)-->
+                            <div class="d-flex @if($pesan->created_by !== $data->pelanggan->user->id) justify-content-end @else justify-content-start @endif mb-10 ">
+                                <!--begin::Wrapper-->
+                                <div class="d-flex flex-column @if($pesan->created_by !== $data->pelanggan->user->id) align-items-end @else align-items-start @endif">
+                                    <!--begin::User-->
+                                    <div class="d-flex align-items-center mb-2">
+                                        @if($pesan->created_by == $data->pelanggan->user->id)
+                                        <!--begin::Avatar-->
+                                        <div class="symbol  symbol-35px symbol-circle ">
+                                            <div class="symbol-label bg-light-danger">
+                                                <span class="text-danger">U</span>
+                                            </div>
+                                        </div><!--end::Avatar-->
+                                        @endif
+                                        <!--begin::Details-->
+                                        <div class="me-3">
+                                            @if($pesan->created_by !== $data->pelanggan->user->id)
+                                            <span class="text-muted fs-7 mb-1">{{$pesan->user->created_at}}</span>
+                                            @endif
+                                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{$pesan->user->name}}</a>
+                                            @if($pesan->created_by == $data->pelanggan->user->id)
+                                                <span class="text-muted fs-7 mb-1">{{$pesan->user->created_at}}</span>
+                                            @endif
+                                        </div>
+                                        <!--end::Details-->
+                                        @if($pesan->created_by !== $data->pelanggan->user->id)
+                                            <!--begin::Avatar-->
+                                            <div class="symbol  symbol-35px symbol-circle ">
+                                                <div class="symbol-label bg-light-warning">
+                                                    <span class="text-danger">B</span>
+                                                </div>
+                                            </div>
+                                            <!--end::Avatar-->
+                                        @endif
+                                    </div>
+                                    <!--end::User-->
+
+                                    <!--begin::Text-->
+                                    <div class="p-5 rounded @if($pesan->created_by !== $data->pelanggan->user->id) bg-light-primary @else bg-light-info @endif text-gray-900 fw-semibold mw-lg-400px @if($pesan->created_by !== $data->pelanggan->user->id) text-end @else text-start @endif" data-kt-element="message-text">
+                                        {{$pesan->pesan}}
+                                    </div>
+                                    <!--end::Text-->
+                                </div>
+                                <!--end::Wrapper-->
+                            </div>
+                            <!--end::Message(out)-->
+                        @endforeach
+                    </div>
+                    <!--end::Messages-->
+                </div>
+                <!--end::Card body-->
+
+                <!--begin::Card footer-->
+                <div class="card-footer pt-4" id="kt_chat_messenger_footer">
+                    @if ($errors->any())
+                        <div class="alert alert-danger" role="alert">
+                            {!! implode('', $errors->all('<li>:message</li>')) !!}
+                        </div>
+                    @endif
+                    @if(session('message'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+                    <form method="post" action="{{ $data ? url("$url/$data->id") : url("$url") }}"
+                          enctype="multipart/form-data" onsubmit="$('#btnSubmit').attr('disabled', true)">
+                        @csrf
+                        @method('POST')
+                        <!--begin::Input-->
+                        <textarea class="form-control mb-3" rows="3" name="pesan" placeholder="Type a message"></textarea>
+                        <!--end::Input-->
+
+                        <!--begin:Toolbar-->
+                        <div class="d-flex flex-stack">
+                            <!--begin::Send-->
+                            <button class="btn btn-primary" type="submit" id="btnSubmit">Kirim</button>
+                            <!--end::Send-->
+                        </div>
+                    </form>
+                    <!--end::Toolbar-->
+                </div>
+                <!--end::Card footer-->
+            </div>
+        <!--end::Content-->
+        </div>
+    </div>
+    <!--end::Inbox App - Messages -->
+@endsection
+@push('scripts')
+    <script>
+
+    </script>
+@endpush

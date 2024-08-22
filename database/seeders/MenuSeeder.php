@@ -148,7 +148,7 @@ class MenuSeeder extends Seeder
                         'desc'      => 'Manajemen pertanyaan pelanggan',
                         'is_active' => 'yes',
                         'order'     => 20,
-                        'icon'      => 'fa-regular fa-chat',
+                        'icon'      => 'fa-solid fa-headset',
                         'action'    => [
                             ['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],

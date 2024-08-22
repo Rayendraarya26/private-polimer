@@ -62,24 +62,20 @@ class PertanyaanController extends Controller
 
     public function listPesan($pertanyaan, Request $request)
     {
-        $rows = min($request->get('rows', 10), 50);
-
         $list_pesan = PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan)
-            ->orderByDesc('created_at')
-            ->paginate($rows);
+            ->orderBy('created_at')
+            ->get();
 
-        return responseJSON("Success", [
-            'data'   => $list_pesan->map(function ($item) {
-                return [
-                    'id'            => $item->id,
-                    'pesan'         => $item->pesan,
-                    'is_replied'    => $item->is_replied,
-                    'is_author'     => $item->user->id == auth()->user()->id ? 'ya' : 'tidak',
-                    'created_by'    => $item->user->name,
-                    'created_at'    => $item->created_at
-                ];
-            }),
-        ]);
+        return responseJSON("Success", $list_pesan->map(function ($item) {
+            return [
+                'id'            => $item->id,
+                'pesan'         => $item->pesan,
+                'is_replied'    => $item->is_replied,
+                'is_author'     => $item->user->id == auth()->user()->id,
+                'created_by'    => $item->user->name,
+                'created_at'    => $item->created_at
+            ];
+        }));
     }
 
     public function newPertanyaan(Request $request)
@@ -101,7 +97,15 @@ class PertanyaanController extends Controller
         $pertanyaan->topik          = $request->topik;
         $pertanyaan->save();
 
-        return responseJSON('Data pertanyaan berhasil disimpan.', null);
+        return responseJSON('Data pertanyaan berhasil disimpan.', [
+            'id'            => $pertanyaan->id,
+            'topik'         => $pertanyaan->topik,
+            'pertanyaan'    => $pertanyaan->pertanyaan,
+            'status'        => $pertanyaan->status,
+            'created_at'    => $pertanyaan->created_at,
+            'total_pesan'   => 0,
+            'new_reply'     => 0,
+        ], 201);
     }
 
     public function newPesan($pertanyaan, Request $request)
@@ -127,6 +131,13 @@ class PertanyaanController extends Controller
             ->where('pertanyaan_id', $pertanyaan)
             ->update(['is_replied' => 'yes']);
 
-        return responseJSON('Data pesan berhasil disimpan.', null);
+        return responseJSON('Data pesan berhasil disimpan.', [
+            'id'            => $pesanPertanyaan->id,
+            'pesan'         => $pesanPertanyaan->pesan,
+            'is_replied'    => $pesanPertanyaan->is_replied,
+            'is_author'     => $pesanPertanyaan->user->id == auth()->user()->id,
+            'created_by'    => $pesanPertanyaan->user->name,
+            'created_at'    => $pesanPertanyaan->created_at
+        ], 201);
     }
 }

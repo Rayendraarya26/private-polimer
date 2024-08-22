@@ -1,7 +1,7 @@
 import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
 import React, { memo, useCallback, useEffect } from "react"
-import { Button, Card, Form, InputGroup, Spinner, Table } from "react-bootstrap"
+import { Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
 import { Calendar, MessageCircle, Search } from "react-feather"
 import styled from "styled-components"
 import NewQuestoin from "../../components/ask-questions/NewQuestoin"
@@ -67,6 +67,7 @@ const AskQuestionsPage: React.FC = () => {
             {data.map(r => (
               <QuestionItem 
                 key={r.id}
+                id={`question-${r.id}`}
                 onClick={() => navigate(`${pathname}?id=${r.id}`)}
                 className="w-100 border rounded p-3 bg-light"
               >
@@ -92,6 +93,7 @@ const AskQuestionsPage: React.FC = () => {
                   <div className="d-inline-flex align-items-center gap-2">
                     <MessageCircle size={12}/>
                     <div>{r.total_pesan}</div>
+                    {r.new_reply > 0 && <div className="fw-bold">(<span className="text-danger">*</span>{r.new_reply})</div>}
                   </div>
                 </div>
               </QuestionItem>

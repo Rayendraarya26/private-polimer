@@ -1,5 +1,5 @@
 import { DefaultApiResponse } from "../types/api"
-import { AskQuestionsListQuery, Question, QuestionDetail, QuestionTopic, SubmitQuestionPayload, SubmitResponsePayload } from "../types/ask-questions"
+import { AskQuestionsListQuery, Question, QuestionDetail, QuestionResponse, QuestionTopic, SubmitQuestionPayload, SubmitResponsePayload } from "../types/ask-questions"
 import api from "../utils/api"
 
 export const getQuestionTopics = async () => {
@@ -25,7 +25,7 @@ export const getAllQuestions = async (params: AskQuestionsListQuery) => {
 
 export const submitQuestion = async (payload: SubmitQuestionPayload) => {
   try {
-    const { data } = await api.post<DefaultApiResponse<unknown>>('/eksternal/pertanyaan/new-pertanyaan', payload)
+    const { data } = await api.post<DefaultApiResponse<Question>>('/eksternal/pertanyaan/new-pertanyaan', payload)
     return data.results
   } catch (error) {
     return Promise.reject(error)
@@ -43,7 +43,7 @@ export const getQuestionDetail = async (uuid: string) => {
 
 export const getQuestionResponses = async (uuid: string) => {
   try {
-    const { data } = await api.get<DefaultApiResponse<unknown[]>>(`/v1/questions/${uuid}/response`)
+    const { data } = await api.get<DefaultApiResponse<QuestionResponse[]>>(`/eksternal/pertanyaan/${uuid}`)
     return data.results
   } catch (error) {
     return Promise.reject(error)
@@ -52,7 +52,7 @@ export const getQuestionResponses = async (uuid: string) => {
 
 export const submitQuestionResponse = async (uuid: string, payload: SubmitResponsePayload) => {
   try {
-    const { data } = await api.post<DefaultApiResponse<unknown>>(`/v1/questions/${uuid}/response`, payload)
+    const { data } = await api.post<DefaultApiResponse<QuestionResponse>>(`/eksternal/pertanyaan/${uuid}`, { pesan: payload.response })
     return data.results
   } catch (error) {
     return Promise.reject(error)

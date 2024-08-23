@@ -65,7 +65,7 @@
                                 <span class="path1"></span>
                                 <span class="path2"></span>
                             </i>
-                            <input type="text" data-kt-docs-table-filter="search" class="form-control form-control-sm form-control-solid mw-100 min-w-125px min-w-lg-150px min-w-xxl-200px ps-11" placeholder="Search inbox" />
+                            <input type="text" data-kt-docs-table-filter="search" class="form-control form-control-sm form-control-solid mw-100 min-w-125px min-w-lg-150px min-w-xxl-200px ps-11" placeholder="Search topik" />
                         </div>
                         <!--end::Search-->
                         <!--begin::Toggle-->
@@ -188,7 +188,7 @@
                     columns: [
                         { data: 'id', "sClass": "ps-9 min-w-80px" },
                         { data: 'fullname', "sClass": "w-150px w-md-175px" },
-                        { data: 'pertanyaan' },
+                        { data: 'topik' },
                         { data: 'created_at' },
                     ],
                     columnDefs: [
@@ -196,39 +196,58 @@
                             targets: 0,
                             searchable: false,
                             orderable: false,
-                            render: function (data) {
-                                return `
-                                    <a href="{{url("$url")}}/${data}/add" class="btn btn-icon btn-color-gray-500 btn-active-color-primary w-35px h-35px" data-bs-toggle="tooltip" data-bs-placement="right" title="Balas">
+                            render: function (data, type, row) {
+                                var btn = '';
+                                if(row.status == 'opened'){
+                                    btn = `<a href="{{url("$url")}}/${data}/add" class="btn btn-icon btn-color-gray-500 btn-active-color-primary w-35px h-35px" data-bs-toggle="tooltip" data-bs-placement="right" title="Balas">
                                         <i class="fa-light fa-message-dots fs-3"></i>
-                                    </a>
-                            `;
+                                    </a>`;
+                                }
+                                else{
+
+                                }
+                                return `${btn}`;
                             }
                         },
                         {
                             targets: 1,
-                            searchable: false,
+                            searchable: true,
                             orderable: false,
                             render: function (data, type, row) {
+                                var color_bold = row.pesans_count > 0 ? 'fw-semibold' : '';
+
+                                var rating = '';
+                                if(row.is_review === 'yes'){
+                                    rating = `<div class="position-relative ps-6 pe-3 py-2">
+                                    <div class="position-absolute start-0 top-0 w-4px h-100 rounded-2 bg-info"></div>
+                                    ${row.rating} <i class="fa-solid fa-star bg-active-light"></i>
+                                    <div class="fs-7 text-muted fw-bold">${row.testimoni}</div>
+                                </div>`;
+                                }
                                 return `
                                 <div class="">
                                     <span class="d-flex align-items-center text-gray-900">
-
-                                    <span class="fw-semibold">${data}</span>
+                                        <span class="${color_bold}">Oleh : ${data}</span>
                                     </span>
                                 </div>
                                 <div class="badge badge-light-info">Tiket : ${row.id}</div>
+                                ${rating}
                             `;
                             }
                         },
                         {
                             targets: 2,
-                            searchable: false,
+                            searchable: true,
                             orderable: false,
                             render: function (data, type, row) {
+                                var color_bold = row.pesans_count > 0 ? 'fw-semibold' : '';
                                 return `
                                    <div class="text-gray-900 gap-1 pt-2">
-                                    ${data}
-                                </div>
+                                        <span class="${color_bold}">Topik : ${data}</span>
+                                    </div>
+                                   <div class="text-gray-900 gap-1 pt-2">
+                                        Layanan : ${row.layanan}
+                                    </div>
                                 <div class="badge badge-light-primary">Total Belum Dibalas : ${row.pesans_count}</div>
                             `;
                             }
@@ -245,6 +264,11 @@
                             }
                         }
                     ],
+                    "createdRow": function( row, data, dataIndex ) {
+                        if ( data.pesans_count > 0 ) {
+                            $(row).addClass('bg-light-warning');
+                        }
+                    }
                 });
 
                 table = dt.$;

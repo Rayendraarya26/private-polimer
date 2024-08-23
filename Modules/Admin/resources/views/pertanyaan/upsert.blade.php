@@ -81,9 +81,9 @@
                             <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3" data-kt-menu="true" style="">
                                 <!--begin::Heading-->
                                 <div class="menu-item px-3">
-                                    <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
+                                    <a href="#" data-kt-btn-closed="closed_chat" class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
                                         Close Pertanyaan
-                                    </div>
+                                    </a>
                                 </div>
                                 <!--end::Heading-->
                             </div>
@@ -98,36 +98,6 @@
                 <div class="card-body" id="kt_chat_messenger_body">
                     <!--begin::Messages-->
                     <div class="scroll-y me-n5 pe-5 h-300px h-lg-auto" data-kt-element="messages" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_header, #kt_app_header, #kt_app_toolbar, #kt_toolbar, #kt_footer, #kt_app_footer, #kt_chat_messenger_header, #kt_chat_messenger_footer" data-kt-scroll-wrappers="#kt_content, #kt_app_content, #kt_chat_messenger_body" data-kt-scroll-offset="5px" style="max-height: 225px;">
-                        <!--begin::Message(in)-->
-                        <div class="d-flex justify-content-start mb-10 ">
-                            <!--begin::Wrapper-->
-                            <div class="d-flex flex-column align-items-start">
-                                <!--begin::User-->
-                                <div class="d-flex align-items-center mb-2">
-                                    <!--begin::Avatar-->
-                                    <div class="symbol  symbol-35px symbol-circle ">
-                                        <div class="symbol-label bg-light-danger">
-                                            <span class="text-danger">U</span>
-                                        </div>
-                                    </div><!--end::Avatar-->
-                                    <!--begin::Details-->
-                                    <div class="ms-3">
-                                        <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary me-1">{{$data->pelanggan->user->name}}</a>
-                                        <span class="text-muted fs-7 mb-1">{{$data->created_at}}</span>
-                                    </div>
-                                    <!--end::Details-->
-
-                                </div>
-                                <!--end::User-->
-
-                                <!--begin::Text-->
-                                <div class="p-5 rounded bg-light-info text-gray-900 fw-semibold mw-lg-400px text-start" data-kt-element="message-text">
-                                    {{$data->pertanyaan}}
-                                </div>
-                                <!--end::Text-->
-                            </div>
-                            <!--end::Wrapper-->
-                        </div>
                         <!--end::Message(in)-->
                         @foreach($data->pesans as $pesan)
                             <!--begin::Message(out)-->
@@ -218,8 +188,99 @@
     </div>
     <!--end::Inbox App - Messages -->
 @endsection
+
 @push('scripts')
     <script>
+        "use strict";
 
+        // Class definition
+        const KTChat = function () {
+            // Shared variables
+            let table;
+            let dt;
+
+            const swalActionError = (message) => {
+                Swal.fire({
+                    text: message,
+                    icon: "error",
+                    buttonsStyling: false,
+                    confirmButtonText: "Ok, tutup!",
+                    customClass: {
+                        confirmButton: "btn fw-bold btn-primary",
+                    }
+                });
+            }
+
+            const swalActionSuccess = (message) => {
+                Swal.fire({
+                    text: message,
+                    icon: "success",
+                    buttonsStyling: false,
+                    confirmButtonText: "Ok, tutup!",
+                    customClass: {
+                        confirmButton: "btn fw-bold btn-primary",
+                    }
+                }).then(function () {
+                    window.location="{{url("$url")}}";
+                });
+
+                // Remove header checked box
+                const container = document.querySelector('#kt_datatable');
+                const headerCheckbox = container.querySelectorAll('[type="checkbox"]')[0];
+                headerCheckbox.checked = false;
+            }
+
+            const apiClosed = () => {
+                axios.put(`{{ url("$url") }}/{{$data->id}}/closed`)
+                    .then(res => {
+                        swalActionSuccess("Berhasil menutup pertanyaan tiket : {{$data->id}}");
+                    })
+                    .catch(err => {
+                        swalActionError(err.response.data.message);
+                    });
+            }
+
+            // Delete customer
+            const handleClosed = () => {
+                // Select all delete buttons
+                const closedChat = document.querySelectorAll('[data-kt-btn-closed="closed_chat"]');
+
+                closedChat.forEach(d => {
+                    // Delete button on click
+                    d.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            text: "Anda yakin untuk menutup percakapan dengan nomor tiket {{$data->id}}?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            buttonsStyling: false,
+                            confirmButtonText: "Ya, Tutup!",
+                            cancelButtonText: "Batal",
+                            customClass: {
+                                confirmButton: "btn fw-bold btn-danger",
+                                cancelButton: "btn fw-bold btn-active-light-primary"
+                            }
+                        }).then(function (result) {
+                            if (result.value) {
+                                apiClosed()
+                            }
+                        });
+                    })
+                });
+            }
+
+            // Public methods
+            return {
+                init: function () {
+                    handleClosed();
+                },
+            }
+        }();
+
+        // On document ready
+        KTUtil.onDOMContentLoaded(function () {
+            KTChat.init();
+        });
     </script>
 @endpush
+

@@ -198,7 +198,7 @@ class PertanyaanController extends Controller
 			$pertanyaan->testimoni          = $request->testimoni != '' ? $request->testimoni : NULL;
 			$pertanyaan->save();
 
-			PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan)
+			PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan->id)
 				->update(['is_replied' => 'yes']);
 
 			return responseJSON('Data pesan berhasil disimpan.', [

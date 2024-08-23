@@ -35,11 +35,7 @@ class PertanyaanController extends Controller
 
     public function index(Request $request)
     {
-		$list_pertanyaan = PertanyaanPelanggan::whereHas('pesans', function ($query) { $query->where('pesan', 'like', '%asd%');});
-			
-		dd($list_pertanyaan);
-		
-        $breadcrumbs = [
+		$breadcrumbs = [
             new Breadcrumbs('Admin'),
             new Breadcrumbs('Pertanyaan Pelanggan', url($this->url)),
         ];
@@ -82,9 +78,49 @@ class PertanyaanController extends Controller
 
     public function store(PertanyaanPelanggan $pertanyaan, Request $request)
     {
+        try {
+            $array_validate = [
+                'pesan'                  => 'required',
+            ];
 
-        return redirect($this->url."/".$pertanyaan->id."/add")->with('message', sprintf("Berhasil menambahkan pesan untuk tiket : %s", $pertanyaan->id));
+            $input = $request->validate($array_validate);
+
+            DB::transaction(function () use ($input, $pertanyaan, $request) {
+                $pertanyaan->status               = 'opened';
+                $pertanyaan->save();
+                DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id',$pertanyaan->id)->update(array(
+                    'is_replied'=> 'yes',
+                ));
+
+                $data_pesan = [
+                    'created_by'   => auth()->id(),
+                    'pertanyaan_id'   => $pertanyaan->id,
+                    'pesan' => $input['pesan'],
+                    'is_replied' => 'no',
+                ];
+
+                PertanyaanPelangganPesan::create($data_pesan);
+            });
+
+            return redirect($this->url."/".$pertanyaan->id."/add")->with('message', sprintf("Berhasil menambahkan pesan untuk tiket : %s", $pertanyaan->id));
+        } catch (Exception $e) {
+            return redirect($this->url."/".$pertanyaan->id."/add")->with('message', $e->getMessage());
+        }
     }
+
+    public function closed($pertanyaan, Request $request)
+    {
+        return DB::transaction(function () use ($pertanyaan){
+            DB::table('pertanyaan_pelanggan')->where('id',$pertanyaan)->update(array(
+                'status'=>'closed',
+            ));
+
+            DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id',$pertanyaan)->update(array(
+                'is_replied'=> 'yes',
+            ));
+        }, 5);
+    }
+
 
     public function ajax(Request $request)
     {
@@ -108,11 +144,14 @@ class PertanyaanController extends Controller
             ->addColumn('fullname', function($data) {
                 return $data->pelanggan->user->name;
             })
-            ->filter(function ($query) {
-                if (request()->has('fullname')) {
-                    $query->where('name', 'like', "%" . request('fullname') . "%");
-                }
-            })
             ->make();
+
+        /**
+         * ->filter(function ($query) {
+         * if (request()->has('fullname')) {
+         * $query->where('name', 'like', "%" . request('fullname') . "%");
+         * }
+         * })
+         */
     }
 }

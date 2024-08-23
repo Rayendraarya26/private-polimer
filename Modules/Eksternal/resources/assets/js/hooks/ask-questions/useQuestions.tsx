@@ -27,6 +27,7 @@ export default (options?: Options) => {
   const getQuestions = useCallback(
     async () => {
       try {
+        if (page === 1) setData([])
         setLoading(true)
         const results = await getAllQuestions({
           page,
@@ -35,6 +36,7 @@ export default (options?: Options) => {
         })
         setData(current => {
           if (options?.useLoadMore) {
+            if (page === 1) return results.data || []
             return [...current, ...results.data]
           }
           return results.data || []

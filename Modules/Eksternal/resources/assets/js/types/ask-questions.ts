@@ -45,3 +45,12 @@ export type QuestionTopic = {
   created_at: string
   updated_at: string
 }
+
+export type QuestionResponse = {
+  id: string
+  pesan: string
+  is_replied: "yes" | "no"
+  is_author: boolean
+  created_by: string
+  created_at: string
+}

@@ -153,6 +153,7 @@ class MenuSeeder extends Seeder
                             ['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],
                             ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@create'],
+                            ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@add'],
                             ['name' => 'store', 'controller' => $moduleAdmin . '\PertanyaanController@store'],
                             ['name' => 'closed', 'controller' => $moduleAdmin . '\PertanyaanController@closed'],
                         ]

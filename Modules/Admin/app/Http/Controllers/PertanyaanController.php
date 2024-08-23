@@ -113,6 +113,7 @@ class PertanyaanController extends Controller
         return DB::transaction(function () use ($pertanyaan){
             DB::table('pertanyaan_pelanggan')->where('id',$pertanyaan)->update(array(
                 'status'=>'closed',
+                'closed_by' => auth()->id()
             ));
 
             DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id',$pertanyaan)->update(array(

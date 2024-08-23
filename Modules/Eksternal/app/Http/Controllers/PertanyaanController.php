@@ -50,7 +50,7 @@ class PertanyaanController extends Controller
                     'layanan'       => $item->layanan,
                     'topik'			=> $item->topik,
                     'status'        => $item->status,
-                    'closed_by'     => $item->user_closed->name,
+                    'closed_by'     => ($item->closed_by != NULL) ? $item->user_closed->name : '',
                     'is_review'     => $item->is_review,
                     'rating'        => $item->rating,
                     'testimoni'     => $item->testimoni,

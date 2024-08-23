@@ -7,7 +7,10 @@ use App\Models\Db1\MasterTopikPertanyaan;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
+
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class PertanyaanController extends Controller
@@ -26,9 +29,14 @@ class PertanyaanController extends Controller
         $rows = min($request->get('rows', 10), 50);
         $search = trim($request->get('search'));
 
-        $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id);
+        $list_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
+			->with(['pesans']);
 
-        if ($search) $list_pertanyaan->where('pertanyaan', 'like', '%' . $search . '%');
+        if ($search) {
+			$list_pertanyaan->whereHas('pesans', function($q) use($search) {
+				$q->where('pesan', 'LIKE', '%' . $search . '%');
+			});
+		}
         $total = $list_pertanyaan->count();
 
         $list_pertanyaan = $list_pertanyaan
@@ -39,13 +47,19 @@ class PertanyaanController extends Controller
             'data'   => $list_pertanyaan->map(function ($item) {
                 return [
                     'id'            => $item->id,
-                    'topik'         => $item->topik,
-                    'pertanyaan'    => $item->pertanyaan,
+                    'layanan'       => $item->layanan,
+                    'topik'			=> $item->topik,
                     'status'        => $item->status,
+                    'closed_by'     => $item->user_closed->name,
+                    'is_review'     => $item->is_review,
+                    'rating'        => $item->rating,
+                    'testimoni'     => $item->testimoni,
                     'created_at'    => $item->created_at,
-                    'total_pesan'   =>  PertanyaanPelangganPesan::where('pertanyaan_id', $item->id)->count(),
-                    'new_reply'   =>  PertanyaanPelangganPesan::where('pertanyaan_id', $item->id)->where('is_replied', 'yes')->where('created_by','!=', auth()->user()->id)->count(),
-                ];
+                    'total_pesan'    => $item->pesans->count(),
+                    'new_reply'    => $item->pesans->where('is_replied', 'no')
+												->where('created_by','!=', auth()->user()->id)
+												->count(),
+				];
             }),
             'total' => $total
         ]);
@@ -81,6 +95,7 @@ class PertanyaanController extends Controller
     public function newPertanyaan(Request $request)
     {
         $request->validate([
+            'layanan' => 'nullable',
             'topik' => 'required',
             'pertanyaan' => 'required',
         ]);
@@ -90,22 +105,40 @@ class PertanyaanController extends Controller
          * return responseJSON('Captcha tidak valid.', [], 400);
          * }
          */
-
-        $pertanyaan                 = new PertanyaanPelanggan();
-        $pertanyaan->pelanggan_id   = $request->user()->pelanggan->id;
-        $pertanyaan->pertanyaan     = $request->pertanyaan;
-        $pertanyaan->topik          = $request->topik;
-        $pertanyaan->save();
-
-        return responseJSON('Data pertanyaan berhasil disimpan.', [
-            'id'            => $pertanyaan->id,
-            'topik'         => $pertanyaan->topik,
-            'pertanyaan'    => $pertanyaan->pertanyaan,
-            'status'        => $pertanyaan->status,
-            'created_at'    => $pertanyaan->created_at,
-            'total_pesan'   => 0,
-            'new_reply'     => 0,
-        ], 201);
+		
+		$openen_pertanyaan = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
+			->where('status', 'opened')
+			->count();
+		
+		if($openen_pertanyaan > 0){
+			return responseJSON("Anda sudah memasukan pertanyaan sebelumnya, silahkan tutup dan berikan rating pelayanan.", [], 404);
+		}
+		else{
+			$pertanyaan                 = new PertanyaanPelanggan();
+			$pertanyaan->pelanggan_id   = $request->user()->pelanggan->id;
+			$pertanyaan->layanan          = $request->layanan;
+			$pertanyaan->topik          = $request->topik;
+			$pertanyaan->save();
+			
+			$pesan                 = new PertanyaanPelangganPesan();
+			$pesan->created_by  	= auth()->user()->id;
+			$pesan->pertanyaan_id     = $pertanyaan->id;
+			$pesan->pesan     = $request->pertanyaan;
+			$pesan->is_replied     = 'no';
+			$pesan->save();
+			
+			return responseJSON('Data pertanyaan berhasil disimpan.', [
+				'id'            => $pertanyaan->id,
+				'id_pesan'            => $pesan->id,
+				'topik'		=> $pertanyaan->topik,
+				'layanan'		=> $pertanyaan->layanan,
+				'pertanyaan'    => $pesan->pertanyaan,
+				'status'        => $pertanyaan->status,
+				'created_at'    => $pertanyaan->created_at,
+				'total_pesan'   => 0,
+				'new_reply'     => 0,
+			], 201);
+		}
     }
 
     public function newPesan($pertanyaan, Request $request)
@@ -139,5 +172,74 @@ class PertanyaanController extends Controller
             'created_by'    => $pesanPertanyaan->user->name,
             'created_at'    => $pesanPertanyaan->created_at
         ], 201);
+    }
+	
+	public function closedPertanyaan(PertanyaanPelanggan $pertanyaan , Request $request)
+    {
+        $request->validate([
+            'rating' => 'in:1,2,3,4,5|nullable',
+            'testimoni' => 'string|nullable',
+        ]);
+
+        /**
+         * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+         * return responseJSON('Captcha tidak valid.', [], 400);
+         * }
+         */
+		
+		if($pertanyaan->is_review === 'yes' && $pertanyaan->status === 'closed'){
+			return responseJSON("Anda sudah memberikan review dan rating layanan untuk pertanyaan ini.", [], 404);
+		}
+		else{
+			$pertanyaan->rating          = $request->rating != '' ? $request->rating : NULL;
+			$pertanyaan->status          = 'closed';
+			$pertanyaan->closed_by          = auth()->user()->id;
+			$pertanyaan->is_review          = 'yes';
+			$pertanyaan->testimoni          = $request->testimoni != '' ? $request->testimoni : NULL;
+			$pertanyaan->save();
+
+			PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan)
+				->update(['is_replied' => 'yes']);
+
+			return responseJSON('Data pesan berhasil disimpan.', [
+				'id'            => $pertanyaan->id,
+				'rating'            => $pertanyaan->rating,
+				'testimoni'            => $pertanyaan->testimoni,
+				'is_review'            => $pertanyaan->is_review,
+				'status'            => $pertanyaan->status,
+				'closed_by'            => $pertanyaan->user_closed->name,
+			], 201);
+		}
+    }
+	
+	public function giveReviewPertanyaan(PertanyaanPelanggan $pertanyaan , Request $request)
+    {
+        $request->validate([
+            'rating' => 'in:1,2,3,4,5|nullable',
+            'testimoni' => 'string|nullable',
+        ]);
+
+        /**
+         * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+         * return responseJSON('Captcha tidak valid.', [], 400);
+         * }
+         */
+		
+		if($pertanyaan->is_review !== 'yes' && $pertanyaan->status === 'closed' ){
+			$pertanyaan->rating          = $request->rating != '' ? $request->rating : NULL;
+			$pertanyaan->is_review          = 'yes';
+			$pertanyaan->testimoni          = $request->testimoni != '' ? $request->testimoni : NULL;
+			$pertanyaan->save();
+
+			return responseJSON('Data pesan berhasil disimpan.', [
+				'id'            => $pertanyaan->id,
+				'rating'            => $pertanyaan->rating,
+				'testimoni'            => $pertanyaan->testimoni,
+				'is_review'            => $pertanyaan->is_review,
+			], 201);
+		}
+		else{
+			return responseJSON("Anda sudah memberikan review dan rating layanan untuk pertanyaan ini.", [], 404);
+		}
     }
 }

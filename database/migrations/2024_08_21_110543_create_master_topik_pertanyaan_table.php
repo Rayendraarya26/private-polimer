@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('master_topik_pertanyaan', function (Blueprint $table) {
             $table->uuid('id')->primary();
+			// $table->foreignUuid('layanan_id')->nullable()->references('id')->on('master_layanan')->cascadeOnUpdate()->cascadeOnDelete();
+            // $table->string('layanan_id');
+			$table->foreignUuid('layanan_id')->nullable()->references('id')->on('master_layanan');
             $table->string('name');
             $table->string('desc')->nullable();
             $table->timestampTz('created_at')->nullable()->useCurrent();
             $table->timestampTz('updated_at')->nullable();
         });
+		
+		
     }
 
     /**
@@ -26,5 +31,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('master_topik_pertanyaan');
+		Schema::table('master_topik_pertanyaan', function (Blueprint $table) {
+            $table->char('layanan_id', 36)->nullable()->change();
+        });
     }
 };

@@ -14,6 +14,8 @@ class MasterTopikPertanyaan extends Model
 
     protected $fillable = [
         'name',
+        'layanan_id',
         'desc',
     ];
+	
 }

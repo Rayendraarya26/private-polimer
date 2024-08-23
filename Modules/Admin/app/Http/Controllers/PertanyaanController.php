@@ -9,6 +9,7 @@ use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -34,6 +35,10 @@ class PertanyaanController extends Controller
 
     public function index(Request $request)
     {
+		$list_pertanyaan = PertanyaanPelanggan::whereHas('pesans', function ($query) { $query->where('pesan', 'like', '%asd%');});
+			
+		dd($list_pertanyaan);
+		
         $breadcrumbs = [
             new Breadcrumbs('Admin'),
             new Breadcrumbs('Pertanyaan Pelanggan', url($this->url)),

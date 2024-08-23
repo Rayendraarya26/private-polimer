@@ -49,10 +49,12 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
         Route::get('/topik', [PertanyaanController::class, 'listTopic']);
         Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);
-        Route::get('/{pesan}', [PertanyaanController::class, 'listPesan']);
+        Route::get('/{pertanyaan}', [PertanyaanController::class, 'listPesan']);
         Route::post("/new-pertanyaan", [PertanyaanController::class, 'newPertanyaan']);
-        Route::post("/{pesan}", [PertanyaanController::class, 'newPesan']);
-        Route::delete("/{pertanyaan}", [PertanyaanController::class, 'deletePertanyaan']);
-        Route::delete("/{pesan}", [PertanyaanController::class, 'deletePesan']);
+        Route::post("/{pertanyaan}", [PertanyaanController::class, 'newPesan']);
+        Route::post("/{pertanyaan}/closed", [PertanyaanController::class, 'closedPertanyaan']);
+        Route::post("/{pertanyaan}/review", [PertanyaanController::class, 'giveReviewPertanyaan']);
+        // Route::delete("/{pertanyaan}", [PertanyaanController::class, 'deletePertanyaan']);
+        // Route::delete("/{pesan}", [PertanyaanController::class, 'deletePesan']);
     });
 });

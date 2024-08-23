@@ -14,10 +14,14 @@ class PertanyaanPelanggan extends Model
     protected $table = 'pertanyaan_pelanggan';
 
     protected $fillable = [
-        'pertanyaan',
+        'layanan',
         'topik',
         'pelanggan_id',
-        'status'
+        'status',
+        'closed_by',
+        'is_review',
+        'testimoni',
+        'rating'
     ];
 
     public function pesans(): HasMany
@@ -28,5 +32,10 @@ class PertanyaanPelanggan extends Model
 	public function pelanggan(): BelongsTo
     {
         return $this->belongsTo(Pelanggan::class, 'pelanggan_id');
+    }
+	
+	public function user_closed(): BelongsTo
+    {
+        return $this->belongsTo(SysUser::class, 'closed_by');
     }
 }

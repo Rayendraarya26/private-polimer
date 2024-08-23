@@ -41,6 +41,7 @@
                 <table id="kt_datatable" class="table align-middle table-row-dashed fs-6 gy-5">
                     <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
+                        <th>Layanan</th>
                         <th>Nama Topik</th>
                         <th>Keterangan Topik</th>
                         <th class="text-end min-w-100px">Actions</th>
@@ -129,6 +130,7 @@
                         url: "{{ url("$url/ajax?action=datatable") }}",
                     },
                     columns: [
+                        { data: 'layanan_nama', searchable: false },
                         { data: 'name' },
                         { data: 'desc' },
                         { data: null, responsivePriority: -1 },

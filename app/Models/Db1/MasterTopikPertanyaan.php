@@ -4,7 +4,7 @@ namespace App\Models\Db1;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MasterTopikPertanyaan extends Model
 {
@@ -17,5 +17,9 @@ class MasterTopikPertanyaan extends Model
         'layanan_id',
         'desc',
     ];
-	
+
+    public function layanan(): BelongsTo
+    {
+        return $this->belongsTo(MasterLayanan::class, 'layanan_id');
+    }
 }

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\BannerController;
 use Modules\Admin\Http\Controllers\PertanyaanController;
 use Modules\Admin\Http\Controllers\IntegrasiSsoController;
+use Modules\Admin\Http\Controllers\ManageTopikPertanyaanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,18 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
         Route::put('/{pertanyaan}/closed', [PertanyaanController::class, 'closed']);
         Route::get('/ajax', [PertanyaanController::class, 'ajax']);
     });
-
+	
+	
+	Route::prefix('/topik-pertanyaan')->group(function () {
+        Route::get('/', [ManageTopikPertanyaanController::class, 'index']);
+		Route::get('add', [ManageTopikPertanyaanController::class, 'create']);
+        Route::post('/', [ManageTopikPertanyaanController::class, 'store']);
+        Route::get('/ajax', [ManageTopikPertanyaanController::class, 'ajax']);
+		Route::get('{id}/edit', [ManageTopikPertanyaanController::class, 'edit']);
+		Route::put('{id}', [ManageTopikPertanyaanController::class, 'update']);
+        Route::delete('/{id}', [ManageTopikPertanyaanController::class, 'destroy']);
+    });
+	
     Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
     Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);
     Route::resource('integrasi-sso', IntegrasiSsoController::class);

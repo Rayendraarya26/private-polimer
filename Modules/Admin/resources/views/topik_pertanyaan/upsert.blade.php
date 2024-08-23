@@ -25,6 +25,24 @@
 
                         <input type="hidden" id="permission" name="permission">
                         <div class="form-group row mb-3">
+                            <label class="col-form-label col-sm-3" for="layanan">
+                                Nama Topik
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-select" name="layanan" id="layanan">
+                                    <option value=""></option>
+                                    @foreach($data_layanan as $dt)
+                                        <option value="{{$dt->id}}"
+                                        @if ($dt->id == old('layanan', $data?->layanan_id))
+                                            selected="selected"
+                                        @endif
+                                        >{{$dt->name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-3">
                             <label class="col-form-label col-sm-3" for="name">
                                 Nama Topik
                             </label>

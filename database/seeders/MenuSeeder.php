@@ -97,23 +97,7 @@ class MenuSeeder extends Seeder
                             ['name' => 'delete', 'controller' => $moduleSystem . '\ManageMenuActionController@destroy'],
                             ['name' => 'ajaxItems', 'controller' => $moduleSystem . '\ManageMenuActionController@ajaxItems'],
                         ]
-                    ],
-					[
-                        'name'      => 'Manage Topik Pertanyaan',
-                        'desc'      => 'Mengatur Topik Pertanyaan',
-                        'is_active' => 'yes',
-                        'order'     => '3',
-                        'icon'      => 'fa-duotone fa-bars',
-                        'action'    => [
-                            ['name' => 'index', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@index'],
-                            ['name' => 'add', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@create'],
-                            ['name' => 'store', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@store'],
-                            ['name' => 'edit', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@edit'],
-                            ['name' => 'update', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@update'],
-                            ['name' => 'delete', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@destroy'],
-                            ['name' => 'ajax', 'controller' => $moduleSystem . '\ManageTopikPertanyaanController@ajax'],
-                        ]
-                    ],
+                    ]
                 ]
             ],
             [
@@ -144,20 +128,67 @@ class MenuSeeder extends Seeder
                         ]
                     ],
 					[
-                        'name'      => 'Manajemen Pertanyaan',
-                        'desc'      => 'Manajemen pertanyaan pelanggan',
+                        'name'      => 'Manajemen Layanan',
+                        'desc'      => 'Mengatur aplikasi client ID dan secret',
                         'is_active' => 'yes',
-                        'order'     => 20,
-                        'icon'      => 'fa-solid fa-headset',
+                        'order'     => 80,
+                        'icon'      => 'fa-regular fa-key',
                         'action'    => [
-                            ['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
-                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],
-                            ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@create'],
-                            ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@add'],
-                            ['name' => 'store', 'controller' => $moduleAdmin . '\PertanyaanController@store'],
-                            ['name' => 'closed', 'controller' => $moduleAdmin . '\PertanyaanController@closed'],
+                            ['name' => 'index', 'controller' => $moduleAdmin . '\IntegrasiSsoController@index'],
+                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\IntegrasiSsoController@ajax'],
+                            ['name' => 'add', 'controller' => $moduleAdmin . '\IntegrasiSsoController@create'],
+                            ['name' => 'detail', 'controller' => $moduleAdmin . '\IntegrasiSsoController@show'],
+                            ['name' => 'store', 'controller' => $moduleAdmin . '\IntegrasiSsoController@store'],
+                            ['name' => 'edit', 'controller' => $moduleAdmin . '\IntegrasiSsoController@edit'],
+                            ['name' => 'update', 'controller' => $moduleAdmin . '\IntegrasiSsoController@update'],
+                            ['name' => 'regenerateSecret', 'controller' => $moduleAdmin . '\IntegrasiSsoController@regenerateSecret'],
+                            ['name' => 'delete', 'controller' => $moduleAdmin . '\IntegrasiSsoController@destroy'],
                         ]
                     ],
+					[
+						'name'      => 'Pelayanan Pertanyaan',
+						'parent'    => null,
+						'desc'      => 'Management Pelayanan Pertanyaan',
+						'is_active' => 'yes',
+						'order'     => 80,
+						'icon'      => 'fa-solid fa-envelope-open-text',
+						'action'    => [
+							['name' => 'index', 'controller' => '#'],
+						],
+						'children'  => [
+							[
+								'name'      => 'Manage Topik Pertanyaan',
+								'desc'      => 'Mengatur Topik Pertanyaan',
+								'is_active' => 'yes',
+								'order'     => '1',
+								'icon'      => 'fa-duotone fa-bars',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@index'],
+									['name' => 'add', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@create'],
+									['name' => 'store', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@store'],
+									['name' => 'edit', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@edit'],
+									['name' => 'update', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@update'],
+									['name' => 'delete', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@destroy'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@ajax'],
+								]
+							],
+							[
+								'name'      => 'Manajemen Pertanyaan',
+								'desc'      => 'Manajemen pertanyaan pelanggan',
+								'is_active' => 'yes',
+								'order'     => 20,
+								'icon'      => 'fa-solid fa-headset',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],
+									['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@create'],
+									['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@add'],
+									['name' => 'store', 'controller' => $moduleAdmin . '\PertanyaanController@store'],
+									['name' => 'closed', 'controller' => $moduleAdmin . '\PertanyaanController@closed'],
+								]
+							],
+						]
+					],
                     [
                         'name'      => 'Integrasi SSO',
                         'desc'      => 'Mengatur aplikasi client ID dan secret',
@@ -179,6 +210,7 @@ class MenuSeeder extends Seeder
                 ]
             ],
         ];
+		
         DB::transaction(function () use ($menus) {
             foreach ($menus as $menu) {
                 $newMenu = SysMenu::query()->create([
@@ -189,6 +221,7 @@ class MenuSeeder extends Seeder
                     'order'     => $menu['order'],
                     'icon'      => $menu['icon'],
                 ]);
+				
                 if (isset($menu['action'])) {
                     foreach ($menu['action'] as $action) {
                         $newMenu->sys_menu_actions()->create([
@@ -197,6 +230,7 @@ class MenuSeeder extends Seeder
                         ]);
                     }
                 }
+				
                 if (isset($menu['children'])) {
                     foreach ($menu['children'] as $child) {
                         $newMenuChild = SysMenu::query()->create([
@@ -215,6 +249,28 @@ class MenuSeeder extends Seeder
                                 ]);
                             }
                         }
+						
+						if (isset($child['children'])) {
+							foreach ($child['children'] as $child_menu2) {
+								$newMenuChild2 = SysMenu::query()->create([
+									'name'      => $child_menu2['name'],
+									'parent_id' => $newMenuChild->id,
+									'desc'      => $child_menu2['desc'],
+									'is_active' => $child_menu2['is_active'],
+									'order'     => $child_menu2['order'],
+									'icon'      => $child_menu2['icon'],
+								]);
+								if (isset($child_menu2['action'])) {
+									foreach ($child_menu2['action'] as $action) {
+										$newMenuChild2->sys_menu_actions()->create([
+											'name'       => $action['name'],
+											'controller' => $action['controller'],
+										]);
+									}
+								}
+							}
+						}
+						
                     }
                 }
             }

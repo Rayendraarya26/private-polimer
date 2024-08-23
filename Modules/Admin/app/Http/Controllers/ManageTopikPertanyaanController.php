@@ -1,8 +1,9 @@
 <?php
 
-namespace Modules\System\Http\Controllers;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
+use App\Models\Db1\MasterLayanan;
 use App\Models\Db1\MasterTopikPertanyaan;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -14,8 +15,8 @@ class ManageTopikPertanyaanController
 {
 
     public string $module = __CLASS__;
-    private string $url = 'system/topik-pertanyaan';
-    private string $view = 'system::topik_pertanyaan';
+    private string $url = 'admin/topik-pertanyaan';
+    private string $view = 'admin::topik_pertanyaan';
 
     private function defaultParser(): array
     {
@@ -29,8 +30,8 @@ class ManageTopikPertanyaanController
     public function index()
     {
         $breadcrumbs = [
-            new Breadcrumbs('System'),
-            new Breadcrumbs('Manage Master Pertanyaan')
+            new Breadcrumbs('Admin'),
+            new Breadcrumbs('Manage Topik Pertanyaan')
         ];
 
         $parse = array_merge($this->defaultParser(), [
@@ -42,14 +43,15 @@ class ManageTopikPertanyaanController
     public function create()
     {
         $breadcrumbs = [
-            new Breadcrumbs('System'),
-            new Breadcrumbs('Manage Master Pertanyaan', url($this->url)),
+            new Breadcrumbs('Admin'),
+            new Breadcrumbs('Manage Topik Pertanyaan', url($this->url)),
             new Breadcrumbs('Tambah'),
         ];
 
         $parse = ['url' => $this->url, 'module' => $this->module, 'breadcrumbs' => $breadcrumbs];
         $parse = array_merge($this->defaultParser(), [
             'breadcrumbs' => $breadcrumbs,
+            'data_layanan' => MasterLayanan::query()->get(),
             'data'        => null
         ]);
         return view("$this->view.upsert")->with($parse);
@@ -60,13 +62,14 @@ class ManageTopikPertanyaanController
         $data = MasterTopikPertanyaan::findOrFail($id);
 
         $breadcrumbs = [
-            new Breadcrumbs('System'),
-            new Breadcrumbs('Manage Master Pertanyaan', url($this->url)),
+            new Breadcrumbs('Admin'),
+            new Breadcrumbs('Manage Topik Pertanyaan', url($this->url)),
             new Breadcrumbs('Ubah'),
         ];
 
         $parse = array_merge($this->defaultParser(), [
             'breadcrumbs' => $breadcrumbs,
+            'data_layanan' => MasterLayanan::query()->get(),
             'data'        => $data
         ]);
         return view("$this->view.upsert")->with($parse);
@@ -102,6 +105,7 @@ class ManageTopikPertanyaanController
     public function upsert(array $input, MasterTopikPertanyaan $topik)
     {
         return DB::transaction(function () use ($input, $topik) {
+            $topik->layanan_id      = $input['layanan'];
             $topik->name      = $input['name'];
             $topik->desc      = $input['desc'];
             $topik->save();
@@ -116,7 +120,7 @@ class ManageTopikPertanyaanController
 
         return responseJSON("Sukses menghapus data");
     }
-	
+
 	public function ajax(Request $request)
     {
         return match ($request->action) {
@@ -125,9 +129,12 @@ class ManageTopikPertanyaanController
         };
     }
 
-    public function ajax_datatable(): JsonResponse
+    public function ajax_datatable(Request $request): JsonResponse
     {
-        $data = MasterTopikPertanyaan::query();
+        $data = MasterTopikPertanyaan::query()
+            ->select(DB::raw('master_layanan.name AS layanan_nama, master_topik_pertanyaan.*'))
+            ->leftJoin('master_layanan', 'master_layanan.id', '=', 'master_topik_pertanyaan.layanan_id' );
+
         return Datatables::eloquent($data)
             ->addIndexColumn()
             ->make();
@@ -136,6 +143,7 @@ class ManageTopikPertanyaanController
     private function validateData(Request $request)
     {
         return $request->validate([
+            'layanan'       => 'nullable',
             'name'       => 'required',
             'desc'       => 'required'
         ]);

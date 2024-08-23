@@ -23,4 +23,9 @@ class MasterLayanan extends Model
     {
         return $this->hasMany(MasterFaq::class, 'layanan_id');
     }
+
+    public function topik_pertanyaans(): HasMany
+    {
+        return $this->hasMany(MasterTopikPertanyaan::class, 'layanan_id');
+    }
 }

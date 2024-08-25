@@ -24,6 +24,7 @@ export type Question = {
   topik: string
   layanan: string
   status: QuestionStatus
+  is_review: 'yes' | 'no'
   created_at: string
   total_pesan: number
   new_reply: number
@@ -35,6 +36,9 @@ export type QuestionDetail = {
   topik: string
   layanan: string
   status: QuestionStatus
+  is_review: 'yes' | 'no'
+  rating: string
+  testimoni: string
   closed_by: string
   closed_by_name: string
   created_at: string

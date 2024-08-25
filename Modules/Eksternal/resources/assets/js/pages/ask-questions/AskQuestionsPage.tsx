@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import useQuestions from "../../hooks/ask-questions/useQuestions"
 import { QuestionStatus } from "../../types/ask-questions"
 import CloseQuestion from "../../components/ask-questions/CloseQuestion"
+import ReviewQuestion from "../../components/ask-questions/ReviewQuestion"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -39,6 +40,7 @@ const AskQuestionsPage: React.FC = () => {
   const { pathname, search } = useLocation()
   const detailId = new URLSearchParams(search).get('id')
   const [closeQuestionId, setCloseQuestionId] = useState<string>('')
+  const [reviewQuestionId, setReviewQuestionId] = useState<string>('')
 
   const { 
     loading,
@@ -115,6 +117,21 @@ const AskQuestionsPage: React.FC = () => {
                     {r.new_reply > 0 && <div className="fw-bold">(<span className="text-danger">*</span>{r.new_reply})</div>}
                   </div>
                 </div>
+                {r.status === QuestionStatus.CLOSED && r.is_review === 'no' && (
+                  <div className="w-100 d-flex justify-content-end">
+                    <Button 
+                      size="sm"
+                      type="button"
+                      variant="outline-primary"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setReviewQuestionId(r.id)
+                      }}
+                    >
+                      Beri Penilaian
+                    </Button>
+                  </div>
+                )}
                 {r.status === QuestionStatus.OPENED && (
                   <div className="w-100 d-flex justify-content-end">
                     <Button 
@@ -172,7 +189,22 @@ const AskQuestionsPage: React.FC = () => {
             ...r,
             status: r.id === closeQuestionId ? QuestionStatus.CLOSED : r.status
           })))
-          setCloseQuestionId('')
+          setCloseQuestionId(current => {
+            setReviewQuestionId(current)
+            return ''
+          })
+        }}
+      />
+      <ReviewQuestion
+        id={reviewQuestionId}
+        show={!!reviewQuestionId}
+        onClose={() => setReviewQuestionId('')}
+        onAfterReview={() => {
+          setData(current => current.map(r => ({
+            ...r,
+            is_review: r.id === reviewQuestionId ? 'yes' : r.is_review
+          })))
+          setReviewQuestionId('')
         }}
       />
     </div>

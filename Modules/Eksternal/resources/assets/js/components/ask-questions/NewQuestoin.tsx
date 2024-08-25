@@ -47,7 +47,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
     createQuestion({
       topic: selectedTopic.name,
       question,
-      layanan: layanan ? layanan : undefined
+      layanan
     }, () => {
       setShowForm(false)
       onAfterAdded()

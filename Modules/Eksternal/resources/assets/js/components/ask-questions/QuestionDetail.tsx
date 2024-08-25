@@ -2,7 +2,7 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
 import { memo, useCallback, useEffect, useState } from "react"
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap"
-import { Calendar, Send, X } from "react-feather"
+import { Calendar, Send, Star, X } from "react-feather"
 import clsx from "clsx"
 import styled from "styled-components"
 import useQuestion from "../../hooks/ask-questions/useQuestion"
@@ -79,6 +79,26 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                   >
                     Layanan: {detail.layanan || '-'}
                   </div>
+                  {detail.rating && (
+                    <div className="d-flex flex-column gap-1 py-2">
+                      <div className="fw-semibold">Penilaian:</div>
+                      <div className="d-inline-flex align-items-center gap-2">
+                        {[1,2,3,4,5].map(v => (
+                          <Star 
+                            key={v}
+                            className="text-warning"
+                            fill={parseInt(detail.rating) >= v ? 'gold' : 'white'}
+                          />
+                        ))}
+                      </div>
+                      <p 
+                        className="mb-0"
+                        style={{ fontSize: '0.85rem' }}
+                      >
+                        Feedback: {detail?.testimoni || '-'}
+                      </p>
+                    </div>
+                  )}
                   <div className="d-inline-flex align-items-center gap-2 text-muted justify-content-end">
                     <Calendar size={12}/>
                     <div style={{ fontSize: '0.75rem' }}>

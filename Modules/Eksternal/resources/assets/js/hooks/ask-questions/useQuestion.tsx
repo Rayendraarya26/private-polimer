@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import toast from "react-hot-toast"
-import { getQuestionDetail, getQuestionTopics, submitCloseQuestion, submitQuestion } from "../../services/ask-questions"
+import { getQuestionDetail, getQuestionTopics, submitCloseQuestion, submitQuestion, submitReviewQuestion } from "../../services/ask-questions"
 import { getErrorMessage } from "../../utils/error"
 import { QuestionDetail, QuestionTopic } from "../../types/ask-questions"
 
@@ -75,6 +75,21 @@ export default () => {
     []
   )
 
+  const reviewQuestion = useCallback(
+    async (id: string, payload: { rating: number, testimoni: string }) => {
+      try {
+        setSubmitting(true)
+        const results = await submitReviewQuestion(id, payload)
+        return results
+      } catch (error) {
+        toast.error(getErrorMessage(error))
+      } finally {
+        setSubmitting(false)
+      }
+    },
+    []
+  )
+
   return {
     loading,
     submitting,
@@ -83,6 +98,7 @@ export default () => {
     getQuestion,
     getQuestionTopic,
     createQuestion,
-    closeQuestion
+    closeQuestion,
+    reviewQuestion
   }
 }

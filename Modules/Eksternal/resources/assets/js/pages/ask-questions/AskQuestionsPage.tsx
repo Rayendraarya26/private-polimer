@@ -1,13 +1,15 @@
 import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
-import React, { memo, useCallback, useEffect } from "react"
-import { Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
+import React, { memo, useCallback, useEffect, useState } from "react"
+import { Badge, Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
 import { Calendar, MessageCircle, Search } from "react-feather"
 import styled from "styled-components"
 import NewQuestoin from "../../components/ask-questions/NewQuestoin"
 import QuestionDetail from "../../components/ask-questions/QuestionDetail"
 import { useLocation, useNavigate } from "react-router-dom"
 import useQuestions from "../../hooks/ask-questions/useQuestions"
+import { QuestionStatus } from "../../types/ask-questions"
+import CloseQuestion from "../../components/ask-questions/CloseQuestion"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -36,8 +38,21 @@ const AskQuestionsPage: React.FC = () => {
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
   const detailId = new URLSearchParams(search).get('id')
+  const [closeQuestionId, setCloseQuestionId] = useState<string>('')
 
-  const { loading, data, page, total, totalPages, getQuestions, changeSearch, setPage, search: query, debouncedSearch } = useQuestions({ useLoadMore: true })
+  const { 
+    loading,
+    data,
+    page,
+    total,
+    totalPages,
+    getQuestions,
+    changeSearch,
+    setPage,
+    search: query,
+    debouncedSearch,
+    setData
+  } = useQuestions({ useLoadMore: true })
 
   useEffect(() => {
     getQuestions()
@@ -71,18 +86,22 @@ const AskQuestionsPage: React.FC = () => {
                 onClick={() => navigate(`${pathname}?id=${r.id}`)}
                 className="w-100 border rounded p-3 bg-light"
               >
-                <div 
-                  style={{ fontSize: '0.85rem' }}
-                  className="mb-2"
-                >
-                  Topik: {r.topik}
+                <div className="w-100 d-flex justify-content-between align-items-start gap-3">
+                  <div 
+                    style={{ fontSize: '0.85rem' }}
+                    className="mb-2"
+                  >
+                    Topik: {r.topik}
+                  </div>
+                  {r.status === QuestionStatus.OPENED && <Badge bg="success">Open</Badge>}
+                  {r.status === QuestionStatus.CLOSED && <Badge bg="danger">Closed</Badge>}
                 </div>
                 <div className="w-100 fw-semibold">
                   {r.pertanyaan}
                 </div>
                 <div 
                   style={{ fontSize: '0.75rem' }}
-                  className="d-inline-flex align-items-center gap-5 pt-3"
+                  className="d-inline-flex align-items-center gap-5 pt-3 mb-2"
                 >
                   <div className="d-inline-flex align-items-center gap-2">
                     <Calendar size={12}/>
@@ -96,6 +115,21 @@ const AskQuestionsPage: React.FC = () => {
                     {r.new_reply > 0 && <div className="fw-bold">(<span className="text-danger">*</span>{r.new_reply})</div>}
                   </div>
                 </div>
+                {r.status === QuestionStatus.OPENED && (
+                  <div className="w-100 d-flex justify-content-end">
+                    <Button 
+                      size="sm"
+                      type="button"
+                      variant="outline-danger"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setCloseQuestionId(r.id)
+                      }}
+                    >
+                      Tutup Pertanyaan
+                    </Button>
+                  </div>
+                )}
               </QuestionItem>
             ))}
             {(total > 0 && page < totalPages) && (
@@ -128,6 +162,18 @@ const AskQuestionsPage: React.FC = () => {
         show={!!detailId}
         id={detailId as string}
         onClose={() => navigate(-1)}
+      />
+      <CloseQuestion
+        id={closeQuestionId}
+        show={!!closeQuestionId}
+        onClose={() => setCloseQuestionId('')}
+        onAfterClosed={() => {
+          setData(current => current.map(r => ({
+            ...r,
+            status: r.id === closeQuestionId ? QuestionStatus.CLOSED : r.status
+          })))
+          setCloseQuestionId('')
+        }}
       />
     </div>
   )

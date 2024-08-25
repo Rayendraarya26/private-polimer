@@ -50,6 +50,15 @@ export const getQuestionResponses = async (uuid: string) => {
   }
 }
 
+export const submitCloseQuestion = async (uuid: string) => {
+  try {
+    const { data } = await api.post<DefaultApiResponse<QuestionResponse[]>>(`/eksternal/pertanyaan/${uuid}/closed`)
+    return data.results
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
+
 export const submitQuestionResponse = async (uuid: string, payload: SubmitResponsePayload) => {
   try {
     const { data } = await api.post<DefaultApiResponse<QuestionResponse>>(`/eksternal/pertanyaan/${uuid}`, { pesan: payload.response })

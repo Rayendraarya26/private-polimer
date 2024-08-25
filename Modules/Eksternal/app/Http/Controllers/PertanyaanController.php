@@ -70,7 +70,11 @@ class PertanyaanController extends Controller
         $detail = PertanyaanPelanggan::where('pelanggan_id', $request->user()->pelanggan->id)
             ->where('id', $id)->first();
         
-        if ($detail) return responseJSON("Success", $detail);
+        if ($detail) {
+            $detail['closed_by'] = $detail?->user_closed?->name || null;
+            return responseJSON("Success", $detail);
+        }
+    
         return responseJSON("Data tidak ditemukan", [], 404);
     }
 
@@ -194,7 +198,7 @@ class PertanyaanController extends Controller
 			$pertanyaan->rating          = $request->rating != '' ? $request->rating : NULL;
 			$pertanyaan->status          = 'closed';
 			$pertanyaan->closed_by          = auth()->user()->id;
-			$pertanyaan->is_review          = 'yes';
+			$pertanyaan->is_review          = $request->rating ? 'yes' : 'no';
 			$pertanyaan->testimoni          = $request->testimoni != '' ? $request->testimoni : NULL;
 			$pertanyaan->save();
 

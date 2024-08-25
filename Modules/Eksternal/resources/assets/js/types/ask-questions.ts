@@ -34,6 +34,7 @@ export type QuestionDetail = {
   topik: string
   pertanyaan: string
   status: QuestionStatus
+  closed_by: string
   created_at: string
   updated_at: string
 }

@@ -67,6 +67,7 @@ export default (options?: Options) => {
     rows,
     debouncedSearch,
     getQuestions,
-    changeSearch
+    changeSearch,
+    setData
   }
 }

@@ -1,12 +1,13 @@
 import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
 import { memo, useCallback, useEffect, useState } from "react"
-import { Button, Form, Modal, Spinner } from "react-bootstrap"
-import { Calendar, Send } from "react-feather"
+import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap"
+import { Calendar, Send, X } from "react-feather"
 import clsx from "clsx"
 import styled from "styled-components"
 import useQuestion from "../../hooks/ask-questions/useQuestion"
 import useQuestionResponse from "../../hooks/ask-questions/useQuestionResponse"
+import { QuestionStatus } from "../../types/ask-questions"
 
 const FloatingContainer = styled.form`
   padding-bottom: 0.98rem;
@@ -62,6 +63,13 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
             <>
               {detail ? (
                 <>
+                  {detail.status === QuestionStatus.CLOSED && (
+                    <Alert variant="danger">
+                      <div className="d-inline-flex align-items-start gap-2">
+                        <X/><p className="mb-0">Sesi pertanyaan ini telah ditutup oleh {detail.closed_by}</p>
+                      </div>
+                    </Alert>
+                  )}
                   <div style={{ fontSize: '0.85rem' }}>
                     Topik: {detail.topik}
                   </div>
@@ -122,32 +130,34 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                         )
                       })}
                     </div>
-                    <FloatingContainer 
-                      className="bg-white border-top p-3"
-                      onSubmit={e => {
-                        e.preventDefault()
-                        onSubmit()
-                      }}
-                    >
-                      <Form.Control
-                        as="textarea"
-                        required
-                        placeholder="Tulis pesan..."
-                        rows={2}
-                        style={{ resize: 'none' }}
-                        value={responseMessage}
-                        onChange={e => setResponseMessage((e.target.value || '').trim())}
-                      />
-                      <Button
-                        type="submit"
-                        variant="success"
-                        className="px-3"
-                        title="Kirim"
-                        disabled={submitting}
+                    {detail.status === QuestionStatus.OPENED && (
+                      <FloatingContainer 
+                        className="bg-white border-top p-3"
+                        onSubmit={e => {
+                          e.preventDefault()
+                          onSubmit()
+                        }}
                       >
-                        <Send/>
-                      </Button>
-                    </FloatingContainer>
+                        <Form.Control
+                          as="textarea"
+                          required
+                          placeholder="Tulis pesan..."
+                          rows={2}
+                          style={{ resize: 'none' }}
+                          value={responseMessage}
+                          onChange={e => setResponseMessage((e.target.value || '').trim())}
+                        />
+                        <Button
+                          type="submit"
+                          variant="success"
+                          className="px-3"
+                          title="Kirim"
+                          disabled={submitting}
+                        >
+                          <Send/>
+                        </Button>
+                      </FloatingContainer>
+                    )}
                   </div>
                 </>
               ) : (

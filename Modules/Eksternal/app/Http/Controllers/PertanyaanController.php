@@ -71,7 +71,7 @@ class PertanyaanController extends Controller
             ->where('id', $id)->first();
         
         if ($detail) {
-            $detail['closed_by'] = $detail?->user_closed?->name || null;
+            $detail['closed_by_name'] = $detail->user_closed->name;
             return responseJSON("Success", $detail);
         }
     

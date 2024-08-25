@@ -87,17 +87,17 @@ const AskQuestionsPage: React.FC = () => {
                 className="w-100 border rounded p-3 bg-light"
               >
                 <div className="w-100 d-flex justify-content-between align-items-start gap-3">
-                  <div 
-                    style={{ fontSize: '0.85rem' }}
-                    className="mb-2"
-                  >
+                  <div className="mb-2 fw-semibold">
                     Topik: {r.topik}
                   </div>
                   {r.status === QuestionStatus.OPENED && <Badge bg="success">Open</Badge>}
                   {r.status === QuestionStatus.CLOSED && <Badge bg="danger">Closed</Badge>}
                 </div>
-                <div className="w-100 fw-semibold">
-                  {r.pertanyaan}
+                <div 
+                  style={{ fontSize: '0.85rem' }}
+                  className="mb-2 fw-light"
+                >
+                  Layanan: {r.layanan || '-'}
                 </div>
                 <div 
                   style={{ fontSize: '0.75rem' }}

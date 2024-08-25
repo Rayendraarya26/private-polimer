@@ -7,6 +7,7 @@ export type AskQuestionsListQuery = PaginationQuery & {
 export type SubmitQuestionPayload = {
   topik: string
   pertanyaan: string
+  layanan?: string
 }
 
 export type SubmitResponsePayload = {
@@ -21,7 +22,7 @@ export enum QuestionStatus {
 export type Question = {
   id: string
   topik: string
-  pertanyaan: string
+  layanan: string
   status: QuestionStatus
   created_at: string
   total_pesan: number
@@ -32,9 +33,10 @@ export type QuestionDetail = {
   id: string
   pelanggan_id: string
   topik: string
-  pertanyaan: string
+  layanan: string
   status: QuestionStatus
   closed_by: string
+  closed_by_name: string
   created_at: string
   updated_at: string
 }

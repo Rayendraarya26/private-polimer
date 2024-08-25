@@ -41,10 +41,14 @@ export default () => {
   )
 
   const createQuestion = useCallback(
-    async (topic: string, question: string, callback: () => void) => {
+    async (payload: { topic: string, question: string, layanan?: string, }, callback: () => void) => {
       try {
         setSubmitting(true)
-        const results = await submitQuestion({ topik: topic, pertanyaan: question })
+        const results = await submitQuestion({
+          topik: payload.topic,
+          pertanyaan: payload.question,
+          layanan: payload?.layanan
+        })
         callback()
         return results
       } catch (error) {

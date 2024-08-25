@@ -66,15 +66,18 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                   {detail.status === QuestionStatus.CLOSED && (
                     <Alert variant="danger">
                       <div className="d-inline-flex align-items-start gap-2">
-                        <X/><p className="mb-0">Sesi pertanyaan ini telah ditutup oleh {detail.closed_by}</p>
+                        <X/><p className="mb-0">Sesi pertanyaan ini telah ditutup oleh {detail.closed_by_name}</p>
                       </div>
                     </Alert>
                   )}
-                  <div style={{ fontSize: '0.85rem' }}>
+                  <div className="fw-semibold">
                     Topik: {detail.topik}
                   </div>
-                  <div className="w-100 fw-semibold">
-                    {detail.pertanyaan}
+                  <div 
+                    style={{ fontSize: '0.85rem' }}
+                    className="fw-light"
+                  >
+                    Layanan: {detail.layanan || '-'}
                   </div>
                   <div className="d-inline-flex align-items-center gap-2 text-muted justify-content-end">
                     <Calendar size={12}/>

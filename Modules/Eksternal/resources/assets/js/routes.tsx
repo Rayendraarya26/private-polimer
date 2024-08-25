@@ -8,7 +8,6 @@ import PrivateLayout from './layouts/PrivateLayout'
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const PaymentHistoryPage = lazy(() => import('./pages/payment-history/PaymentHistoryPage'))
 const SatisfactionSurveyPage = lazy(() => import('./pages/satisfaction-survey/SatisfactionSurveyPage'))
-const ComplaintPage = lazy(() => import('./pages/complaint/ComplaintPage'))
 const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPage'))
 const ChangePasswordPage = lazy(() => import('./pages/profile/ChangePasswordPage'))
 const UpdateProfilePage = lazy(() => import('./pages/profile/UpdateProfilePage'))
@@ -29,9 +28,6 @@ const AppRoutes: React.FC = () => {
         </Route>
         <Route path='/satisfaction-survey'>
           <Route index element={<SatisfactionSurveyPage/>}/>
-        </Route>
-        <Route path='/complaint'>
-          <Route index element={<ComplaintPage/>}/>
         </Route>
         <Route path='/ask-questions'>
           <Route index element={<AskQuestionsPage/>}/>

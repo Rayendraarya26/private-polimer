@@ -1,6 +1,6 @@
 import clsx from "clsx"
 import { memo, useCallback, useEffect, useMemo } from "react"
-import { AlertTriangle, Clock, Edit, Home, Icon, Send } from "react-feather"
+import { Clock, Edit, Home, Icon, Send } from "react-feather"
 import { useSelector } from "react-redux"
 import { Link, useLocation } from "react-router-dom"
 import styled from "styled-components"
@@ -80,12 +80,6 @@ const Sidebar: React.FC = () => {
         name: 'Survey Kepuasan',
         is_active: pathname.startsWith('/satisfaction-survey'),
         icon: Edit
-      },
-      {
-        href: '/complaint',
-        name: 'Keluhan',
-        is_active: pathname.startsWith('/complaint'),
-        icon: AlertTriangle
       },
       {
         href: '/ask-questions',

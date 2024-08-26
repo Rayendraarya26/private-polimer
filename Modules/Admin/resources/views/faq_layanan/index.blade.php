@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Topik Pertanyaan')
+@section('title', 'Manage FAQ Layanan')
 
 @section('content')
     <div class="card" id="kt_card">
@@ -29,7 +29,7 @@
                         <!--begin::Add customer-->
                         <a href="{{url("$url/add")}}" class="btn btn-primary" data-bs-toggle="tooltip">
                             <i class="fad fa-plus"></i>
-                            Tambah Topik
+                            Tambah FAQ
                         </a>
                         <!--end::Add customer-->
                     </div>
@@ -42,8 +42,9 @@
                     <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
                         <th>Layanan</th>
-                        <th>Nama Topik</th>
-                        <th>Keterangan Topik</th>
+                        <th>Question</th>
+                        <th>Urut</th>
+                        <th>Aktif?</th>
                         <th class="text-end min-w-100px">Actions</th>
                     </tr>
                     </thead>
@@ -130,12 +131,26 @@
                         url: "{{ url("$url/ajax?action=datatable") }}",
                     },
                     columns: [
-                        { data: 'layanan_nama', searchable: false },
-                        { data: 'name' },
-                        { data: 'desc' },
+                        { data: 'name', searchable: false },
+                        { data: 'question' },
+                        { data: 'order' },
+                        { data: 'is_active' },
                         { data: null, responsivePriority: -1 },
                     ],
                     columnDefs: [
+                        {
+                            targets: 3,
+                            data: null,
+                            orderable: true,
+                            searchable: false,
+                            className: 'text-end',
+                            render: function (data, type, row) {
+                                var status_aktif = `<span class="badge badge-success">Aktif</span>`;
+                                if(data !== true)
+                                    status_aktif = `<span class="badge badge-secondary">Non-Aktif</span>`;
+                                return `${status_aktif}`;
+                            },
+                        },
                         {
                             targets: -1,
                             data: null,

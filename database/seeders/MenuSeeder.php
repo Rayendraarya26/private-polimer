@@ -101,7 +101,7 @@ class MenuSeeder extends Seeder
                 ]
             ],
             [
-                'name'      => 'Admin',
+                'name'      => 'Management Master',
                 'parent'    => null,
                 'desc'      => 'Management Master',
                 'is_active' => 'yes',
@@ -146,11 +146,27 @@ class MenuSeeder extends Seeder
                         ]
                     ],
 					[
+						'name'      => 'Manage FAQ',
+						'desc'      => 'Mengatur FAQ',
+						'is_active' => 'yes',
+						'order'     => 90,
+						'icon'      => 'fa-duotone fa-bars',
+						'action'    => [
+							['name' => 'index', 'controller' => $moduleAdmin . '\ManageFaqController@index'],
+							['name' => 'add', 'controller' => $moduleAdmin . '\ManageFaqController@create'],
+							['name' => 'store', 'controller' => $moduleAdmin . '\ManageFaqController@store'],
+							['name' => 'edit', 'controller' => $moduleAdmin . '\ManageFaqController@edit'],
+							['name' => 'update', 'controller' => $moduleAdmin . '\ManageFaqController@update'],
+							['name' => 'delete', 'controller' => $moduleAdmin . '\ManageFaqController@destroy'],
+							['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageFaqController@ajax'],
+						]
+					],
+					[
 						'name'      => 'Pelayanan Pertanyaan',
 						'parent'    => null,
 						'desc'      => 'Management Pelayanan Pertanyaan',
 						'is_active' => 'yes',
-						'order'     => 80,
+						'order'     => 91,
 						'icon'      => 'fa-solid fa-envelope-open-text',
 						'action'    => [
 							['name' => 'index', 'controller' => '#'],

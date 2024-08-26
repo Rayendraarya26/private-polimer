@@ -19,6 +19,7 @@ const PrivateLayoutContainer = styled.div`
 `
 
 const SidebarContainer = styled.div`
+  z-index: 10;
   width: 100%;
   height: 100%;
   transition-property: all;

@@ -5,6 +5,7 @@ use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
+use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\PertanyaanController;
 
 /*
@@ -21,6 +22,8 @@ use Modules\Eksternal\Http\Controllers\PertanyaanController;
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware(['custom_auth']);
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::prefix('faq')->group(function () {
     Route::get('/', [FaqController::class, 'index'])->name('faq');

@@ -16,7 +16,9 @@ class TteController extends Controller
 
     public function verify(Request $request)
     {
-        return view("$this->view.verify");
+        $code = $request->query('code');
+
+        return view("$this->view.verify", compact('code'));
     }
 
 

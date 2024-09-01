@@ -46,7 +46,8 @@
                         <div class="mb-3">
                             <label for="id" class="form-label">ID Dokumen / Ref Code</label>
                             <input type="text" class="form-control" id="dokumen_id" name="dokumen_id"
-                                   placeholder="5b9768d6-d78c...">
+                                   placeholder="5b9768d6-d78c..."
+                                   value="{{ $code }}">
                         </div>
                         <button type="submit" class="btn btn-primary">Verifikasi</button>
                     </form>
@@ -173,7 +174,7 @@
                             document.querySelector('#error-message-text').innerText = "Dokumen tidak ditemukan";
                             document.querySelector('#error-message').classList.remove('d-none');
 
-                            // Reset form for next input
+                            // Reset a form for next input
                             form.reset();
                         }
                     });

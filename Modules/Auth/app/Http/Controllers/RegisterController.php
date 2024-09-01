@@ -41,7 +41,7 @@ class RegisterController
             "account_password"                   => 'required|confirmed|alpha_num|min:8',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($input['recaptcha'])) {
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($input['recaptcha'])) {
             return responseJSON('Captcha tidak valid.', [], 422);
         }
 

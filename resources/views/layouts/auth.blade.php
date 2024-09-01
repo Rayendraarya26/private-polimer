@@ -113,11 +113,11 @@
             <a href="#" class="text-center fw-bold text-decoration-underline">
                 Panduan
             </a>
-            <a href="#" class="text-center fw-bold text-decoration-underline">
+            <a href="{{ route('faq') }}" class="text-center fw-bold text-decoration-underline">
                 FAQ
             </a>
-            <a href="#" class="text-center fw-bold text-decoration-underline">
-                About
+            <a href="{{ route('tte.verify') }}" class="text-center fw-bold text-decoration-underline">
+                Verifikasi Dokumen
             </a>
         </div>
         <img draggable="false" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="app-logo" alt=""/>
@@ -133,7 +133,7 @@
                         {{ session('message') }}
                     </div>
                 @endif
-                
+
                 @yield('content')
             </div>
         </div>

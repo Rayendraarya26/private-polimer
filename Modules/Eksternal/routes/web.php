@@ -6,6 +6,7 @@ use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\PertanyaanController;
+use Modules\Eksternal\Http\Controllers\TteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,12 @@ Route::prefix('faq')->group(function () {
     Route::get('/{slugLayanan}/{slugQuestion}', [FaqController::class, 'detailFaq'])->name('faq.detail');
 });
 
+Route::prefix('tte')->group(function () {
+    Route::get('verify', [TteController::class, 'verify'])->name('tte.verify');
+    Route::post('verify-by-id', [TteController::class, 'processVerifyById'])->name('tte.verify-by-id');
+    Route::post('verify-by-doc', [TteController::class, 'processVerifyByDoc'])->name('tte.verify-by-doc');
+});
+
 Route::prefix('pertanyaan')->group(function () {
     Route::get('/topik', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
 });
@@ -45,7 +52,7 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
     });
 
-	Route::prefix('pertanyaan')->group(function () {
+    Route::prefix('pertanyaan')->group(function () {
         Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
         Route::get('/topik', [PertanyaanController::class, 'listTopic']);
         Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);

@@ -6,6 +6,10 @@ use Modules\Admin\Http\Controllers\PertanyaanController;
 use Modules\Admin\Http\Controllers\IntegrasiSsoController;
 use Modules\Admin\Http\Controllers\ManageTopikPertanyaanController;
 use Modules\Admin\Http\Controllers\ManageFaqController;
+use Modules\Admin\Http\Controllers\ManageLayananController;
+use Modules\Admin\Http\Controllers\ManageOrderController;
+use Modules\Admin\Http\Controllers\ManageContactUsController;
+use Modules\Admin\Http\Controllers\ManageHomepageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +22,9 @@ use Modules\Admin\Http\Controllers\ManageFaqController;
 |
 */
 
-Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function () {
+Route::prefix('/admin')
+    ->middleware(['custom_auth', 'restrict'])
+    ->group(function () {
     Route::prefix('/setting-banner')->group(function () {
         Route::get('/', [BannerController::class, 'index']);
         Route::post('/', [BannerController::class, 'store']);
@@ -35,7 +41,23 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
         Route::get('/ajax', [PertanyaanController::class, 'ajax']);
     });
 	
+	Route::prefix('/data-contact-us')->group(function () {
+        Route::get('/', [ManageContactUsController::class, 'index']);
+        Route::get('/{id}/detail', [ManageContactUsController::class, 'show']);
+        Route::get('/ajax', [ManageContactUsController::class, 'ajax']);
+    });
 	
+	Route::prefix('/manajemen-homepage')->group(function () {
+        Route::get('/', [ManageHomepageController::class, 'index']);
+		Route::get('add', [ManageHomepageController::class, 'create']);
+        Route::post('/', [ManageHomepageController::class, 'store']);
+        Route::get('/ajax', [ManageHomepageController::class, 'ajax']);
+		Route::get('{id}/edit', [ManageHomepageController::class, 'edit']);
+		Route::put('{id}', [ManageHomepageController::class, 'update']);
+        Route::delete('/{id}', [ManageHomepageController::class, 'destroy']);
+    });
+	
+
 	Route::prefix('/topik-pertanyaan')->group(function () {
         Route::get('/', [ManageTopikPertanyaanController::class, 'index']);
 		Route::get('add', [ManageTopikPertanyaanController::class, 'create']);
@@ -45,7 +67,7 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
 		Route::put('{id}', [ManageTopikPertanyaanController::class, 'update']);
         Route::delete('/{id}', [ManageTopikPertanyaanController::class, 'destroy']);
     });
-	
+
 	Route::prefix('/faq-layanan')->group(function () {
         Route::get('/', [ManageFaqController::class, 'index']);
 		Route::get('add', [ManageFaqController::class, 'create']);
@@ -55,8 +77,20 @@ Route::prefix('/admin')->middleware(['custom_auth', 'restrict'])->group(function
 		Route::put('{id}', [ManageFaqController::class, 'update']);
         Route::delete('/{id}', [ManageFaqController::class, 'destroy']);
     });
+
+    Route::prefix('/layanan')->group(function () {
+        Route::get('/', [ManageLayananController::class, 'index']);
+        Route::get('/ajax', [ManageLayananController::class, 'ajax']);
+        Route::get('{layanan}/feedback', [ManageLayananController::class, 'feedback']);
+        Route::post('/{layanan}/feedback', [ManageLayananController::class, 'feedback_store']);
+    });
 	
-	
+	Route::prefix('/permintaan-layanan')->group(function () {
+        Route::get('/', [ManageOrderController::class, 'index']);
+        Route::get('/ajax', [ManageOrderController::class, 'ajax']);
+        Route::get('{order}/feedback', [ManageOrderController::class, 'feedback']);
+    });
+
     Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
     Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);
     Route::resource('integrasi-sso', IntegrasiSsoController::class);

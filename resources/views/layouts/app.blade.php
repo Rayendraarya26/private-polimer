@@ -157,7 +157,7 @@
             }
         })
 </script>
-
+@stack('scripts_top')
 @stack('scripts')
 <!--end::Javascript-->
 </body>

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUuid('pelanggan_id')->constrained('pelanggan')->cascadeOnDelete();
 			$table->foreignUuid('closed_by')->nullable()->references('id')->on('sys_user')->cascadeOnUpdate()->cascadeOnDelete();
             $table->string('topik');
-            $table->string('layanan');
+            $table->string('layanan')->nullable();
             $table->enum('status', ['closed', 'opened'])->default('opened');
             $table->enum('is_review', ['no', 'yes'])->default('no');
             $table->enum('rating', [0, 1, 2, 3, 4, 5])->nullable();

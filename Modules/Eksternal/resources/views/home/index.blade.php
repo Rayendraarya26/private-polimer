@@ -18,6 +18,64 @@
     .navbar-nav {
       margin-left: auto;
     }
+
+    .carousel img.avatar {
+      width: 70px;
+      max-height: 70px;
+      border-radius: 50%;
+      margin-right: 1rem;
+      overflow: hidden;
+    }
+    .carousel-inner {
+      padding: 1em;
+      display: flex;
+      width: 90%;
+      margin-inline: auto;
+      padding: 1em 0;
+      overflow: hidden;
+    }
+
+    .carousel-item {
+      display: block;
+      margin-right: 0;
+      flex: 0 0 100%;
+    }
+    @media screen and (min-width: 768px) {
+      .carousel-item.testimonial {
+        flex: 0 0 calc(100% / 2);
+      }
+      .carousel-item.partner {
+        flex: 0 0 calc(100% / 2);
+      }
+    }
+    @media screen and (min-width: 1024px) {
+      .carousel-item.testimonial {
+        flex: 0 0 calc(100% / 3);
+      }
+      .carousel-item.partner {
+        flex: 0 0 calc(100% / 3);
+      }
+    }
+    @media screen and (min-width: 1286px) {
+      .carousel-item.partner {
+        flex: 0 0 calc(100% / 5);
+      }
+    }
+    .carousel .card {
+      margin: 0 0.5em;
+      border: 0;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+      width: 3rem;
+      height: 3rem;
+      background-color: grey;
+      border-radius: 50%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
   </style>
 @endpush
 
@@ -96,15 +154,71 @@
     <section 
       class="w-100 d-flex justify-content-center"
     >
-      <div class="w-100 section-wrapper">
-        [partners]
+      <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
+        <div class="fs-1 fw-bold text-center">Partners</div>
+        <div id="partnersCarousel" class="carousel">
+          <div class="carousel-inner partners">
+            @foreach($partners as $item)
+              <div class="carousel-item partner px-5">
+                <img 
+                  src="{{ $item['image_url'] }}"
+                  class="w-100"
+                  style="object-fit: contain;"
+                >
+              </div>
+            @endforeach
+          </div>
+          <button class="carousel-control-prev partners" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next partners" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
       </div>
     </section>
     <section 
       class="w-100 d-flex justify-content-center"
     >
-      <div class="w-100 section-wrapper">
-        [testimonials]
+      <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
+        <div class="fs-1 fw-bold text-center">Testimonials</div>
+        <div id="testimonialCarousel" class="carousel">
+          <div class="carousel-inner testimonials">
+            @foreach($testimonials as $item)
+              <div class="carousel-item testimonial">
+                <div class="card shadow-sm rounded-3">
+                  <div class="quotes display-2 text-body-tertiary">
+                    <i class="bi bi-quote"></i>
+                  </div>
+                  <div class="card-body">
+                    <p class="card-text">"{{ $item['content'] }}"</p>
+                    <div class="d-flex align-items-center pt-2">
+                      <img 
+                        src="{{ $item['avatar'] }}"
+                        alt="bootstrap testimonial carousel slider 2"
+                        class="avatar"
+                      >
+                      <div>
+                        <h5 class="card-title fw-bold">{{ $item['title'] }}</h5>
+                        <span class="text-gray">{{ $item['subtitle'] }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            @endforeach
+          </div>
+          <button class="carousel-control-prev testimonials" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next testimonials" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
       </div>
     </section>
     <section 
@@ -276,3 +390,66 @@
     <p>&copy; {{ date('Y') }} Jogja Industrial Services. All rights reserved.</p>
   </footer>
 @endsection
+
+@push('scripts')
+
+<script>
+  const testimonialsCarousel = document.querySelector("#testimonialCarousel");
+
+  if (window.matchMedia("(min-width:576px)").matches) {
+    const carousel = new bootstrap.Carousel(testimonialsCarousel, {
+      interval: false
+    });
+
+    var carouselWidth = $(".carousel-inner.testimonials")[0].scrollWidth;
+    var cardWidth = $(".carousel-item.testimonial").width();
+
+    var scrollPosition = 0;
+
+    $(".carousel-control-next.testimonials").on("click", function () {
+      if (scrollPosition < carouselWidth - cardWidth * 3) {
+        scrollPosition = scrollPosition + cardWidth;
+        $(".carousel-inner.testimonials").animate({ scrollLeft: scrollPosition }, 800);
+      }
+    });
+    $(".carousel-control-prev.testimonials").on("click", function () {
+      if (scrollPosition > 0) {
+        scrollPosition = scrollPosition - cardWidth;
+        $(".carousel-inner.testimonials").animate({ scrollLeft: scrollPosition }, 800);
+      }
+    });
+  } else {
+    $(testimonialsCarousel).addClass("slide");
+  }
+
+  const partnersCarousel = document.querySelector("#partnersCarousel");
+
+  if (window.matchMedia("(min-width:576px)").matches) {
+    const carousel = new bootstrap.Carousel(partnersCarousel, {
+      interval: false
+    });
+
+    var carouselWidth = $(".carousel-inner.partners")[0].scrollWidth;
+    var cardWidth = $(".carousel-item.partner").width();
+
+    var scrollPosition = 0;
+
+    $(".carousel-control-next.partners").on("click", function () {
+      if (scrollPosition < carouselWidth - cardWidth * 3) {
+        scrollPosition = scrollPosition + cardWidth;
+        $(".carousel-inner.partners").animate({ scrollLeft: scrollPosition }, 800);
+      }
+    });
+    $(".carousel-control-prev.partners").on("click", function () {
+      if (scrollPosition > 0) {
+        scrollPosition = scrollPosition - cardWidth;
+        $(".carousel-inner.partners").animate({ scrollLeft: scrollPosition }, 800);
+      }
+    });
+  } else {
+    $(partnersCarousel).addClass("slide");
+  }
+
+</script>
+
+@endpush

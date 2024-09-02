@@ -15,7 +15,9 @@
     <link href="{{asset('assets/css/style.bundle.css')}}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('assets/fontawesome/css/all.min.css') }}" rel="stylesheet" type="text/css"/>
     <!--end::Global Stylesheets Bundle-->
-
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.min.css"/>
     @stack('styles')
 </head>
 <!--end::Head-->
@@ -50,7 +52,7 @@
 <!--begin::Global Javascript Bundle(mandatory for all pages)-->
 <script src="{{asset('assets/plugins/global/plugins.bundle.js')}}"></script>
 <script src="{{asset('assets/js/scripts.bundle.js')}}"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js"></script>
 @stack('scripts')
 </body>
 <!--end::Body-->

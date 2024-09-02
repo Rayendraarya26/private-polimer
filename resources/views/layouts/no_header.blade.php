@@ -4,6 +4,7 @@
     <title>@yield('title') | {{config('app.name')}}</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="canonical" href="http://authentication/layouts/overlay/sign-in.html"/>
     <link rel="shortcut icon" href="{{asset('assets/media/logos/favicon.ico')}}"/>
     <!--begin::Fonts(mandatory for all pages)-->
@@ -66,8 +67,6 @@
     </style>
 
     @stack('styles')
-
-
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -110,11 +109,11 @@
             <a href="#" class="text-center fw-bold text-decoration-underline">
                 Panduan
             </a>
-            <a href="#" class="text-center fw-bold text-decoration-underline">
+            <a href="{{ route('faq') }}" class="text-center fw-bold text-decoration-underline">
                 FAQ
             </a>
-            <a href="#" class="text-center fw-bold text-decoration-underline">
-                About
+            <a href="{{ route('tte.verify') }}" class="text-center fw-bold text-decoration-underline">
+                Verifikasi Dokumen
             </a>
         </div>
         <div class="content-wrapper">
@@ -129,7 +128,7 @@
                         {{ session('message') }}
                     </div>
                 @endif
-                
+
                 @yield('content')
             </div>
         </div>
@@ -146,7 +145,13 @@
 <script src="{{asset('assets/plugins/global/plugins.bundle.js')}}"></script>
 <script src="{{asset('assets/js/scripts.bundle.js')}}"></script>
 <script src="https://www.google.com/recaptcha/api.js?render={{config('google.recaptcha.site_key')}}"></script>
-
+<script>
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+</script>
 @stack('scripts')
 </body>
 <!--end::Body-->

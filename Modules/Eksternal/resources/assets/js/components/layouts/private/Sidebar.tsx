@@ -76,9 +76,9 @@ const Sidebar: React.FC = () => {
         icon: Clock
       },
       {
-        href: '/satisfaction-survey',
+        href: '/feedbacks',
         name: 'Survey Kepuasan',
-        is_active: pathname.startsWith('/satisfaction-survey'),
+        is_active: pathname.startsWith('/feedbacks'),
         icon: Edit
       },
       {

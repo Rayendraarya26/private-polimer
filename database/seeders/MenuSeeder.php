@@ -111,27 +111,12 @@ class MenuSeeder extends Seeder
                     ['name' => 'index', 'controller' => '#'],
                 ],
                 'children'  => [
-                    [
-                        'name'      => 'Setting Banner',
-                        'desc'      => 'Mengatur data banner',
-                        'is_active' => 'yes',
-                        'order'     => 10,
-                        'icon'      => 'fa-regular fa-images',
-                        'action'    => [
-                            ['name' => 'index', 'controller' => $moduleAdmin . '\BannerController@index'],
-                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\BannerController@ajax'],
-                            ['name' => 'add', 'controller' => $moduleAdmin . '\BannerController@create'],
-                            ['name' => 'store', 'controller' => $moduleAdmin . '\BannerController@store'],
-                            ['name' => 'edit', 'controller' => $moduleAdmin . '\BannerController@edit'],
-                            ['name' => 'update', 'controller' => $moduleAdmin . '\BannerController@update'],
-                            ['name' => 'delete', 'controller' => $moduleAdmin . '\BannerController@destroy'],
-                        ]
-                    ],
+                    
 					[
-                        'name'      => 'Manajemen Layanan',
+                        'name'      => 'Manajemen SSO',
                         'desc'      => 'Mengatur aplikasi client ID dan secret',
                         'is_active' => 'yes',
-                        'order'     => 80,
+                        'order'     => 5,
                         'icon'      => 'fa-regular fa-key',
                         'action'    => [
                             ['name' => 'index', 'controller' => $moduleAdmin . '\IntegrasiSsoController@index'],
@@ -143,22 +128,101 @@ class MenuSeeder extends Seeder
                             ['name' => 'update', 'controller' => $moduleAdmin . '\IntegrasiSsoController@update'],
                             ['name' => 'regenerateSecret', 'controller' => $moduleAdmin . '\IntegrasiSsoController@regenerateSecret'],
                             ['name' => 'delete', 'controller' => $moduleAdmin . '\IntegrasiSsoController@destroy'],
+						]
+                    ],
+					[
+                        'name'      => 'Manajemen Layanan',
+                        'desc'      => 'Mengatur layanan data',
+                        'is_active' => 'yes',
+                        'order'     => 6,
+                        'icon'      => 'fa-solid fa-server',
+                        'action'    => [
+                            ['name' => 'index', 'controller' => $moduleAdmin . '\ManageLayananController@index'],
+                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageLayananController@ajax'],
+                            ['name' => 'feedback', 'controller' => $moduleAdmin . '\ManageLayananController@feedback'],
+                            ['name' => 'feedback_store', 'controller' => $moduleAdmin . '\ManageLayananController@feedback_store'],
                         ]
                     ],
 					[
-						'name'      => 'Manage FAQ',
-						'desc'      => 'Mengatur FAQ',
+                        'name'      => 'Data Permitaan Layanan',
+                        'desc'      => 'Data Permitaan Layanan',
+                        'is_active' => 'yes',
+                        'order'     => 7,
+                        'icon'      => 'fa-duotone fa-solid fa-house-laptop',
+                        'action'    => [
+                            ['name' => 'index', 'controller' => $moduleAdmin . '\ManageOrderController@index'],
+                            ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageOrderController@ajax'],
+                            ['name' => 'detail', 'controller' => $moduleAdmin . '\ManageOrderController@detail'],
+                            ['name' => 'rekap', 'controller' => $moduleAdmin . '\ManageOrderController@rekap'],
+                        ]
+                    ],
+					[
+						'name'      => 'Manajemen Website',
+						'parent'    => null,
+						'desc'      => 'Management Website',
 						'is_active' => 'yes',
 						'order'     => 90,
-						'icon'      => 'fa-duotone fa-bars',
+						'icon'      => 'fa-solid fa-browser',
 						'action'    => [
-							['name' => 'index', 'controller' => $moduleAdmin . '\ManageFaqController@index'],
-							['name' => 'add', 'controller' => $moduleAdmin . '\ManageFaqController@create'],
-							['name' => 'store', 'controller' => $moduleAdmin . '\ManageFaqController@store'],
-							['name' => 'edit', 'controller' => $moduleAdmin . '\ManageFaqController@edit'],
-							['name' => 'update', 'controller' => $moduleAdmin . '\ManageFaqController@update'],
-							['name' => 'delete', 'controller' => $moduleAdmin . '\ManageFaqController@destroy'],
-							['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageFaqController@ajax'],
+							['name' => 'index', 'controller' => '#'],
+						],
+						'children'  => [
+							[
+								'name'      => 'Setting Slider',
+								'desc'      => 'Mengatur data Slider',
+								'is_active' => 'yes',
+								'order'     => 10,
+								'icon'      => 'fa-regular fa-images',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\BannerController@index'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\BannerController@ajax'],
+									['name' => 'add', 'controller' => $moduleAdmin . '\BannerController@create'],
+									['name' => 'store', 'controller' => $moduleAdmin . '\BannerController@store'],
+									['name' => 'edit', 'controller' => $moduleAdmin . '\BannerController@edit'],
+									['name' => 'update', 'controller' => $moduleAdmin . '\BannerController@update'],
+									['name' => 'delete', 'controller' => $moduleAdmin . '\BannerController@destroy'],
+								]
+							],
+							[
+								'name'      => 'Manajemen FAQ',
+								'desc'      => 'Mengatur FAQ',
+								'is_active' => 'yes',
+								'order'     => 20,
+								'icon'      => 'fa-duotone fa-bars',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\ManageFaqController@index'],
+									['name' => 'add', 'controller' => $moduleAdmin . '\ManageFaqController@create'],
+									['name' => 'store', 'controller' => $moduleAdmin . '\ManageFaqController@store'],
+									['name' => 'edit', 'controller' => $moduleAdmin . '\ManageFaqController@edit'],
+									['name' => 'update', 'controller' => $moduleAdmin . '\ManageFaqController@update'],
+									['name' => 'delete', 'controller' => $moduleAdmin . '\ManageFaqController@destroy'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageFaqController@ajax'],
+								]
+							],
+							[
+								'name'      => 'Data Contact Us',
+								'desc'      => 'Mengatur Contact Us',
+								'is_active' => 'yes',
+								'order'     => 30,
+								'icon'      => 'fa-solid fa-paper-plane',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\ManageContactUsController@index'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageContactUsController@ajax'],
+									['name' => 'detail', 'controller' => $moduleAdmin . '\ManageContactUsController@show'],
+								]
+							],
+							[
+								'name'      => 'Manajemen Homepage',
+								'desc'      => 'Mengatur Homepage',
+								'is_active' => 'yes',
+								'order'     => 30,
+								'icon'      => 'fa-solid fa-globe-pointer',
+								'action'    => [
+									['name' => 'index', 'controller' => $moduleAdmin . '\ManageHomepageController@index'],
+									['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageHomepageController@ajax'],
+									['name' => 'detail', 'controller' => $moduleAdmin . '\ManageHomepageController@show'],
+								]
+							],
 						]
 					],
 					[

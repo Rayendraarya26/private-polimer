@@ -20,18 +20,6 @@
         <!--begin::Card header-->
         <!--begin::Card body-->
         <div class="card-body p-9">
-            <!--begin::Row-->
-            <div class="row mb-7">
-                <!--begin::Label-->
-                <label class="col-lg-4 fw-semibold text-muted">Full Name</label>
-                <!--end::Label-->
-                <!--begin::Col-->
-                <div class="col-lg-8">
-                    <span class="fw-bold fs-6 text-gray-800">{{ auth()->user()->name }}</span>
-                </div>
-                <!--end::Col-->
-            </div>
-            <!--end::Row-->
             <!--begin::Input group-->
             <div class="row mb-7">
                 <!--begin::Label-->
@@ -43,17 +31,7 @@
                 </div>
                 <!--end::Col-->
             </div>
-            <!--begin::Input group-->
-            <div class="row mb-7">
-                <!--begin::Label-->
-                <label class="col-lg-4 fw-semibold text-muted">Username</label>
-                <!--end::Label-->
-                <!--begin::Col-->
-                <div class="col-lg-8 fv-row">
-                    <span class="fw-semibold text-gray-800 fs-6">{{ auth()->user()->username }}</span>
-                </div>
-                <!--end::Col-->
-            </div>
+
             <!--begin::Input group-->
             <div class="row mb-7">
                 <!--begin::Label-->
@@ -76,6 +54,58 @@
                 </div>
                 <!--end::Col-->
             </div>
+
+            <hr>
+
+            <form method="post" action="{{ url()->current() }}">
+                @csrf
+                <!--begin::Row-->
+                <div class="row mb-7">
+                    <!--begin::Label-->
+                    <label class="col-lg-4 fw-semibold text-muted">Full Name</label>
+                    <!--end::Label-->
+                    <!--begin::Col-->
+                    <div class="col-lg-8">
+                        <input type="text" class="form-control"
+                               name="name" value="{{ old('name', auth()->user()->name) }}"/>
+                    </div>
+                    <!--end::Col-->
+                </div>
+                <!--end::Row-->
+                <!--begin::Row-->
+                <div class="row mb-7">
+                    <!--begin::Label-->
+                    <label class="col-lg-4 fw-semibold text-muted">NIK</label>
+                    <!--end::Label-->
+                    <!--begin::Col-->
+                    <div class="col-lg-8">
+                        <input type="text" class="form-control"
+                               name="nik" value="{{ old('nik', auth()->user()->pegawai?->nik) }}"/>
+                    </div>
+                    <!--end::Col-->
+                </div>
+                <!--end::Row-->
+                <!--begin::Row-->
+                <div class="row mb-7">
+                    <!--begin::Label-->
+                    <label class="col-lg-4 fw-semibold text-muted">Whatsapp</label>
+                    <!--end::Label-->
+                    <!--begin::Col-->
+                    <div class="col-lg-8">
+                        <input type="text" class="form-control" name="whatsapp"
+                               value="{{ old('whatsapp', auth()->user()->pegawai?->whatsapp) }}"/>
+                        <small>Diawali dengan 62, Contoh: 62812345678910</small>
+                    </div>
+                    <!--end::Col-->
+                </div>
+                <!--end::Row-->
+
+                <div class="offset-lg-4">
+                    <button class="btn btn-sm btn-primary align-self-center" type="submit">
+                        <i class="fad fa-save"></i> Save
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

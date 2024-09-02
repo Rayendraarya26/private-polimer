@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 trait CaptchaTrait
 {
-    public function verifyCaptcha(string $captchaToken): bool
+    public function validateCaptcha(string $captchaToken): bool
     {
         if (config('google.recaptcha.enabled')) {
             $secret   = config('google.recaptcha.secret_key');

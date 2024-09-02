@@ -11,11 +11,6 @@
                 <h3 class="fw-bold m-0">Update Password</h3>
             </div>
             <!--end::Card title-->
-            <button href="{{ url('/account/update-profile') }}" class="btn btn-sm btn-primary align-self-center"
-                    id="kt_btn_submit">
-                <i class="fad fa-save"></i> Save
-            </button>
-            <!--end::Action-->
         </div>
         <!--begin::Card header-->
         <!--begin::Card body-->
@@ -66,6 +61,13 @@
                     <!--end::Col-->
                 </div>
                 <!--end::Row-->
+
+                <div class="offset-lg-4">
+                    <button href="{{ url('/account/update-profile') }}" class="btn btn-sm btn-primary align-self-center"
+                            id="kt_btn_submit">
+                        <i class="fad fa-save"></i> Save
+                    </button>
+                </div>
             </form>
         </div>
     </div>

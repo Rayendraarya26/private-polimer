@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('slug');
             $table->string('description')->nullable();
             $table->string('icon')->nullable();
+			$table->json('feedback_json')->nullable();
             $table->timestampsTz();
         });
     }

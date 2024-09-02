@@ -15,9 +15,6 @@ use Illuminate\Http\Request;
 
 class PertanyaanController extends Controller
 {
-    private string $module = __CLASS__;
-    private string $url = '/pertanyaan';
-    private string $view = 'eksternal::pertanyaan';
 
     public function listTopic()
     {
@@ -120,7 +117,7 @@ class PertanyaanController extends Controller
 		else{
 			$pertanyaan                 = new PertanyaanPelanggan();
 			$pertanyaan->pelanggan_id   = $request->user()->pelanggan->id;
-			$pertanyaan->layanan          = $request->layanan;
+			$pertanyaan->layanan          = $request->layanan != '' ? $request->layanan : null;
 			$pertanyaan->topik          = $request->topik;
 			$pertanyaan->save();
 			

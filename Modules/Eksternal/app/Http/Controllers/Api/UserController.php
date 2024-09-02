@@ -6,6 +6,7 @@ use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
+use App\Models\Db1\Pegawai;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganInstansi;
 use App\Models\Db1\PelangganPerorangan;
@@ -44,9 +45,17 @@ class UserController extends Controller
                     'id'   => $groupData->group_id,
                     'name' => $groupData->sys_group->name,
                 ],
-                'detail'                => $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : null,
+                'detail'                => $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : $this->extractDetailPegawai($request->user()->pegawai),
             ]);
         });
+    }
+
+    private function extractDetailPegawai(Pegawai $pegawai)
+    {
+        return [
+            'nik'      => $pegawai->nik,
+            'whatsapp' => $pegawai->whatsapp,
+        ];
     }
 
     private function extractDetailPelanggan(Pelanggan $pelanggan)
@@ -94,7 +103,7 @@ class UserController extends Controller
             'new_password' => 'required|confirmed|min:8|different:old_password',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 
@@ -117,7 +126,7 @@ class UserController extends Controller
             'recaptcha' => 'sometimes',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 

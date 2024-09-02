@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d82c60bbfa9c2583d6fb0f89a2acff95",
+    "content-hash": "fe9cc15a0ebfaa3746c95338177b361e",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -596,6 +596,70 @@
                 }
             ],
             "time": "2024-02-05T11:56:58+00:00"
+        },
+        {
+            "name": "dolkode/bbkkp-sdk-esign-service-php",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:dolkode/bbkkp-sdk-esign-service-php.git",
+                "reference": "dfb7bd1b266b8e10bf53f913bf90adfe70d028f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dolkode/bbkkp-sdk-esign-service-php/zipball/dfb7bd1b266b8e10bf53f913bf90adfe70d028f8",
+                "reference": "dfb7bd1b266b8e10bf53f913bf90adfe70d028f8",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "guzzlehttp/guzzle": "^7.3",
+                "guzzlehttp/psr7": "^1.7 || ^2.0",
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "phpunit/phpunit": "^8.0 || ^9.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "OpenAPI\\Client\\": "lib/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "OpenAPI\\Client\\Test\\": "test/"
+                }
+            },
+            "license": [
+                "unlicense"
+            ],
+            "authors": [
+                {
+                    "name": "OpenAPI",
+                    "homepage": "https://openapi-generator.tech"
+                }
+            ],
+            "description": "This API is used for sending whatsapp via API",
+            "homepage": "https://openapi-generator.tech",
+            "keywords": [
+                "api",
+                "openapi",
+                "openapi-generator",
+                "openapitools",
+                "php",
+                "rest",
+                "sdk"
+            ],
+            "support": {
+                "source": "https://github.com/dolkode/bbkkp-sdk-esign-service-php/tree/main",
+                "issues": "https://github.com/dolkode/bbkkp-sdk-esign-service-php/issues"
+            },
+            "time": "2024-09-01T02:34:19+00:00"
         },
         {
             "name": "dragonmantank/cron-expression",
@@ -11685,12 +11749,14 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "dolkode/bbkkp-sdk-esign-service-php": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

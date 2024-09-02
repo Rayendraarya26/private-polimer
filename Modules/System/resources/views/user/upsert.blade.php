@@ -36,16 +36,6 @@
                             </div>
                         </div>
                         <div class="form-group row mb-3">
-                            <label class="col-form-label col-sm-3" for="username">username*</label>
-                            <div class="col-sm-8">
-                                <input class="form-control" placeholder="Masukkan username..."
-                                       type="text"
-                                       name="username" id="username"
-                                       value="{{old('username') ?? $data?->username}}">
-                            </div>
-                        </div>
-
-                        <div class="form-group row mb-3">
                             <label class="col-form-label col-sm-3" for="password">Kata sandi*</label>
                             <div class="col-sm-8">
                                 <input class="form-control" placeholder="Masukkan kata sandi..."

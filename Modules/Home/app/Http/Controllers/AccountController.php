@@ -3,6 +3,7 @@
 namespace Modules\Home\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
+use App\Models\Db1\Pegawai;
 use App\Models\Db1\SysHistoryPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,32 @@ class AccountController
 
         $parser = array_merge($this->defaultParser(), ['breadcrumbs' => $breadcrumbs]);
         return view("$this->view.profile")->with($parser);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $input = $request->validate([
+            'name'     => 'required',
+            'nik'      => 'required',
+            'whatsapp' => ['required', 'numeric', 'digits_between:10,15', 'regex:/^62/'],
+        ]);
+
+        DB::transaction(function () use ($input) {
+            $user       = auth()->user();
+            $user->name = $input['name'];
+            $user->save();
+
+            // Update/Create profile pegawai
+            Pegawai::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nik'      => $input['nik'],
+                    'whatsapp' => $input['whatsapp'],
+                ]
+            );
+        });
+
+        return back()->with('message', 'Profile berhasil diperbarui');
     }
 
     public function security()
@@ -66,7 +93,7 @@ class AccountController
         }
 
         DB::transaction(function () use ($user, $input) {
-            $newPassword = Hash::make($input['new_password']);
+            $newPassword    = Hash::make($input['new_password']);
             $user->password = $newPassword;
             $user->save();
 

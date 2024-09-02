@@ -1,4 +1,4 @@
-@extends('layouts.faq')
+@extends('layouts.no_header')
 
 @section('title', "FAQ $layanan->name :: $faq->question")
 

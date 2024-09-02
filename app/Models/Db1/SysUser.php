@@ -77,6 +77,11 @@ class SysUser extends Authenticatable implements MustVerifyEmail
         QueueEmailVerificationJob::dispatch($this);
     }
 
+    public function pegawai(): HasOne
+    {
+        return $this->hasOne(Pegawai::class, 'user_id');
+    }
+
     public function pelanggan(): HasOne
     {
         return $this->hasOne(Pelanggan::class, 'user_id');

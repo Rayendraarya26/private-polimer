@@ -22,7 +22,8 @@ class UserSeeder extends Seeder
     {
         $data = [
             ['name' => 'Developer', 'email' => 'dolkode@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT],
-            ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198112132006041004'],
+            ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198112132006041002', 'nik' => '1290412412120932'],
+            ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198112132006041003', 'nik' => '0803202100007062'],
         ];
 
         foreach ($data as $item) {
@@ -38,6 +39,10 @@ class UserSeeder extends Seeder
                 'user_id'    => $user->id,
                 'group_id'   => $item['group'],
                 'is_default' => 'yes',
+            ]);
+
+            $user->pegawai()->create([
+                'nik' => $item['nik'] ?? null,
             ]);
         }
 

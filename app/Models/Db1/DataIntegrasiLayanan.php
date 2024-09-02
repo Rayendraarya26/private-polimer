@@ -23,7 +23,14 @@ class DataIntegrasiLayanan extends Model
         'is_given_feedback',
         'feedback_json',
     ];
-	
+
+//    protected function casts(): array
+//    {
+//        return [
+//            'feedback_json' => 'json',
+//        ];
+//    }
+
 	public function layanan(): BelongsTo
     {
         return $this->belongsTo(MasterLayanan::class, 'layanan_id');

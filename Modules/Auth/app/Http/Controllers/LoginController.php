@@ -43,7 +43,7 @@ class LoginController
             'password'   => 'required'
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($input['recaptcha'])) {
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($input['recaptcha'])) {
             return back()->onlyInput('account_id')->withErrors(['message' => 'Captcha tidak valid.']);
         }
 

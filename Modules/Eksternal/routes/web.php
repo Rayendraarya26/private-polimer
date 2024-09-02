@@ -7,6 +7,8 @@ use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\PertanyaanController;
+use Modules\Eksternal\Http\Controllers\HomePageController;
+use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +20,11 @@ use Modules\Eksternal\Http\Controllers\PertanyaanController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/clear-cache', function() {
+    $exitCode = Artisan::call('optimize:clear');
+    // return what you want
+});
 
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
@@ -31,9 +38,21 @@ Route::prefix('faq')->group(function () {
     Route::get('/{slugLayanan}/{slugQuestion}', [FaqController::class, 'detailFaq'])->name('faq.detail');
 });
 
+Route::prefix('homepage')->group(function () {
+	Route::get('/banner', [HomePageController::class, 'banner']);
+	Route::post('/contactUs', [HomePageController::class, 'storeContactUs']);
+});
+
+Route::prefix('tte')->group(function () {
+    Route::get('verify', [TteController::class, 'verify'])->name('tte.verify');
+    Route::post('verify-by-id', [TteController::class, 'processVerifyById'])->name('tte.verify-by-id');
+    Route::post('verify-by-doc', [TteController::class, 'processVerifyByDoc'])->name('tte.verify-by-doc');
+});
+
 Route::prefix('pertanyaan')->group(function () {
     Route::get('/topik', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
 });
+
 
 // Semua API Eksternal didefinisikan disini
 Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
@@ -47,8 +66,14 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
     });
+	
+	Route::prefix('layanan')->group(function () {
+		Route::get('/', [PermintaanController::class, 'index']);
+		Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
+		Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
+	});
 
-	Route::prefix('pertanyaan')->group(function () {
+    Route::prefix('pertanyaan')->group(function () {
         Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
         Route::get('/topik', [PertanyaanController::class, 'listTopic']);
         Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);

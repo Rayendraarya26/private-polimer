@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'tte' => [
+        'base_url' => env('TTE_BASE_URL'),
+        'api_key' => env('TTE_API_KEY'),
+        'timeout' => env('TTE_TIMEOUT_SECONDS', 60),
+    ],
 ];

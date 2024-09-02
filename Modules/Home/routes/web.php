@@ -28,6 +28,7 @@ Route::middleware(['custom_auth', 'internal'])->group(function () {
 
     Route::prefix('account')->group(function () {
         Route::get('/profile', [AccountController::class, 'profile']);
+        Route::post('/profile', [AccountController::class, 'updateProfile']);
         Route::get('/security', [AccountController::class, 'security']);
         Route::post('/security/password', [AccountController::class, 'updatePassword']);
     });

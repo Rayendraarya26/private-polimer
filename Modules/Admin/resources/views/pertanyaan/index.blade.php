@@ -276,8 +276,6 @@
                 // Re-init functions on every table re-draw -- more info: https://datatables.net/reference/event/draw
                 dt.on('draw', function () {
                     handleDeleteRows();
-                    handleRegenerateSecret();
-                    KTMenu.createInstances();
                 });
             };
 
@@ -332,51 +330,12 @@
                 });
             }
 
-            // Regenerate Client Secret
-            const handleRegenerateSecret = () => {
-                // Select all delete buttons
-                const deleteButtons = document.querySelectorAll('[data-kt-docs-table-filter="regenerate_row"]');
-
-                deleteButtons.forEach(d => {
-                    // Delete button on click
-                    d.addEventListener('click', function (e) {
-                        e.preventDefault();
-
-                        // Select parent row
-                        const parent = e.target.closest('tr');
-
-                        // Get customer name
-                        const id = e.target.getAttribute('data-id');
-                        const namaApp = parent.querySelectorAll('td')[0].innerText;
-
-                        // SweetAlert2 pop up --- official docs reference: https://sweetalert2.github.io/
-                        Swal.fire({
-                            text: "Anda yakin update client secret " + namaApp + "?",
-                            icon: "warning",
-                            showCancelButton: true,
-                            buttonsStyling: false,
-                            confirmButtonText: "Ya, Generate!",
-                            cancelButtonText: "Batal",
-                            customClass: {
-                                confirmButton: "btn fw-bold btn-danger",
-                                cancelButton: "btn fw-bold btn-active-light-primary"
-                            }
-                        }).then(function (result) {
-                            if (result.value) {
-                                apiRegenerateSecret(id)
-                            }
-                        });
-                    })
-                });
-            }
-
             // Public methods
             return {
                 init: function () {
                     initDatatable();
                     handleSearchDatatable();
                     handleDeleteRows();
-                    handleRegenerateSecret();
                 },
             }
         }();

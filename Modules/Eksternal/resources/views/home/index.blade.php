@@ -12,6 +12,9 @@
         height: 60px;
       } 
     }
+    main {
+      gap: 8rem;
+    }
     .section-wrapper {
       max-width: 1440px
     }
@@ -90,7 +93,7 @@
       </div>
     </div>
   </nav>
-  <main class="w-100 d-flex flex-column gap-5 align-items-stretch">
+  <main class="w-100 d-flex flex-column align-items-stretch">
     <section 
       class="w-100 d-flex justify-content-center"
     >
@@ -101,14 +104,33 @@
     <section 
       class="w-100 d-flex justify-content-center"
     >
-      <div class="w-100 section-wrapper">
-        [services]
+      <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
+        <div class="fs-1 fw-bold text-center">Services</div>
+        <div class="slick-carousel-services">
+          @foreach($services as $item)
+            <div class="p-4 d-flex flex-column align-items-center gap-4">
+              <img 
+                src="{{ $item['image_url'] }}"
+                class="w-100"
+                style="object-fit: contain;"
+              >
+              <div class="fs-2 fw-bold">{{ $item['name'] }}</div>
+            </div>
+          @endforeach
+        </div>
+        <div class="fs-3 fw-bold text-center py-5">How can we help? Register here</div>
+        <img 
+          alt="Logo"
+          src="{{ asset('assets/media/logos/logo-polimer.png') }}"
+          style="width: 256px;"
+          class="align-self-center"
+        />
       </div>
     </section>
     <section 
       class="w-100 d-flex justify-content-center"
     >
-      <div class="w-100 d-flex flex-column gap-5 py-5">
+      <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
         <div class="fs-1 fw-bold text-center">Partners</div>
         <div class="slick-carousel-partners">
           @foreach($partners as $item)
@@ -126,7 +148,7 @@
     <section 
       class="w-100 d-flex justify-content-center"
     >
-      <div class="w-100 d-flex flex-column gap-5 py-5">
+      <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
         <div class="fs-1 fw-bold text-center">Testimonials</div>
         <div class="slick-carousel-testimonials">
           @foreach($testimonials as $item)
@@ -328,6 +350,33 @@
 
 <script>
   $(document).ready(function(){
+    $('.slick-carousel-services').slick({
+      slidesToShow: 5,
+      dots: false,
+      arrows: true,
+      centerMode: true,
+      responsive: [
+        {
+          breakpoint: 1330,
+          settings: {
+            slidesToShow: 3
+          }
+        },
+        {
+          breakpoint: 1024,
+          settings: {
+            slidesToShow: 2
+          }
+        },
+        {
+          breakpoint: 512,
+          settings: {
+            slidesToShow: 1
+          }
+        }
+      ]
+    });
+
     $('.slick-carousel-partners').slick({
       slidesToShow: 5,
       dots: false,

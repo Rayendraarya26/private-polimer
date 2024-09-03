@@ -10,6 +10,45 @@ class HomeController extends Controller
 
   public function index()
   {
+    $services = [
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ],
+      [
+        "image_url" => "/assets/media/logos/logo-only.png",
+        "name"      => "Service Name"
+      ]
+    ];
+
     $partners = [
       [
         "image_url" => "/assets/media/logos/logo-only.png"
@@ -80,6 +119,7 @@ class HomeController extends Controller
     ];
     
     return view("$this->view.index", [
+      "services"      => $services,
       "partners"      => $partners,
       "testimonials"  => $testimonials
     ]);

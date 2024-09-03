@@ -69,12 +69,12 @@ const Sidebar: React.FC = () => {
         is_active: pathname.startsWith('/dashboard'),
         icon: Home
       },
-      {
-        href: '/payment-history',
-        name: 'Riwayat Pembayaran',
-        is_active: pathname.startsWith('/payment-history'),
-        icon: Clock
-      },
+      // {
+      //   href: '/payment-history',
+      //   name: 'Riwayat Pembayaran',
+      //   is_active: pathname.startsWith('/payment-history'),
+      //   icon: Clock
+      // },
       {
         href: '/feedbacks',
         name: 'Survey Kepuasan',

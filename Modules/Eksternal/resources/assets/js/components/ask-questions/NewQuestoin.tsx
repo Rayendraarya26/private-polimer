@@ -60,10 +60,17 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
       <FloatingContainer>
         <Button
           onClick={() => setShowForm(true)}
-          className="rounded-circle"
-          style={{ width: '5rem', aspectRatio: '1/1' }}
+          className="rounded-circle d-block d-lg-none"
+          style={{ width: '4rem', aspectRatio: '1/1' }}
         >
-          <Plus size={42}/>
+          <Plus size={32}/>
+        </Button>
+        <Button
+          onClick={() => setShowForm(true)}
+          className="d-none d-lg-inline-flex align-items-center gap-2 px-4 py-3"
+        >
+          <Plus size={24}/>
+          <div className="fw-semibold">Ajukan Pertanyaan</div>
         </Button>
       </FloatingContainer>
       <Modal

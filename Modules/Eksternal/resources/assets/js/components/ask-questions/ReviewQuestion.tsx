@@ -54,6 +54,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
                       key={v}
                       fill={rating >= v ? 'gold' : 'white'}
                       className="text-warning"
+                      style={{ cursor: 'pointer' }}
                       onClick={() => setRating(v)}
                     />
                   ))}

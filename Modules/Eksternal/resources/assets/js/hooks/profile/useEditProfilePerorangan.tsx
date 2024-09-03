@@ -35,8 +35,10 @@ export default () => {
   const { executeRecaptcha } = useGoogleReCaptcha()
 
   const validationSchema = useMemo<yup.SchemaOf<Fields>>(
-    () =>
-      yup.object({
+    () => {
+      const { dok_npwp, dok_nib } = profile?.detail ?? {}
+
+      return yup.object({
         nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
         alamat: yup.string().default('').trim().required('Field ini wajib diisi'),
         tempat_lahir: yup.string().default('').trim().required('Field ini wajib diisi'),
@@ -61,7 +63,9 @@ export default () => {
           .test('fileType', 'Format file harus PDF', (value) => {
             return value ? ['application/pdf'].includes(value.type) : true
           })
-          .required('Field ini wajib diisi'),
+          .test('required', 'Field in wajib diisi', (value) => {
+            return dok_npwp ? true : !!value
+          }),
         dok_nib: yup.mixed()
           .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
             return value ? value.size <= 5 * 1024 * 1024 : true
@@ -69,7 +73,9 @@ export default () => {
           .test('fileType', 'Format file harus PDF', (value) => {
             return value ? ['application/pdf'].includes(value.type) : true
           })
-          .required('Field ini wajib diisi'),
+          .test('required', 'Field in wajib diisi', (value) => {
+            return dok_nib ? true : !!value
+          }),
         dok_lainnya: yup.mixed()
           .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
             return value ? value.size <= 5 * 1024 * 1024 : true
@@ -79,8 +85,9 @@ export default () => {
           })
           .optional()
           .nullable(),
-      }),
-    []
+      })
+    },
+    [profile]
   )
 
   const defaultValues = useMemo<Fields>(

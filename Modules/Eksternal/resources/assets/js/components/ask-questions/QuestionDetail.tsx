@@ -35,7 +35,7 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
   }, [show, uuid])
 
   const onSubmit = useCallback(async () => {
-    await createQuestionResponse(responseMessage)
+    await createQuestionResponse(responseMessage.trim())
     setResponseMessage('')
   }, [createQuestionResponse, getAllQuestionResponses, responseMessage])
 
@@ -168,7 +168,7 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                           rows={2}
                           style={{ resize: 'none' }}
                           value={responseMessage}
-                          onChange={e => setResponseMessage((e.target.value || '').trim())}
+                          onChange={e => setResponseMessage((e.target.value || ''))}
                         />
                         <Button
                           type="submit"

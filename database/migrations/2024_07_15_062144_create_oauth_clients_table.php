@@ -16,6 +16,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('user_id')->nullable()->index();
             $table->string('name');
+            $table->string('name_full');
+            $table->string('login_url');
             $table->string('secret', 100)->nullable();
             $table->string('provider')->nullable();
             $table->text('redirect');

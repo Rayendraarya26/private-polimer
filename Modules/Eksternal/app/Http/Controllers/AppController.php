@@ -2,6 +2,7 @@
 
 namespace Modules\Eksternal\Http\Controllers;
 
+use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,10 @@ class AppController extends Controller
 {
     public function index()
     {
-        // redirect to /app/#/dashboard if url only /app
+        if (session('group_selected') !== SysGroup::PELANGGAN->value) {
+            return redirect('/dashboard');
+        }
+
         return view('eksternal::app');
     }
 }

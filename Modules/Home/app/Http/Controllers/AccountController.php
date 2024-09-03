@@ -6,6 +6,7 @@ use App\Classes\Breadcrumbs;
 use App\Models\Db1\Pegawai;
 use App\Models\Db1\SysHistoryPassword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -57,6 +58,9 @@ class AccountController
                 ]
             );
         });
+
+
+        Cache::forget('user_' . auth()->id());
 
         return back()->with('message', 'Profile berhasil diperbarui');
     }

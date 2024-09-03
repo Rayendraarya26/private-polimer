@@ -58,7 +58,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
   return (
     <>
       <FloatingContainer>
-        <Button 
+        <Button
           onClick={() => setShowForm(true)}
           className="rounded-circle"
           style={{ width: '5rem', aspectRatio: '1/1' }}
@@ -66,9 +66,10 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
           <Plus size={42}/>
         </Button>
       </FloatingContainer>
-      <Modal 
+      <Modal
         show={showForm}
         onHide={() => setShowForm(false)}
+        centered
       >
         <Form onSubmit={onSubmit}>
           <Modal.Header closeButton>
@@ -96,7 +97,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
                 <Form.Label>
                   ID Layanan <span className="text-danger">*</span>
                 </Form.Label>
-                <Form.Control 
+                <Form.Control
                   type="text"
                   required
                   value={layanan}
@@ -108,7 +109,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
               <Form.Label>
                 Pertanyaan <span className="text-danger">*</span>
               </Form.Label>
-              <Form.Control 
+              <Form.Control
                 as="textarea"
                 rows={4}
                 required
@@ -118,7 +119,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button 
+            <Button
               size="lg"
               variant="primary"
               type="submit"

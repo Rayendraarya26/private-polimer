@@ -31,9 +31,10 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
 
   return (
     <>
-      <Modal 
+      <Modal
         show={show}
         onHide={onClose}
+        centered
       >
         <Form onSubmit={onSubmit}>
           <Modal.Header closeButton>
@@ -49,7 +50,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
               <div className="w-100">
                 <div className="d-inline-flex align-items-center gap-3">
                   {[1,2,3,4,5].map(v => (
-                    <Star 
+                    <Star
                       key={v}
                       fill={rating >= v ? 'gold' : 'white'}
                       className="text-warning"
@@ -63,7 +64,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
               <Form.Label>
                 Feedback {rating > 4 ? <span>(Opsional)</span> : <span className="text-danger">*</span>}
               </Form.Label>
-              <Form.Control 
+              <Form.Control
                 as="textarea"
                 rows={4}
                 required={rating <= 3}
@@ -73,7 +74,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button 
+            <Button
               size="lg"
               variant="primary"
               type="submit"

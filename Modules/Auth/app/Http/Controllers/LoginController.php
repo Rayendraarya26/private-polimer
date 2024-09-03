@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\Auth\Libraries\Kemenperin\KemenperinClient;
@@ -144,7 +145,23 @@ class LoginController
 
     private function attemptStandardLogin($accountId, $password)
     {
-        return Auth::attempt(['email' => $accountId, 'password' => $password]);
+        $user = SysUser::where('email', '=', $accountId)->first();
+        if (!$user) {
+            return false;
+        }
+
+        if (Hash::check($password, $user->password)) {
+            // rehash password if needed
+            if (Hash::needsRehash($user->password)) {
+                $user->password = Hash::make($password);
+                $user->save();
+            }
+
+            Auth::login($user);
+            return true;
+        }
+
+        return false;
     }
 
     private function loginUser($user, Request $request)

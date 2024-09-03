@@ -6,6 +6,7 @@ use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganPerorangan;
+use App\Models\Db1\PelangganPerusahaan;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
 use Illuminate\Console\Command;
@@ -74,10 +75,10 @@ class SyncUserApps extends Command
                     // create pelanggan
                     $pelanggan = Pelanggan::updateOrCreate(
                         ['user_id' => $user->id],
-                        ['jenis_pelanggan' => PelangganJenisPelanggan::PERORANGAN]
+                        ['jenis_pelanggan' => PelangganJenisPelanggan::BADAN_USAHA]
                     );
 
-                    $detail = PelangganPerorangan::updateOrCreate(
+                    $detail = PelangganPerusahaan::updateOrCreate(
                         ['pelanggan_id' => $pelanggan->id],
                         [
                             'nama'     => $row->acc_company_name,

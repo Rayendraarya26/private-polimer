@@ -5,7 +5,7 @@
 @section('content')
     @if($oauthClient)
         <div class="alert alert-info w-100">
-            <p>Login untuk lanjut ke <b>{{ $oauthClient->name }}</b></p>
+            <p>Login untuk lanjut ke <b>{{ $oauthClient->name_full }}</b></p>
         </div>
     @elseif($isVerify)
         <div class="alert alert-info w-100">

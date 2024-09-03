@@ -80,7 +80,7 @@ class IntegrasiSsoSeeder extends Seeder
             [
                 'id'            => '9cc32e42-e714-42dd-ad3c-958ec77cbe77',
                 'name'          => 'EOF',
-                'name_full'     => 'Integrated Office System',
+                'name_full'     => 'Internal Office',
                 'login_url'     => 'http://localhost:10010/auth/sso/redirect.php',
                 'secret'        => 'Ngycm7TIYoarvvdNpPgU56JbrAcomp9aXDCmR3vk',
                 'redirect'      => 'http://localhost:10010/auth/sso/callback.php',

@@ -21,6 +21,7 @@ const CloseQuestion: React.FC<Props> = ({ id, show, onClose, onAfterClosed }) =>
     <>
       <Modal 
         show={show}
+        centered
         onHide={submitting ? undefined : onClose}
       >
         <Modal.Header closeButton>

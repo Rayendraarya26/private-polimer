@@ -45,6 +45,7 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
         size="lg"
         show={show}
         onHide={onClose}
+        centered
       >
         <Modal.Header closeButton>
           <Modal.Title>

@@ -10,6 +10,24 @@ class HomeController extends Controller
 
   public function index()
   {
+    $banners = [
+      [
+        "image_url"   => "https://ca.shop.runningroom.com/media/catalog/category/Brand-page_banners-NB-Fall2022.jpeg",
+        "title"       => "Lorem Ipsum Dolor Sit Amet.",
+        "description" => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Rerum officia, doloremque dignissimos, ratione, commodi quam eum aliquam rem omnis a natus deserunt reiciendis? Accusamus, eius atque quaerat repellendus porro repellat!",
+      ],
+      [
+        "image_url"   => "https://i.pinimg.com/736x/ff/f4/7f/fff47fe34d15dcbeab5961463a755d2a.jpg",
+        "title"       => "Lorem Ipsum.",
+        "description" => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Rerum officia, doloremque dignissimos, ratione, commodi quam eum aliquam rem omnis a natus deserunt reiciendis? Accusamus, eius atque quaerat repellendus porro repellat!",
+      ],
+      [
+        "image_url"   => "https://www.bloommaterials.com/wp-content/uploads/2020/03/BLOOM-BRAND-copy_Adidas.png",
+        "title"       => "Dolor Sit Amet.",
+        "description" => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Rerum officia, doloremque dignissimos, ratione, commodi quam eum aliquam rem omnis a natus deserunt reiciendis? Accusamus, eius atque quaerat repellendus porro repellat!",
+      ]
+    ];
+
     $services = [
       [
         "image_url" => "/assets/media/logos/logo-only.png",
@@ -51,32 +69,35 @@ class HomeController extends Controller
 
     $partners = [
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://static.vecteezy.com/system/resources/previews/012/560/876/original/nike-logo-on-transparent-background-free-vector.jpg"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://i.pinimg.com/736x/6d/57/f6/6d57f6d7de64f61911cae8a6b48671ee.jpg"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://w7.pngwing.com/pngs/340/831/png-transparent-new-balance-sneakers-shoe-adidas-logo-new-balance-text-converse-store-thumbnail.png"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://blog.pengajartekno.co.id/wp-content/uploads/2022/11/logo-ortuseight-2.webp"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://w7.pngwing.com/pngs/670/927/png-transparent-puma-logo-puma-logo-adidas-swoosh-brand-adidas-text-carnivoran-sneakers-thumbnail.png"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://static.vecteezy.com/system/resources/previews/012/560/876/original/nike-logo-on-transparent-background-free-vector.jpg"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://i.pinimg.com/736x/6d/57/f6/6d57f6d7de64f61911cae8a6b48671ee.jpg"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
+        "image_url" => "https://w7.pngwing.com/pngs/340/831/png-transparent-new-balance-sneakers-shoe-adidas-logo-new-balance-text-converse-store-thumbnail.png"
       ],
       [
-        "image_url" => "/assets/media/logos/logo-only.png"
-      ]
+        "image_url" => "https://blog.pengajartekno.co.id/wp-content/uploads/2022/11/logo-ortuseight-2.webp"
+      ],
+      [
+        "image_url" => "https://w7.pngwing.com/pngs/670/927/png-transparent-puma-logo-puma-logo-adidas-swoosh-brand-adidas-text-carnivoran-sneakers-thumbnail.png"
+      ],
     ];
 
     $testimonials = [
@@ -119,6 +140,7 @@ class HomeController extends Controller
     ];
     
     return view("$this->view.index", [
+      "banners"       => $banners,
       "services"      => $services,
       "partners"      => $partners,
       "testimonials"  => $testimonials

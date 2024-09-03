@@ -35,14 +35,13 @@ const NavBar: React.FC = () => {
         </Navbar.Brand>
         <Navbar>
           <Nav className="ms-auto" style={{ gap: '1.25rem' }}>
-            <Nav.Link href="#home" className="d-none d-md-block">Panduan</Nav.Link>
+            <Nav.Link href="/" className="d-none d-md-block">Panduan</Nav.Link>
             <Nav.Link 
               href={window.location.origin + '/faq'}
               className="d-none d-md-block"
             >
               FAQ
             </Nav.Link>
-            <Nav.Link href="#about" className="d-none d-md-block">About</Nav.Link>
             <Nav.Item className="align-self-center">
               <Notifications/>
             </Nav.Item>

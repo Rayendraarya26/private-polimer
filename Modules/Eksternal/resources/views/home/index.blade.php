@@ -46,14 +46,14 @@
       display: none !important;
       height: 60px;
       width: 40px;
-      background-color: #C3212F90 !important;
+      background-color: #0C6DFD90 !important;
       border-radius: 0.25rem;
     }
     .slick-next-banner {
       display: none !important;
       height: 60px;
       width: 40px;
-      background-color: #C3212F90 !important;
+      background-color: #0C6DFD90 !important;
       border-radius: 0.25rem;
     }
 
@@ -86,6 +86,10 @@
       object-position: center;
     }
 
+    .bg-blue {
+      background-color: #0C6DFD;
+    }
+
     .bg-red {
       background-color: #C3212F;
     }
@@ -107,7 +111,7 @@
       left: 5%;
       right: 5%;
       padding: 2rem;
-      background-color: #C3212F90;
+      background-color: #0C6DFD90;
       border-radius: 0.5rem;
     }
 
@@ -116,7 +120,7 @@
     }
 
     .navbar-collapse {
-      background-color: #C3212F90;
+      background-color: #0C6DFD90;
     }
 
     @media screen and (min-width: 768px) {
@@ -134,7 +138,7 @@
       }
       .nav-link {
         border-radius: 0.35rem;
-        background-color: #C3212F;
+        background-color: #0C6DFD;
         padding: 1rem 4rem !important;
       }
       .slick-prev-banner, .slick-next-banner {
@@ -170,7 +174,7 @@
         />
       </a>
       <button 
-        class="navbar-toggler me-4 bg-red py-3"
+        class="navbar-toggler me-4 bg-blue py-3"
         type="button"
         data-bs-toggle="collapse"
         data-bs-target="#navbarNavDropdown"
@@ -242,7 +246,7 @@
         <div class="slick-carousel-services slick-carousel-scale-animate">
           @foreach($services as $item)
             <div class="p-4">
-              <div class="p-5 card bg-red" style="border-radius: 3rem;">
+              <div class="p-5 card bg-blue" style="border-radius: 3rem;">
                 <div class="card-body d-flex flex-column align-items-center gap-5">
                   <div class="w-100">
                     <img 
@@ -300,7 +304,7 @@
         <div class="slick-carousel-testimonials slick-carousel-scale-animate">
           @foreach($testimonials as $item)
             <div class="p-5">
-              <div class="card shadow-sm bg-red text-white" style="border-radius: 3rem;">
+              <div class="card shadow-sm bg-blue text-white" style="border-radius: 3rem;">
                 <div class="quotes display-2 text-body-tertiary">
                   <i class="bi bi-quote"></i>
                 </div>
@@ -362,7 +366,7 @@
     </section>
     <section 
       id="contact-us"
-      class="w-100 d-flex justify-content-center bg-red text-white"
+      class="w-100 d-flex justify-content-center bg-blue text-white"
       style="padding: 2rem;"
     >
       <div class="w-100 section-wrapper">
@@ -456,7 +460,7 @@
                 ></textarea>
               </div>
               <div class="w-100 d-flex justify-content-start">
-                <button type="submit" class="btn btn-primary">Kirim</button>
+                <button type="submit" class="btn bg-red text-white">Kirim</button>
               </div>
             </form>
           </div>

@@ -9,6 +9,7 @@ use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\HomePageController;
 use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
+use Modules\Eksternal\Http\Controllers\TteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,7 +67,7 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
     });
-	
+
 	Route::prefix('layanan')->group(function () {
 		Route::get('/', [PermintaanController::class, 'index']);
 		Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);

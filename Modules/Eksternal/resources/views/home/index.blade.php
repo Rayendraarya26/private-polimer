@@ -1,11 +1,11 @@
 @extends('layouts.home')
 
-@section('title', 'Home')
+@section('title', 'JIS - Jogjakarta Industrial Services')
 
 @push('styles')
   <style>
     html {
-      scroll-behavior: smooth; 
+      scroll-behavior: smooth;
     }
     img.logo {
       height: 40px;
@@ -13,7 +13,7 @@
     @media screen and (min-width: 768px) {
       img.logo {
         height: 60px;
-      } 
+      }
     }
     main {
       gap: 8rem;
@@ -24,36 +24,36 @@
     .navbar-nav {
       margin-left: auto;
     }
-    .slick-prev:before, .slick-next:before { 
+    .slick-prev:before, .slick-next:before {
       color: gray !important;
       font-size: 32px;
     }
-    .slick-next { 
+    .slick-next {
       right: 20;
       z-index: 10;
     }
-    .slick-prev { 
+    .slick-prev {
       left: 20;
       z-index: 10;
     }
-    .slick-prev-banner:before { 
+    .slick-prev-banner:before {
       content: none;
     }
-    .slick-next-banner:before { 
+    .slick-next-banner:before {
       content: none;
     }
     .slick-prev-banner {
       display: none !important;
       height: 60px;
       width: 40px;
-      background-color: #0C6DFD90 !important;
+      background-color: #0D47A1 !important;
       border-radius: 0.25rem;
     }
     .slick-next-banner {
       display: none !important;
       height: 60px;
       width: 40px;
-      background-color: #0C6DFD90 !important;
+      background-color: #0D47A1 !important;
       border-radius: 0.25rem;
     }
 
@@ -87,7 +87,7 @@
     }
 
     .bg-blue {
-      background-color: #0C6DFD;
+      background-color: #0D47A1;
     }
 
     .bg-red {
@@ -111,7 +111,7 @@
       left: 5%;
       right: 5%;
       padding: 2rem;
-      background-color: #0C6DFD90;
+      background-color: #0D47A1;
       border-radius: 0.5rem;
     }
 
@@ -120,7 +120,7 @@
     }
 
     .navbar-collapse {
-      background-color: #0C6DFD90;
+      background-color: #0D47A1;
     }
 
     @media screen and (min-width: 768px) {
@@ -138,7 +138,7 @@
       }
       .nav-link {
         border-radius: 0.35rem;
-        background-color: #0C6DFD;
+        background-color: #0D47A1;
         padding: 1rem 4rem !important;
       }
       .slick-prev-banner, .slick-next-banner {
@@ -163,17 +163,17 @@
 @section('content')
   <nav class="navbar fixed-top navbar-expand-lg navbar-light">
     <div class="container-fluid m-0 p-0">
-      <a 
+      <a
         class="navbar-brand p-4 logo-bg bg-light shadow"
         href="/"
       >
-        <img 
+        <img
           alt="Logo"
           class="logo"
           src="{{ asset('assets/media/logos/logo-polimer.png') }}"
         />
       </a>
-      <button 
+      <button
         class="navbar-toggler me-4 bg-blue py-3"
         type="button"
         data-bs-toggle="collapse"
@@ -184,13 +184,13 @@
       >
         <i class="fa-solid fa-bars text-white" style="font-size: 1.5rem;"></i>
       </button>
-      <div 
+      <div
         class="collapse navbar-collapse p-4"
         id="navbarNavDropdown"
       >
         <ul class="navbar-nav fw-bold fs-1" style="gap: 0.1rem;">
           <li class="nav-item">
-            <a 
+            <a
               class="nav-link"
               href="#about-us"
             >
@@ -198,7 +198,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a 
+            <a
               class="nav-link"
               href="#contact-us"
             >
@@ -206,7 +206,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a 
+            <a
               class="nav-link"
               href="{{ route('auth.login') }}"
             >
@@ -218,13 +218,13 @@
     </div>
   </nav>
   <main class="w-100 d-flex flex-column align-items-stretch">
-    <section 
+    <section
       class="w-100"
     >
       <div class="slick-carousel-banners">
         @foreach($banners as $item)
           <div class="w-100 position-relative">
-            <img 
+            <img
               src="{{ $item['image_url'] }}"
               class="banner-image-background"
             >
@@ -238,7 +238,7 @@
         @endforeach
       </div>
     </section>
-    <section 
+    <section
       class="w-100 d-flex justify-content-center"
     >
       <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
@@ -249,7 +249,7 @@
               <div class="p-5 card bg-blue" style="border-radius: 3rem;">
                 <div class="card-body d-flex flex-column align-items-center gap-5">
                   <div class="w-100">
-                    <img 
+                    <img
                       src="{{ $item['image_url'] }}"
                       class="w-100"
                     >
@@ -261,7 +261,7 @@
           @endforeach
         </div>
         <div class="fs-3 fw-bold text-center py-5">How can we help? Register here</div>
-        <img 
+        <img
           alt="Logo"
           src="{{ asset('assets/media/logos/logo-polimer.png') }}"
           style="width: 256px;"
@@ -278,7 +278,7 @@
         </div>
       </div>
     </section>
-    <section 
+    <section
       class="w-100 d-flex justify-content-center"
     >
       <div class="w-100 d-flex flex-column gap-5 py-5">
@@ -286,7 +286,7 @@
         <div class="slick-carousel-partners slick-carousel-scale-animate">
           @foreach($partners as $item)
             <div class="p-4">
-              <img 
+              <img
                 src="{{ $item['image_url'] }}"
                 class="w-100 rounded-3"
                 style="object-fit: contain;"
@@ -296,7 +296,7 @@
         </div>
       </div>
     </section>
-    <section 
+    <section
       class="w-100 d-flex justify-content-center bg-light"
     >
       <div class="w-100 d-flex flex-column gap-5" style="padding: 5rem 0;">
@@ -311,7 +311,7 @@
                 <div class="card-body">
                   <p class="card-text fs-5 fw-semibold">"{{ $item['content'] }}"</p>
                   <div class="d-flex align-items-center gap-4 pt-2">
-                    <img 
+                    <img
                       src="{{ $item['avatar'] }}"
                       class="testimonial-avatar"
                     >
@@ -327,7 +327,7 @@
         </div>
       </div>
     </section>
-    <section 
+    <section
       id="about-us"
       class="w-100 d-flex justify-content-center"
       style="padding: 2rem;"
@@ -364,7 +364,7 @@
         </p>
       </div>
     </section>
-    <section 
+    <section
       id="contact-us"
       class="w-100 d-flex justify-content-center bg-blue text-white"
       style="padding: 2rem;"
@@ -377,13 +377,13 @@
             <form class="w-100 d-flex flex-column gap-5">
               <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                 <div class="w-100">
-                  <label 
+                  <label
                     for="nama_lengkap"
                     class="form-label text-white"
                   >
                     Nama Lengkap <span>*</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
                     required
                     class="form-control"
@@ -393,13 +393,13 @@
                   >
                 </div>
                 <div class="w-100">
-                  <label 
+                  <label
                     for="alamat_email"
                     class="form-label text-white"
                   >
                     Alamat Email <span>*</span>
                   </label>
-                  <input 
+                  <input
                     type="email"
                     required
                     class="form-control"
@@ -411,13 +411,13 @@
               </div>
               <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                 <div class="w-100">
-                  <label 
+                  <label
                     for="nomor_teleopn"
                     class="form-label text-white"
                   >
                     Nomor Telepon <span>*</span>
                   </label>
-                  <input 
+                  <input
                     type="number"
                     required
                     class="form-control"
@@ -427,13 +427,13 @@
                   >
                 </div>
                 <div class="w-100">
-                  <label 
+                  <label
                     for="nama_perusahaan"
                     class="form-label text-white"
                   >
                     Nama Perusahaan / Instansi <span>*</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
                     required
                     class="form-control"
@@ -444,13 +444,13 @@
                 </div>
               </div>
               <div class="w-100">
-                <label 
+                <label
                   for="pesan"
                   class="for text-whitem-label"
                 >
                   Pesan <span>*</span>
                 </label>
-                <textarea 
+                <textarea
                   class="form-control"
                   required
                   id="pesan"

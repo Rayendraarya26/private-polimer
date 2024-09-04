@@ -102,20 +102,8 @@
         }</style>
     <!--end::Page bg image-->
     <div class="app-faq-content">
-        <div class="d-flex flex-row justify-content-center gap-5 pb-10">
-            <a href="#" class="text-center fw-bold text-decoration-underline">
-                Tracking
-            </a>
-            <a href="#" class="text-center fw-bold text-decoration-underline">
-                Panduan
-            </a>
-            <a href="{{ route('faq') }}" class="text-center fw-bold text-decoration-underline">
-                FAQ
-            </a>
-            <a href="{{ route('tte.verify') }}" class="text-center fw-bold text-decoration-underline">
-                Verifikasi Dokumen
-            </a>
-        </div>
+        @include('layouts.component.navlink')
+        
         <div class="content-wrapper">
             <div class="d-flex flex-center flex-column w-100">
                 @if ($errors->any())

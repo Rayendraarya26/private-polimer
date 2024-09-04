@@ -1,7 +1,7 @@
 <html lang="en">
 <!--begin::Head-->
 <head>
-    <title>@yield('title') | {{config('app.name')}}</title>
+    <title>@yield('title')</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="canonical" href="http://authentication/layouts/overlay/sign-in.html"/>
@@ -15,7 +15,7 @@
     <link href="{{asset('assets/css/style.bundle.css')}}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('assets/fontawesome/css/all.min.css') }}" rel="stylesheet" type="text/css"/>
     <!--end::Global Stylesheets Bundle-->
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.min.css"/>
     @stack('styles')

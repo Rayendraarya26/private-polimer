@@ -3,16 +3,15 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
+use App\Enums\FeedbackFocus;
+use App\Enums\FeedbackInputType;
+use App\Enums\Option;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\MasterLayanan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
-
-use App\Enums\FeedbackInputType;
-use App\Enums\FeedbackFocus;
 
 class ManageLayananController extends Controller
 {
@@ -43,6 +42,36 @@ class ManageLayananController extends Controller
         return view("$this->view.index")->with($parser);
     }
 
+    public function edit(MasterLayanan $layanan)
+    {
+        $breadcrumbs = [
+            new Breadcrumbs('Admin'),
+            new Breadcrumbs('Manajemen Layanan', url($this->url)),
+            new Breadcrumbs('Edit', url($this->url)),
+        ];
+
+        $parser = array_merge($this->defaultParser(), [
+            'breadcrumbs' => $breadcrumbs,
+            'data'        => $layanan,
+        ]);
+
+        return view("$this->view.edit")->with($parser);
+    }
+
+    public function update(Request $request, MasterLayanan $layanan)
+    {
+        $input = $request->validate([
+            'description'     => 'nullable',
+            'integration_url' => 'required|url',
+            'icon'            => 'nullable',
+            'is_active'       => 'required|in:' . implode(',', Option::toArray()),
+        ]);
+
+        $layanan->update($input);
+
+        return redirect($this->url)->with('success', sprintf('Data %s berhasil diubah', $layanan->name));
+    }
+
     public function feedback(MasterLayanan $layanan)
     {
         $breadcrumbs = [
@@ -52,10 +81,10 @@ class ManageLayananController extends Controller
         ];
 
         $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
-            'data'        => $layanan,
-            'FeedbackFocus'        => FeedbackFocus::toArray(),
-            'FeedbackInputType'        => FeedbackInputType::toArray(),
+            'breadcrumbs'       => $breadcrumbs,
+            'data'              => $layanan,
+            'FeedbackFocus'     => FeedbackFocus::toArray(),
+            'FeedbackInputType' => FeedbackInputType::toArray(),
 
         ]);
         return view("$this->view.feedback")->with($parse);
@@ -97,7 +126,7 @@ class ManageLayananController extends Controller
 
     private function ajax_feedback(Request $request): JsonResponse
     {
-        $data = MasterLayanan::query()->findOrFail( $request->id );
+        $data = MasterLayanan::query()->findOrFail($request->id);
         if (!$data) {
             return responseJSON('Data tidak ditemukan', [], 404);
         }

@@ -98,6 +98,7 @@
                             orderable: false,
                             className: 'text-end',
                             render: function (data, type, row) {
+                                const urlEdit = `{{ url($url) }}/${row.id}/edit`
                                 const urlFeedback = `{{ url($url) }}/${row.id}/feedback`
                                 return `
                             <a href="#" class="btn btn-light btn-active-light-primary btn-sm" data-kt-menu-trigger="hover" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
@@ -113,6 +114,15 @@
                             </a>
                             <!--begin::Menu-->
                             <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-200px py-4" data-kt-menu="true">
+                                @if(authorized("$module@update"))
+                                <!--begin::Menu item-->
+                                <div class="menu-item px-3">
+                                    <a href="${urlEdit}" class="menu-link px-3">
+                                        Edit
+                                    </a>
+                                </div>
+                                <!--end::Menu item-->
+                                @endif
 
                                 @if(authorized("$module@feedback"))
                                 <!--begin::Menu item-->

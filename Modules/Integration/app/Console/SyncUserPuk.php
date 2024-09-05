@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Modules\Integration\Console;
 
 use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
@@ -19,7 +19,7 @@ class SyncUserPuk extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-user:puk';
+    protected $signature = 'integration:sync-user-puk';
 
     /**
      * The console command description.

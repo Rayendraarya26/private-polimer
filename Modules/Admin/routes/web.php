@@ -25,73 +25,75 @@ use Modules\Admin\Http\Controllers\ManageHomepageController;
 Route::prefix('/admin')
     ->middleware(['custom_auth', 'restrict'])
     ->group(function () {
-    Route::prefix('/setting-banner')->group(function () {
-        Route::get('/', [BannerController::class, 'index']);
-        Route::post('/', [BannerController::class, 'store']);
-        Route::get('/ajax', [BannerController::class, 'ajax']);
-        Route::put('/{id}', [BannerController::class, 'update']);
-        Route::delete('/{id}', [BannerController::class, 'destroy']);
-    });
+        Route::prefix('/setting-banner')->group(function () {
+            Route::get('/', [BannerController::class, 'index']);
+            Route::post('/', [BannerController::class, 'store']);
+            Route::get('/ajax', [BannerController::class, 'ajax']);
+            Route::put('/{id}', [BannerController::class, 'update']);
+            Route::delete('/{id}', [BannerController::class, 'destroy']);
+        });
 
-	Route::prefix('/pertanyaan')->group(function () {
-        Route::get('/', [PertanyaanController::class, 'index']);
-        Route::get('/{pertanyaan}/add', [PertanyaanController::class, 'add']);
-        Route::post('/{pertanyaan}', [PertanyaanController::class, 'store']);
-        Route::put('/{pertanyaan}/closed', [PertanyaanController::class, 'closed']);
-        Route::get('/ajax', [PertanyaanController::class, 'ajax']);
-    });
-	
-	Route::prefix('/data-contact-us')->group(function () {
-        Route::get('/', [ManageContactUsController::class, 'index']);
-        Route::get('/{id}/detail', [ManageContactUsController::class, 'show']);
-        Route::get('/ajax', [ManageContactUsController::class, 'ajax']);
-    });
-	
-	Route::prefix('/manajemen-homepage')->group(function () {
-        Route::get('/', [ManageHomepageController::class, 'index']);
-		Route::get('add', [ManageHomepageController::class, 'create']);
-        Route::post('/', [ManageHomepageController::class, 'store']);
-        Route::get('/ajax', [ManageHomepageController::class, 'ajax']);
-		Route::get('{id}/edit', [ManageHomepageController::class, 'edit']);
-		Route::put('{id}', [ManageHomepageController::class, 'update']);
-        Route::delete('/{id}', [ManageHomepageController::class, 'destroy']);
-    });
-	
+        Route::prefix('/pertanyaan')->group(function () {
+            Route::get('/', [PertanyaanController::class, 'index']);
+            Route::get('/{pertanyaan}/add', [PertanyaanController::class, 'add']);
+            Route::post('/{pertanyaan}', [PertanyaanController::class, 'store']);
+            Route::put('/{pertanyaan}/closed', [PertanyaanController::class, 'closed']);
+            Route::get('/ajax', [PertanyaanController::class, 'ajax']);
+        });
 
-	Route::prefix('/topik-pertanyaan')->group(function () {
-        Route::get('/', [ManageTopikPertanyaanController::class, 'index']);
-		Route::get('add', [ManageTopikPertanyaanController::class, 'create']);
-        Route::post('/', [ManageTopikPertanyaanController::class, 'store']);
-        Route::get('/ajax', [ManageTopikPertanyaanController::class, 'ajax']);
-		Route::get('{id}/edit', [ManageTopikPertanyaanController::class, 'edit']);
-		Route::put('{id}', [ManageTopikPertanyaanController::class, 'update']);
-        Route::delete('/{id}', [ManageTopikPertanyaanController::class, 'destroy']);
-    });
+        Route::prefix('/data-contact-us')->group(function () {
+            Route::get('/', [ManageContactUsController::class, 'index']);
+            Route::get('/{id}/detail', [ManageContactUsController::class, 'show']);
+            Route::get('/ajax', [ManageContactUsController::class, 'ajax']);
+        });
 
-	Route::prefix('/faq-layanan')->group(function () {
-        Route::get('/', [ManageFaqController::class, 'index']);
-		Route::get('add', [ManageFaqController::class, 'create']);
-        Route::post('/', [ManageFaqController::class, 'store']);
-        Route::get('/ajax', [ManageFaqController::class, 'ajax']);
-		Route::get('{id}/edit', [ManageFaqController::class, 'edit']);
-		Route::put('{id}', [ManageFaqController::class, 'update']);
-        Route::delete('/{id}', [ManageFaqController::class, 'destroy']);
-    });
+        Route::prefix('/manajemen-homepage')->group(function () {
+            Route::get('/', [ManageHomepageController::class, 'index']);
+            Route::get('add', [ManageHomepageController::class, 'create']);
+            Route::post('/', [ManageHomepageController::class, 'store']);
+            Route::get('/ajax', [ManageHomepageController::class, 'ajax']);
+            Route::get('{id}/edit', [ManageHomepageController::class, 'edit']);
+            Route::put('{id}', [ManageHomepageController::class, 'update']);
+            Route::delete('/{id}', [ManageHomepageController::class, 'destroy']);
+        });
 
-    Route::prefix('/layanan')->group(function () {
-        Route::get('/', [ManageLayananController::class, 'index']);
-        Route::get('/ajax', [ManageLayananController::class, 'ajax']);
-        Route::get('{layanan}/feedback', [ManageLayananController::class, 'feedback']);
-        Route::post('/{layanan}/feedback', [ManageLayananController::class, 'feedback_store']);
-    });
-	
-	Route::prefix('/permintaan-layanan')->group(function () {
-        Route::get('/', [ManageOrderController::class, 'index']);
-        Route::get('/ajax', [ManageOrderController::class, 'ajax']);
-        Route::get('{order}/feedback', [ManageOrderController::class, 'feedback']);
-    });
 
-    Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
-    Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);
-    Route::resource('integrasi-sso', IntegrasiSsoController::class);
-});
+        Route::prefix('/topik-pertanyaan')->group(function () {
+            Route::get('/', [ManageTopikPertanyaanController::class, 'index']);
+            Route::get('add', [ManageTopikPertanyaanController::class, 'create']);
+            Route::post('/', [ManageTopikPertanyaanController::class, 'store']);
+            Route::get('/ajax', [ManageTopikPertanyaanController::class, 'ajax']);
+            Route::get('{id}/edit', [ManageTopikPertanyaanController::class, 'edit']);
+            Route::put('{id}', [ManageTopikPertanyaanController::class, 'update']);
+            Route::delete('/{id}', [ManageTopikPertanyaanController::class, 'destroy']);
+        });
+
+        Route::prefix('/faq-layanan')->group(function () {
+            Route::get('/', [ManageFaqController::class, 'index']);
+            Route::get('add', [ManageFaqController::class, 'create']);
+            Route::post('/', [ManageFaqController::class, 'store']);
+            Route::get('/ajax', [ManageFaqController::class, 'ajax']);
+            Route::get('{id}/edit', [ManageFaqController::class, 'edit']);
+            Route::put('{id}', [ManageFaqController::class, 'update']);
+            Route::delete('/{id}', [ManageFaqController::class, 'destroy']);
+        });
+
+        Route::prefix('/layanan')->group(function () {
+            Route::get('/', [ManageLayananController::class, 'index']);
+            Route::get('/ajax', [ManageLayananController::class, 'ajax']);
+            Route::get('{layanan}/edit', [ManageLayananController::class, 'edit']);
+            Route::patch('{layanan}', [ManageLayananController::class, 'update']);
+            Route::get('{layanan}/feedback', [ManageLayananController::class, 'feedback']);
+            Route::post('/{layanan}/feedback', [ManageLayananController::class, 'feedback_store']);
+        });
+
+        Route::prefix('/permintaan-layanan')->group(function () {
+            Route::get('/', [ManageOrderController::class, 'index']);
+            Route::get('/ajax', [ManageOrderController::class, 'ajax']);
+            Route::get('{order}/feedback', [ManageOrderController::class, 'feedback']);
+        });
+
+        Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);
+        Route::patch('integrasi-sso/{id}/regenerate-secret', [IntegrasiSsoController::class, 'regenerateSecret']);
+        Route::resource('integrasi-sso', IntegrasiSsoController::class);
+    });

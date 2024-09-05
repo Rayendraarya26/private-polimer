@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Modules\Integration\Console;
 
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pelanggan;
-use App\Models\Db1\PelangganPerorangan;
 use App\Models\Db1\PelangganPerusahaan;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
@@ -19,7 +18,7 @@ class SyncUserApps extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-user:apps';
+    protected $signature = 'integration:sync-user-apps';
 
     /**
      * The console command description.

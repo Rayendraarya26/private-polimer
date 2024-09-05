@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Modules\Integration\Console;
 
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
@@ -18,7 +18,7 @@ class SyncUserSil extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-user:sil';
+    protected $signature = 'integration:sync-user-sil';
 
     /**
      * The console command description.

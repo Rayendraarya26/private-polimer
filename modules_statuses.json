@@ -3,5 +3,6 @@
     "Auth": true,
     "Admin": true,
     "Eksternal": true,
-    "Home": true
+    "Home": true,
+    "Integration": true
 }

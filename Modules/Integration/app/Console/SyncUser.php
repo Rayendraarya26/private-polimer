@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Modules\Integration\Console;
 
 use Illuminate\Console\Command;
 
@@ -11,7 +11,7 @@ class SyncUser extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-user:all';
+    protected $signature = 'integration:sync-user-all';
 
     /**
      * The console command description.
@@ -27,9 +27,9 @@ class SyncUser extends Command
     {
         $this->info('Sync all user to polimer');
 
-        $this->call('sync-user:apps');
-        $this->call('sync-user:puk');
-        $this->call('sync-user:sil');
-        $this->call('sync-user:sis');
+        $this->call('integration:sync-user-apps');
+        $this->call('integration:sync-user-puk');
+        $this->call('integration:sync-user-sil');
+        $this->call('integration:sync-user-sis');
     }
 }

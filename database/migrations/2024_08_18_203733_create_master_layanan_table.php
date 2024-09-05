@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('master_layanan', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('code');
             $table->string('slug');
             $table->string('description')->nullable();
             $table->string('icon')->nullable();

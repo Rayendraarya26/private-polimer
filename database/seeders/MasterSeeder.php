@@ -24,11 +24,12 @@ class MasterSeeder extends Seeder
         $faker = \Faker\Factory::create();
         foreach (Layanan::toArray() as $layanan) {
             MasterLayanan::query()->create([
-                'id'          => $layanan,
-                'name'        => Layanan::tryFrom($layanan)->getName(),
-                'slug'        => Str::slug(Layanan::tryFrom($layanan)->getName()),
-                'feedback_json'        => Layanan::tryFrom($layanan)->getName() == 'SER' ? Layanan::tryFrom($layanan)->getFeedback() : null,
-                'description' => $faker->sentence,
+                'id'            => $layanan,
+                'name'          => Layanan::tryFrom($layanan)->getName(),
+                'slug'          => Str::slug(Layanan::tryFrom($layanan)->getName()),
+                'code'          => Layanan::tryFrom($layanan)->getCode(),
+                'feedback_json' => Layanan::tryFrom($layanan)->getName() == 'SER' ? Layanan::tryFrom($layanan)->getFeedback() : null,
+                'description'   => $faker->sentence,
             ]);
         }
     }

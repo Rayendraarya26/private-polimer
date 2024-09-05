@@ -22,16 +22,18 @@ class DataIntegrasiLayanan extends Model
         'file_attachment',
         'is_given_feedback',
         'feedback_json',
+        'last_sync_at',
     ];
 
-//    protected function casts(): array
-//    {
-//        return [
-//            'feedback_json' => 'json',
-//        ];
-//    }
+    protected $casts = [
+        'is_given_feedback' => 'boolean',
+        'file_attachment'   => 'json',
+        'tanggal_order'     => 'datetime',
+        'feedback_json'     => 'json',
+        'last_sync_at'      => 'datetime',
+    ];
 
-	public function layanan(): BelongsTo
+    public function layanan(): BelongsTo
     {
         return $this->belongsTo(MasterLayanan::class, 'layanan_id');
     }

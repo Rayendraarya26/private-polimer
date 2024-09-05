@@ -8,6 +8,7 @@ import PrivateLayout from './layouts/PrivateLayout'
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const PaymentHistoryPage = lazy(() => import('./pages/payment-history/PaymentHistoryPage'))
 const FeedbacksPage = lazy(() => import('./pages/feedbacks/FeedbacksPage'))
+const FeedbackDetailPage = lazy(() => import('./pages/feedbacks/FeedbackDetailPage'))
 const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPage'))
 const ChangePasswordPage = lazy(() => import('./pages/profile/ChangePasswordPage'))
 const UpdateProfilePage = lazy(() => import('./pages/profile/UpdateProfilePage'))
@@ -28,6 +29,7 @@ const AppRoutes: React.FC = () => {
         </Route>
         <Route path='/feedbacks'>
           <Route index element={<FeedbacksPage/>}/>
+          <Route path=':uuid' element={<FeedbackDetailPage/>}/>
         </Route>
         <Route path='/ask-questions'>
           <Route index element={<AskQuestionsPage/>}/>

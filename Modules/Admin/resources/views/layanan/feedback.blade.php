@@ -150,10 +150,11 @@
                     $.ajax({
                         url: `{{ url("$url") }}/{{$data->id}}/feedback`,
                         method: 'POST',
-                        data: {
+                        contentType: 'application/json',
+                        data: JSON.stringify({
                             feedback: this.listFeedback,
                             _token: "{{ csrf_token() }}"
-                        },
+                        }),
                         success: (res) => {
                             this.loading = false;
                             toastr.success(res.message);

@@ -28,7 +28,7 @@ class MasterSeeder extends Seeder
                 'name'          => Layanan::tryFrom($layanan)->getName(),
                 'slug'          => Str::slug(Layanan::tryFrom($layanan)->getName()),
                 'code'          => Layanan::tryFrom($layanan)->getCode(),
-                'feedback_json' => Layanan::tryFrom($layanan)->getName() == 'SER' ? Layanan::tryFrom($layanan)->getFeedback() : null,
+                'feedback_json' => Layanan::tryFrom($layanan)->getFeedback(),
                 'description'   => $faker->sentence,
             ]);
         }

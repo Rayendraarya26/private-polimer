@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DataIntegrasiLayananStatusOrder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration {
             $table->string('kode_order');
             $table->string('id_order');
             $table->timestampTz('tanggal_order')->nullable();
-            $table->enum('status_order', ['permohonan', 'pembayaran', 'proses', 'review', 'selesai'])->default('permohonan');
+            $table->enum('status_order', DataIntegrasiLayananStatusOrder::toArray())->default(DataIntegrasiLayananStatusOrder::PERMOHONAN);
             $table->json('file_attachment')->nullable()->comment('Untuk file sertifikat');
             $table->boolean('is_given_feedback')->default(false);
             $table->json('feedback_json')->nullable();

@@ -16,6 +16,8 @@ class MasterLayanan extends Model
         'name',
         'slug',
         'description',
+        'is_active',
+        'integration_url',
         'icon',
     ];
 

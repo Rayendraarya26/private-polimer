@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Option;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,9 @@ return new class extends Migration {
             $table->string('slug');
             $table->string('description')->nullable();
             $table->string('icon')->nullable();
-			$table->json('feedback_json')->nullable();
+            $table->json('feedback_json')->nullable();
+            $table->enum('is_active', Option::toArray())->default(Option::YES);
+            $table->string('integration_url')->nullable();
             $table->timestampsTz();
         });
     }

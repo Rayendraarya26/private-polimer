@@ -9,8 +9,8 @@ enum HomepageKey: string
 {
     use EnumConcern;
 
-    case SLIDER = 'SLIDER';
     case ABOUT = 'ABOUT';
+    case SLIDER = 'SLIDER';
     case PARTNERS = 'PARTNERS';
     case SERVICES = 'SERVICES';
 	
@@ -19,8 +19,8 @@ enum HomepageKey: string
 		$faker = Factory::create();
 		
         return match ($this) {
+            self::ABOUT => json_encode(['data' => $faker->sentence]),
             self::SLIDER => json_encode(['data' => null]),
-            self::ABOUT => $faker->sentence,
             self::PARTNERS => json_encode(['data' => null]),
             self::SERVICES => json_encode(['data' => null]),
         };

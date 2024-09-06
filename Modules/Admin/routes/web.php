@@ -49,12 +49,7 @@ Route::prefix('/admin')
 
         Route::prefix('/manajemen-homepage')->group(function () {
             Route::get('/', [ManageHomepageController::class, 'index']);
-            Route::get('add', [ManageHomepageController::class, 'create']);
-            Route::post('/', [ManageHomepageController::class, 'store']);
-            Route::get('/ajax', [ManageHomepageController::class, 'ajax']);
-            Route::get('{id}/edit', [ManageHomepageController::class, 'edit']);
-            Route::put('{id}', [ManageHomepageController::class, 'update']);
-            Route::delete('/{id}', [ManageHomepageController::class, 'destroy']);
+            Route::put('/{id}/update', [ManageHomepageController::class, 'update']);
         });
 
 

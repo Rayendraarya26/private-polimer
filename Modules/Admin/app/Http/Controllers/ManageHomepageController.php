@@ -3,8 +3,8 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
-use App\Models\Db1\MasterLayanan;
-use App\Models\Db1\MasterFaq;
+use App\Enums\HomepageKey;
+use App\Models\Db1\SiteManajemen;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,91 +27,49 @@ class ManageHomepageController
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $breadcrumbs = [
             new Breadcrumbs('Admin'),
             new Breadcrumbs('Manage Home Page')
         ];
-
-        $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs
-        ]);
-        return view("$this->view.index")->with($parse);
-    }
-
-    public function create()
-    {
-        $breadcrumbs = [
-            new Breadcrumbs('Admin'),
-            new Breadcrumbs('Manage Home Page', url($this->url)),
-            new Breadcrumbs('Tambah'),
-        ];
-
-        $parse = ['url' => $this->url, 'module' => $this->module, 'breadcrumbs' => $breadcrumbs];
-        $parse = array_merge($this->defaultParser(), [
+		
+		$key_option = ($request->data) ? $request->data : 'about';
+		$template_data = [
             'breadcrumbs' => $breadcrumbs,
-            'data_layanan' => MasterLayanan::query()->get(),
-            'data'        => null
-        ]);
-        return view("$this->view.upsert")->with($parse);
-    }
-
-    public function edit($id)
-    {
-        $data = MasterFaq::findOrFail($id);
-
-        $breadcrumbs = [
-            new Breadcrumbs('Admin'),
-            new Breadcrumbs('Manage FAQ Layanan', url($this->url)),
-            new Breadcrumbs('Ubah'),
+            'key' => HomepageKey::toArray(),
+            'selected_key' => $key_option,
         ];
-
-        $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
-            'data_layanan' => MasterLayanan::query()->get(),
-            'data'        => $data
-        ]);
-        return view("$this->view.upsert")->with($parse);
-    }
-
-    public function store(Request $request)
-    {
-        $input = $this->validateData($request);
-
-        try {
-            $faq = $this->upsert($input, new MasterFaq());
-            return redirect($this->url)->with('message', sprintf("Sukses menambah data %s", $faq->name));
-        } catch (Exception $e) {
-            dd($e);
-            // return redirect()->back()->with('error', $e->getMessage());
-        }
+		
+		if($key_option == 'about'){
+			$data_about = SiteManajemen::where('key', '=', 'ABOUT')->firstOrFail(); 
+			$data_json = json_decode($data_about->data, true);
+			$template_data['about_us'] = isset($data_json['data']) ? $data_json['data'] : '';
+			$template_data['id'] = $data_about->id;
+		}
+        $parse = array_merge($this->defaultParser(), $template_data);
+		
+		return view("$this->view.index_".$key_option)->with($parse);
     }
 
     public function update(Request $request, $id)
     {
-        $input = $this->validateData($request);
-
         try {
-            $faq = MasterFaq::findOrFail($id);
-            $faq = $this->upsert($input, $faq);
-            return redirect()->back()->with('message', sprintf("Sukses mengubah data %s", $faq->name));
+			return match ($request->action) {
+				'about' => $this->upsert_about($request),
+				default => abort(404),
+			};
         } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function upsert(array $input, MasterFaq $faq)
+    public function upsert_about($input)
     {
-        return DB::transaction(function () use ($input, $faq) {
-            $faq->layanan_id      = $input['layanan_id'];
-            $faq->question      = $input['question'];
-            $faq->answer      = $input['answer'];
-            $faq->order      = $input['order'];
-            $faq->is_active      = $input['is_active'];
-            $faq->save();
-            return $faq;
-        });
+		$data_about = SiteManajemen::where('key', '=', 'ABOUT')->firstOrFail();
+		$data_about->data      = json_encode(['data' => $input->data]);
+		$data_about->save();
+		return redirect()->back()->with('message', sprintf("Sukses mengubah data About Us"));
     }
 
     public function destroy($id)
@@ -122,35 +80,10 @@ class ManageHomepageController
         return responseJSON("Sukses menghapus data");
     }
 
-	public function ajax(Request $request)
-    {
-        return match ($request->action) {
-            'datatable' => $this->ajax_datatable($request),
-            default => abort(404),
-        };
-    }
-
-    public function ajax_datatable(Request $request): JsonResponse
-    {
-        $data = MasterFaq::query()
-        ->with(['layanan']);
-        return Datatables::eloquent($data)
-            ->addColumn('name', function(MasterFaq $faq) {
-                return $faq->layanan->name;
-            })
-            ->addIndexColumn()
-            ->make();
-    }
-
     private function validateData(Request $request)
     {
         return $request->validate([
-            'layanan_id'       => 'required',
-            'question'       => 'required',
-            // 'slug'       => 'required',
-            'answer'       => 'required',
-            'order'       => 'required',
-            'is_active'       => 'nullable'
+            'action'       => 'required',
         ]);
     }
 }

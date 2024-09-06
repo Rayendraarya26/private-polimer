@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\HomepageKey;
 use App\Enums\Layanan;
 use App\Models\Db1\MasterFaq;
 use App\Models\Db1\MasterLayanan;
+use App\Models\Db1\SiteManajemen;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -18,8 +20,19 @@ class MasterSeeder extends Seeder
     {
         $this->addMasterLayanan();
         $this->addMasterFaq();
+        $this->addHomePageKey();
     }
-
+	
+	private function addHomePageKey(): void
+    {
+        foreach (HomepageKey::toArray() as $site) {
+            SiteManajemen::query()->create([
+                'key' 				=> $site,
+                'data'				=> HomepageKey::tryFrom($site)->getValue(),
+             ]);
+        }
+    }
+	
     private function addMasterLayanan(): void
     {
         $faker = Factory::create();

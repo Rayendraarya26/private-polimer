@@ -21,11 +21,16 @@
             <div class="card" id="kt_card">
                 <div id="appFeedback">
                     <div class="card-body">
-                        <button class="btn btn-primary mb-3" @click="handleCreateFeedback">
-                            <i class="fas fa-add"></i> Tambah
-                        </button>
+                        <div class="app-engage ">
+							<button class="app-engage-btn hover-primary" @click="handleCreateFeedback">
+							<i class="fa-thin fa-square-pen fs-1 pt-1 mb-2"></i>
+							<span class="path1"></span>
+							<span class="path2"></span></i>
+							Tambah
+							</button>
+                        </div>
                         <div v-if="listFeedback.length > 0">
-                            <ul v-for="feedback in listFeedback" class="list-group">
+                            <ul v-for="feedback in listFeedback" class="list-group" style="margin-top:5px;">
                                 <li class="list-group-item">
                                     @{{ feedback.question }}
                                     <br>
@@ -55,8 +60,8 @@
                             </ul>
                         </div>
 
-                        <div class="fixed-bottom-right">
-                            <button class="btn btn-primary" :disabled="loading" @click="handleSaveFeedback()">
+                        <div class="fixed-bottom-right" style="margin-top:10px;">
+                            <button class="btn btn-success" :disabled="loading" @click="handleSaveFeedback()">
                                 <i class="fas fa-save"></i> Save
                             </button>
                         </div>
@@ -184,8 +189,8 @@
                 }
             },
             template: `
-                <ul v-for="cfb in childFeedback" class="list-group">
-                    <li class="list-group-item">
+                <ul v-for="cfb in childFeedback" class="list-group" style="margin-top:20px;">
+                    <li class="list-group-item" style="margin-top:5px;">
                         @{{ cfb.question }}
                         <template v-if="cfb.child === null">
                             <br>

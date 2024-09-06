@@ -223,6 +223,7 @@ class MenuSeeder extends Seeder
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageHomepageController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageHomepageController@ajax'],
                                     ['name' => 'update', 'controller' => $moduleAdmin . '\ManageHomepageController@update'],
+									['name' => 'delete', 'controller' => $moduleAdmin . '\ManageHomepageController@destroy'],
                                 ]
                             ],
                         ]

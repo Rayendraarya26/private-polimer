@@ -34,7 +34,7 @@
 						@endif
 						<form method="post" id="kt_form" action="{{ url("$url/about/update") }}">
 							@csrf
-							@method('PUT')
+							@method('POST')
 							
 							<div class="form-group row mb-3">
 								<div class="col-sm-12">

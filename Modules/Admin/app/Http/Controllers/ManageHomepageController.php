@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ManageHomepageController
 {
@@ -52,16 +54,71 @@ class ManageHomepageController
 		return view("$this->view.index_".$key_option)->with($parse);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $action)
     {
-        try {
-			return match ($request->action) {
-				'about' => $this->upsert_about($request),
-				default => abort(404),
-			};
-        } catch (Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+		return match ($action) {
+			'about' => $this->upsert_about($request),
+			'store_slider' => $this->store_slider($request),
+			'update_slider' => $this->update_slider($request),
+			default => abort(404),
+		};
+    }
+	
+	public function update_slider(Request $request)
+    {
+        $input = $request->validate([
+            'order'       => 'required|integer',
+            'id' => 'required',
+            'description' => 'nullable',
+        ]);
+
+		
+		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
+		$data_json = json_decode($banner->data, true);
+		$data_slider = $data_json['data'];
+		$key = $this->searchForId($request->id, $data_slider);
+		if(!is_null($key)){
+			$data_slider[$key] = [
+				'id'        => $data_slider[$key]['id'],
+				'order'       => $request->order,
+				'description' => $request->description,
+				'image_path'       => $data_slider[$key]['image_path'],
+			];
+		}
+		
+		$new_data_json = ['data' => $data_slider];
+		
+        $banner->data = json_encode($new_data_json);
+        $banner->save();
+
+        return responseJSON('Sukses menginput slider');
+    }
+
+	
+	public function store_slider(Request $request)
+    {
+        $input = $request->validate([
+            'order'       => 'required|integer',
+            'description' => 'nullable',
+            'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
+        ]);
+
+		$image = $request->file('image');
+        $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image); 
+		
+		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
+		$data_json = json_decode($banner->data, true);
+		$data_json['data'][] = [
+			'id'        => (string) Str::uuid(),
+            'order'       => $request->order,
+            'description' => $request->description,
+            'image_path'       => $key,
+		];
+		
+        $banner->data = json_encode($data_json);
+        $banner->save();
+
+        return responseJSON('Sukses menginput slider');
     }
 
     public function upsert_about($input)
@@ -71,19 +128,77 @@ class ManageHomepageController
 		$data_about->save();
 		return redirect()->back()->with('message', sprintf("Sukses mengubah data About Us"));
     }
-
-    public function destroy($id)
+	
+	public function destroy(Request $request, $action)
     {
-        $data = MasterFaq::findOrFail($id);
-        $data->delete();
+		return match ($action) {
+			'destroy_slider' => $this->destroy_slider($request),
+			default => abort(404),
+		};
+    }
+	
+	public function destroy_slider(Request $request)
+    {
+		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
+		
+		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
+		$data_json = json_decode($banner->data, true);
+		$data_slider = $data_json['data'];
+		$key = $this->searchForId($request->id, $data_slider);
+		if(!is_null($key)){
+			$image_path = $data_slider[$key]['image_path'];
+			unset($data_slider[$key]);
+			$new_data_json = ['data' => $data_slider];
+		
+			$banner->data = json_encode($new_data_json);
+			$banner->save();
+			
+			// delete slider if not in folder "example"
+			if (!str_contains($image_path, 'example')) {
+				// delete image
+				Storage::disk('s3')->delete($image_path);
+			}
+			
+			return responseJSON('Data berhasil dihapus.');
+		}
+		else{
+			return responseJSON('Data gagal dihapus.');
+		}
+    }
+	
+	
+	public function ajax(Request $request)
+    {
+        $request->validate(['action' => 'required']);
+            return match ($request->input('action')) {
+            'slider' => $data = $this->ajax_slider($request),
+            default => abort(404),
+        };
 
-        return responseJSON("Sukses menghapus data");
     }
 
-    private function validateData(Request $request)
+    private function ajax_slider(Request $request): JsonResponse
     {
-        return $request->validate([
-            'action'       => 'required',
-        ]);
+		$data_slider = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
+		$data_json = json_decode($data_slider->data, true);
+		
+		$data_result = $data_json['data'];
+		foreach ($data_result as $key => $value) {
+            $data_result[$key]['image_url'] = Storage::disk('s3')->temporaryUrl(
+                $value['image_path'],
+                now()->addMinutes(5)
+            );
+        }
+		
+		return responseJSON('Sukses', $data_result);
     }
+	
+	private function searchForId($id, $array) {
+	   foreach ($array as $key => $val) {
+		   if ($val['id'] === $id) {
+			   return $key;
+		   }
+	   }
+	   return null;
+	}
 }

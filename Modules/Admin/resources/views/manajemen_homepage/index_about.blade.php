@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Homepage')
+@section('title', 'Manage Homepage About Us')
 
 @section('content')
 	<div class="card" id="kt_card" id="vueApp">

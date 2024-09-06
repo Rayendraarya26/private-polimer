@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Homepage')
+@section('title', 'Manage Homepage Slider')
 
 @section('content')
     <div class="card" id="kt_card">
@@ -170,6 +170,7 @@
                         <thead>
                         <tr>
                             <th>Image</th>
+                            <th>Urut</th>
                             <th>Deskripsi</th>
                             <th>Aksi</th>
                         </tr>
@@ -177,6 +178,7 @@
                         <tbody>
                         <tr v-for="slider in listSlider">
                             <td><img :src="slider.image_url" alt="banner" style="max-width: 100px"></td>
+                            <td>@{{ slider.order }}</td>
                             <td>@{{ slider.description }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">

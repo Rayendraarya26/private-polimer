@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
+use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
+use Modules\Eksternal\Http\Controllers\Api\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
-use Modules\Eksternal\Http\Controllers\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\HomePageController;
-use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 use Modules\Eksternal\Http\Controllers\TteController;
 
 /*

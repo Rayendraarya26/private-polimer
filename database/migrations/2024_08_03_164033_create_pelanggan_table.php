@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Option;
 use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
 use Illuminate\Database\Migrations\Migration;
@@ -35,6 +36,7 @@ return new class extends Migration {
             $table->string('telepon')->nullable();
             $table->string('surel')->nullable();
             $table->string('whatsapp')->nullable();
+            $table->enum('whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->string('fax')->nullable();
             $table->string('npwp')->nullable();
             $table->string('nib')->nullable();
@@ -42,6 +44,7 @@ return new class extends Migration {
             $table->string('iup')->nullable();
             $table->string('pj_nama')->nullable();
             $table->string('pj_whatsapp')->nullable();
+            $table->enum('pj_whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->string('pj_surel')->nullable();
             $table->text('dok_npwp')->nullable()->comment('path to file in storage service');
             $table->text('dok_nib')->nullable()->comment('path to file in storage service');
@@ -66,11 +69,13 @@ return new class extends Migration {
             $table->string('fax')->nullable();
             $table->string('surel')->nullable();
             $table->string('whatsapp')->nullable();
+            $table->enum('whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->string('npwp')->nullable();
             $table->string('nib')->nullable();
             $table->string('sk_nomenklatur')->nullable();
             $table->string('pj_nama')->nullable();
             $table->string('pj_whatsapp')->nullable();
+            $table->enum('pj_whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->string('pj_surel')->nullable();
             $table->text('dok_npwp')->nullable()->comment('path to file in storage service');
             $table->text('dok_nib')->nullable()->comment('path to file in storage service');
@@ -96,6 +101,7 @@ return new class extends Migration {
             $table->string('nik')->nullable();
             $table->string('surel')->nullable();
             $table->string('whatsapp')->nullable();
+            $table->enum('whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->string('pendidikan_terakhir')->nullable();
             $table->string('npwp')->nullable();
             $table->string('nib')->nullable();

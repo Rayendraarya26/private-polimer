@@ -22,6 +22,7 @@ class PelangganPerorangan extends Model
         'nik',
         'surel',
         'whatsapp',
+        'whatsapp_verified',
         'pendidikan_terakhir',
         'npwp',
         'nib',

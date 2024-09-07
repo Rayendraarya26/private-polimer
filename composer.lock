@@ -603,12 +603,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:dolkode/bbkkp-sdk-esign-service-php.git",
-                "reference": "dfb7bd1b266b8e10bf53f913bf90adfe70d028f8"
+                "reference": "c2f3d090b32f6fbc2ce6f6304ea5afc4a35a3dda"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dolkode/bbkkp-sdk-esign-service-php/zipball/dfb7bd1b266b8e10bf53f913bf90adfe70d028f8",
-                "reference": "dfb7bd1b266b8e10bf53f913bf90adfe70d028f8",
+                "url": "https://api.github.com/repos/dolkode/bbkkp-sdk-esign-service-php/zipball/c2f3d090b32f6fbc2ce6f6304ea5afc4a35a3dda",
+                "reference": "c2f3d090b32f6fbc2ce6f6304ea5afc4a35a3dda",
                 "shasum": ""
             },
             "require": {
@@ -627,12 +627,12 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "OpenAPI\\Client\\": "lib/"
+                    "BBSPJIKKP\\Sdk\\Esign\\": "lib/"
                 }
             },
             "autoload-dev": {
                 "psr-4": {
-                    "OpenAPI\\Client\\Test\\": "test/"
+                    "BBSPJIKKP\\Sdk\\Esign\\Test\\": "test/"
                 }
             },
             "license": [
@@ -659,7 +659,7 @@
                 "source": "https://github.com/dolkode/bbkkp-sdk-esign-service-php/tree/main",
                 "issues": "https://github.com/dolkode/bbkkp-sdk-esign-service-php/issues"
             },
-            "time": "2024-09-01T02:34:19+00:00"
+            "time": "2024-09-07T01:57:07+00:00"
         },
         {
             "name": "dragonmantank/cron-expression",

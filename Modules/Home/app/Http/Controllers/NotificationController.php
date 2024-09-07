@@ -5,6 +5,7 @@ namespace Modules\Home\Http\Controllers;
 use App\Classes\Breadcrumbs;
 use App\Libraries\Mailer;
 use App\Libraries\Notification;
+use App\Libraries\WhatsappService;
 use App\Models\Db1\SysUserFbtoken;
 use App\Models\Db1\SysUserNotif;
 use Illuminate\Http\Request;
@@ -71,12 +72,16 @@ class NotificationController
     public function tes()
     {
         $libNotif = new Notification(auth()->id(), "Ini judul", 'ini pesan', url('/'));
-        $libNotif->send();
+        $libNotif->sendInBackground(true);
 
         $libMailer = new Mailer();
         $libMailer->subject('Test Mailer')
             ->to(auth()->user()->email)
             ->body('Test Mailer')
+            ->sendInBackground();
+
+        $waNumber = auth()->user()->pegawai?->whatsapp ?? '6289685024091';
+        WhatsappService::sendMessage($waNumber, 'Test Whatsapp')
             ->sendInBackground();
     }
 }

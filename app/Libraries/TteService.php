@@ -2,12 +2,12 @@
 
 namespace App\Libraries;
 
+use BBSPJIKKP\Sdk\Esign\Api\EsignApi;
+use BBSPJIKKP\Sdk\Esign\ApiException;
+use BBSPJIKKP\Sdk\Esign\Configuration;
+use BBSPJIKKP\Sdk\Esign\Model\EsignResultResults;
 use Exception;
 use GuzzleHttp\Client;
-use OpenAPI\Client\Api\EsignApi;
-use OpenAPI\Client\ApiException;
-use OpenAPI\Client\Configuration;
-use OpenAPI\Client\Model\EsignResultResults;
 
 class TteService
 {
@@ -43,7 +43,7 @@ class TteService
      */
     public function verifyById($id): EsignResultResults
     {
-        $response = $this->http->apiEsignVerifyIdGet($id);
+        $response = $this->http->verifyDocumentById($id);
 
         return $response->getResults();
     }
@@ -53,7 +53,7 @@ class TteService
      */
     public function verifyByDoc($document): EsignResultResults
     {
-        $response = $this->http->apiEsignVerifyDocPost($document);
+        $response = $this->http->verifyDocumentByDoc($document);
 
         return $response->getResults();
     }

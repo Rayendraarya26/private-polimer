@@ -40,4 +40,10 @@ return [
         'api_key' => env('TTE_API_KEY'),
         'timeout' => env('TTE_TIMEOUT_SECONDS', 60),
     ],
+
+    'whatsapp' => [
+        'base_url' => env('WHATSAPP_BASE_URL'),
+        'username' => env('WHATSAPP_USERNAME'),
+        'password' => env('WHATSAPP_PASSWORD'),
+    ],
 ];

@@ -2,9 +2,11 @@
 
 namespace App\Mail;
 
+use App\Libraries\Mailer;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -13,12 +15,12 @@ class RawMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Email $email;
+    public Mailer $email;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Email $email)
+    public function __construct(Mailer $email)
     {
         $this->email = $email;
     }

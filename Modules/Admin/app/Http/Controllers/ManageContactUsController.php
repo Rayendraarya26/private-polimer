@@ -3,11 +3,9 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
-use App\Models\Db1\ContactUs;
-use Exception;
+use App\Models\Db1\SiteContactUs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class ManageContactUsController
@@ -49,7 +47,7 @@ class ManageContactUsController
 
     public function ajax_datatable(Request $request): JsonResponse
     {
-        $data = ContactUs::query();
+        $data = SiteContactUs::query();
         return Datatables::eloquent($data)
             ->addIndexColumn()
             ->make();

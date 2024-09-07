@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage FAQ Layanan')
+@section('title', 'Data Contact Us')
 
 @section('content')
     <div class="card" id="kt_card">
@@ -48,7 +48,7 @@
     </div>
 
     <div class="modal fade" tabindex="-1" id="kt_modal">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="kt_modal_title"></h5>

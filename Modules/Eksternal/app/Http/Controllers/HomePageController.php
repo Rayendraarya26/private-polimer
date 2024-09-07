@@ -4,7 +4,7 @@ namespace Modules\Eksternal\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Db1\SettingBanner;
-use App\Models\Db1\ContactUs;
+use App\Models\Db1\SiteContactUs;
 
 use App\Traits\CaptchaTrait;
 
@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class HomePageController extends Controller
 {
-	
+
 	public function banner(Request $request)
     {
         $slider = SettingBanner::query()->where('is_active', 1)
@@ -34,7 +34,7 @@ class HomePageController extends Controller
 			})
 			->orderBy('order')
 			->get();
-			
+
 		$total = $slider->count();
 
 		return responseJSON('Data Found', [
@@ -47,7 +47,7 @@ class HomePageController extends Controller
 			'total' => $total
 			]);
     }
-	
+
 	public function storeContactUs(Request $request)
     {
         $request->validate([
@@ -58,20 +58,20 @@ class HomePageController extends Controller
             'instansi' => 'required',
             'pesan' => 'required',
         ]);
-		 
+
 		if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
-		
+
         try {
-			$contact_us                 = new ContactUs();
+			$contact_us                 = new SiteContactUs();
 			$contact_us->nama   = $request->nama;
 			$contact_us->email   = $request->email;
 			$contact_us->telp   = $request->telp;
 			$contact_us->instansi   = $request->instansi;
 			$contact_us->pesan   = $request->pesan;
 			$contact_us->save();
-			
+
             return responseJSON('success', 'Berhasil menyampaikan pesan.');
         } catch (Exception $e) {
             Log::withContext($request->except('recaptcha'))->error($e);

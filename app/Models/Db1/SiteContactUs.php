@@ -5,7 +5,7 @@ namespace App\Models\Db1;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class ContactUs extends Model
+class SiteContactUs extends Model
 {
     use HasUuids;
 

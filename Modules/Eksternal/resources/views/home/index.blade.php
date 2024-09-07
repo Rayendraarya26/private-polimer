@@ -353,78 +353,8 @@
         >
             <div class="w-100 section-wrapper d-flex flex-column gap-4">
                 <div class="fs-1 fw-bold text-center">About Us</div>
-                <p>
-                    Who are we?<br/>
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                </p>
-                <p>
-                    What do we do?<br/>
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis in accusamus reprehenderit
-                    molestias laborum architecto soluta laudantium, perferendis recusandae repellat. A aliquam illo
-                    optio facilis. Deleniti doloribus veritatis est ut.
-                </p>
+
+                {!! $aboutUs !!}
             </div>
         </section>
         <section

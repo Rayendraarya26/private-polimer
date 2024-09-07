@@ -5,6 +5,7 @@ namespace Modules\Eksternal\Http\Controllers;
 use App\Enums\HomepageKey;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\SiteManajemen;
+use AWS\CRT\HTTP\Request;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -92,11 +93,20 @@ class HomeController extends Controller
             ],
         ];
 
+        $aboutUsObj = SiteManajemen::query()->where('key', HomepageKey::ABOUT)->first();
+        $aboutUs    = $aboutUsObj->data['data'];
+
         return view("$this->view.index", [
             "banners"      => $banners,
             "services"     => $services,
             "partners"     => $partners,
-            "testimonials" => $testimonials
+            "testimonials" => $testimonials,
+            'aboutUs'      => $aboutUs
         ]);
+    }
+
+    public function contactUs(Request $request)
+    {
+
     }
 }

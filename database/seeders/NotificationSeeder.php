@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Enums\Option;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserNotif;
-use App\Models\Db1\ContactUs;
+use App\Models\Db1\SiteContactUs;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 
@@ -28,8 +28,8 @@ class NotificationSeeder extends Seeder
                 'link'    => $faker->url,
                 'is_read' => Option::NO,
             ]);
-			
-			ContactUs::create([
+
+			SiteContactUs::create([
                 'nama' => $faker->unique()->name,
                 'email'   => $faker->unique()->email,
                 'telp' => "08XXXXXXX",

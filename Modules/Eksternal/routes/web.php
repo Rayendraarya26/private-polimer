@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\NotificationController;
-use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 use Modules\Eksternal\Http\Controllers\Api\PertanyaanController;
+use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
@@ -22,9 +22,8 @@ use Modules\Eksternal\Http\Controllers\TteController;
 |
 */
 
-Route::get('/clear-cache', function() {
-    $exitCode = Artisan::call('optimize:clear');
-    // return what you want
+Route::get('/clear-cache', function () {
+    Artisan::call('optimize:clear');
 });
 
 Route::get('/app', [AppController::class, 'index'])
@@ -32,6 +31,7 @@ Route::get('/app', [AppController::class, 'index'])
     ->middleware(['custom_auth']);
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/', [HomeController::class, 'contactUs']);
 
 Route::prefix('faq')->group(function () {
     Route::get('/', [FaqController::class, 'index'])->name('faq');
@@ -40,8 +40,8 @@ Route::prefix('faq')->group(function () {
 });
 
 Route::prefix('homepage')->group(function () {
-	Route::get('/banner', [HomePageController::class, 'banner']);
-	Route::post('/contactUs', [HomePageController::class, 'storeContactUs']);
+    Route::get('/banner', [HomePageController::class, 'banner']);
+    Route::post('/contactUs', [HomePageController::class, 'storeContactUs']);
 });
 
 Route::prefix('tte')->group(function () {
@@ -68,11 +68,11 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
     });
 
-	Route::prefix('layanan')->group(function () {
-		Route::get('/', [PermintaanController::class, 'index']);
-		Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
-		Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
-	});
+    Route::prefix('layanan')->group(function () {
+        Route::get('/', [PermintaanController::class, 'index']);
+        Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
+        Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
+    });
 
     Route::prefix('pertanyaan')->group(function () {
         Route::get('/', [PertanyaanController::class, 'listPertanyaan']);

@@ -104,7 +104,7 @@ class ManageHomepageController
 
         $banner              = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
         $data_json           = $banner->data;
-        $data_json['data'][] = [
+        $data_json[] = [
             'id'         => Str::uuid()->toString(),
             'order'      => $input['order'],
             'title'      => $input['title'],
@@ -130,7 +130,7 @@ class ManageHomepageController
 
         $banner              = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
         $data_json           = $banner->data;
-        $data_json['data'][] = [
+        $data_json[] = [
             'id'         => Str::uuid()->toString(),
             'order'      => $input['order'],
             'title'      => $input['title'],
@@ -160,9 +160,7 @@ class ManageHomepageController
             Arr::set($data_slider, "$key.title", $input['title']);
         }
 
-        $new_data_json = ['data' => $data_slider];
-
-        $banner->data = $new_data_json;
+        $banner->data = $data_slider;
         $banner->save();
 
         return responseJSON('Sukses menginput partner');
@@ -185,9 +183,7 @@ class ManageHomepageController
             Arr::set($data_slider, "$key.title", $input['title']);
         }
 
-        $new_data_json = ['data' => $data_slider];
-
-        $banner->data = $new_data_json;
+        $banner->data = $data_slider;
         $banner->save();
 
         return responseJSON('Sukses menginput services');
@@ -294,7 +290,7 @@ class ManageHomepageController
             return responseJSON('Sukses', []);
         }
 
-        $data_result = Arr::get($data_slider->data, 'data', $data_slider->data) ?? [];
+        $data_result = $data_slider->data;
         foreach ($data_result as $key => $value) {
             Arr::set($data_result, "$key.image_url", Storage::disk('s3')->temporaryUrl(
                 $value['image_path'],

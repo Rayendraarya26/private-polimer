@@ -30,7 +30,7 @@
 						<div class="widget-content searchable-container list" id="partnerVue">
 							<div class="form-with-tabs">
 								<h5 class="card-title fw-semibold mb-4">
-									Data Partner yang tampil pada halaman utama 
+									Data Partner yang tampil pada halaman utama
 									<a href="{{ config('app.frontend_url') }}" target="_blank">
 										{{ config('app.frontend_url') }}
 									</a>
@@ -171,7 +171,7 @@
                         <tr>
                             <th>Image</th>
                             <th>Urut</th>
-                            <th>Nama</th>
+                            <th>Nama Partner</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>

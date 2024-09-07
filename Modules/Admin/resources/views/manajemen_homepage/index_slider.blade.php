@@ -171,6 +171,7 @@
                         <tr>
                             <th>Image</th>
                             <th>Urut</th>
+                            <th>Title</th>
                             <th>Deskripsi</th>
                             <th>Aksi</th>
                         </tr>
@@ -179,6 +180,7 @@
                         <tr v-for="slider in listSlider">
                             <td><img :src="slider.image_url" alt="banner" style="max-width: 100px"></td>
                             <td>@{{ slider.order }}</td>
+                            <td>@{{ slider.title }}</td>
                             <td>@{{ slider.description }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">

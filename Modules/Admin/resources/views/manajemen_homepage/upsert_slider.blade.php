@@ -19,6 +19,11 @@
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
                 </div>
                 <div class="mb-2">
+                    <label for="modal-title" class="form-label fw-semibold">Title</label>
+                    <textarea class="form-control" placeholder="title..." id="modal-title"
+                              v-model="payload.title"></textarea>
+                </div>
+                <div class="mb-2">
                     <label for="modal-desc" class="form-label fw-semibold">Deskripsi</label>
                     <textarea class="form-control" placeholder="Deskripsi..." id="modal-desc"
                               v-model="payload.description"></textarea>
@@ -70,6 +75,7 @@
                     formData.append('_token', "{{ csrf_token() }}")
                     formData.append('order', this.payload.order)
                     formData.append('description', this.payload.description)
+                    formData.append('title', this.payload.title)
                     formData.append('id', this.payload.id)
 
                     if (this.mode === 'create') {
@@ -89,6 +95,7 @@
                         this.payload = {
                             id: '',
                             order: 1,
+                            title: '',
                             description: '',
                             image_url: '',
                         }
@@ -97,6 +104,7 @@
                         this.mode = 'update'
                         this.payload = {
                             id: payload.id,
+                            title: payload.title,
                             order: payload.order,
                             description: payload.description,
                             image_url: payload.image_url,
@@ -125,7 +133,7 @@
                             } else {
                                 url = '{{ url("$url") }}/update_slider/update'
                             }
-							
+
                             // show loading
                             Swal.fire({
                                 title: 'Loading...',

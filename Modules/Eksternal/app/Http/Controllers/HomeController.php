@@ -20,118 +20,75 @@ class HomeController extends Controller
                 "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
                 "title"       => $item['title'],
                 "description" => $item['description'],
+                'order'       => $item['order']
             ];
         }
+        usort($banners, function ($a, $b) {
+            return $a['order'] <=> $b['order'];
+        });
 
 
-        $services = [
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ],
-            [
-                "image_url" => "/assets/media/logos/logo-only.png",
-                "name"      => "Service Name"
-            ]
-        ];
+        $servicesObj = SiteManajemen::query()->where('key', HomepageKey::SERVICES)->first();
+        $services    = [];
+        foreach ($servicesObj->data as $item) {
+            $services[] = [
+                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "name"      => $item['title'],
+                'order'     => $item['order']
+            ];
+        }
+        usort($services, function ($a, $b) {
+            return $a['order'] <=> $b['order'];
+        });
 
-        $partners = [
-            [
-                "image_url" => "https://static.vecteezy.com/system/resources/previews/012/560/876/original/nike-logo-on-transparent-background-free-vector.jpg"
-            ],
-            [
-                "image_url" => "https://i.pinimg.com/736x/6d/57/f6/6d57f6d7de64f61911cae8a6b48671ee.jpg"
-            ],
-            [
-                "image_url" => "https://w7.pngwing.com/pngs/340/831/png-transparent-new-balance-sneakers-shoe-adidas-logo-new-balance-text-converse-store-thumbnail.png"
-            ],
-            [
-                "image_url" => "https://blog.pengajartekno.co.id/wp-content/uploads/2022/11/logo-ortuseight-2.webp"
-            ],
-            [
-                "image_url" => "https://w7.pngwing.com/pngs/670/927/png-transparent-puma-logo-puma-logo-adidas-swoosh-brand-adidas-text-carnivoran-sneakers-thumbnail.png"
-            ],
-            [
-                "image_url" => "https://static.vecteezy.com/system/resources/previews/012/560/876/original/nike-logo-on-transparent-background-free-vector.jpg"
-            ],
-            [
-                "image_url" => "https://i.pinimg.com/736x/6d/57/f6/6d57f6d7de64f61911cae8a6b48671ee.jpg"
-            ],
-            [
-                "image_url" => "https://w7.pngwing.com/pngs/340/831/png-transparent-new-balance-sneakers-shoe-adidas-logo-new-balance-text-converse-store-thumbnail.png"
-            ],
-            [
-                "image_url" => "https://blog.pengajartekno.co.id/wp-content/uploads/2022/11/logo-ortuseight-2.webp"
-            ],
-            [
-                "image_url" => "https://w7.pngwing.com/pngs/670/927/png-transparent-puma-logo-puma-logo-adidas-swoosh-brand-adidas-text-carnivoran-sneakers-thumbnail.png"
-            ],
-        ];
+        $partnersObj = SiteManajemen::query()->where('key', HomepageKey::PARTNERS)->first();
+        $partners    = [];
+        foreach ($partnersObj->data as $item) {
+            $partners[] = [
+                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                'order'     => $item['order']
+            ];
+        }
+        usort($partners, function ($a, $b) {
+            return $a['order'] <=> $b['order'];
+        });
 
         $testimonials = [
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Luqni Maulana",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Sutrisno Aji",
+                "subtitle" => "MKJ Home Jogja",
+                "content"  => "Terima kasih kepada LPH BBSPJIKKP untuk diskon 50% dalam rangka HUT RI. Semoga sukses dan bagi yang ingin mendapatkan produk halal semoga bermanfaat bagi kita semua."
             ],
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Bondan Dwi Nugroho",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Sofyan",
+                "subtitle" => "UMKM Kulit",
+                "content"  => "Semoga pelayanan tambah maju dan sukses terus."
             ],
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Aldino Kemal Adi Gumawang",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Retno",
+                "subtitle" => "PT. Adi Satria Abadi",
+                "content"  => "Terima kasih untuk BBSPJIKKP dan semua kru. Krunya ramah, cepat, teliti, pokoknya semuanya deh. The best untuk balai."
             ],
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Luqni Maulana II",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Mojtaba Ashjaei",
+                "subtitle" => "Qom Industrial Parks Co. (Islamic Republic of Iran)",
+                "content"  => "I would like to appreciate this meeting actually today was really effective. I was so glad to see here, before the session I didn’t have this feeling that we this happens here but it was really glad, great, and excellent and I would like to appreciate everything was perfect. Thank you very much,  everything was great."
             ],
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Bondan Dwi Nugroho II",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Mr. Puzhen",
+                "subtitle" => "PT. Kayahan Berseri, layanan sertifikasi",
+                "content"  => "Atas nama seluruh pegawai PT Kahayan Berseri, saya mengucapkan terima kasih kepada tim audit BBKKP. Saya sangat beruntung. Tim audit sabar, teliti, detail dan akurat dalam mengaudit SMK3L & SNI. Sebagai saksi penataran SMK3L & SNI. sistem manajemen kami, sepanjang jalan, tim saya telah memperoleh banyak hal, terima kasih banyak atas bimbingan Anda dan semoga pekerjaan Anda lancar dan keluarga bahagia."
             ],
             [
-                "avatar"   => "https://e7.pngegg.com/pngimages/340/946/png-clipart-avatar-user-computer-icons-software-developer-avatar-child-face-thumbnail.png",
-                "title"    => "Aldino Kemal Adi Gumawang II",
-                "subtitle" => "Web Developer",
-                "content"  => "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Esse ad eius molestiae, magni quia ratione possimus exercitationem vero blanditiis in doloremque nesciunt enim nostrum voluptates facilis ea eligendi totam quae."
+                "avatar"   => null,
+                "title"    => "Naomika Manurung",
+                "subtitle" => "PT Hok Tong Jambi, layanan Sertifikasi",
+                "content"  => "Dalam proses sertifikasi industri hijau semua berjalan dengan baik dan lancar dan sangat membantu perusahaan kami untuk lebih baik kedepannya."
             ],
         ];
 

@@ -36,30 +36,48 @@ class MasterSeeder extends Seeder
             'key'  => HomepageKey::SLIDER,
             'data' => [
                 [
-					"id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4d36",
-					"order"       => 1,
+                    "id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4d36",
+                    "order"       => 1,
                     'title'       => 'Slider 1',
-					"description" => "lorem ipsum dolor sit amet lorem ipsum dolor sit amet",
-					"image_path"  => "dummy/modern-orange-abstract-background-for-presentation-design-orange-abstract-use-for-business-corporate-institution-poster-template-party-festive-seminar-booklet-eps10-illustration-free-vector.jpg"
-				],
-				[
-					"id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4c69",
-					"order"       => 2,
+                    "description" => "lorem ipsum dolor sit amet lorem ipsum dolor sit amet",
+                    "image_path"  => "dummy/modern-orange-abstract-background-for-presentation-design-orange-abstract-use-for-business-corporate-institution-poster-template-party-festive-seminar-booklet-eps10-illustration-free-vector.jpg"
+                ],
+                [
+                    "id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4c69",
+                    "order"       => 2,
                     'title'       => 'Slider 2',
-					"description" => "lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet",
-					"image_path"  => "dummy/laravel-banner.jpg"
-				]
+                    "description" => "lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet",
+                    "image_path"  => "dummy/laravel-banner.jpg"
+                ]
             ]
         ]);
 
+        $partnersData = [];
+        for ($i = 0; $i < 8; $i++) {
+            $partnersData[] = [
+                "id"         => Str::uuid()->toString(),
+                "order"      => $i + 1,
+                'title'      => $faker->company,
+                "image_path" => "dummy/docker-microservice.jpeg"
+            ];
+        }
         SiteManajemen::query()->create([
             'key'  => HomepageKey::PARTNERS,
-            'data' => []
+            'data' => $partnersData,
         ]);
 
+        $serviceData = [];
+        for ($i = 0; $i < 8; $i++) {
+            $serviceData[] = [
+                "id"         => Str::uuid()->toString(),
+                "order"      => $i + 1,
+                'title'      => $faker->company,
+                "image_path" => "dummy/docker-microservice.jpeg"
+            ];
+        }
         SiteManajemen::query()->create([
             'key'  => HomepageKey::SERVICES,
-            'data' => []
+            'data' => $serviceData
         ]);
     }
 

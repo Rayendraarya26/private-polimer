@@ -69,7 +69,8 @@ class ManageHomepageController
     {
         $input = $request->validate([
             'order'       => 'required|integer',
-            'description' => 'nullable',
+            'title'       => 'required',
+            'description' => 'required',
             'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
@@ -80,6 +81,7 @@ class ManageHomepageController
         $data_json   = $banner->data;
         $data_json[] = [
             'id'          => Str::uuid()->toString(),
+            'title'       => $input['title'],
             'order'       => $input['order'],
             'description' => $input['description'],
             'image_path'  => $key,
@@ -102,8 +104,8 @@ class ManageHomepageController
         $image = $request->file('image');
         $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
 
-        $banner              = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-        $data_json           = $banner->data;
+        $banner      = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
+        $data_json   = $banner->data;
         $data_json[] = [
             'id'         => Str::uuid()->toString(),
             'order'      => $input['order'],
@@ -128,8 +130,8 @@ class ManageHomepageController
         $image = $request->file('image');
         $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
 
-        $banner              = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
-        $data_json           = $banner->data;
+        $banner      = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
+        $data_json   = $banner->data;
         $data_json[] = [
             'id'         => Str::uuid()->toString(),
             'order'      => $input['order'],
@@ -151,16 +153,16 @@ class ManageHomepageController
             'title' => 'nullable',
         ]);
 
+        $banner       = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
+        $updated_data = $banner->data;
+        $key          = $this->searchForId($request->id, $updated_data);
 
-        $banner      = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
-        $data_slider = Arr::get($banner->data, 'data', []);
-        $key         = $this->searchForId($request->id, $data_slider);
         if (!is_null($key)) {
-            Arr::set($data_slider, "$key.order", $input['order']);
-            Arr::set($data_slider, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.order", $input['order']);
+            Arr::set($updated_data, "$key.title", $input['title']);
         }
 
-        $banner->data = $data_slider;
+        $banner->data = $updated_data;
         $banner->save();
 
         return responseJSON('Sukses menginput partner');
@@ -174,16 +176,16 @@ class ManageHomepageController
             'title' => 'nullable',
         ]);
 
+        $banner       = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
+        $updated_data = $banner->data;
+        $key          = $this->searchForId($request->id, $updated_data);
 
-        $banner      = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-        $data_slider = $banner->data['data'];
-        $key         = $this->searchForId($request->id, $data_slider);
         if (!is_null($key)) {
-            Arr::set($data_slider, "$key.order", $input['order']);
-            Arr::set($data_slider, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.order", $input['order']);
+            Arr::set($updated_data, "$key.title", $input['title']);
         }
 
-        $banner->data = $data_slider;
+        $banner->data = $updated_data;
         $banner->save();
 
         return responseJSON('Sukses menginput services');
@@ -195,17 +197,21 @@ class ManageHomepageController
         $input = $request->validate([
             'order'       => 'required|integer',
             'id'          => 'required',
-            'description' => 'nullable',
+            'description' => 'required',
+            'title'       => 'required',
         ]);
 
-        $banner = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
+        $banner       = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
+        $updated_data = $banner->data;
+        $key          = $this->searchForId($request->id, $updated_data);
 
-        $key = $this->searchForId($request->id, $banner->data);
         if (!is_null($key)) {
-            Arr::set($banner->data, "$key.order", $input['order']);
-            Arr::set($banner->data, "$key.description", $input['description']);
+            Arr::set($updated_data, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.order", $input['order']);
+            Arr::set($updated_data, "$key.description", $input['description']);
         }
 
+        $banner->data = $updated_data;
         $banner->save();
 
         return responseJSON('Sukses menginput slider');

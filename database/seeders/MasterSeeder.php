@@ -38,14 +38,14 @@ class MasterSeeder extends Seeder
                 [
 					"id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4d36",
 					"order"       => 1,
-					"description" => "keenthemes",
-					"image_path"  => "slider/qOX563ZxykSJWsq0xshBUgJgL9HgFYsUu7H6yXmQ.png"
+					"description" => "Slider 1",
+					"image_path"  => "dummy/modern-orange-abstract-background-for-presentation-design-orange-abstract-use-for-business-corporate-institution-poster-template-party-festive-seminar-booklet-eps10-illustration-free-vector.jpg"
 				],
 				[
 					"id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4c69",
 					"order"       => 2,
-					"description" => "keenthemes ke 2",
-					"image_path"  => "slider/qOX563ZxykSJWsq0xshBUgJgL9HgFYsUu7H6yXmQ.png"
+					"description" => "Slider 2",
+					"image_path"  => "dummy/laravel-banner.jpg"
 				]
             ]
         ]);

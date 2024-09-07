@@ -76,12 +76,12 @@ class ManageHomepageController
         $image = $request->file('image');
         $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
 
-        $banner              = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
-        $data_json           = $banner->data;
-        $data_json['data'][] = [
+        $banner      = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
+        $data_json   = $banner->data;
+        $data_json[] = [
             'id'          => Str::uuid()->toString(),
-            'order'       => $request->order,
-            'description' => $request->description,
+            'order'       => $input['order'],
+            'description' => $input['description'],
             'image_path'  => $key,
         ];
 
@@ -204,14 +204,12 @@ class ManageHomepageController
 
         $banner = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
 
-        $data_slider = Arr::get($banner->data, 'data', []);
-        $key         = $this->searchForId($request->id, $data_slider);
+        $key = $this->searchForId($request->id, $banner->data);
         if (!is_null($key)) {
-            Arr::set($data_slider, "$key.order", $input['order']);
-            Arr::set($data_slider, "$key.description", $input['description']);
+            Arr::set($banner->data, "$key.order", $input['order']);
+            Arr::set($banner->data, "$key.description", $input['description']);
         }
 
-        $banner->data = ['data' => $data_slider];
         $banner->save();
 
         return responseJSON('Sukses menginput slider');
@@ -252,8 +250,7 @@ class ManageHomepageController
             $site->data = $new_data_json;
             $site->save();
 
-            // delete slider if not in folder "example"
-            if (!str_contains($image_path, 'example')) {
+            if (!str_contains($image_path, 'dummy')) {
                 // delete image
                 Storage::disk('s3')->delete($image_path);
             }
@@ -297,7 +294,7 @@ class ManageHomepageController
             return responseJSON('Sukses', []);
         }
 
-        $data_result = Arr::get($data_slider->data, 'data', []) ?? [];
+        $data_result = Arr::get($data_slider->data, 'data', $data_slider->data) ?? [];
         foreach ($data_result as $key => $value) {
             Arr::set($data_result, "$key.image_url", Storage::disk('s3')->temporaryUrl(
                 $value['image_path'],

@@ -22,17 +22,47 @@ class MasterSeeder extends Seeder
         $this->addMasterFaq();
         $this->addHomePageKey();
     }
-	
-	private function addHomePageKey(): void
+
+    private function addHomePageKey(): void
     {
-        foreach (HomepageKey::toArray() as $site) {
-            SiteManajemen::query()->create([
-                'key' 				=> $site,
-                'data'				=> HomepageKey::tryFrom($site)->getValue(),
-             ]);
-        }
+        $faker = Factory::create();
+
+        SiteManajemen::query()->create([
+            'key'  => HomepageKey::ABOUT,
+            'data' => ['data' => $faker->sentence]
+        ]);
+
+        SiteManajemen::query()->create([
+            'key'  => HomepageKey::SLIDER,
+            'data' => [
+                'data' => [
+                    [
+                        "id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4d36",
+                        "order"       => 1,
+                        "description" => "keenthemes",
+                        "image_path"  => "slider/qOX563ZxykSJWsq0xshBUgJgL9HgFYsUu7H6yXmQ.png"
+                    ],
+                    [
+                        "id"          => "9cf1c971-806b-4c25-93b6-eb5f224a4c69",
+                        "order"       => 2,
+                        "description" => "keenthemes ke 2",
+                        "image_path"  => "slider/qOX563ZxykSJWsq0xshBUgJgL9HgFYsUu7H6yXmQ.png"
+                    ]
+                ]
+            ]
+        ]);
+
+        SiteManajemen::query()->create([
+            'key'  => HomepageKey::PARTNERS,
+            'data' => ['data' => null]
+        ]);
+
+        SiteManajemen::query()->create([
+            'key'  => HomepageKey::SERVICES,
+            'data' => ['data' => null]
+        ]);
     }
-	
+
     private function addMasterLayanan(): void
     {
         $faker = Factory::create();

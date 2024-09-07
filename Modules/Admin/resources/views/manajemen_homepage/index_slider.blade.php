@@ -18,7 +18,7 @@
 						<ul class="nav nav-tabs">
 							@foreach($key as $dt)
 							<li class="nav-link @if($selected_key === strtolower($dt)) active @endif">
-								<a class="nav-link @if($selected_key === strtolower($dt)) btn btn-text-danger @endif" href="{{ url("$url?data=".strtolower($dt)) }}">{{ $dt }}</a>
+								<a class="nav-link @if($selected_key === strtolower($dt)) btn btn-text-primary @endif" href="{{ url("$url?data=".strtolower($dt)) }}">{{ $dt }}</a>
 							</li>
 							@endforeach
 						</ul>

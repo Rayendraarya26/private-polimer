@@ -4,6 +4,10 @@
 
 @push('styles')
     <style>
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
+
         html {
             scroll-behavior: smooth;
         }
@@ -367,93 +371,75 @@
                     <div class="col-12 col-lg-7 d-flex flex-column gap-4">
                         <div class="fs-4 fw-bold py-4">Beware of frauds on our behalf</div>
                         <div class="fs-1 fw-bold">Contact Us</div>
-                        <form class="w-100 d-flex flex-column gap-5">
+                        @if(session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        <form class="w-100 d-flex flex-column gap-5" method="post" action="{{ url()->current() }}">
+                            @csrf
+                            <input type="hidden" name="recaptcha" value="">
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
-                                    <label
-                                        for="nama_lengkap"
-                                        class="form-label text-white"
-                                    >
+                                    <label for="nama" class="form-label text-white">
                                         Nama Lengkap <span>*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        class="form-control"
-                                        id="nama_lengkap"
-                                        name="nama_lengkap"
-                                        placeholder="Masukkan Nama Lengkap"
-                                    >
+                                    <input type="text" required class="form-control" id="nama"
+                                           name="nama" placeholder="Masukkan Nama Lengkap"
+                                           value="{{ old('nama') }}">
+                                    @error('nama')
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="w-100">
-                                    <label
-                                        for="alamat_email"
-                                        class="form-label text-white"
-                                    >
+                                    <label for="email" class="form-label text-white">
                                         Alamat Email <span>*</span>
                                     </label>
-                                    <input
-                                        type="email"
-                                        required
-                                        class="form-control"
-                                        id="alamat_email"
-                                        name="alamat_email"
-                                        placeholder="Masukkan Alamat Email"
-                                    >
+                                    <input type="email" required class="form-control" id="email"
+                                           name="email" placeholder="Masukkan Alamat Email"
+                                           value="{{ old('email') }}">
+                                    @error('email')
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
-                                    <label
-                                        for="nomor_teleopn"
-                                        class="form-label text-white"
-                                    >
+                                    <label for="telp" class="form-label text-white">
                                         Nomor Telepon <span>*</span>
                                     </label>
-                                    <input
-                                        type="number"
-                                        required
-                                        class="form-control"
-                                        id="nomor_teleopn"
-                                        name="nomor_teleopn"
-                                        placeholder="Masukkan Nomor Telepon"
-                                    >
+                                    <input type="number" required class="form-control" id="telp"
+                                           name="telp" placeholder="Masukkan Nomor Telepon"
+                                           value="{{ old('telp') }}">
+                                    @error('telp')
+                                    <div class="text-danger">{{ $message }}  Gunakan awalan 62, contoh: 628123456789</div>
+                                    @enderror
                                 </div>
                                 <div class="w-100">
-                                    <label
-                                        for="nama_perusahaan"
-                                        class="form-label text-white"
-                                    >
+                                    <label for="instansi" class="form-label text-white">
                                         Nama Perusahaan / Instansi <span>*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        class="form-control"
-                                        id="nama_perusahaan"
-                                        name="nama_perusahaan"
-                                        placeholder="Masukkan Nama Perusahaan / Instansi"
-                                    >
+                                    <input type="text" required class="form-control" id="instansi"
+                                           name="instansi" placeholder="Masukkan Nama Perusahaan / Instansi"
+                                           value="{{ old('instansi') }}">
+                                    @error('instansi')
+                                    <div class="text-danger">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="w-100">
-                                <label
-                                    for="pesan"
-                                    class="for text-whitem-label"
-                                >
+                                <label for="pesan" class="for text-whitem-label">
                                     Pesan <span>*</span>
                                 </label>
-                                <textarea
-                                    class="form-control"
-                                    required
-                                    id="pesan"
-                                    name="pesan"
-                                    placeholder="Tulis Pesan..."
-                                    rows="3"
-                                ></textarea>
+                                <textarea class="form-control" required id="pesan" name="pesan"
+                                          placeholder="Tulis Pesan..." rows="3"
+                                >{{ old('pesan') }}</textarea>
+                                @error('pesan')
+                                <div class="text-danger">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="w-100 d-flex justify-content-start">
-                                <button type="submit" class="btn bg-red text-white">Kirim</button>
+                                <button type="button" class="btn bg-red text-white" id="btnSubmitContactUs"
+                                >Kirim
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -495,8 +481,24 @@
 @endsection
 
 @push('scripts')
-
+    <script src="https://www.google.com/recaptcha/api.js?render={{config('google.recaptcha.site_key')}}"></script>
     <script>
+        const initRecaptcha = async function () {
+            const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
+            const recaptchaInput = document.querySelector('[name="recaptcha"]')
+            if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
+        };
+
+        // add event submit form using recaptcha
+        document.getElementById('btnSubmitContactUs').addEventListener('click', async function () {
+            await initRecaptcha();
+            document.querySelector('form').submit();
+
+            // disable button
+            this.setAttribute('disabled', 'disabled');
+        });
+
+
         $(document).ready(function () {
             $('.slick-carousel-banners').slick({
                 slidesToShow: 1,

@@ -39,11 +39,6 @@ Route::prefix('faq')->group(function () {
     Route::get('/{slugLayanan}/{slugQuestion}', [FaqController::class, 'detailFaq'])->name('faq.detail');
 });
 
-Route::prefix('homepage')->group(function () {
-    Route::get('/banner', [HomePageController::class, 'banner']);
-    Route::post('/contactUs', [HomePageController::class, 'storeContactUs']);
-});
-
 Route::prefix('tte')->group(function () {
     Route::get('verify', [TteController::class, 'verify'])->name('tte.verify');
     Route::post('verify-by-id', [TteController::class, 'processVerifyById'])->name('tte.verify-by-id');

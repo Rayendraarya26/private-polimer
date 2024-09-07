@@ -4,12 +4,17 @@ namespace Modules\Eksternal\Http\Controllers;
 
 use App\Enums\HomepageKey;
 use App\Http\Controllers\Controller;
+use App\Models\Db1\SiteContactUs;
 use App\Models\Db1\SiteManajemen;
-use AWS\CRT\HTTP\Request;
+use App\Traits\CaptchaTrait;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
+    use CaptchaTrait;
+
     private string $view = 'eksternal::home';
 
     public function index()
@@ -107,6 +112,31 @@ class HomeController extends Controller
 
     public function contactUs(Request $request)
     {
+        $request->validate([
+            'recaptcha' => 'required',
+            'nama'      => 'required',
+            'email'     => 'required|email:rfc,dns',
+            'telp'      => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'instansi'  => 'required',
+            'pesan'     => 'required',
+        ]);
 
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+            return back()->withInput()->withErrors(['recaptcha' => 'Captcha tidak valid.']);
+        }
+
+        try {
+            $contact_us           = new SiteContactUs();
+            $contact_us->nama     = $request->nama;
+            $contact_us->email    = $request->email;
+            $contact_us->telp     = $request->telp;
+            $contact_us->instansi = $request->instansi;
+            $contact_us->pesan    = $request->pesan;
+            $contact_us->save();
+
+            return back()->with('success', 'Pesan berhasil dikirim.');
+        } catch (Exception $e) {
+            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }

@@ -4,10 +4,21 @@ namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
 use App\Http\Controllers\Controller;
+
+use App\Enums\PelangganGender;
+use App\Enums\PelangganJenisPelanggan;
+use App\Enums\SysGroup;
+
 use App\Models\Db1\MasterTopikPertanyaan;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
+use App\Models\Db1\PelangganInstansi;
+use App\Models\Db1\PelangganPerorangan;
+use App\Models\Db1\PelangganPerusahaan;
+use App\Libraries\Mailer;
+use App\Libraries\Notification;
+use App\Libraries\WhatsappService;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
@@ -101,6 +112,17 @@ class PertanyaanController extends Controller
 
                 PertanyaanPelangganPesan::create($data_pesan);
             });
+			
+			$notifParameter = [
+					'pelanggan_id' => $pertanyaan->pelanggan_id,
+					'judul' => 'Pesan Pertanyaan Baru',
+					'pesan_notif'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"',
+					'url_notif'  => url('/app/#/ask-questions'),
+					'pesan_wa'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"' ,
+					'pesan_email'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"'
+			];
+			
+			$this->notif_pelanggan($notifParameter);
 
             return redirect($this->url."/".$pertanyaan->id."/add")->with('message', sprintf("Berhasil menambahkan pesan untuk tiket : %s", $pertanyaan->id));
         } catch (Exception $e) {
@@ -154,5 +176,41 @@ class PertanyaanController extends Controller
          * }
          * })
          */
+    }
+	
+	private function notif_pelanggan(array $notifParameter)
+    {
+		$user_pelanggan = Pelanggan::where('id', '=', $notifParameter['pelanggan_id'])->with(['user'])->first();
+		if($user_pelanggan){
+			$nomor_wa = '';
+			$email = '';
+			if($user_pelanggan->jenis_pelanggan === PelangganJenisPelanggan::PERORANGAN->value){
+				$nomor_wa = ($user_pelanggan->detail->whatsapp) ? $user_pelanggan->detail->whatsapp : '';
+				$email = ($user_pelanggan->detail->surel) ? $user_pelanggan->detail->surel : '';
+			}
+			else {
+				$nomor_wa = ($user_pelanggan->detail->pj_whatsapp) ? $user_pelanggan->detail->pj_whatsapp : '';
+				$email = ($user_pelanggan->detail->pj_surel) ? $user_pelanggan->detail->pj_surel : '';
+			}
+			
+			$libNotif = new Notification($user_pelanggan->user->id, $notifParameter['judul'] , $notifParameter['pesan_notif'], $notifParameter['url_notif']);
+			$libNotif->sendInBackground(true);
+			// $libNotif->send();
+			
+			if($email != ''){
+			$libMailer = new Mailer();
+			$libMailer->subject($notifParameter['judul'])
+				->to($email)
+				->body($notifParameter['pesan_email'])
+				->sendInBackground();
+				// ->send();
+			}
+			
+			if($nomor_wa != ''){
+				WhatsappService::sendMessage($nomor_wa, $notifParameter['pesan_wa'])
+					->sendInBackground();
+					// ->send();
+			}
+		}
     }
 }

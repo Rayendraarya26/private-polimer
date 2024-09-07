@@ -1,17 +1,25 @@
 <?php
 
-namespace Modules\Eksternal\Http\Controllers;
+namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Db1\MasterTopikPertanyaan;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
+use App\Models\Db1\SysUser;
+use App\Models\Db1\SysUserGroup;
+use App\Models\Db1\Pegawai;
+use App\Enums\SysGroup;
+use App\Libraries\Mailer;
+use App\Libraries\Notification;
+use App\Libraries\WhatsappService;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+
 
 class PertanyaanController extends Controller
 {
@@ -128,6 +136,16 @@ class PertanyaanController extends Controller
 			$pesan->is_replied     = 'no';
 			$pesan->save();
 			
+			$notifParameter = [
+					'judul' => 'Pertanyaan Baru',
+					'pesan_notif'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pertanyaan.'"',
+					'url_notif'  => url('admin/pertanyaan/'.$pertanyaan->id.'/add'),
+					'pesan_wa'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pertanyaan.'"' ,
+					'pesan_email'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pertanyaan.'"'
+			];
+			
+			$this->notif_admin($notifParameter);
+			
 			return responseJSON('Data pertanyaan berhasil disimpan.', [
 				'id'            => $pertanyaan->id,
 				'id_pesan'            => $pesan->id,
@@ -153,26 +171,44 @@ class PertanyaanController extends Controller
          * return responseJSON('Captcha tidak valid.', [], 400);
          * }
          */
+		$dataPertanyaan = PertanyaanPelanggan::where('pelanggan_id', '!=', auth()->user()->id)->where('id', $pertanyaan)->get();
+		if(!$dataPertanyaan->isEmpty()){
+			$pesanPertanyaan                  = new PertanyaanPelangganPesan();
+			$pesanPertanyaan->created_by      = auth()->user()->id;
+			$pesanPertanyaan->pesan           = $request->pesan;
+			$pesanPertanyaan->pertanyaan_id   = $pertanyaan;
+			$pesanPertanyaan->is_replied          = 'no';
+			$pesanPertanyaan->save();
 
-        $pesanPertanyaan                  = new PertanyaanPelangganPesan();
-        $pesanPertanyaan->created_by      = auth()->user()->id;
-        $pesanPertanyaan->pesan           = $request->pesan;
-        $pesanPertanyaan->pertanyaan_id   = $pertanyaan;
-        $pesanPertanyaan->is_replied          = 'no';
-        $pesanPertanyaan->save();
-
-        PertanyaanPelangganPesan::where('created_by', '!=', auth()->user()->id)
-            ->where('pertanyaan_id', $pertanyaan)
-            ->update(['is_replied' => 'yes']);
-
-        return responseJSON('Data pesan berhasil disimpan.', [
-            'id'            => $pesanPertanyaan->id,
-            'pesan'         => $pesanPertanyaan->pesan,
-            'is_replied'    => $pesanPertanyaan->is_replied,
-            'is_author'     => $pesanPertanyaan->user->id == auth()->user()->id,
-            'created_by'    => $pesanPertanyaan->user->name,
-            'created_at'    => $pesanPertanyaan->created_at
-        ], 201);
+			PertanyaanPelangganPesan::where('created_by', '!=', auth()->user()->id)
+				->where('pertanyaan_id', $pertanyaan)
+				->update(['is_replied' => 'yes']);
+			
+			$notifParameter = [
+					'judul' => 'Pesan Pertanyaan Baru',
+					'pesan_notif'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan.' "'.$request->pesan.'"',
+					'url_notif'  => url('admin/pertanyaan/'.$pertanyaan.'/add'),
+					'pesan_wa'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan.' "'.$request->pesan.'"' ,
+					'pesan_email'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan.' "'.$request->pesan.'"'
+			];
+			
+			$this->notif_admin($notifParameter);
+			
+			return responseJSON('Data pesan berhasil disimpan.', [
+				'id'            => $pesanPertanyaan->id,
+				'pesan'         => $pesanPertanyaan->pesan,
+				'is_replied'    => $pesanPertanyaan->is_replied,
+				'is_author'     => $pesanPertanyaan->user->id == auth()->user()->id,
+				'created_by'    => $pesanPertanyaan->user->name,
+				'created_at'    => $pesanPertanyaan->created_at
+			], 201);
+		}
+		else{
+		   return responseJSON('Pertanyaan tidak ditemukan.', [], 404);
+		}
+		
+		
+        
     }
 	
 	public function closedPertanyaan(PertanyaanPelanggan $pertanyaan , Request $request)
@@ -241,6 +277,29 @@ class PertanyaanController extends Controller
 		}
 		else{
 			return responseJSON("Anda sudah memberikan review dan rating layanan untuk pertanyaan ini.", [], 404);
+		}
+    }
+	
+	private function notif_admin(array $notifParameter)
+    {
+		$user_admin = SysUserGroup::query()->with(['sys_user'])->where('group_id' , '=',SysGroup::ROOT)->get();
+		foreach($user_admin as $usr){
+			$libNotif = new Notification($usr->sys_user->id, $notifParameter['judul'] , $notifParameter['pesan_notif'], $notifParameter['url_notif']);
+			$libNotif->sendInBackground(true);
+			// $libNotif->send();
+
+			$libMailer = new Mailer();
+			$libMailer->subject($notifParameter['judul'])
+				->to($usr->sys_user->email)
+				->body($notifParameter['pesan_email'])
+				->sendInBackground();
+				// ->send();
+					
+			if($usr->sys_user->pegawai->whatsapp != ''){
+				WhatsappService::sendMessage($usr->sys_user->pegawai->whatsapp, $notifParameter['pesan_wa'])
+					->sendInBackground();
+					// ->send();
+			}
 		}
     }
 }

@@ -36,7 +36,7 @@ class ManageHomepageController
             new Breadcrumbs('Manage Home Page')
         ];
 		
-		$key_option = ($request->data) ? $request->data : 'about';
+		$key_option = ($request->data) ? $request->data : 'slider';
 		$template_data = [
             'breadcrumbs' => $breadcrumbs,
             'key' => HomepageKey::toArray(),
@@ -46,7 +46,7 @@ class ManageHomepageController
 		if($key_option == 'about'){
 			$data_about = SiteManajemen::where('key', '=', 'ABOUT')->firstOrFail(); 
 			$data_json = json_decode($data_about->data, true);
-			$template_data['about_us'] = isset($data_json['data']) ? $data_json['data'] : '';
+			$template_data['about_us'] = isset($data_json['html']) ? $data_json['html'] : '';
 			$template_data['id'] = $data_about->id;
 		}
         $parse = array_merge($this->defaultParser(), $template_data);
@@ -79,20 +79,17 @@ class ManageHomepageController
 		
 		$banner = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
 		$data_json = json_decode($banner->data, true);
-		$data_slider = $data_json['data'];
-		$key = $this->searchForId($request->id, $data_slider);
+		$key = $this->searchForId($request->id, $data_json);
 		if(!is_null($key)){
-			$data_slider[$key] = [
-				'id'        => $data_slider[$key]['id'],
+			$data_json[$key] = [
+				'id'        => $request->id,
 				'order'       => $request->order,
 				'title' => $request->title,
-				'image_path'       => $data_slider[$key]['image_path'],
+				'image_path'       => $data_json[$key]['image_path'],
 			];
 		}
 		
-		$new_data_json = ['data' => $data_slider];
-		
-        $banner->data = json_encode($new_data_json);
+        $banner->data = json_encode($data_json);
         $banner->save();
 
         return responseJSON('Sukses menginput partner');
@@ -111,7 +108,7 @@ class ManageHomepageController
 		
 		$banner = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
 		$data_json = json_decode($banner->data, true);
-		$data_json['data'][] = [
+		$data_json[] = [
 			'id'        => (string) Str::uuid(),
             'order'       => $request->order,
             'title' => $request->title,
@@ -131,11 +128,9 @@ class ManageHomepageController
             'id' => 'required',
             'title' => 'nullable',
         ]);
-
 		
 		$banner = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-		$data_json = json_decode($banner->data, true);
-		$data_slider = $data_json['data'];
+		$data_slider = json_decode($banner->data, true);
 		$key = $this->searchForId($request->id, $data_slider);
 		if(!is_null($key)){
 			$data_slider[$key] = [
@@ -146,7 +141,7 @@ class ManageHomepageController
 			];
 		}
 		
-		$new_data_json = ['data' => $data_slider];
+		$new_data_json = $data_slider;
 		
         $banner->data = json_encode($new_data_json);
         $banner->save();
@@ -167,7 +162,7 @@ class ManageHomepageController
 		
 		$banner = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
 		$data_json = json_decode($banner->data, true);
-		$data_json['data'][] = [
+		$data_json[] = [
 			'id'        => (string) Str::uuid(),
             'order'       => $request->order,
             'title' => $request->title,
@@ -188,23 +183,19 @@ class ManageHomepageController
             'description' => 'nullable',
         ]);
 
-		
 		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
 		$data_json = json_decode($banner->data, true);
-		$data_slider = $data_json['data'];
-		$key = $this->searchForId($request->id, $data_slider);
+		$key = $this->searchForId($request->id, $data_json);
 		if(!is_null($key)){
-			$data_slider[$key] = [
-				'id'        => $data_slider[$key]['id'],
+			$data_json[$key] = [
+				'id'        => $request->id,
 				'order'       => $request->order,
 				'description' => $request->description,
-				'image_path'       => $data_slider[$key]['image_path'],
+				'image_path'       => $data_json[$key]['image_path'],
 			];
 		}
 		
-		$new_data_json = ['data' => $data_slider];
-		
-        $banner->data = json_encode($new_data_json);
+        $banner->data = json_encode($data_json);
         $banner->save();
 
         return responseJSON('Sukses menginput slider');
@@ -224,7 +215,7 @@ class ManageHomepageController
 		
 		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
 		$data_json = json_decode($banner->data, true);
-		$data_json['data'][] = [
+		$data_json[] = [
 			'id'        => (string) Str::uuid(),
             'order'       => $request->order,
             'description' => $request->description,
@@ -240,7 +231,7 @@ class ManageHomepageController
     public function upsert_about($input)
     {
 		$data_about = SiteManajemen::where('key', '=', 'ABOUT')->firstOrFail();
-		$data_about->data      = json_encode(['data' => $input->data]);
+		$data_about->data      = json_encode(['html' => $input->data]);
 		$data_about->save();
 		return redirect()->back()->with('message', sprintf("Sukses mengubah data About Us"));
     }
@@ -258,13 +249,12 @@ class ManageHomepageController
 	public function destroy_partner(Request $request)
     {
 		$data = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
-		$data_json = json_decode($data->data, true);
-		$data_slider = $data_json['data'];
+		$data_slider = json_decode($data->data, true);
 		$key = $this->searchForId($request->id, $data_slider);
 		if(!is_null($key)){
 			$image_path = $data_slider[$key]['image_path'];
 			unset($data_slider[$key]);
-			$new_data_json = ['data' => $data_slider];
+			$new_data_json = $data_slider;
 		
 			$data->data = json_encode($new_data_json);
 			$data->save();
@@ -285,20 +275,16 @@ class ManageHomepageController
 	public function destroy_services(Request $request)
     {
 		$data = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-		$data_json = json_decode($data->data, true);
-		$data_slider = $data_json['data'];
+		$data_slider = json_decode($data->data, true);
 		$key = $this->searchForId($request->id, $data_slider);
 		if(!is_null($key)){
 			$image_path = $data_slider[$key]['image_path'];
 			unset($data_slider[$key]);
-			$new_data_json = ['data' => $data_slider];
+			$new_data_json = $data_slider;
 		
 			$data->data = json_encode($new_data_json);
 			$data->save();
-			
-			// delete slider if not in folder "example"
 			if (!str_contains($image_path, 'example')) {
-				// delete image
 				Storage::disk('s3')->delete($image_path);
 			}
 			
@@ -312,20 +298,16 @@ class ManageHomepageController
 	public function destroy_slider(Request $request)
     {
 		$banner = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
-		$data_json = json_decode($banner->data, true);
-		$data_slider = $data_json['data'];
+		$data_slider = json_decode($banner->data, true);
 		$key = $this->searchForId($request->id, $data_slider);
 		if(!is_null($key)){
 			$image_path = $data_slider[$key]['image_path'];
 			unset($data_slider[$key]);
-			$new_data_json = ['data' => $data_slider];
+			$new_data_json = $data_slider;
 		
 			$banner->data = json_encode($new_data_json);
 			$banner->save();
-			
-			// delete slider if not in folder "example"
 			if (!str_contains($image_path, 'example')) {
-				// delete image
 				Storage::disk('s3')->delete($image_path);
 			}
 			
@@ -351,9 +333,7 @@ class ManageHomepageController
 	private function ajax_partner(Request $request): JsonResponse
     {
 		$data_slider = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
-		$data_json = json_decode($data_slider->data, true);
-		
-		$data_result = $data_json['data'];
+		$data_result = json_decode($data_slider->data, true);
 		foreach ($data_result as $key => $value) {
             $data_result[$key]['image_url'] = Storage::disk('s3')->temporaryUrl(
                 $value['image_path'],
@@ -367,9 +347,7 @@ class ManageHomepageController
 	private function ajax_services(Request $request): JsonResponse
     {
 		$data_slider = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-		$data_json = json_decode($data_slider->data, true);
-		
-		$data_result = $data_json['data'];
+		$data_result = json_decode($data_slider->data, true);
 		foreach ($data_result as $key => $value) {
             $data_result[$key]['image_url'] = Storage::disk('s3')->temporaryUrl(
                 $value['image_path'],
@@ -383,9 +361,7 @@ class ManageHomepageController
     private function ajax_slider(Request $request): JsonResponse
     {
 		$data_slider = SiteManajemen::where('key', '=', 'SLIDER')->firstOrFail();
-		$data_json = json_decode($data_slider->data, true);
-		
-		$data_result = $data_json['data'];
+		$data_result = json_decode($data_slider->data, true);
 		foreach ($data_result as $key => $value) {
             $data_result[$key]['image_url'] = Storage::disk('s3')->temporaryUrl(
                 $value['image_path'],

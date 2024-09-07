@@ -9,19 +9,18 @@ enum HomepageKey: string
 {
     use EnumConcern;
 
-    case ABOUT = 'ABOUT';
     case SLIDER = 'SLIDER';
-    case PARTNERS = 'PARTNERS';
     case SERVICES = 'SERVICES';
+    case PARTNERS = 'PARTNERS';
+    case ABOUT = 'ABOUT';
 	
 	public function getValue(): string
     {
 		$faker = Factory::create();
 		
         return match ($this) {
-            self::ABOUT => json_encode(['data' => $faker->sentence]),
+            self::ABOUT => json_encode(['html' => $faker->sentence]),
             self::SLIDER => json_encode([
-				'data' => [
 							[
 								"id" => "9cf1c971-806b-4c25-93b6-eb5f224a4d36"
 								, "order" => 1
@@ -34,10 +33,9 @@ enum HomepageKey: string
 								, "description" => "keenthemes ke 2"
 								, "image_path"=> "slider/VknktKqRmua6VByWwrF6hTt7hZ8qlAmtzoh3QCE5.png"
 							]
-						]
-				]),
-            self::PARTNERS => json_encode(['data' => null]),
-            self::SERVICES => json_encode(['data' => null]),
+					]),
+            self::PARTNERS => json_encode([]),
+            self::SERVICES => json_encode([]),
         };
     }
 	

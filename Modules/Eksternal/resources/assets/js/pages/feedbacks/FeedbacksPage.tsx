@@ -2,7 +2,7 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
 import React, { memo, useEffect } from "react"
 import { Badge, Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
-import { Calendar, Search } from "react-feather"
+import { Calendar, Check, Search } from "react-feather"
 import styled from "styled-components"
 import { useNavigate } from "react-router-dom"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -76,7 +76,7 @@ const FeedbacksPage: React.FC = () => {
               <FeedbackItem 
                 key={r.id}
                 id={`feedback-${r.id}`}
-                onClick={() => navigate(`/feedbacks/${r.id}`)}
+                onClick={() => !r.is_given_feedback && navigate(`/feedbacks/${r.id}`)}
                 className="w-100 border rounded p-3 bg-light"
               >
                 <div className="w-100 d-flex justify-content-between align-items-start gap-3">
@@ -105,6 +105,16 @@ const FeedbacksPage: React.FC = () => {
                       {format(new Date(r.created_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
                     </div>
                   </div>
+                  {r.is_given_feedback && (
+                    <Badge 
+                      bg="success"
+                      className="fw-medium"
+                      style={{ fontSize: '0.8rem' }}
+                    >
+                      <Check size={16}/>
+                      <span> Feedback Tersimpan</span>
+                    </Badge>
+                  )}
                 </div>
                 {!r.is_given_feedback && (
                   <div className="w-100 d-flex justify-content-end">

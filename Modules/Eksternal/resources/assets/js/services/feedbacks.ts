@@ -22,3 +22,12 @@ export const getFeedbackDetail = async (uuid: string) => {
     return Promise.reject(error)
   }
 }
+
+export const submitFeedback = async (uuid: string, feedbacks: object) => {
+  try {
+    const { data } = await api.post<DefaultApiResponse<unknown>>(`/eksternal/layanan/${uuid}/feedback`, { feedbacks })
+    return data.results
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}

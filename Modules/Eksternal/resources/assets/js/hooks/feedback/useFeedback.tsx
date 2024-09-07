@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import { getErrorMessage } from "../../utils/error"
-import { getFeedbackDetail } from "../../services/feedbacks"
+import { getFeedbackDetail, submitFeedback } from "../../services/feedbacks"
 import useHookForm from "../useHookForm"
 import * as yup from 'yup'
 import { FeedbackStructure } from "../../types/feedbacks"
+import { useNavigate } from "react-router-dom"
 
 type FeedbackFieldItem = {
   id: string
@@ -13,6 +14,7 @@ type FeedbackFieldItem = {
 }
 
 export type FeedbackFormFields = {
+  uuid: string
   feedbacks: Array<FeedbackFieldItem>
 }
 
@@ -47,11 +49,14 @@ const collectFeedbackValues = (
 }
 
 export default () => {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState<boolean>(false)
+  const [submitting, setSubmitting] = useState<boolean>(false)
   const [feedbacks, setFeedbacks] = useState<FeedbackStructure[]>([])
 
   const validationSchema: yup.SchemaOf<FeedbackFormFields> = useMemo(() => {
     return yup.object({
+      uuid: yup.string().required(),
       feedbacks: yup.array().of(
         yup.object().shape({
           id: yup.string().required('ID wajib diisi'),
@@ -66,7 +71,7 @@ export default () => {
     })
   }, [])
 
-  const { errors, rhf, form } = useHookForm<FeedbackFormFields>({ feedbacks: [] }, validationSchema)
+  const { errors, rhf, form } = useHookForm<FeedbackFormFields>({ uuid: '', feedbacks: [] }, validationSchema)
 
   const getFeedback = useCallback(
     async (uuid: string) => {
@@ -88,17 +93,28 @@ export default () => {
 
   const onSubmit = rhf.handleSubmit(
     async (payload) => {
-      const values = (payload as FeedbackFormFields).feedbacks.reduce((obj, r) => ({
+      const formPayload = (payload as FeedbackFormFields)
+      const values = formPayload.feedbacks.reduce((obj, r) => ({
         ...obj,
         [r.id]: r?.value || null
       }), {} as Record<string, string | number | null>)
       const collectedFeedbackValues = await feedbacks.map(r => collectFeedbackValues(r, values))
-      console.log(collectedFeedbackValues) // TODO: send to api
+      try {
+        setSubmitting(true)
+        await submitFeedback(formPayload.uuid, collectedFeedbackValues)
+        toast.success('Feedback berhasil disimpan')
+        navigate(-1)
+      } catch (error) {
+        toast.error(getErrorMessage(error))
+      } finally {
+        setSubmitting(false)
+      }
     }
   )
 
   return {
     loading,
+    submitting,
     feedbacks,
     getFeedback,
     rhf,

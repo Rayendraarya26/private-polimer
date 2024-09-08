@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     imagemagick-doc \
     pdftk \
-    iputils-ping
+    iputils-ping \
+    git
 
 ENV TZ=Asia/Jakarta
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

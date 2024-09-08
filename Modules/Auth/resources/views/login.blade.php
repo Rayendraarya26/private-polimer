@@ -77,9 +77,14 @@
                 </span>
                 <!--end::Indicator progress-->
             </button>
-            <div class="w-100 text-center fw-semibold pt-4">
+            <div class="w-100 text-center fw-semibold pt-4 mb-10">
                 Belum Punya Akun? <a class="text-primary" href="{{ route('auth.register') }}">Buat Akun Sekarang</a>
             </div>
+
+            <a href="#" type="button" class="btn btn-success">
+                <i class="fa fa-search"></i>
+                Lacak Permohonan
+            </a>
         </div>
         <!--end::Submit button-->
     </form>

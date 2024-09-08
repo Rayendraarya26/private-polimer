@@ -3,9 +3,6 @@
         JIS
     </a>
     <a href="#" class="text-center fw-bold text-decoration-underline">
-        Lacak Permohonan
-    </a>
-    <a href="#" class="text-center fw-bold text-decoration-underline">
         Panduan
     </a>
     <a href="{{ route('faq') }}" class="text-center fw-bold text-decoration-underline">

@@ -30,7 +30,7 @@ Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware(['custom_auth']);
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index']);
 Route::post('/', [HomeController::class, 'contactUs']);
 
 Route::prefix('faq')->group(function () {

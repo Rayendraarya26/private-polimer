@@ -241,15 +241,14 @@ class ManageHomepageController
 
     private function removeSiteData(Request $request, HomepageKey $key)
     {
-        $site    = SiteManajemen::where('key', '=', $key->value)->firstOrFail();
-        $sliders = $site->data['data'];
+        $site    = SiteManajemen::query()->where('key', '=', $key->value)->firstOrFail();
+        $sliders = $site->data;
         $key     = $this->searchForId($request->id, $sliders);
         if (!is_null($key)) {
-            $image_path = $sliders[$key]['image_path'];
-            unset($sliders[$key]);
-            $new_data_json = ['data' => $sliders];
+            $image_path = Arr::get($sliders, "$key.image_path");
+            Arr::forget($sliders, $key);
 
-            $site->data = $new_data_json;
+            $site->data = $sliders;
             $site->save();
 
             if (!str_contains($image_path, 'dummy')) {

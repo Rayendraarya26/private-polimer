@@ -215,7 +215,7 @@
                             class="nav-link"
                             href="#about-us"
                         >
-                            About Us
+                            Tentang Kami
                         </a>
                     </li>
                     <li class="nav-item">
@@ -223,7 +223,7 @@
                             class="nav-link"
                             href="#contact-us"
                         >
-                            Contact Us
+                            Hubungi Kami
                         </a>
                     </li>
                     <li class="nav-item">
@@ -263,7 +263,7 @@
             class="w-100 d-flex justify-content-center"
         >
             <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
-                <div class="fs-1 fw-bold text-center">Services</div>
+                <div class="fs-1 fw-bold text-center">Layanan Kami</div>
                 <div class="slick-carousel-services slick-carousel-scale-animate">
                     @foreach($services as $item)
                         <div class="p-4">
@@ -281,7 +281,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="fs-3 fw-bold text-center py-5">How can we help? Register here</div>
+                <div class="fs-3 fw-bold text-center py-5">Ada yang bisa kami bantu? Daftar disini</div>
                 <img
                     alt="Logo"
                     src="{{ asset('assets/media/logos/logo-polimer.png') }}"
@@ -294,7 +294,7 @@
                         type="button"
                         class="btn btn-primary"
                     >
-                        Register
+                        Daftar
                     </a>
                 </div>
             </div>
@@ -303,7 +303,7 @@
             class="w-100 d-flex justify-content-center"
         >
             <div class="w-100 d-flex flex-column gap-5 py-5">
-                <div class="fs-1 fw-bold text-center">Partners</div>
+                <div class="fs-1 fw-bold text-center">Mitra Kami</div>
                 <div class="slick-carousel-partners slick-carousel-scale-animate">
                     @foreach($partners as $item)
                         <div class="p-4">
@@ -321,7 +321,7 @@
             class="w-100 d-flex justify-content-center bg-light"
         >
             <div class="w-100 d-flex flex-column gap-5" style="padding: 5rem 0;">
-                <div class="fs-1 fw-bold text-center">Testimonials</div>
+                <div class="fs-1 fw-bold text-center">Ulasan dan Komentar</div>
                 <div class="slick-carousel-testimonials slick-carousel-scale-animate">
                     @foreach($testimonials as $item)
                         <div class="p-5">
@@ -356,7 +356,7 @@
             style="padding: 2rem;"
         >
             <div class="w-100 section-wrapper d-flex flex-column gap-4">
-                <div class="fs-1 fw-bold text-center">About Us</div>
+                <div class="fs-1 fw-bold text-center">Tentang Kami</div>
 
                 {!! $aboutUs !!}
             </div>
@@ -369,8 +369,8 @@
             <div class="w-100 section-wrapper">
                 <div class="w-100 row py-5">
                     <div class="col-12 col-lg-7 d-flex flex-column gap-4">
-                        <div class="fs-4 fw-bold py-4">Beware of frauds on our behalf</div>
-                        <div class="fs-1 fw-bold">Contact Us</div>
+                        <div class="fs-4 fw-bold py-4">Waspadalah terhadap penipuan yang mengatasnamakan kami</div>
+                        <div class="fs-1 fw-bold">Hubungi Kami</div>
                         @if(session('success'))
                             <div class="alert alert-success">{{ session('success') }}</div>
                         @endif
@@ -410,7 +410,8 @@
                                            name="telp" placeholder="Masukkan Nomor Telepon"
                                            value="{{ old('telp') }}">
                                     @error('telp')
-                                    <div class="text-danger">{{ $message }}  Gunakan awalan 62, contoh: 628123456789</div>
+                                    <div class="text-danger">{{ $message }} Gunakan awalan 62, contoh: 628123456789
+                                    </div>
                                     @enderror
                                 </div>
                                 <div class="w-100">
@@ -444,7 +445,7 @@
                         </form>
                     </div>
                     <div class="col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center gap-5">
-                        <div class="fs-2 fw-bold py-4">Our Contact Center</div>
+                        <div class="fs-2 fw-bold py-4">Lokasi Kami</div>
                         <div class="w-100 w-lg-75 d-flex flex-column gap-3">
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-solid fa-location-dot pt-1 text-white"></i>
@@ -476,7 +477,7 @@
         </section>
     </main>
     <footer class="w-100 text-center py-5">
-        <p>&copy; {{ date('Y') }} Jogja Industrial Services. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} Jogja Industrial Services - BBSPJIKKP.</p>
     </footer>
 @endsection
 

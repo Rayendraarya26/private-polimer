@@ -1,6 +1,6 @@
 import clsx from "clsx"
 import React, { memo, useMemo, useState } from "react"
-import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row, Table } from "react-bootstrap"
+import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row } from "react-bootstrap"
 import { Award, Clipboard, DollarSign, FilePlus, FileText, HelpCircle } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
@@ -141,7 +141,7 @@ const DashboardPage: React.FC = () => {
           ))}
         </Carousel>
       </div>
-      <Row >
+      <Row>
         <Col xs={12} lg={7} className="px-3 py-2">
           <Card>
             <Card.Header className="py-3">
@@ -222,69 +222,66 @@ const DashboardPage: React.FC = () => {
                 </Form.Select>
               </div>
             </Card.Header>
-            <Card.Body>
-              <Table responsive hover>
-                <thead>
-                  <tr className="bg-primary text-white">
-                    <th style={{ minWidth: '16rem' }}>Layanan</th>
-                    <th style={{ minWidth: '16rem' }}>Tanggal Order</th>
-                    <th className="text-center" style={{ minWidth: '16rem' }}>Status</th>
-                    <th style={{ minWidth: '24rem' }}>Progress</th>
-                    <th style={{ minWidth: '16rem' }}/>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[1,2,3,4,5,6,7,8,9,10].map(v => (
-                    <tr key={v}>
-                      <td>
-                        <h6 className="fw-semibold">Nama Layanan</h6>
-                        <div style={{ fontSize: '0.75rem' }}>ID: XXX-XXX-XXX</div>
-                      </td>
-                      <td>
-                        {getDateDisplay('2024-9-8')}
-                      </td>
-                      <td className="text-center">
-                        <Badge className="fs-6 fw-semibold" bg="success">Selesai</Badge>
-                      </td>
-                      <td className="pt-3">
-                        <ProgressBar variant="success" now={70} label={`${70}%`} />
-                      </td>
-                      <td className="d-flex justify-content-end gap-2">
-                        <Button 
-                          size="sm"
-                          title="Quot."
-                        >
-                          <FileText size={16}/>
-                        </Button>
-                        <Button 
-                          size="sm"
-                          title="Invoice"
-                        >
-                          <DollarSign size={16}/>
-                        </Button>
-                        <Button 
-                          size="sm"
-                          title="Kwitansi"
-                        >
-                          <Clipboard size={16}/>
-                        </Button>
-                        <Button 
-                          size="sm"
-                          title="Kuesioner"
-                        >
-                          <HelpCircle size={16}/>
-                        </Button>
-                        <Button 
-                          size="sm"
-                          title="Sertifikat"
-                        >
-                          <Award size={16}/>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+            <Card.Body className="w-100">
+              <div className="w-100 d-flex flex-column gap-2">
+                {[1,2,3,4,5,6,7,8,9,10].map(v => (
+                  <div 
+                    key={v}
+                    className="w-100 border rounded-3 p-3 bg-light"
+                  >
+                    <h6 className="fw-semibold">Nama Layanan</h6>
+                    <div className="d-inline-flex align-items-center gap-3 mb-2">
+                      <div 
+                        style={{ fontSize: '0.75rem' }}
+                        className="fw-semibold"
+                      >
+                        ID: XXX-XXX-XXX
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.75rem' }}>Status:</span> <Badge className="fw-semibold" bg="success">Selesai</Badge>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.75rem' }}>
+                      Tanggal Order: {getDateDisplay('2024-9-8')}
+                    </div>
+                    <div className="py-3">
+                      <ProgressBar variant="success" now={70} label={`${70}%`} />
+                    </div>
+                    <div className="d-flex justify-content-end gap-2">
+                      <Button 
+                        size="sm"
+                        title="Quot."
+                      >
+                        <FileText size={16}/>
+                      </Button>
+                      <Button 
+                        size="sm"
+                        title="Invoice"
+                      >
+                        <DollarSign size={16}/>
+                      </Button>
+                      <Button 
+                        size="sm"
+                        title="Kwitansi"
+                      >
+                        <Clipboard size={16}/>
+                      </Button>
+                      <Button 
+                        size="sm"
+                        title="Kuesioner"
+                      >
+                        <HelpCircle size={16}/>
+                      </Button>
+                      <Button 
+                        size="sm"
+                        title="Sertifikat"
+                      >
+                        <Award size={16}/>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card.Body>
           </Card>
         </Col>

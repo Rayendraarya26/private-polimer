@@ -1,6 +1,6 @@
 import clsx from "clsx"
 import { memo, useCallback, useEffect, useMemo } from "react"
-import { Clock, Edit, Home, Icon, Send } from "react-feather"
+import { Edit, Home, Icon, Send } from "react-feather"
 import { useSelector } from "react-redux"
 import { Link, useLocation } from "react-router-dom"
 import styled from "styled-components"

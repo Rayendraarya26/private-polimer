@@ -93,7 +93,7 @@
                     searchDelay: 500,
                     processing: true,
                     serverSide: true,
-                    order: [[1, 'asc']],
+                    order: [[4, 'desc']],
                     stateSave: false,
                     ajax: {
                         url: "{{ url("$url/ajax?action=datatable") }}",

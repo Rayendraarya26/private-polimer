@@ -112,7 +112,10 @@
         }
 
         .logo-bg {
-            border-radius: 0 4rem 4rem 0;
+            padding: 1.25rem 1.5rem 1.5rem 1.5rem !important;
+            border-radius: 1rem;
+            margin-left: 0.5rem;
+            opacity: 0.9;
         }
 
         .banner-image-background {
@@ -140,6 +143,12 @@
             background-color: #0D47A1;
         }
 
+        .footer-img {
+            width: 3.5rem;
+            aspect-ratio: 1/1;
+            object-fit: contain;
+        }
+
         @media screen and (min-width: 768px) {
             .navbar-collapse {
                 background-color: unset;
@@ -148,7 +157,6 @@
             .logo-bg {
                 width: fit-content;
                 border: 1px solid #cecece;
-                padding: 2rem 4rem !important;
                 background-color: var(--bs-light) !important;
             }
 
@@ -173,6 +181,10 @@
                 bottom: 20%;
                 left: 16%;
             }
+
+            .footer-img {
+                width: 10rem;
+            }
         }
 
         body {
@@ -185,13 +197,14 @@
     <nav class="navbar fixed-top navbar-expand-lg navbar-light">
         <div class="container-fluid m-0 p-0">
             <a
-                class="navbar-brand p-4 logo-bg bg-light shadow"
+                class="navbar-brand logo-bg bg-light shadow"
                 href="/"
             >
+                <div class="fw-bold mb-3"><i>Powered By</i></div>
                 <img
                     alt="Logo"
                     class="logo"
-                    src="{{ asset('assets/media/logos/logo-polimer.png') }}"
+                    src="{{ asset('assets/media/logos/logo-kemenperin.png') }}"
                 />
             </a>
             <button
@@ -446,6 +459,11 @@
                     </div>
                     <div class="col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center gap-5">
                         <div class="fs-2 fw-bold py-4">Lokasi Kami</div>
+                        <!-- <img
+                            alt=""
+                            class="w-75"
+                            src="{{ asset('assets/media/logos/logo-jis.png') }}"
+                        /> -->
                         <div class="w-100 w-lg-75 d-flex flex-column gap-3">
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-solid fa-location-dot pt-1 text-white"></i>
@@ -477,7 +495,34 @@
         </section>
     </main>
     <footer class="w-100 text-center py-5">
-        <p>&copy; {{ date('Y') }} Jogja Industrial Services - BBSPJIKKP.</p>
+        <div class="w-100 d-flex justify-content-center align-items-center gap-5 mb-4">
+            <img
+                draggable="false"
+                class="footer-img"
+                src="{{ asset('assets/media/misc/berani-jujur-hebat.png') }}"
+            />
+            <img
+                draggable="false"
+                class="footer-img"
+                src="{{ asset('assets/media/misc/no-korupsi.png') }}"
+            />
+            <img
+                draggable="false"
+                class="footer-img"
+                src="{{ asset('assets/media/misc/no-gratifikasi.png') }}"
+            />
+            <img
+                draggable="false"
+                class="footer-img"
+                src="{{ asset('assets/media/misc/berakhlak.png') }}"
+            />
+            <img
+                draggable="false"
+                class="footer-img"
+                src="{{ asset('assets/media/misc/bangga-melayani-bangsa.png') }}"
+            />
+        </div>
+        <p class="mb-0">&copy; {{ date('Y') }} Jogja Industrial Services - BBSPJIKKP.</p>
     </footer>
 @endsection
 

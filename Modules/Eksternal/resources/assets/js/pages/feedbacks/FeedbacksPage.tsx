@@ -2,7 +2,7 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale/id"
 import React, { memo, useEffect } from "react"
 import { Badge, Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
-import { Calendar, Check, Search } from "react-feather"
+import { Calendar, Check, Clock, Search } from "react-feather"
 import styled from "styled-components"
 import { useNavigate } from "react-router-dom"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -105,31 +105,26 @@ const FeedbacksPage: React.FC = () => {
                       {format(new Date(r.created_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
                     </div>
                   </div>
-                  {r.is_given_feedback && (
+                  {r.is_given_feedback ? (
                     <Badge 
                       bg="success"
-                      className="fw-medium"
+                      className="fw-medium d-inline-flex align-items-center gap-1"
                       style={{ fontSize: '0.8rem' }}
                     >
                       <Check size={16}/>
                       <span> Feedback Tersimpan</span>
                     </Badge>
+                  ) : (
+                    <Badge 
+                      bg="warning"
+                      className="fw-medium d-inline-flex align-items-center gap-1"
+                      style={{ fontSize: '0.8rem' }}
+                    >
+                      <Clock size={16}/>
+                      <span> Menunggu Feedback Anda</span>
+                    </Badge>
                   )}
                 </div>
-                {!r.is_given_feedback && (
-                  <div className="w-100 d-flex justify-content-end">
-                    <Button 
-                      size="sm"
-                      type="button"
-                      variant="outline-primary"
-                      onClick={e => {
-                        e.stopPropagation()
-                      }}
-                    >
-                      Beri Penilaian & Feedback
-                    </Button>
-                  </div>
-                )}
               </FeedbackItem>
             ))}
             {(total > 0 && page < totalPages) && (

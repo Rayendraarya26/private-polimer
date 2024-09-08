@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Option;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,7 @@ return new class extends Migration {
             $table->foreignUuid('user_id')->unique()->nullable()->constrained('sys_user')->cascadeOnDelete();
             $table->string('nik')->nullable();
             $table->string('whatsapp')->nullable();
+            $table->enum('whatsapp_verified', Option::toArray())->default(Option::NO);
             $table->timestampsTz();
         });
     }

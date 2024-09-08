@@ -66,8 +66,7 @@
                     <!--end::Label-->
                     <!--begin::Col-->
                     <div class="col-lg-8">
-                        <input type="text" class="form-control"
-                               name="name" value="{{ old('name', auth()->user()->name) }}"/>
+                        <input type="text" class="form-control" v-model="form.name"/>
                     </div>
                     <!--end::Col-->
                 </div>
@@ -79,8 +78,8 @@
                     <!--end::Label-->
                     <!--begin::Col-->
                     <div class="col-lg-8">
-                        <input type="text" class="form-control"
-                               name="nik" value="{{ old('nik', auth()->user()->pegawai?->nik) }}"/>
+                        <input type="text" class="form-control" v-model="form.nik"/>
+                        <small>akan digunakan untuk TTE</small>
                     </div>
                     <!--end::Col-->
                 </div>
@@ -92,16 +91,29 @@
                     <!--end::Label-->
                     <!--begin::Col-->
                     <div class="col-lg-8">
-                        <input type="text" class="form-control" name="whatsapp"
-                               value="{{ old('whatsapp', auth()->user()->pegawai?->whatsapp) }}"/>
-                        <small>Diawali dengan 62, Contoh: 62812345678910</small>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Nomer Whatsapp, 6289...."
+                                   v-model="form.whatsapp"/>
+                            <span class="input-group-text cursor-pointer" @click="handleVerifyOtp"
+                                  title="Anda hanya bisa mengirim 1x dalam 1 menit">
+                            Verifikasi OTP</span>
+                        </div>
+                        <small>62 di depan, Contoh: 62812345678910</small>
+                        <input type="text" class="form-control w-200px" placeholder="Kode OTP" v-show="showVerifyOtp"
+                               v-model="form.whatsapp_otp"/>
                     </div>
                     <!--end::Col-->
+
+
                 </div>
                 <!--end::Row-->
+                <div class="alert alert-danger" v-show="errorMessage">
+                    @{{ errorMessage }}
+                </div>
 
                 <div class="offset-lg-4">
-                    <button class="btn btn-sm btn-primary align-self-center" type="submit">
+                    <button class="btn btn-sm btn-primary align-self-center" type="button"
+                            @click="handleUpdateProfile">
                         <i class="fad fa-save"></i> Save
                     </button>
                 </div>
@@ -109,3 +121,67 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        const { createApp } = Vue;
+
+        window.ProfileVue = createApp({
+            data() {
+                return {
+                    showVerifyOtp: false,
+                    errorMessage: null,
+
+                    form: {
+                        name: "{{ old('name', auth()->user()->name) }}",
+                        nik: "{{ old('nik', auth()->user()->pegawai?->nik) }}",
+                        whatsapp: "{{ old('whatsapp', auth()->user()->pegawai?->whatsapp) }}",
+                        whatsapp_otp: ""
+                    }
+                }
+            },
+            methods: {
+                formatWhatsapp(value) {
+                    // sanitize whatsapp number
+                    return value.replace(/[^0-9]/g, '');
+                },
+                async handleVerifyOtp() {
+                    if (this.form.whatsapp !== "" && this.form.whatsapp === "{{ old('whatsapp', auth()->user()->pegawai?->whatsapp) }}") {
+                        this.errorMessage = "Nomor Whatsapp tidak berubah";
+                        return;
+                    }
+                    this.showVerifyOtp = true;
+
+                    try {
+                        const response = await axios.post("{{ url('/account/verify-whatsapp-otp') }}", {
+                            whatsapp: this.formatWhatsapp(this.form.whatsapp)
+                        })
+
+                        swal.fire({
+                            title: 'Berhasil',
+                            text: response.data.message,
+                            icon: 'success'
+                        });
+                    } catch (err) {
+                        this.errorMessage = err.response.data.message;
+                    }
+                },
+                handleUpdateProfile() {
+                    axios.post("{{ url('/account/profile') }}", this.form)
+                        .then(response => {
+                            swal.fire({
+                                title: 'Berhasil',
+                                text: response.data.message,
+                                icon: 'success'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        })
+                        .catch(error => {
+                            this.errorMessage = error.response.data.message;
+                        });
+                }
+            },
+        }).mount('#kt_profile_details_view');
+    </script>
+@endpush

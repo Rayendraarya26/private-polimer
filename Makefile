@@ -73,5 +73,7 @@ install-npm:
 	@docker exec -w /var/www -t $(shell docker compose ps -q bbkkp_polimer) npm install
 
 install-composer:
-	@echo "Installing composer in host via docker"
-	@docker run --rm -u "$(shell id -u):$(shell id -g)" -v "$(shell pwd):/var/www" -w /var/www laravelsail/php82-composer:latest composer install --ignore-platform-reqs
+	@echo "Enter your GitHub token: "
+	@read -s GITHUB_TOKEN && \
+	echo "Installing composer in host via docker" && \
+	docker run --rm -u "$(shell id -u):$(shell id -g)" -v "$(shell pwd):/var/www" -w /var/www -e COMPOSER_AUTH='{"github-oauth": {"github.com": "$GITHUB_TOKEN"}}' laravelsail/php82-composer:latest composer install --ignore-platform-reqs

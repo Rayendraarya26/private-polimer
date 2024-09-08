@@ -45,7 +45,6 @@
                     autocomplete="off"
                     aria-label="password"
                     class="form-control bg-transparent"
-                    value="password"
                 />
                 <span id="password-toggle" class="input-group-text" style="cursor: pointer;">
                     <i id="show-password-icon" class="fas fa-eye d-none"></i>

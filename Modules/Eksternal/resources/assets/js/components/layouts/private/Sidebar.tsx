@@ -41,6 +41,7 @@ const MenuItem = styled(Link)`
   }
 
   .menu-item-title {
+    white-space: nowrap;
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 200ms;

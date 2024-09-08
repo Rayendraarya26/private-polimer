@@ -3,29 +3,19 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
-use App\Http\Controllers\Controller;
-
-use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
-use App\Enums\SysGroup;
-
-use App\Models\Db1\MasterTopikPertanyaan;
-use App\Models\Db1\Pelanggan;
-use App\Models\Db1\PertanyaanPelanggan;
-use App\Models\Db1\PertanyaanPelangganPesan;
-use App\Models\Db1\PelangganInstansi;
-use App\Models\Db1\PelangganPerorangan;
-use App\Models\Db1\PelangganPerusahaan;
+use App\Http\Controllers\Controller;
 use App\Libraries\Mailer;
 use App\Libraries\Notification;
 use App\Libraries\WhatsappService;
-
-use Illuminate\Support\Facades\DB;
+use App\Models\Db1\Pelanggan;
+use App\Models\Db1\PertanyaanPelanggan;
+use App\Models\Db1\PertanyaanPelangganPesan;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class PertanyaanController extends Controller
@@ -46,7 +36,7 @@ class PertanyaanController extends Controller
 
     public function index(Request $request)
     {
-		$breadcrumbs = [
+        $breadcrumbs = [
             new Breadcrumbs('Admin'),
             new Breadcrumbs('Pertanyaan Pelanggan', url($this->url)),
         ];
@@ -56,9 +46,9 @@ class PertanyaanController extends Controller
         })->count();
 
         $parser = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs'    => $breadcrumbs,
             'status_message' => $request->status_message != '' ? $request->status_message : 'opened',
-            'total_new' => $total_new,
+            'total_new'      => $total_new,
         ]);
 
 
@@ -70,7 +60,7 @@ class PertanyaanController extends Controller
         $breadcrumbs = [
             new Breadcrumbs('Admin'),
             new Breadcrumbs('Pertanyaan Pelanggan', url($this->url)),
-            new Breadcrumbs('Detail Pesan', url($this->url."/".$pertanyaan->id."/"."add")),
+            new Breadcrumbs('Detail Pesan', url($this->url . "/" . $pertanyaan->id . "/" . "add")),
         ];
 
         $total_new = PertanyaanPelanggan::where('status', 'opened')->whereHas('pesans', function (Builder $query) {
@@ -78,10 +68,10 @@ class PertanyaanController extends Controller
         })->count();
 
         $parser = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs'    => $breadcrumbs,
             'status_message' => $request->status_message != '' ? $request->status_message : 'opened',
-            'total_new' => $total_new,
-            'data' => $pertanyaan,
+            'total_new'      => $total_new,
+            'data'           => $pertanyaan,
         ]);
 
         return view("$this->view.upsert")->with($parser);
@@ -91,60 +81,63 @@ class PertanyaanController extends Controller
     {
         try {
             $array_validate = [
-                'pesan'                  => 'required',
+                'pesan' => 'required',
             ];
 
             $input = $request->validate($array_validate);
 
             DB::transaction(function () use ($input, $pertanyaan, $request) {
-                $pertanyaan->status               = 'opened';
+                $pertanyaan->status = 'opened';
                 $pertanyaan->save();
-                DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id',$pertanyaan->id)->update(array(
-                    'is_replied'=> 'yes',
+                DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id', $pertanyaan->id)->update(array(
+                    'is_replied' => 'yes',
                 ));
 
                 $data_pesan = [
-                    'created_by'   => auth()->id(),
-                    'pertanyaan_id'   => $pertanyaan->id,
-                    'pesan' => $input['pesan'],
-                    'is_replied' => 'no',
+                    'created_by'    => auth()->id(),
+                    'pertanyaan_id' => $pertanyaan->id,
+                    'pesan'         => $input['pesan'],
+                    'is_replied'    => 'no',
                 ];
 
                 PertanyaanPelangganPesan::create($data_pesan);
             });
-			
-			$notifParameter = [
-					'pelanggan_id' => $pertanyaan->pelanggan_id,
-					'judul' => 'Pesan Pertanyaan Baru',
-					'pesan_notif'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"',
-					'url_notif'  => url('/app/#/ask-questions'),
-					'pesan_wa'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"' ,
-					'pesan_email'  => 'Pesan pertanyaan dari '.auth()->user()->name.', tiket #'.$pertanyaan->id.' "'.$request->pesan.'"'
-			];
-			
-			$this->notif_pelanggan($notifParameter);
 
-            return redirect($this->url."/".$pertanyaan->id."/add")->with('message', sprintf("Berhasil menambahkan pesan untuk tiket : %s", $pertanyaan->id));
+            $notifParameter = [
+                'pelanggan_id' => $pertanyaan->pelanggan_id,
+                'judul'        => 'Pesan Pertanyaan Baru',
+                'pesan_notif'  => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"',
+                'url_notif'    => url('/app/#/ask-questions'),
+                'pesan_wa'     => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"',
+                'pesan_email'  => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"'
+            ];
+
+            $this->notif_pelanggan($notifParameter);
+
+            return redirect($this->url . "/" . $pertanyaan->id . "/add")->with('message', sprintf("Berhasil menambahkan pesan untuk tiket : %s", $pertanyaan->id));
         } catch (Exception $e) {
-            return redirect($this->url."/".$pertanyaan->id."/add")->with('message', $e->getMessage());
+            return redirect($this->url . "/" . $pertanyaan->id . "/add")->with('message', $e->getMessage());
         }
     }
 
     public function closed($pertanyaan, Request $request)
     {
-        return DB::transaction(function () use ($pertanyaan){
-            DB::table('pertanyaan_pelanggan')->where('id',$pertanyaan)->update(array(
-                'status'=>'closed',
+        return DB::transaction(function () use ($pertanyaan) {
+            DB::table('pertanyaan_pelanggan')->where('id', $pertanyaan)->update(array(
+                'status'    => 'closed',
                 'closed_by' => auth()->id()
             ));
 
-            DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id',$pertanyaan)->update(array(
-                'is_replied'=> 'yes',
+            DB::table('pertanyaan_pelanggan_pesan')->where('pertanyaan_id', $pertanyaan)->update(array(
+                'is_replied' => 'yes',
             ));
         }, 5);
     }
 
 
+    /**
+     * @throws Exception
+     */
     public function ajax(Request $request)
     {
         $request->validate(['action' => 'required']);
@@ -154,63 +147,56 @@ class PertanyaanController extends Controller
         };
     }
 
+    /**
+     * @throws Exception
+     */
     private function ajax_datatable_pesan(Request $request): JsonResponse
     {
-        $data = PertanyaanPelanggan::where('status' , $request->status_message)
-        ->with('pelanggan', 'pelanggan.user')
-        ->withCount(['pesans' => function ($query) {
-            $query->where('is_replied', 'no');
-        }]);
+        $data = PertanyaanPelanggan::where('status', $request->status_message)
+            ->with('pelanggan', 'pelanggan.user')
+            ->withCount([
+                'pesans' => function ($query) {
+                    $query->where('is_replied', 'no');
+                }
+            ]);
 
         return Datatables::eloquent($data)
             ->addIndexColumn()
-            ->addColumn('fullname', function($data) {
+            ->addColumn('fullname', function ($data) {
                 return $data->pelanggan->user->name;
             })
             ->make();
-
-        /**
-         * ->filter(function ($query) {
-         * if (request()->has('fullname')) {
-         * $query->where('name', 'like', "%" . request('fullname') . "%");
-         * }
-         * })
-         */
     }
-	
-	private function notif_pelanggan(array $notifParameter)
+
+    private function notif_pelanggan(array $notifParameter)
     {
-		$user_pelanggan = Pelanggan::where('id', '=', $notifParameter['pelanggan_id'])->with(['user'])->first();
-		if($user_pelanggan){
-			$nomor_wa = '';
-			$email = '';
-			if($user_pelanggan->jenis_pelanggan === PelangganJenisPelanggan::PERORANGAN->value){
-				$nomor_wa = ($user_pelanggan->detail->whatsapp) ? $user_pelanggan->detail->whatsapp : '';
-				$email = ($user_pelanggan->detail->surel) ? $user_pelanggan->detail->surel : '';
-			}
-			else {
-				$nomor_wa = ($user_pelanggan->detail->pj_whatsapp) ? $user_pelanggan->detail->pj_whatsapp : '';
-				$email = ($user_pelanggan->detail->pj_surel) ? $user_pelanggan->detail->pj_surel : '';
-			}
-			
-			$libNotif = new Notification($user_pelanggan->user->id, $notifParameter['judul'] , $notifParameter['pesan_notif'], $notifParameter['url_notif']);
-			$libNotif->sendInBackground(true);
-			// $libNotif->send();
-			
-			if($email != ''){
-			$libMailer = new Mailer();
-			$libMailer->subject($notifParameter['judul'])
-				->to($email)
-				->body($notifParameter['pesan_email'])
-				->sendInBackground();
-				// ->send();
-			}
-			
-			if($nomor_wa != ''){
-				WhatsappService::sendMessage($nomor_wa, $notifParameter['pesan_wa'])
-					->sendInBackground();
-					// ->send();
-			}
-		}
+        $user_pelanggan = Pelanggan::where('id', '=', $notifParameter['pelanggan_id'])->with(['user'])->first();
+        if ($user_pelanggan) {
+            if ($user_pelanggan->jenis_pelanggan === PelangganJenisPelanggan::PERORANGAN->value) {
+                $nomor_wa     = ($user_pelanggan->detail->whatsapp) ? $user_pelanggan->detail->whatsapp : '';
+                $email        = ($user_pelanggan->detail->surel) ? $user_pelanggan->detail->surel : '';
+                $isWAVerified = $user_pelanggan->detail->whatsapp_verified;
+            } else {
+                $nomor_wa     = ($user_pelanggan->detail->pj_whatsapp) ? $user_pelanggan->detail->pj_whatsapp : '';
+                $email        = ($user_pelanggan->detail->pj_surel) ? $user_pelanggan->detail->pj_surel : '';
+                $isWAVerified = $user_pelanggan->detail->pj_whatsapp_verified;
+            }
+
+            $libNotif = new Notification($user_pelanggan->user->id, $notifParameter['judul'], $notifParameter['pesan_notif'], $notifParameter['url_notif']);
+            $libNotif->sendInBackground(true);
+
+            if ($email != '') {
+                $libMailer = new Mailer();
+                $libMailer->subject($notifParameter['judul'])
+                    ->to($email)
+                    ->body($notifParameter['pesan_email'])
+                    ->sendInBackground();
+            }
+
+            if ($isWAVerified && $nomor_wa != '') {
+                WhatsappService::sendMessage($nomor_wa, $notifParameter['pesan_wa'])
+                    ->sendInBackground();
+            }
+        }
     }
 }

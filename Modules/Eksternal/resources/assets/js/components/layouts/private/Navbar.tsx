@@ -14,11 +14,13 @@ const StyledNavbar = styled(Navbar)`
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 `
 
-// const LogoImage = styled.img`
-//   width: 2rem;
-//   object-fit: cover;
-//   object-position: center;
-// `
+const LogoImage = styled.img`
+  height: 1.75rem;
+  display: block;
+  @media screen and (min-width: 768px) {
+    display: none;
+  }
+`
 
 const NavBar: React.FC = () => {
   const isShowSidebar = useSelector(({ common }: RootState) => common.isShowSidebar)
@@ -27,10 +29,15 @@ const NavBar: React.FC = () => {
   return (
     <StyledNavbar expand="lg" className="bg-body-tertiary position-sticky top-0 py-0">
       <div className="w-100 px-3 px-md-4 py-2 d-flex align-items-center justify-content-between">
-        <Navbar.Brand>
+        <Navbar.Brand className="d-inline-flex align-items-center gap-3">
           <Menu 
             style={{ cursor: 'pointer' }}
             onClick={() => dispatch(setShowSidebar(!isShowSidebar))}
+          />
+          <LogoImage
+            alt=""
+            draggable="false"
+            src={"/assets/media/logos/logo-polimer.png"}
           />
         </Navbar.Brand>
         <Navbar>

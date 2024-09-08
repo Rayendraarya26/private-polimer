@@ -218,7 +218,7 @@ const DashboardPage: React.FC = () => {
                   value={selectedHistoryStatus}
                   onChange={e => setSelectedHistoryStatus(e.target.value as FeedbackItemStatusOrder | undefined)}
                 >
-                  {historyStatusOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  {historyStatusOptions.map((r, i) => <option key={i} value={r.value}>{r.label}</option>)}
                 </Form.Select>
               </div>
             </Card.Header>

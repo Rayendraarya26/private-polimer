@@ -55,7 +55,7 @@
         }
 
         /*Align Center Iframe that have class ql-video ql-align-center */
-        iframe.ql-video.ql-align-center {
+        iframe.ql-video {
             margin-left: auto;
             margin-right: auto;
             display: block;

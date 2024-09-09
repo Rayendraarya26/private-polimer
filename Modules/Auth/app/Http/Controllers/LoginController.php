@@ -125,10 +125,6 @@ class LoginController
                     });
                 }
 
-
-                $user->password = bcrypt($password);
-                $user->save();
-
                 return $user;
             }
         } catch (Exception $e) {

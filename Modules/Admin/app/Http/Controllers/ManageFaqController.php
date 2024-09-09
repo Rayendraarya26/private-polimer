@@ -3,8 +3,8 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
-use App\Models\Db1\MasterLayanan;
 use App\Models\Db1\MasterFaq;
+use App\Models\Db1\MasterLayanan;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -50,9 +50,9 @@ class ManageFaqController
 
         $parse = ['url' => $this->url, 'module' => $this->module, 'breadcrumbs' => $breadcrumbs];
         $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs'  => $breadcrumbs,
             'data_layanan' => MasterLayanan::query()->get(),
-            'data'        => null
+            'data'         => null
         ]);
         return view("$this->view.upsert")->with($parse);
     }
@@ -68,9 +68,9 @@ class ManageFaqController
         ];
 
         $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs'  => $breadcrumbs,
             'data_layanan' => MasterLayanan::query()->get(),
-            'data'        => $data
+            'data'         => $data
         ]);
         return view("$this->view.upsert")->with($parse);
     }
@@ -83,8 +83,7 @@ class ManageFaqController
             $faq = $this->upsert($input, new MasterFaq());
             return redirect($this->url)->with('message', sprintf("Sukses menambah data %s", $faq->name));
         } catch (Exception $e) {
-            dd($e);
-            // return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
@@ -104,11 +103,11 @@ class ManageFaqController
     public function upsert(array $input, MasterFaq $faq)
     {
         return DB::transaction(function () use ($input, $faq) {
-            $faq->layanan_id      = $input['layanan_id'];
-            $faq->question      = $input['question'];
-            $faq->answer      = $input['answer'];
+            $faq->layanan_id = $input['layanan_id'];
+            $faq->question   = $input['question'];
+            $faq->answer     = $input['answer'];
             $faq->order      = $input['order'];
-            $faq->is_active      = $input['is_active'];
+            $faq->is_active  = $input['is_active'];
             $faq->save();
             return $faq;
         });
@@ -122,7 +121,7 @@ class ManageFaqController
         return responseJSON("Sukses menghapus data");
     }
 
-	public function ajax(Request $request)
+    public function ajax(Request $request)
     {
         return match ($request->action) {
             'datatable' => $this->ajax_datatable($request),
@@ -133,9 +132,9 @@ class ManageFaqController
     public function ajax_datatable(Request $request): JsonResponse
     {
         $data = MasterFaq::query()
-        ->with(['layanan']);
+            ->with(['layanan']);
         return Datatables::eloquent($data)
-            ->addColumn('name', function(MasterFaq $faq) {
+            ->addColumn('name', function (MasterFaq $faq) {
                 return $faq->layanan->name;
             })
             ->addIndexColumn()
@@ -145,12 +144,12 @@ class ManageFaqController
     private function validateData(Request $request)
     {
         return $request->validate([
-            'layanan_id'       => 'required',
-            'question'       => 'required',
+            'layanan_id' => 'required',
+            'question'   => 'required',
             // 'slug'       => 'required',
-            'answer'       => 'required',
-            'order'       => 'required',
-            'is_active'       => 'nullable'
+            'answer'     => 'required',
+            'order'      => 'required',
+            'is_active'  => 'nullable'
         ]);
     }
 }

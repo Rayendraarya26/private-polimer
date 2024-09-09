@@ -15,6 +15,8 @@ class OauthClient extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'name_full',
+        'login_url',
         'secret',
         'provider',
         'redirect',

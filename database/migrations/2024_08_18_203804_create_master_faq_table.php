@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->uuid('layanan_id')->nullable();
             $table->string('question');
             $table->string('slug');
-            $table->text('answer');
+            $table->binary('answer');
             $table->integer('order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

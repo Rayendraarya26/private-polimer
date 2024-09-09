@@ -77,7 +77,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group row mt-20">
+                        <div class="form-group row pt-20">
                             <div class="form-buttons-w offset-sm-3 col-sm-8">
                                 <div class="form-check form-switch form-check-custom form-check-solid">
                                     <input name="is_active" class="form-check-input" type="checkbox" value="1" id="flexSwitchDefault"
@@ -121,16 +121,30 @@
                 const options = {
                     modules: {
                         toolbar: [
-                            [{
-                                header: [1, 2, false]
-                            }],
-                            ['bold', 'italic', 'underline']
+                            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                            ['blockquote', 'code-block'],
+                            ['link', 'image', 'video', 'formula'],
+
+                            [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                            [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                            [{ 'direction': 'rtl' }],                         // text direction
+
+                            [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+                            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+                            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                            [{ 'font': [] }],
+                            [{ 'align': [] }],
+
+                            ['clean']
                         ]
                     },
                     theme: 'snow'
                 };
                 const quill = new Quill('#quilEditorApp', options);
-                quill.root.innerHTML = "{{old('question') ?? $data?->question}}";
+                quill.root.innerHTML = `{!! old('answer') ?? $data?->answer !!}`;
             }
 
             // Public methods

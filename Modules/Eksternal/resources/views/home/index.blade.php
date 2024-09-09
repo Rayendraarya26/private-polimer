@@ -529,6 +529,11 @@
 @push('scripts')
     <script src="https://www.google.com/recaptcha/api.js?render={{config('google.recaptcha.site_key')}}"></script>
     <script>
+        @if ($errors->any())
+        // go to contact us section
+        document.getElementById('contact-us').scrollIntoView({ behavior: 'instant' });
+        @endif
+
         const initRecaptcha = async function () {
             const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
             const recaptchaInput = document.querySelector('[name="recaptcha"]')

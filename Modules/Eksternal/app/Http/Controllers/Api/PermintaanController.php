@@ -9,6 +9,7 @@ use App\Models\Db1\Pelanggan;
 
 use App\Enums\FeedbackInputType;
 use App\Enums\FeedbackFocus;
+use App\Enums\DataIntegrasiLayananStatusOrder;
 
 use Exception;
 use Illuminate\Http\Request;
@@ -24,39 +25,57 @@ class PermintaanController extends Controller
     {
 		
 		$rows = min($request->get('rows', 10), 50);
-			$search = trim($request->get('search'));
+		$search = trim($request->get('search'));
+        $tahun = trim($request->get('tahun')) ? trim($request->get('tahun')) : date('Y');
+		
+		// selected Group
+		$permintaanData = DataIntegrasiLayanan::query()
+					->where('user_id', auth()->user()->id)
+					->with(['user', 'layanan']);
 			
-            // selected Group
-            $permintaanData = DataIntegrasiLayanan::query()
-						->where('user_id', auth()->user()->id)
-						->with(['user', 'layanan']);
+		if ($search) {
+			$permintaanData->where('kode_order', 'LIKE', '%' . $search . '%');
+		}
+		
+		if ($tahun) {
+			$permintaanData->whereYear('tanggal_order', $tahun);
+		}
+		
+		$total = $permintaanData->count();
+		$permintaanData = $permintaanData
+			->orderByDesc('tanggal_order')
+			->paginate($rows);
 			
-			if ($search) {
-				$permintaanData->where('kode_order', 'LIKE', '%' . $search . '%');
-			}
-			
-			$total = $permintaanData->count();
-			$permintaanData = $permintaanData
-				->orderByDesc('tanggal_order')
-				->paginate($rows);
+		return responseJSON("Success", [
+			'data'   => $permintaanData->map(function ($item) {
+				$file_attachment = $item->file_attachment;
+				foreach($file_attachment as $key => $file){
+					$file_attachment[$key]['file_url'] = Storage::disk('s3')->temporaryUrl(
+						$file['file_path'],
+						now()->addMinutes(5)
+					);
+				}
 				
-            return responseJSON("Success", [
-				'data'   => $permintaanData->map(function ($item) {
-					return [
-						'id'            => $item->id,
-						'layanan_id'       => $item->layanan->id,
-						'layanan'       => $item->layanan->name,
-						'fullname'			=> $item->user->name,
-						'kode_order'        => $item->kode_order,
-						'status_order'        => $item->status_order,
-						'file_attachment'        => $item->file_attachment,
-						'is_given_feedback'        => !!$item->is_given_feedback,
-						'feedback_json'        => $item->feedback_json,
-						'created_at'        => $item->created_at,
-					];
-				}),
-				'total' => $total
-			]);
+				return [
+					'id'            => $item->id,
+					'layanan_id'       => $item->layanan->id,
+					'layanan'       => $item->layanan->name,
+					'fullname'			=> $item->user->name,
+					'kode_order'        => $item->kode_order,
+					'status_order'        => $item->status_order,
+					'file_attachment'        => $file_attachment,
+					'is_given_feedback'        => !!$item->is_given_feedback,
+					'feedback_json'        => $item->feedback_json,
+					'created_at'        => $item->created_at,
+				];
+			}),
+			'total' => $total,
+			'total_permohonan' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PERMOHONAN->value)->count(),
+			'total_pembayaran' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PEMBAYARAN->value)->count(),
+			'total_proses' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PROSES->value)->count(),
+			'total_review' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::REVIEW->value)->count(),
+			'total_selesai' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::SELESAI->value)->count(),
+		]);
     }
 	
 	public function feedback(DataIntegrasiLayanan $integrasi, Request $request)

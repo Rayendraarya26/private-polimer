@@ -9,6 +9,7 @@ use App\Models\Db1\MasterLayanan;
 use App\Models\Db1\SysUser;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class PermintaanSeeder extends Seeder
 {
@@ -23,14 +24,28 @@ class PermintaanSeeder extends Seeder
 
         $faker = Factory::create();
         for ($i = 0; $i < 10; $i++) {
+			$status_order = DataIntegrasiLayananStatusOrder::randomValue();
             DataIntegrasiLayanan::create([
                 'user_id'           => $userPerorangan->id,
                 'layanan_id'        => $dtLayanan->id,
                 'id_order'          => $userPerorangan->id,
                 'kode_order'        => $faker->unique()->regexify('UJI-' . date('ym') . '-[0-9]{8}'),
                 'tanggal_order'     => $faker->dateTimeThisMonth()->format('Y-m-d H:i:s'),
-                'status_order'      => DataIntegrasiLayananStatusOrder::randomValue(),
-                'file_attachment'   => null,
+                'status_order'      => $status_order,
+                'file_attachment'   => $status_order === DataIntegrasiLayananStatusOrder::SELESAI->value ? [
+										[
+											'id' => Str::uuid()->toString(),
+											'file_name' => "laravel-banner.jpg",
+											'file_path' => "dummy/laravel-banner.jpg",
+											'file_size' => 200
+										],
+										[
+											'id' => Str::uuid()->toString(),
+											'file_name' => "laravel-banner.jpg",
+											'file_path' => "dummy/laravel-banner.jpg",
+											'file_size' => 200
+										],
+									] : [],
                 'feedback_json'     => [],
                 'is_given_feedback' => 0
             ]);

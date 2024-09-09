@@ -26,7 +26,78 @@
                     <!--end::Search-->
 					<!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
-                        <!--begin::Add customer-->
+                        <!--begin::Filter-->
+                        <button type="button" class="btn btn-light-secondary me-3" data-kt-menu-trigger="click"
+                                data-kt-menu-placement="bottom-end">
+                            <i class="fad fa-filter"><span class="path1"></span><span class="path2"></span></i>
+                            Filter
+                        </button>
+                        <!--begin::Menu 1-->
+                        <div class="menu menu-sub menu-sub-dropdown w-150px w-md-225px" data-kt-menu="true"
+                             id="kt-toolbar-filter">
+                            <!--begin::Header-->
+                            <div class="px-7 py-5">
+                                <div class="fs-4 text-dark fw-bold">Filter Options</div>
+                            </div>
+                            <!--end::Header-->
+
+                            <!--begin::Separator-->
+                            <div class="separator border-gray-200"></div>
+                            <!--end::Separator-->
+
+                            <!--begin::Content-->
+                            <div class="px-7 py-5">
+                                <div class="row">
+                                    <!--begin::Input group-->
+                                    <div class="col-md-6">
+                                        <div class="mb-10">
+                                            <!--begin::Label-->
+                                            <label class="form-label fs-5 fw-semibold mb-3">Layanan:</label>
+                                            <!--end::Label-->
+
+                                            <!--begin::Options-->
+                                            <div class="d-flex flex-start">
+                                                <div class="d-flex flex-column flex-wrap fw-semibold" data-kt-docs-table-filter="filter_layanan">
+                                                    <label class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
+														<input class="form-check-input" type="radio" name="filter_layanan" value="all" checked="checked">
+														<span class="form-check-label text-gray-600">
+															Semua
+														</span>
+													</label>
+													@foreach($listLayanan as $dtLay)
+													<label class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
+														<input class="form-check-input" type="radio" name="filter_layanan" value="{{$dtLay->id}}">
+														<span class="form-check-label text-gray-600">
+														{{$dtLay->name}}
+														</span>
+													</label>
+													@endforeach
+												</div>
+                                                <!--end::Options-->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end::Input group-->
+                                </div>
+
+                                <!--begin::Actions-->
+                                <div class="d-flex justify-content-end">
+                                    <button type="reset" class="btn btn-light btn-active-light-primary me-2"
+                                            data-kt-menu-dismiss="true" data-kt-docs-table-filter="reset">Reset
+                                    </button>
+
+                                    <button type="submit" class="btn btn-primary" data-kt-menu-dismiss="true"
+                                            data-kt-docs-table-filter="filter">Apply
+                                    </button>
+                                </div>
+                                <!--end::Actions-->
+                            </div>
+                            <!--end::Content-->
+                        </div>
+                        <!--end::Menu 1-->
+                        <!--end::Filter-->
+						
+						<!--begin::Add FAQ-->
                         <a href="{{url("$url/add")}}" class="btn btn-primary" data-bs-toggle="tooltip">
                             <i class="fad fa-plus"></i>
                             Tambah FAQ
@@ -45,6 +116,7 @@
                         <th>Question</th>
                         <th>Urut</th>
                         <th>Aktif?</th>
+                        <th></th>
                         <th class="text-end min-w-100px">Actions</th>
                     </tr>
                     </thead>
@@ -72,6 +144,7 @@
             // Shared variables
             let table;
             let dt;
+			var filterLayanan;
 
             const swalActionError = (message) => {
                 Swal.fire({
@@ -125,7 +198,7 @@
                     searchDelay: 500,
                     processing: true,
                     serverSide: true,
-                    order: [[1, 'asc']],
+                    order: [[2, 'asc']],
                     stateSave: false,
                     ajax: {
                         url: "{{ url("$url/ajax?action=datatable") }}",
@@ -133,16 +206,20 @@
                     columns: [
                         { data: 'name', searchable: false },
                         { data: 'question' },
-                        { data: 'order' },
+                        { data: 'order', searchable: false  },
                         { data: 'is_active' },
+                        { data: 'layanan_id', orderable: false },
                         { data: null, responsivePriority: -1 },
                     ],
                     columnDefs: [
+						{
+                            targets: 4,
+							visible: false,
+                        },
                         {
                             targets: 3,
                             data: null,
                             orderable: true,
-                            searchable: false,
                             className: 'text-end',
                             render: function (data, type, row) {
                                 var status_aktif = `<span class="badge badge-success">Aktif</span>`;
@@ -216,6 +293,49 @@
                     }, 500);
                 });
             };
+			
+			 // Filter Datatable
+            const handleFilterDatatable = () => {
+                // Select filter options
+                filterLayanan = document.querySelectorAll('[data-kt-docs-table-filter="filter_layanan"] [name="filter_layanan"]');
+                const filterButton = document.querySelector('[data-kt-docs-table-filter="filter"]');
+
+                // Filter datatable on submit
+                filterButton.addEventListener('click', function () {
+					let layananValue = '';
+
+					// Get payment value
+					filterLayanan.forEach(r => {
+						if (r.checked) {
+							layananValue = r.value;
+						}
+						if (layananValue === 'all') {
+							layananValue = '';
+						}
+					});
+
+                    if (!_.isEmpty(layananValue)){
+						dt.column(findColumnIndex('layanan_id')).search(layananValue).draw();
+					} 
+					else{
+						filterLayanan[0].checked = true;
+						dt.columns().search('').draw();
+					}
+						
+                });
+            };
+			
+			 // Reset Filter
+            const handleResetForm = () => {
+                // Select reset button
+                const resetButton = document.querySelector('[data-kt-docs-table-filter="reset"]');
+				
+				resetButton.addEventListener('click', function () {
+					filterLayanan[0].checked = true;
+
+					dt.columns().search('').draw();
+				});
+            };
 
             const findColumnIndex = (columnName) => {
                 return dt.columns().indexes().filter(function (idx) {
@@ -268,7 +388,9 @@
                 init: function () {
                     initDatatable();
                     handleSearchDatatable();
+                    handleFilterDatatable();
                     handleDeleteRows();
+                    handleResetForm();
                 },
             }
         }();

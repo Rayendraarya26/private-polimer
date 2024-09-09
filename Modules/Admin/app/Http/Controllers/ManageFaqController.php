@@ -34,7 +34,8 @@ class ManageFaqController
         ];
 
         $parse = array_merge($this->defaultParser(), [
-            'breadcrumbs' => $breadcrumbs
+            'breadcrumbs' => $breadcrumbs,
+			'listLayanan' => MasterLayanan::query()->get(),
         ]);
         return view("$this->view.index")->with($parse);
     }

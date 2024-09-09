@@ -115,6 +115,7 @@ class LoginController
                             'name'                  => $detailPegawai->nama,
                             'password'              => bcrypt($password),
                             'force_update_password' => 0,
+                            'email_verified_at'     => now(),
                         ]);
 
                         $user->sys_user_groups()->create([
@@ -124,11 +125,9 @@ class LoginController
                     });
                 }
 
-                // update password if changed
-                if (!password_verify($password, $user->password)) {
-                    $user->password = bcrypt($password);
-                    $user->save();
-                }
+
+                $user->password = bcrypt($password);
+                $user->save();
 
                 return $user;
             }

@@ -104,16 +104,17 @@ class LoginController
             $kemenperin = new KemenperinClient();
             $response   = $kemenperin->postLogin($accountId, $password);
             if ($response->success) {
-                $user = SysUser::where('nip', '=', $response->nip_baru)->first();
+                $user = SysUser::query()->where('nip', '=', $response->nip_baru)->first();
                 if (!$user) {
                     DB::transaction(function () use ($response, $kemenperin, $password) {
                         $detailPegawai = $kemenperin->getPegawaiByNIP($response->nip_baru);
-                        $user          = SysUser::create([
+                        $user          = SysUser::query()->updateOrCreate([
+                            'nip' => $detailPegawai->nip,
+                        ], [
                             'email'                 => $detailPegawai->email,
                             'name'                  => $detailPegawai->nama,
                             'password'              => bcrypt($password),
-                            'nip'                   => $detailPegawai->nip,
-                            'force_update_password' => Option::NO,
+                            'force_update_password' => 0,
                         ]);
 
                         $user->sys_user_groups()->create([

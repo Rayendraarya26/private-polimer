@@ -129,9 +129,11 @@ const Notifications: React.FC = () => {
             ))}
           </NotificationContents>
           <NotificationFooter>
-            <Link to='/notifications'>
-              <Button type="button" className="w-100 fw-6">Lihat Semua</Button>
-            </Link>
+            <Dropdown.Item className="p-0">
+              <Link to='/notifications'>
+                <Button type="button" className="w-100 fw-6">Lihat Semua</Button>
+              </Link>
+            </Dropdown.Item>
           </NotificationFooter>
         </StyledDropdownMenu>
       </Dropdown>

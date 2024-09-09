@@ -13,4 +13,5 @@ enum DataIntegrasiLayananStatusOrder: string
     case PROSES = 'proses';
     case REVIEW = 'review';
     case SELESAI = 'selesai';
+    case DITOLAK = 'ditolak';
 }

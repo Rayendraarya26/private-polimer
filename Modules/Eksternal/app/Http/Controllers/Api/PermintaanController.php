@@ -75,6 +75,7 @@ class PermintaanController extends Controller
 			'total_proses' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PROSES->value)->count(),
 			'total_review' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::REVIEW->value)->count(),
 			'total_selesai' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::SELESAI->value)->count(),
+			'total_ditolak' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::DITOLAK->value)->count(),
 		]);
     }
 	

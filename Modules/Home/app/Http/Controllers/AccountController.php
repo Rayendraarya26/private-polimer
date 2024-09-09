@@ -3,9 +3,9 @@
 namespace Modules\Home\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
+use App\Enums\Option;
 use App\Libraries\WhatsappService;
 use App\Models\Db1\Pegawai;
-use App\Models\Db1\SysHistoryPassword;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -57,7 +57,7 @@ class AccountController
                 $pegawai      = Pegawai::where('user_id', '=', $user->id)->firstOrNew();
                 $pegawai->nik = $input['nik'];
 
-                if ($pegawai->whatsapp != $input['whatsapp']) {
+                if (config('services.whatsapp.enabled') && $pegawai->whatsapp != $input['whatsapp']) {
                     // Should have WhatsApp OTP
                     if (empty($input['whatsapp_otp'])) {
                         throw new Exception('OTP tidak boleh kosong');
@@ -69,7 +69,8 @@ class AccountController
                         throw new Exception('OTP tidak valid');
                     }
 
-                    $pegawai->whatsapp = $input['whatsapp'];
+                    $pegawai->whatsapp          = $input['whatsapp'];
+                    $pegawai->whatsapp_verified = Option::YES;
                 }
 
                 $pegawai->save();
@@ -134,7 +135,7 @@ class AccountController
         WhatsappService::sendMessage($request->whatsapp, "Kode OTP: $otp")->sendInBackground();
 
         // cache 5 minutes OTP
-        Cache::put('whatsapp_otp_' . $request->whatsapp, $otp, 5);
+        Cache::put('whatsapp_otp_' . $request->whatsapp, $otp, now()->addMinutes(5));
 
         return responseJSON(sprintf('OTP berhasil dikirim ke %s', $request->whatsapp));
     }

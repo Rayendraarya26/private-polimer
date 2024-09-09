@@ -56,6 +56,7 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::get('/', [UserController::class, 'index']); // get user
         Route::patch('/password', [UserController::class, 'updatePassword']);
         Route::patch('/profile', [UserController::class, 'updateProfile']);
+        Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
     });
 
     Route::prefix('notifications')->group(function () {

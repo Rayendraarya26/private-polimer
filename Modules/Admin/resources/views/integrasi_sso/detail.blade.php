@@ -29,11 +29,30 @@
                 </div>
             </div>
             <div class="form-group row mb-3">
+                <label class="col-form-label col-sm-3" for="name_full">Nama Lengkap App*</label>
+                <div class="col-sm-8">
+                    <input class="form-control" placeholder="Masukkan nama..." type="text"
+                           name="name_full" id="name_full" value="{{$data?->name_full}}" readonly>
+                    <small>Ditampilkan pada login form Oauth2</small>
+                </div>
+            </div>
+            <div class="form-group row mb-3">
                 <label class="col-form-label col-sm-3" for="redirect">Callback URL*</label>
                 <div class="col-sm-8">
                     <input class="form-control" placeholder="Halaman redirect https://application.com/callback..."
                            type="text"
                            name="redirect" id="redirect" value="{{$data?->redirect}}" readonly>
+                    <small>Digunakan saat proses Oauth2</small>
+                </div>
+            </div>
+            <div class="form-group row mb-3">
+                <label class="col-form-label col-sm-3" for="login_url">Login URL*</label>
+                <div class="col-sm-8">
+                    <input class="form-control"
+                           placeholder="URL Login di dashboard https://application.com/callback..."
+                           type="text" name="login_url" id="login_url" readonly
+                           value="{{$data?->login_url}}">
+                    <small>URL Login di dashboard</small>
                 </div>
             </div>
             <div class="form-group row mb-3">
@@ -41,11 +60,11 @@
                 <div class="col-sm-8 d-flex flex-column gap-2">
                     <select class="form-control" name="accessibility" id="accessibility" readonly>
                         <option
-                            value="public" {{(old('accessibility') ?? $data?->accessibility) == 'public' ? 'selected' : ''}}>
+                            value="public" {{(old('accessibility') ?? $data?->accessibility) == \App\Enums\OauthClientAccesibility::PUBLIC ? 'selected' : ''}}>
                             Public
                         </option>
                         <option
-                            value="private" {{(old('accessibility') ?? $data?->accessibility) == 'private' ? 'selected' : ''}}>
+                            value="private" {{(old('accessibility') ?? $data?->accessibility) == \App\Enums\OauthClientAccesibility::PRIVATE ? 'selected' : ''}}>
                             Private
                         </option>
                     </select>

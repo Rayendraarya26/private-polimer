@@ -2,10 +2,12 @@
 
 namespace Modules\Eksternal\Http\Controllers\Api;
 
+use App\Enums\Option;
 use App\Enums\PelangganGender;
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
+use App\Libraries\WhatsappService;
 use App\Models\Db1\Pegawai;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganInstansi;
@@ -162,6 +164,7 @@ class UserController extends Controller
             'nik'                 => 'required|numeric|digits:16',
             'surel'               => 'required|email:rfc,dns',
             'whatsapp'            => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'whatsapp_otp'        => 'nullable',
             'pendidikan_terakhir' => 'required|string',
             'npwp'                => 'required|numeric|digits:16',
             'nib'                 => 'nullable|numeric|digits:13',
@@ -170,11 +173,25 @@ class UserController extends Controller
             'dok_lainnya'         => 'nullable|file|mimes:pdf,zip|max:5120',
         ]);
 
-        $pelanggan = PelangganPerorangan::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+        $pelanggan = PelangganPerorangan::where('pelanggan_id', $request->user()->pelanggan->id)->firstOrNew();
 
         // if dok_npwp empty and no file uploaded, throw error
         if (empty($pelanggan->dok_npwp) && !$request->hasFile('dok_npwp')) {
             throw new Exception('NPWP wajib diunggah.');
+        }
+
+        // check whatsapp otp should required if any changes
+        if (config('services.whatsapp.enabled') && $pelanggan->whatsapp != $input['whatsapp']) {
+            if (empty($input['whatsapp_otp'])) {
+                throw new Exception('OTP tidak boleh kosong');
+            }
+
+            $otp = Cache::get($this->getCacheName($input['whatsapp']));
+            if ($otp != $input['whatsapp_otp']) {
+                throw new Exception('OTP tidak valid');
+            }
+
+            $pelanggan->whatsapp_verified = Option::YES;
         }
 
         $pelanggan->nama                = $input['nama'];
@@ -185,8 +202,8 @@ class UserController extends Controller
         $pelanggan->kewarganegaraan     = $input['kewarganegaraan'];
         $pelanggan->nik                 = $input['nik'];
         $pelanggan->surel               = $input['surel'];
-        $pelanggan->whatsapp            = $input['whatsapp'];
         $pelanggan->pendidikan_terakhir = $input['pendidikan_terakhir'];
+        $pelanggan->whatsapp            = $input['whatsapp'];
         $pelanggan->npwp                = $input['npwp'];
         $pelanggan->nib                 = $input['nib'];
 
@@ -209,6 +226,9 @@ class UserController extends Controller
         return $pelanggan;
     }
 
+    /**
+     * @throws Exception
+     */
     private function updateProfileInstansi(Request $request)
     {
         $input = $request->validate([
@@ -224,6 +244,7 @@ class UserController extends Controller
             'sk_nomenklatur'     => 'required|string',
             'pj_nama'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'pj_whatsapp'        => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'pj_whatsapp_otp'    => 'nullable',
             'pj_surel'           => 'required|email:rfc,dns',
             'dok_npwp'           => 'nullable|file|mimes:pdf|max:5120',
             'dok_nib'            => 'nullable|file|mimes:pdf|max:5120',
@@ -231,7 +252,21 @@ class UserController extends Controller
             'dok_lainnya'        => 'nullable|file|mimes:pdf,zip|max:5120',
         ]);
 
-        $pelanggan                 = PelangganInstansi::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+        $pelanggan = PelangganInstansi::where('pelanggan_id', $request->user()->pelanggan->id)->first();
+
+        if (config('services.whatsapp.enabled') && $pelanggan->pj_whatsapp != $input['pj_whatsapp']) {
+            if (empty($input['pj_whatsapp_otp'])) {
+                throw new Exception('OTP tidak boleh kosong');
+            }
+
+            $otp = Cache::get($this->getCacheName($input['pj_whatsapp']));
+            if ($otp != $input['pj_whatsapp_otp']) {
+                throw new Exception('OTP tidak valid');
+            }
+
+            $pelanggan->pj_whatsapp_verified = Option::YES;
+        }
+
         $pelanggan->nama           = $input['nama'];
         $pelanggan->alamat         = $input['alamat'];
         $pelanggan->pimpinan       = $input['pimpinan'];
@@ -288,6 +323,7 @@ class UserController extends Controller
             'iup'                => 'nullable|string',
             'pj_nama'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'pj_whatsapp'        => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'pj_whatsapp_otp'    => 'nullable',
             'pj_surel'           => 'required|email:rfc,dns',
             'dok_npwp'           => 'nullable|file|mimes:pdf|max:5120',
             'dok_nib'            => 'nullable|file|mimes:pdf|max:5120',
@@ -304,6 +340,19 @@ class UserController extends Controller
 
         if (empty($pelanggan->dok_nib) && !$request->hasFile('dok_nib')) {
             throw new Exception('NIB wajib diunggah.');
+        }
+
+        if (config('services.whatsapp.enabled') && $pelanggan->pj_whatsapp != $input['pj_whatsapp']) {
+            if (empty($input['pj_whatsapp_otp'])) {
+                throw new Exception('OTP tidak boleh kosong');
+            }
+
+            $otp = Cache::get($this->getCacheName($input['pj_whatsapp']));
+            if ($otp != $input['pj_whatsapp_otp']) {
+                throw new Exception('OTP tidak valid');
+            }
+
+            $pelanggan->pj_whatsapp_verified = Option::YES;
         }
 
         $pelanggan->nama              = $input['nama'];
@@ -343,5 +392,31 @@ class UserController extends Controller
         $pelanggan->save();
 
         return $pelanggan;
+    }
+
+    public function reqWhatsappOtp(Request $request)
+    {
+        $request->validate([
+            'whatsapp'  => ['required', 'numeric', 'digits_between:10,15', 'regex:/^62/'],
+            'recaptcha' => ['nullable'],
+        ]);
+
+        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
+
+        // Send OTP to WhatsApp
+        $otp = rand(100000, 999999);
+        WhatsappService::sendMessage($request->whatsapp, "Kode OTP: $otp. Jangan bagikan kepada siapapun OTP anda")->sendInBackground();
+
+        // cache 5 minutes OTP
+        Cache::put($this->getCacheName($request->whatsapp), $otp, now()->addMinutes(5));
+
+        return responseJSON(sprintf('OTP berhasil dikirim ke %s', $request->whatsapp));
+    }
+
+    private function getCacheName($waNumber)
+    {
+        return 'whatsapp_otp_update_profile_' . auth()->user()->id . $waNumber;
     }
 }

@@ -42,6 +42,7 @@ return [
     ],
 
     'whatsapp' => [
+        'enabled'  => (bool)env('WHATSAPP_ENABLED', false),
         'base_url' => env('WHATSAPP_BASE_URL'),
         'username' => env('WHATSAPP_USERNAME'),
         'password' => env('WHATSAPP_PASSWORD'),

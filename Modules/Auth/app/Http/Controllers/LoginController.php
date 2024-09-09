@@ -106,7 +106,8 @@ class LoginController
             if ($response->success) {
                 $user = SysUser::query()->where('nip', '=', $response->nip_baru)->first();
                 if (!$user) {
-                    DB::transaction(function () use ($response, $kemenperin, $password) {
+                    try {
+                        DB::beginTransaction();
                         $detailPegawai = $kemenperin->getPegawaiByNIP($response->nip_baru);
                         $user          = SysUser::query()->updateOrCreate([
                             'nip' => $detailPegawai->nip,
@@ -122,11 +123,20 @@ class LoginController
                             'group_id'   => SysGroup::PEGAWAI->value,
                             'is_default' => 'yes'
                         ]);
-                    });
+
+                        DB::commit();
+
+                        return $user;
+                    } catch (Exception $e) {
+                        DB::rollBack();
+                        return null;
+                    }
                 }
 
                 return $user;
             }
+
+            return null;
         } catch (Exception $e) {
             // Log or handle the exception
             Log::withContext([

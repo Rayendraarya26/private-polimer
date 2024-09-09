@@ -33,9 +33,13 @@ class ManageFaqController
             new Breadcrumbs('Manage FAQ Layanan')
         ];
 
+        $listLayanan = MasterLayanan::query()->whereHas('faqs', function ($q) {
+            $q->where('is_active', 1);
+        })->get();
+
         $parse = array_merge($this->defaultParser(), [
             'breadcrumbs' => $breadcrumbs,
-			'listLayanan' => MasterLayanan::query()->get(),
+            'listLayanan' => $listLayanan
         ]);
         return view("$this->view.index")->with($parse);
     }
@@ -130,6 +134,11 @@ class ManageFaqController
     public function ajax_datatable(Request $request): JsonResponse
     {
         $data = MasterFaq::query()
+            ->orderBy('layanan_id')
+            ->orderBy('order')
+            ->when($request->layanan_id, function ($q) use ($request) {
+                $q->where('layanan_id', $request->layanan_id);
+            })
             ->with(['layanan']);
         return Datatables::eloquent($data)
             ->addColumn('name', function (MasterFaq $faq) {

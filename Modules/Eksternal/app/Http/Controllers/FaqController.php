@@ -13,8 +13,12 @@ class FaqController extends Controller
 
     public function index()
     {
+        $listLayanan = MasterLayanan::query()->whereHas('faqs', function ($q) {
+            $q->where('is_active', 1);
+        })->get();
+
         $parser = [
-            'listLayanan' => MasterLayanan::query()->get(),
+            'listLayanan' => $listLayanan
         ];
         return view("$this->view.index")->with($parser);
     }
@@ -22,7 +26,7 @@ class FaqController extends Controller
     public function listTopic($slugLayanan)
     {
         $layanan = MasterLayanan::query()->where('slug', $slugLayanan)->firstOrFail();
-        $parser = [
+        $parser  = [
             'layanan' => $layanan,
             'listFaq' => $layanan->faqs()->get(),
         ];
@@ -32,8 +36,8 @@ class FaqController extends Controller
     public function detailFaq($slugLayanan, $slugQuestion)
     {
         $layanan = MasterLayanan::query()->where('slug', $slugLayanan)->firstOrFail();
-        $faq = $layanan->faqs()->where('slug', $slugQuestion)->firstOrFail();
-        $parser = [
+        $faq     = $layanan->faqs()->where('slug', $slugQuestion)->firstOrFail();
+        $parser  = [
             'layanan' => $layanan,
             'faq'     => $faq,
         ];

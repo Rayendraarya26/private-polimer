@@ -24,7 +24,7 @@
                                placeholder="Cari data"/>
                     </div>
                     <!--end::Search-->
-					<!--begin::Toolbar-->
+                    <!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
                         <!--begin::Filter-->
                         <button type="button" class="btn btn-light-secondary me-3" data-kt-menu-trigger="click"
@@ -57,22 +57,27 @@
 
                                             <!--begin::Options-->
                                             <div class="d-flex flex-start">
-                                                <div class="d-flex flex-column flex-wrap fw-semibold" data-kt-docs-table-filter="filter_layanan">
-                                                    <label class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
-														<input class="form-check-input" type="radio" name="filter_layanan" value="all" checked="checked">
-														<span class="form-check-label text-gray-600">
+                                                <div class="d-flex flex-column flex-wrap fw-semibold"
+                                                     data-kt-docs-table-filter="filter_layanan">
+                                                    <label
+                                                        class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
+                                                        <input class="form-check-input" type="radio"
+                                                               name="filter_layanan" value="" checked="checked">
+                                                        <span class="form-check-label text-gray-600">
 															Semua
 														</span>
-													</label>
-													@foreach($listLayanan as $dtLay)
-													<label class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
-														<input class="form-check-input" type="radio" name="filter_layanan" value="{{$dtLay->id}}">
-														<span class="form-check-label text-gray-600">
+                                                    </label>
+                                                    @foreach($listLayanan as $dtLay)
+                                                        <label
+                                                            class="form-check form-check-sm form-check-custom form-check-solid mb-3 me-5">
+                                                            <input class="form-check-input" type="radio"
+                                                                   name="filter_layanan" value="{{$dtLay->id}}">
+                                                            <span class="form-check-label text-gray-600">
 														{{$dtLay->name}}
 														</span>
-													</label>
-													@endforeach
-												</div>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
                                                 <!--end::Options-->
                                             </div>
                                         </div>
@@ -96,8 +101,8 @@
                         </div>
                         <!--end::Menu 1-->
                         <!--end::Filter-->
-						
-						<!--begin::Add FAQ-->
+
+                        <!--begin::Add FAQ-->
                         <a href="{{url("$url/add")}}" class="btn btn-primary" data-bs-toggle="tooltip">
                             <i class="fad fa-plus"></i>
                             Tambah FAQ
@@ -144,19 +149,8 @@
             // Shared variables
             let table;
             let dt;
-			var filterLayanan;
+            let filterLayanan;
 
-            const swalActionError = (message) => {
-                Swal.fire({
-                    text: message,
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "Ok, tutup!",
-                    customClass: {
-                        confirmButton: "btn fw-bold btn-primary",
-                    }
-                });
-            }
 
             const swalActionSuccess = (message) => {
                 Swal.fire({
@@ -178,13 +172,6 @@
                 headerCheckbox.checked = false;
             }
 
-            const apiActivate = (ids, status) => {
-                axios.post(`{{url("$url/ajax/active")}}`, { ids, status })
-                    .then(res => {
-                        swalActionSuccess(res.data.message);
-                    })
-            }
-
             const apiDelete = (id) => {
                 axios.delete(`{{ url("$url") }}/${id}`)
                     .then(res => {
@@ -192,8 +179,34 @@
                     })
             }
 
+            const getURL = () => {
+                const baseURL = '{!! url("$url/ajax?action=datatable") !!}';
+                const url = new URL(baseURL);
+
+                // Filter layanan
+                const selectedLayanan = document.querySelector('[data-kt-docs-table-filter="filter_layanan"] [name="filter_layanan"]:checked')
+                if (selectedLayanan) {
+                    url.searchParams.append('layanan_id', selectedLayanan.value);
+                }
+
+                return url;
+            }
+
             // Private functions
             const initDatatable = function () {
+                // Select filter options
+                filterLayanan = document.querySelectorAll('[data-kt-docs-table-filter="filter_layanan"] [name="filter_layanan"]');
+
+                // load localstorage filter
+                const filterLayananValue = localStorage.getItem('{{$url}}.filter_layanan');
+                if (filterLayananValue) {
+                    filterLayanan.forEach(r => {
+                        if (r.value === filterLayananValue) {
+                            r.checked = true;
+                        }
+                    });
+                }
+
                 dt = $("#kt_datatable").DataTable({
                     searchDelay: 500,
                     processing: true,
@@ -201,20 +214,20 @@
                     order: [[2, 'asc']],
                     stateSave: false,
                     ajax: {
-                        url: "{{ url("$url/ajax?action=datatable") }}",
+                        url: getURL(),
                     },
                     columns: [
                         { data: 'name', searchable: false },
                         { data: 'question' },
-                        { data: 'order', searchable: false  },
+                        { data: 'order', searchable: false },
                         { data: 'is_active' },
                         { data: 'layanan_id', orderable: false },
                         { data: null, responsivePriority: -1 },
                     ],
                     columnDefs: [
-						{
+                        {
                             targets: 4,
-							visible: false,
+                            visible: false,
                         },
                         {
                             targets: 3,
@@ -222,8 +235,8 @@
                             orderable: true,
                             className: 'text-end',
                             render: function (data, type, row) {
-                                var status_aktif = `<span class="badge badge-success">Aktif</span>`;
-                                if(data !== true)
+                                let status_aktif = `<span class="badge badge-success">Aktif</span>`;
+                                if (data !== true)
                                     status_aktif = `<span class="badge badge-secondary">Non-Aktif</span>`;
                                 return `${status_aktif}`;
                             },
@@ -293,55 +306,39 @@
                     }, 500);
                 });
             };
-			
-			 // Filter Datatable
+
+            // Filter Datatable
             const handleFilterDatatable = () => {
-                // Select filter options
-                filterLayanan = document.querySelectorAll('[data-kt-docs-table-filter="filter_layanan"] [name="filter_layanan"]');
                 const filterButton = document.querySelector('[data-kt-docs-table-filter="filter"]');
 
                 // Filter datatable on submit
-                filterButton.addEventListener('click', function () {
-					let layananValue = '';
+                filterButton.addEventListener('click', function (e) {
+                    let layananValue = '';
 
-					// Get payment value
-					filterLayanan.forEach(r => {
-						if (r.checked) {
-							layananValue = r.value;
-						}
-						if (layananValue === 'all') {
-							layananValue = '';
-						}
-					});
+                    // Get payment value
+                    filterLayanan.forEach(r => {
+                        if (r.checked) layananValue = r.value;
+                    });
 
-                    if (!_.isEmpty(layananValue)){
-						dt.column(findColumnIndex('layanan_id')).search(layananValue).draw();
-					} 
-					else{
-						filterLayanan[0].checked = true;
-						dt.columns().search('').draw();
-					}
-						
+                    // save to localstorage
+                    localStorage.setItem('{{$url}}.filter_layanan', layananValue);
+                    dt.ajax.url(getURL()).load();
                 });
             };
-			
-			 // Reset Filter
+
+            // Reset Filter
             const handleResetForm = () => {
                 // Select reset button
                 const resetButton = document.querySelector('[data-kt-docs-table-filter="reset"]');
-				
-				resetButton.addEventListener('click', function () {
-					filterLayanan[0].checked = true;
 
-					dt.columns().search('').draw();
-				});
-            };
+                resetButton.addEventListener('click', function () {
+                    filterLayanan[0].checked = true;
 
-            const findColumnIndex = (columnName) => {
-                return dt.columns().indexes().filter(function (idx) {
-                    return dt.column(idx).dataSrc() === columnName;
+                    // save to localstorage
+                    localStorage.setItem('{{$url}}.filter_layanan', '');
+                    dt.ajax.url(getURL()).load();
                 });
-            }
+            };
 
             // Delete customer
             const handleDeleteRows = () => {

@@ -114,6 +114,7 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill-blot-formatter@1.0.5/dist/quill-blot-formatter.min.js"></script>
+    <script src="https://unpkg.com/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
     <script>
         "use strict";
         const KTUpsert = function () {
@@ -157,11 +158,13 @@
 
                             ['clean']
                         ],
-                        blotFormatter: {}
+                        blotFormatter: {},
+                        htmlEditButton: {},
                     },
                     theme: 'snow'
                 };
                 Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
+                Quill.register("modules/htmlEditButton", htmlEditButton);
                 quill = new Quill('#quilEditorApp', options);
                 quill.root.innerHTML = `{!! old('answer') ?? $data?->answer !!}`;
             }

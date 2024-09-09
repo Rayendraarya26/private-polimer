@@ -8,7 +8,6 @@ use App\Models\Db1\MasterLayanan;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class ManageFaqController
@@ -102,15 +101,13 @@ class ManageFaqController
 
     public function upsert(array $input, MasterFaq $faq)
     {
-        return DB::transaction(function () use ($input, $faq) {
-            $faq->layanan_id = $input['layanan_id'];
-            $faq->question   = $input['question'];
-            $faq->answer     = $input['answer'];
-            $faq->order      = $input['order'];
-            $faq->is_active  = $input['is_active'];
-            $faq->save();
-            return $faq;
-        });
+        $faq->layanan_id = $input['layanan_id'];
+        $faq->question   = $input['question'];
+        $faq->answer     = $input['answer'];
+        $faq->order      = $input['order'];
+        $faq->is_active  = $input['is_active'];
+        $faq->save();
+        return $faq;
     }
 
     public function destroy($id)
@@ -146,7 +143,6 @@ class ManageFaqController
         return $request->validate([
             'layanan_id' => 'required',
             'question'   => 'required',
-            // 'slug'       => 'required',
             'answer'     => 'required',
             'order'      => 'required',
             'is_active'  => 'nullable'

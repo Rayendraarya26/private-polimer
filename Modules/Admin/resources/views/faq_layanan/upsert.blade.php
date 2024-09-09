@@ -37,7 +37,6 @@
                         </div>
 
 
-
                         <div class="form-group row mb-3">
                             <label class="col-form-label col-sm-3 required" for="layanan_id">
                                 Layanan
@@ -47,9 +46,9 @@
                                     <option value="">-Silahkan Pilih Layanan-</option>
                                     @foreach($data_layanan as $dt)
                                         <option value="{{$dt->id}}"
-                                        @if ($dt->id == old('layanan', $data?->layanan_id))
-                                            selected="selected"
-                                        @endif
+                                                @if ($dt->id == old('layanan', $data?->layanan_id))
+                                                    selected="selected"
+                                            @endif
                                         >{{$dt->name}}</option>
                                     @endforeach
                                 </select>
@@ -80,11 +79,12 @@
                         <div class="form-group row pt-20">
                             <div class="form-buttons-w offset-sm-3 col-sm-8">
                                 <div class="form-check form-switch form-check-custom form-check-solid">
-                                    <input name="is_active" class="form-check-input" type="checkbox" value="1" id="flexSwitchDefault"
-                                        @if(old('is_active') == '1')
-                                            checked
-                                        @elseif($data?->is_active == '1')
-                                            checked
+                                    <input name="is_active" class="form-check-input" type="checkbox" value="1"
+                                           id="flexSwitchDefault"
+                                           @if(old('is_active') == '1')
+                                               checked
+                                           @elseif($data?->is_active == '1')
+                                               checked
                                         @endif
                                     />
                                     <label class="form-check-label" for="flexSwitchDefault">
@@ -96,7 +96,7 @@
 
                         <div class="form-group row mt-5">
                             <div class="form-buttons-w offset-sm-3 col-sm-8">
-                                <button class="btn btn-success" type="button" onclick="submitApi()">
+                                <button class="btn btn-success" type="button" onclick="KTUpsert.submitApi()">
                                     <i class="fas fa-save"></i> Simpan
                                 </button>
                             </div>
@@ -113,9 +113,26 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-blot-formatter@1.0.5/dist/quill-blot-formatter.min.js"></script>
     <script>
         "use strict";
         const KTUpsert = function () {
+
+            let quill;
+
+            const submitApi = () => {
+                $("#answer").val(quill.root.innerHTML);
+
+                let stats = true;
+                const answer = document.getElementById("answer");
+                if (answer.value.length === 0) {
+                    stats = false;
+                }
+
+                if (stats) {
+                    document.getElementById("kt_form").submit();
+                }
+            }
 
             const initTextEditor = () => {
                 const options = {
@@ -126,9 +143,9 @@
                             ['link', 'image', 'video', 'formula'],
 
                             [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-                            [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+                            [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+                            [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
                             [{ 'direction': 'rtl' }],                         // text direction
 
                             [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
@@ -139,11 +156,13 @@
                             [{ 'align': [] }],
 
                             ['clean']
-                        ]
+                        ],
+                        blotFormatter: {}
                     },
                     theme: 'snow'
                 };
-                const quill = new Quill('#quilEditorApp', options);
+                Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
+                quill = new Quill('#quilEditorApp', options);
                 quill.root.innerHTML = `{!! old('answer') ?? $data?->answer !!}`;
             }
 
@@ -152,6 +171,9 @@
                 init: function () {
                     initTextEditor();
                 },
+                submitApi: function () {
+                    submitApi();
+                }
             }
         }();
 
@@ -159,21 +181,6 @@
         KTUtil.onDOMContentLoaded(function () {
             KTUpsert.init();
         });
-
-        function submitApi () {
-            const quill = new Quill('#quilEditorApp');
-            $("#answer").val(quill.root.innerHTML);
-
-            var stats = true;
-            const answer = document.getElementById("answer");
-            if(answer.value.length === 0){
-                stats = false;
-            }
-
-            if(stats){
-                document.getElementById("kt_form").submit();
-            }
-        }
     </script>
 @endpush
 

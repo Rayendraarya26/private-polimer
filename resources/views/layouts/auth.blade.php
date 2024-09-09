@@ -16,6 +16,10 @@
     <link href="{{ asset('assets/fontawesome/css/all.min.css') }}" rel="stylesheet" type="text/css"/>
     <!--end::Global Stylesheets Bundle-->
     <style>
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
+
         .separator::after {
             content: "|"; /* Your separator character, can be changed to anything */
             margin-left: 8px; /* Adjust the spacing as needed */

@@ -40,12 +40,12 @@
         }
 
         .slick-next {
-            right: 20;
+            right: 20px;
             z-index: 10;
         }
 
         .slick-prev {
-            left: 20;
+            left: 20px;
             z-index: 10;
         }
 

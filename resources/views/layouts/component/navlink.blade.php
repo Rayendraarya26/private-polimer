@@ -2,9 +2,9 @@
     <a href="{{ url('/') }}" class="text-center fw-bold text-decoration-underline">
         JIS
     </a>
-    <a href="#" class="text-center fw-bold text-decoration-underline">
+    {{--<a href="#" class="text-center fw-bold text-decoration-underline">
         Panduan
-    </a>
+    </a>--}}
     <a href="{{ route('faq') }}" class="text-center fw-bold text-decoration-underline">
         FAQ
     </a>

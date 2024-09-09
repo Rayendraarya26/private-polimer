@@ -53,10 +53,10 @@
     <div class="w-100 d-flex flex-column align-items-center faq-container">
         <h1 class="faq-title">FAQ Layanan</h1>
         <h2 class="faq-subtitle">Telusuri Layanan</h2>
-        <div class="row">
+        <div class="row w-100 justify-content-center">
             @foreach($listLayanan as $layanan)
                 <div class="col-12 col-md-6 col-lg-4 col-xl-3 p-2 p-lg-4">
-                    <a href="{{ route('faq.topic', $layanan->slug) }}">
+                    <a href="{{ route('faq.topic', $layanan->slug) }}" class="w-100">
                         <div class="faq-card border border-2">
                             <div class="faq-layanan-content">
                                 @if($layanan->icon)

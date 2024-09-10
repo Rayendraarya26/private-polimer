@@ -5,8 +5,8 @@ namespace Modules\Eksternal\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Libraries\TteService;
 use App\Traits\CaptchaTrait;
+use BBSPJIKKP\Sdk\Esign\ApiException;
 use Illuminate\Http\Request;
-use OpenAPI\Client\ApiException;
 
 class TteController extends Controller
 {

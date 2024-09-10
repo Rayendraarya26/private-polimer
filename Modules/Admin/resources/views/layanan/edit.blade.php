@@ -46,6 +46,16 @@
                     </div>
                 </div>
                 <div class="form-group row mb-3">
+                    <label class="col-form-label col-sm-3">Download Certificate URL</label>
+                    <div class="col-sm-8">
+                        <input class="form-control" placeholder="http://..." type="text"
+                               name="certificate_url"
+                               value="{{old('certificate_url', $data->certificate_url)}}">
+                        <small>Anda juga dapat menginputkan URL internal docker, untuk download sertikat lama</small>
+                    </div>
+                </div>
+
+                <div class="form-group row mb-3">
                     <label class="col-form-label col-sm-3">Aktif?</label>
                     <div class="col-sm-8 d-flex flex-row gap-4">
                         <div class="form-check form-check-custom form-check-solid">

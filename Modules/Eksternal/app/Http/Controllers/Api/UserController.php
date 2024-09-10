@@ -367,8 +367,8 @@ class UserController extends Controller
         $pelanggan->whatsapp          = $input['whatsapp'];
         $pelanggan->npwp              = $input['npwp'];
         $pelanggan->nib               = $input['nib'];
-        $pelanggan->no_akta_pendirian = $input['no_akta_pendirian'];
-        $pelanggan->iup               = $input['iup'];
+        $pelanggan->no_akta_pendirian = $input['no_akta_pendirian'] ?? null;
+        $pelanggan->iup               = $input['iup'] ?? null;
         $pelanggan->pj_nama           = $input['pj_nama'];
         $pelanggan->pj_whatsapp       = $input['pj_whatsapp'];
         $pelanggan->pj_surel          = $input['pj_surel'];

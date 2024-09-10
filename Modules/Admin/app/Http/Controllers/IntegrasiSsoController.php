@@ -128,6 +128,8 @@ class IntegrasiSsoController extends Controller
     {
         $input = $request->validate([
             'name'          => 'required',
+            'name_full'     => 'required',
+            'login_url'     => 'required|url',
             'redirect'      => 'required|url',
             'accessibility' => 'required|in:' . implode(',', OauthClientAccesibility::toArray()),
             'revoked'       => 'required|boolean',

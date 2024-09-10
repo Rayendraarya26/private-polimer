@@ -56,6 +56,7 @@ class IntegrationController extends Controller
             $dil->tanggal_order   = $input['permohonan_tanggal'];
             $dil->status_order    = $input['permohonan_status'];
             $dil->file_attachment = $input['permohonan_sertifikat'] ?? [];
+            $dil->feedback_json   = [];
             $dil->last_sync_at    = now();
             $dil->save();
 

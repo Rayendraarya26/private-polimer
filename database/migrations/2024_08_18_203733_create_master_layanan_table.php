@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->json('feedback_json')->nullable();
             $table->enum('is_active', Option::toArray())->default(Option::YES);
             $table->string('integration_url')->nullable();
+            $table->string('certificate_url')->nullable();
             $table->timestampsTz();
         });
     }

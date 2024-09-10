@@ -1,12 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Eksternal\Http\Controllers\Api\DashboardController;
 use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 use Modules\Eksternal\Http\Controllers\Api\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
-use Modules\Eksternal\Http\Controllers\Api\DashboardController;
 use Modules\Eksternal\Http\Controllers\AppController;
+use Modules\Eksternal\Http\Controllers\DownloadSertifikatController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\HomePageController;
@@ -52,43 +53,44 @@ Route::prefix('pertanyaan')->group(function () {
 
 
 // Semua API Eksternal didefinisikan disini
-Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
-    Route::prefix('user')->group(function () {
-        Route::get('/', [UserController::class, 'index']); // get user
-        Route::patch('/password', [UserController::class, 'updatePassword']);
-        Route::patch('/profile', [UserController::class, 'updateProfile']);
-        Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
+Route::middleware('auth:web')->group(function () {
+    Route::prefix('api/eksternal')->group(function () {
+        Route::prefix('user')->group(function () {
+            Route::get('/', [UserController::class, 'index']); // get user
+            Route::patch('/password', [UserController::class, 'updatePassword']);
+            Route::patch('/profile', [UserController::class, 'updateProfile']);
+            Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
+        });
+
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/banner', [DashboardController::class, 'slider']);
+            Route::get('/layanan', [DashboardController::class, 'layanan']);
+        });
+
+
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
+        });
+
+        Route::prefix('layanan')->group(function () {
+            Route::get('/', [PermintaanController::class, 'index']);
+            Route::get('/summary', [PermintaanController::class, 'summaryDashboard']);
+            Route::get('/{integrasi}/download-certificate', [PermintaanController::class, 'download'])->name('download-certificate');
+            Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
+            Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
+        });
+
+        Route::prefix('pertanyaan')->group(function () {
+            Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
+            Route::get('/topik', [PertanyaanController::class, 'listTopic']);
+            Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);
+            Route::get('/{pertanyaan}', [PertanyaanController::class, 'listPesan']);
+            Route::post("/new-pertanyaan", [PertanyaanController::class, 'newPertanyaan']);
+            Route::post("/{pertanyaan}", [PertanyaanController::class, 'newPesan']);
+            Route::post("/{pertanyaan}/closed", [PertanyaanController::class, 'closedPertanyaan']);
+            Route::post("/{pertanyaan}/review", [PertanyaanController::class, 'giveReviewPertanyaan']);
+        });
     });
 
-	Route::prefix('dashboard')->group(function () {
-        Route::get('/banner', [DashboardController::class, 'slider']);
-        Route::get('/layanan', [DashboardController::class, 'layanan']);
-    });
-
-
-    Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
-    });
-
-    Route::prefix('layanan')->group(function () {
-        Route::get('/', [PermintaanController::class, 'index']);
-        Route::get('/summary', [PermintaanController::class, 'summaryDashboard']);
-        Route::get('/{integrasi}/{ref_code}/download', [PermintaanController::class, 'download']);
-        Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
-        Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
-    });
-
-    Route::prefix('pertanyaan')->group(function () {
-        Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
-        Route::get('/topik', [PertanyaanController::class, 'listTopic']);
-        Route::get('/detail/{id}', [PertanyaanController::class, 'detailPertanyaan']);
-        Route::get('/{pertanyaan}', [PertanyaanController::class, 'listPesan']);
-        Route::post("/new-pertanyaan", [PertanyaanController::class, 'newPertanyaan']);
-        Route::post("/{pertanyaan}", [PertanyaanController::class, 'newPesan']);
-        Route::post("/{pertanyaan}/closed", [PertanyaanController::class, 'closedPertanyaan']);
-        Route::post("/{pertanyaan}/review", [PertanyaanController::class, 'giveReviewPertanyaan']);
-        // Route::delete("/{pertanyaan}", [PertanyaanController::class, 'deletePertanyaan']);
-        // Route::delete("/{pesan}", [PertanyaanController::class, 'deletePesan']);
-    });
 });

@@ -5,6 +5,7 @@ use Modules\Eksternal\Http\Controllers\Api\NotificationController;
 use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 use Modules\Eksternal\Http\Controllers\Api\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
+use Modules\Eksternal\Http\Controllers\Api\DashboardController;
 use Modules\Eksternal\Http\Controllers\AppController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
@@ -59,6 +60,12 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
         Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
     });
 
+	Route::prefix('dashboard')->group(function () {
+        Route::get('/banner', [DashboardController::class, 'slider']);
+        Route::get('/layanan', [DashboardController::class, 'layanan']);
+    });
+
+
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
@@ -66,6 +73,8 @@ Route::prefix('api/eksternal')->middleware('auth:web')->group(function () {
 
     Route::prefix('layanan')->group(function () {
         Route::get('/', [PermintaanController::class, 'index']);
+        Route::get('/summary', [PermintaanController::class, 'summaryDashboard']);
+        Route::get('/{integrasi}/{ref_code}/download', [PermintaanController::class, 'download']);
         Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
         Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
     });

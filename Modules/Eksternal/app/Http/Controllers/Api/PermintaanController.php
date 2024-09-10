@@ -2,6 +2,8 @@
 
 namespace Modules\Eksternal\Http\Controllers\Api;
 
+use App\Enums\Option;
+use App\Enums\PelangganJenisPelanggan;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\DataIntegrasiLayanan;
 use App\Models\Db1\MasterLayanan;
@@ -16,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PermintaanController extends Controller
@@ -23,10 +26,9 @@ class PermintaanController extends Controller
 
     public function index(Request $request)
     {
-		
 		$rows = min($request->get('rows', 10), 50);
 		$search = trim($request->get('search'));
-        $tahun = trim($request->get('tahun')) ? trim($request->get('tahun')) : date('Y');
+        $status = trim($request->get('status'));
 		
 		// selected Group
 		$permintaanData = DataIntegrasiLayanan::query()
@@ -37,25 +39,34 @@ class PermintaanController extends Controller
 			$permintaanData->where('kode_order', 'LIKE', '%' . $search . '%');
 		}
 		
-		if ($tahun) {
-			$permintaanData->whereYear('tanggal_order', $tahun);
+		if ($status === 'progress') {
+			$permintaanData->where(function ($query) {
+				$query->where('status_order', '=', DataIntegrasiLayananStatusOrder::PROSES->value)
+					  ->orWhere('status_order', '=', DataIntegrasiLayananStatusOrder::REVIEW->value);
+			});
+		}
+		else if($status === 'not_paid'){
+			$permintaanData->where(function ($query) {
+				$query->where('status_order', DataIntegrasiLayananStatusOrder::PERMOHONAN->value)
+					->orWhere('status_order', '=', DataIntegrasiLayananStatusOrder::PEMBAYARAN->value);
+			});
+		}
+		else if($status != ''){
+			$permintaanData->where('status_order', $status);
 		}
 		
 		$total = $permintaanData->count();
+		
 		$permintaanData = $permintaanData
 			->orderByDesc('tanggal_order')
 			->paginate($rows);
 			
 		return responseJSON("Success", [
-			'data'   => $permintaanData->map(function ($item) {
+			'data'   => $permintaanData->map(function ($item) {		
 				$file_attachment = $item->file_attachment;
 				foreach($file_attachment as $key => $file){
-					$file_attachment[$key]['file_url'] = Storage::disk('s3')->temporaryUrl(
-						$file['file_path'],
-						now()->addMinutes(5)
-					);
+					$file_attachment[$key]['download_link'] = url('api/eksternal/layanan/'.$item->id.'/'.$file_attachment[$key]['ref_code'].'/download');
 				}
-				
 				return [
 					'id'            => $item->id,
 					'layanan_id'       => $item->layanan->id,
@@ -69,40 +80,95 @@ class PermintaanController extends Controller
 					'created_at'        => $item->created_at,
 				];
 			}),
-			'total' => $total,
-			'total_permohonan' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PERMOHONAN->value)->count(),
-			'total_pembayaran' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PEMBAYARAN->value)->count(),
-			'total_proses' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::PROSES->value)->count(),
-			'total_review' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::REVIEW->value)->count(),
-			'total_selesai' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::SELESAI->value)->count(),
-			'total_ditolak' => $permintaanData->where('status_order','=', DataIntegrasiLayananStatusOrder::DITOLAK->value)->count(),
+			'total' => $total
 		]);
     }
 	
-	public function feedback(DataIntegrasiLayanan $integrasi, Request $request)
+	public function summaryDashboard(Request $request)
     {
-		if($integrasi->is_given_feedback){
-			return responseJSON("Anda sudah memberikan feedback untuk permintaan ini.", [], 404);
+        $tahun = trim($request->get('tahun')) ? trim($request->get('tahun')) : date('Y');
+		
+		// selected Group
+		$permintaanData = DataIntegrasiLayanan::query()
+					->select(DB::raw('count(id) AS total_all'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::PERMOHONAN->value.'" then 1 else 0 end), 0) as total_permohonan'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::PEMBAYARAN->value.'" then 1 else 0 end), 0) as total_pembayaran'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::PROSES->value.'" then 1 else 0 end), 0) as total_proses'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::REVIEW->value.'" then 1 else 0 end), 0) as total_review'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::SELESAI->value.'" then 1 else 0 end), 0) as total_selesai'))
+					->addSelect(DB::raw('IFNULL(sum(case when status_order = "'.DataIntegrasiLayananStatusOrder::DITOLAK->value.'" then 1 else 0 end), 0) as total_ditolak'))
+					->where('user_id', auth()->user()->id)
+					->whereYear('tanggal_order', $tahun)
+					->firstOrFail();
+
+		return responseJSON("Success", [
+			'total_all' => (int) $permintaanData->total_all,
+			'total_pembayaran' => (int) $permintaanData->total_permohonan + (int) $permintaanData->total_pembayaran,
+			'total_proses' => (int) $permintaanData->total_proses + (int) $permintaanData->total_review,
+			'total_selesai' => (int) $permintaanData->total_selesai,
+			'total_ditolak' => (int) $permintaanData->total_ditolak,
+		]);
+    }
+	
+	public function download($integrasi, $ref_code, Request $request)
+    {
+		if(!$this->idVerifWa($request)){
+			return responseJSON("Anda belum memverifikasi nomor WA anda, silahkan update telebih dahulu di pengaturan 'Profile'.", [], 404);
 		}
 		else{
-			$dataLayanan = MasterLayanan::query()
-						->where('id', $integrasi->layanan_id)
-						->firstOrFail();
-			if($dataLayanan->feedback_json){
-				$feedback = [];
-				
-				$array_feedback = json_decode($dataLayanan->feedback_json, true);
-
-				foreach ($array_feedback as $cfb) {
-					$feedback[] = $cfb;
+			$integrasi = DataIntegrasiLayanan::where('user_id', $request->user()->id)
+				->where('id', $integrasi)->first();
+			if(!$integrasi){
+				return responseJSON("Silahkan pilih data permohonan dengan benar.", [], 404);
+			}
+			else {
+				if($integrasi->is_given_feedback === ''){
+					return responseJSON("Anda belum memberikan feedback untuk permohonan ini.", [], 404);
 				}
-
-				$feedback = $this->addValueKeyToNullChild($feedback);
-
-				return responseJSON('success', $feedback);
+				else{
+					dd($ref_code);
+				}
+			}
+		}
+		
+	}	
+	
+	public function feedback($integrasi, Request $request)
+    {
+		if(!$this->idVerifWa($request)){
+			return responseJSON("Anda belum memverifikasi nomor WA anda, silahkan update telebih dahulu di pengaturan 'Profile'.", [], 404);
+		}
+		else{
+			$integrasi = DataIntegrasiLayanan::where('user_id', $request->user()->id)
+				->where('id', $integrasi)->first();
+			if(!$integrasi){
+				return responseJSON("Silahkan pilih data permohonan dengan benar.", [], 404);
 			}
 			else{
-				return responseJSON("Layanan ini tidak memiliki Feedback.", [], 404);
+				if($integrasi->is_given_feedback){
+					return responseJSON("Anda sudah memberikan feedback untuk permohonan ini.", [], 404);
+				}
+				else{
+					$dataLayanan = MasterLayanan::query()
+								->where('id', $integrasi->layanan_id)
+								->firstOrFail();
+					if($dataLayanan->feedback_json){
+						$feedback = [];
+						
+						$array_feedback = json_decode($dataLayanan->feedback_json, true);
+
+						foreach ($array_feedback as $cfb) {
+							$feedback[] = $cfb;
+						}
+
+						$feedback = $this->addValueKeyToNullChild($feedback);
+
+						return responseJSON('success', $feedback);
+					}
+					else{
+						return responseJSON("Layanan ini tidak memiliki Feedback.", [], 404);
+					}
+				}
 			}
 		}
     }
@@ -112,23 +178,28 @@ class PermintaanController extends Controller
      */
     public function storeFeedback(DataIntegrasiLayanan $integrasi, Request $request)
     {
-        $request->validate(['feedbacks' => 'required|array']);
-
-        if($integrasi->is_given_feedback){
-			return responseJSON("Anda sudah memberikan feedback untuk permintaan ini.", [], 404);
+		if(!$this->idVerifWa($request)){
+			return responseJSON("Anda belum memverifikasi nomor WA anda, silahkan update telebih dahulu di pengaturan 'Profile'.", [], 404);
 		}
+		else{
+			$request->validate(['feedbacks' => 'required|array']);
 
-        $feedbacks = $request->input('feedbacks');
-        try {
-            $this->validateFeedback($feedbacks);
+			if($integrasi->is_given_feedback){
+				return responseJSON("Anda sudah memberikan feedback untuk permohonan ini.", [], 404);
+			}
 
-            $integrasi->feedback_json     = $feedbacks;
-            $integrasi->is_given_feedback = true;
-            $integrasi->save();
+			$feedbacks = $request->input('feedbacks');
+			try {
+				$this->validateFeedback($feedbacks);
 
-            return responseJSON('Feedback berhasil disimpan');
-        } catch (Exception $e) {
-            return responseJSON($e->getMessage(), [], 400, 'INVALID_FEEDBACK');
+				$integrasi->feedback_json     = $feedbacks;
+				$integrasi->is_given_feedback = true;
+				$integrasi->save();
+
+				return responseJSON('Feedback berhasil disimpan');
+			} catch (Exception $e) {
+				return responseJSON($e->getMessage(), [], 400, 'INVALID_FEEDBACK');
+			}
         }
     }
 
@@ -176,5 +247,29 @@ class PermintaanController extends Controller
         }
 
         return true;
+    }
+	
+	private function idVerifWa(Request $request) : bool
+    {
+        $user_pelanggan = Pelanggan::where('id', '=', $request->user()->pelanggan->id)->with(['user'])->first();
+        if ($user_pelanggan) {
+            if ($user_pelanggan->jenis_pelanggan === PelangganJenisPelanggan::PERORANGAN->value) {
+                $nomor_wa     = ($user_pelanggan->detail->whatsapp) ? $user_pelanggan->detail->whatsapp : '';
+                $isWAVerified = $user_pelanggan->detail->whatsapp_verified;
+            } else {
+                $nomor_wa     = ($user_pelanggan->detail->pj_whatsapp) ? $user_pelanggan->detail->pj_whatsapp : '';
+                $isWAVerified = $user_pelanggan->detail->pj_whatsapp_verified;
+            }
+
+            if ($isWAVerified === Option::YES->value && $nomor_wa !== '') {
+                return true;
+            }
+			else{
+				return false;
+			}
+        }
+		else{
+			return false;
+		}
     }
 }

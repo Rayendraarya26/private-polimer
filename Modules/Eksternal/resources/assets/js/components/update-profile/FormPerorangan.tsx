@@ -1,4 +1,4 @@
-import { memo } from "react"
+import { memo, useMemo } from "react"
 import { Button, Col, Form, InputGroup, Row, Spinner } from "react-bootstrap"
 import useProfile from "../../hooks/useProfile"
 import useEditProfilePerorangan from "../../hooks/profile/useEditProfilePerorangan"
@@ -7,6 +7,7 @@ import styled from "styled-components"
 import { PelangganGender } from "../../types/profile"
 import { refEducations } from "../../constants/common"
 import useRequestOTP from "../../hooks/useRequestOTP"
+import { getPlainPhoneNumber } from "../../utils/common"
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -20,6 +21,9 @@ const FormPerorangan: React.FC = () => {
   const { rhf, errors, submitting, onSubmit } = useEditProfilePerorangan()
 
   const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
+  const isWhatsappChanged = useMemo<boolean>(() => {
+    return rhf.getValues('whatsapp') !== getPlainPhoneNumber(profile?.detail?.whatsapp || '')
+  }, [rhf.watch('whatsapp'), profile])
 
   return (
     <Form 
@@ -225,7 +229,7 @@ const FormPerorangan: React.FC = () => {
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.whatsapp?.message || ''}
                     </div>
-                    {!isRequested && (
+                    {!isRequested && !isWhatsappChanged && (
                       <span 
                         className="text-success"
                         style={{ fontSize: '0.85rem' }}

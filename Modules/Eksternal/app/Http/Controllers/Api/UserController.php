@@ -407,7 +407,7 @@ class UserController extends Controller
 
         // Send OTP to WhatsApp
         $otp = rand(100000, 999999);
-        WhatsappService::sendMessage($request->whatsapp, "Kode OTP: $otp. Jangan bagikan kepada siapapun OTP anda")->sendInBackground();
+        WhatsappService::sendMessage($request->whatsapp, "OTP anda: *$otp*. Kode ini bersifat rahasia dan aktif selama 5 menit")->sendInBackground();
 
         // cache 5 minutes OTP
         Cache::put($this->getCacheName($request->whatsapp), $otp, now()->addMinutes(5));

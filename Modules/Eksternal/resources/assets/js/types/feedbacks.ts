@@ -2,6 +2,7 @@ import { PaginationQuery } from "./core"
 
 export type FeedbacksListQuery = PaginationQuery & {
   search?: string
+  status?: FeedbackItemStatusOrder
 }
 
 export enum FeedbackItemStatusOrder {

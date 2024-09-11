@@ -45,7 +45,7 @@ const FeedbacksPage: React.FC = () => {
     setPage,
     search: query,
     debouncedSearch
-  } = useFeedbacks({ useLoadMore: true })
+  } = useFeedbacks({ useLoadMore: true, defaultStatus: FeedbackItemStatusOrder.DONE })
 
   useEffect(() => {
     getFeedbacks()

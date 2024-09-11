@@ -3,11 +3,12 @@ import useDebounceValue from "../useDebounceValue"
 import { getErrorMessage } from "../../utils/error"
 import toast from "react-hot-toast"
 import { getAllFeedbacks } from "../../services/feedbacks"
-import { FeedbackItem } from "../../types/feedbacks"
+import { FeedbackItem, FeedbackItemStatusOrder } from "../../types/feedbacks"
 
 type Options = {
   defaultRowSize?: number
   useLoadMore?: boolean
+  defaultStatus?: FeedbackItemStatusOrder
 }
 
 export default (options?: Options) => {
@@ -17,6 +18,7 @@ export default (options?: Options) => {
   const [rows] = useState<number>(options?.defaultRowSize || 20)
   const [total, setTotal] = useState<number>(0)
   const [search, setSearch] = useState<string>('')
+  const [status, setStatus] = useState<FeedbackItemStatusOrder | undefined>(options?.defaultStatus || undefined)
   const debouncedSearch = useDebounceValue<string>(search, 500)
 
   useEffect(() => {
@@ -32,7 +34,8 @@ export default (options?: Options) => {
         const results = await getAllFeedbacks({
           page,
           rows,
-          ...(search ? {search} : {})
+          ...(search ? {search} : {}),
+          ...(status ? {status} : {})
         })
         setData(current => {
           if (options?.useLoadMore) {
@@ -48,7 +51,7 @@ export default (options?: Options) => {
         setLoading(false)
       }
     },
-    [page, rows, search, options]
+    [page, rows, search, status, options]
   )
 
   const changeSearch = useCallback((value: string) => {
@@ -68,6 +71,7 @@ export default (options?: Options) => {
     debouncedSearch,
     getFeedbacks,
     changeSearch,
+    setStatus,
     setData
   }
 }

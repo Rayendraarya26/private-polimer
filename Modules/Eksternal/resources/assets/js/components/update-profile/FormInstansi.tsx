@@ -1,9 +1,12 @@
-import { memo } from "react"
-import { Button, Col, Form, InputGroup, Row } from "react-bootstrap"
+import { memo, useMemo } from "react"
+import { Button, Col, Form, InputGroup, Row, Spinner } from "react-bootstrap"
 import useEditProfileInstansi from "../../hooks/profile/useEditProfileInstansi"
 import useProfile from "../../hooks/useProfile"
-import { Download } from "react-feather"
+import { Check, Download } from "react-feather"
 import styled from "styled-components"
+import useRequestOTP from "../../hooks/useRequestOTP"
+import { getPlainPhoneNumber } from "../../utils/common"
+import { YesNoOption } from "../../types/core"
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -15,6 +18,11 @@ const StyledRow = styled(Row)`
 const FormInstansi: React.FC = () => {
   const { profile } = useProfile()
   const { rhf, errors, submitting, onSubmit } = useEditProfileInstansi()
+
+  const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
+  const isWhatsappChanged = useMemo<boolean>(() => {
+    return rhf.getValues('pj_whatsapp') !== getPlainPhoneNumber(profile?.detail?.pj_whatsapp || '')
+  }, [rhf.watch('pj_whatsapp'), profile])
 
   return (
     <Form 
@@ -204,8 +212,21 @@ const FormInstansi: React.FC = () => {
                   {errors?.pj_nama?.message || ''}
                 </div>
               </Form.Group>
+              <Form.Group>
+                <Form.Label>
+                  Alamat Surel <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Control 
+                  type="email"
+                  isInvalid={!!errors?.pj_surel?.message}
+                  {...rhf.register('pj_surel')}
+                />
+                <div className="text-danger" style={{ fontSize: '0.75rem' }}>
+                  {errors?.pj_surel?.message || ''}
+                </div>
+              </Form.Group>
               <StyledRow>
-                <Col xs={12} lg={6}>
+                <Col xs={12} lg={7}>
                   <Form.Group>
                     <Form.Label>
                       Nomor Whatsapp <span className="text-danger">*</span>
@@ -217,27 +238,49 @@ const FormInstansi: React.FC = () => {
                         isInvalid={!!errors?.pj_whatsapp?.message}
                         {...rhf.register('pj_whatsapp')}
                       />
+                      <InputGroup.Text 
+                        as={Button}
+                        variant="primary"
+                        disabled={requesting}
+                        onClick={() => getWhatsappOTP(rhf.getValues('pj_whatsapp'))}
+                      >
+                        <div className="d-inline-flex align-items-center gap-2">
+                          {requesting && <Spinner size="sm"/>}
+                          <div>Request OTP</div>
+                        </div>
+                      </InputGroup.Text>
                     </InputGroup>
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.pj_whatsapp?.message || ''}
                     </div>
+                    {!isRequested && !isWhatsappChanged && profile?.detail?.pj_whatsapp_verified === YesNoOption.YES && (
+                      <span 
+                        className="text-success"
+                        style={{ fontSize: '0.85rem' }}
+                      >
+                        <Check size={18}/>{' '}Telah terverifikasi
+                      </span>
+                    )}
                   </Form.Group>
                 </Col>
-                <Col xs={12} lg={6}>
-                  <Form.Group>
-                    <Form.Label>
-                      Alamat Surel <span className="text-danger">*</span>
-                    </Form.Label>
-                    <Form.Control 
-                      type="email"
-                      isInvalid={!!errors?.pj_surel?.message}
-                      {...rhf.register('pj_surel')}
-                    />
-                    <div className="text-danger" style={{ fontSize: '0.75rem' }}>
-                      {errors?.pj_surel?.message || ''}
-                    </div>
-                  </Form.Group>
-                </Col>
+                {isRequested && (
+                  <Col xs={12} lg={5}>
+                    <Form.Group>
+                      <Form.Label>
+                        Kode OTP
+                      </Form.Label>
+                      <Form.Control 
+                        type="text"
+                        placeholder="Masukkan kode OTP"
+                        isInvalid={!!errors?.pj_whatsapp_otp?.message}
+                        {...rhf.register('pj_whatsapp_otp')}
+                      />
+                      <div className="text-danger" style={{ fontSize: '0.75rem' }}>
+                        {errors?.pj_whatsapp_otp?.message || ''}
+                      </div>
+                    </Form.Group>
+                  </Col>
+                )}
               </StyledRow>
             </div>
           </div>

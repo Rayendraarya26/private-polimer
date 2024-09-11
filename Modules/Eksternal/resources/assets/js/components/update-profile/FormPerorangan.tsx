@@ -8,6 +8,7 @@ import { PelangganGender } from "../../types/profile"
 import { refEducations } from "../../constants/common"
 import useRequestOTP from "../../hooks/useRequestOTP"
 import { getPlainPhoneNumber } from "../../utils/common"
+import { YesNoOption } from "../../types/core"
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -229,7 +230,7 @@ const FormPerorangan: React.FC = () => {
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.whatsapp?.message || ''}
                     </div>
-                    {!isRequested && !isWhatsappChanged && (
+                    {!isRequested && !isWhatsappChanged && profile?.detail?.whatsapp_verified === YesNoOption.YES && (
                       <span 
                         className="text-success"
                         style={{ fontSize: '0.85rem' }}

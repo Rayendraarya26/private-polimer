@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import React, { memo, useMemo, useState } from "react"
 import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row } from "react-bootstrap"
-import { Award, Clipboard, DollarSign, FilePlus, FileText, HelpCircle } from "react-feather"
+import { Award, FilePlus, HelpCircle } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
@@ -248,7 +248,7 @@ const DashboardPage: React.FC = () => {
                       <ProgressBar variant="success" now={70} label={`${70}%`} />
                     </div>
                     <div className="d-flex justify-content-end gap-2">
-                      <Button 
+                      {/* <Button 
                         size="sm"
                         title="Quot."
                       >
@@ -265,7 +265,7 @@ const DashboardPage: React.FC = () => {
                         title="Kwitansi"
                       >
                         <Clipboard size={16}/>
-                      </Button>
+                      </Button> */}
                       <Button 
                         size="sm"
                         title="Kuesioner"

@@ -25,6 +25,7 @@ export type Fields = {
   no_akta_pendirian?: string | null
   pj_nama: string
   pj_whatsapp: string
+  pj_whatsapp_otp?: string
   pj_surel: string
   dok_npwp?: File | null
   dok_nib?: File | null
@@ -60,6 +61,7 @@ export default () => {
         no_akta_pendirian: yup.string().nullable().optional(),
         pj_nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
         pj_whatsapp: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        pj_whatsapp_otp: yup.string().optional(),
         pj_surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
         dok_npwp: yup.mixed()
           .test('fileSize', 'Ukuran file maksimal 5MB', (value) => {
@@ -152,6 +154,7 @@ export default () => {
         no_akta_pendirian: no_akta_pendirian || '',
         pj_nama: pj_nama || '',
         pj_whatsapp: pj_whatsapp ? (pj_whatsapp.startsWith('62') ? pj_whatsapp.replace('62', '') : pj_whatsapp) : '',
+        pj_whatsapp_otp: '',
         pj_surel: pj_surel || '',
         dok_npwp: null,
         dok_nib: null,

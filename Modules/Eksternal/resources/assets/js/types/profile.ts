@@ -45,6 +45,7 @@ export type ProfileType = {
     tempat_lahir?: string | null
     tanggal_lahir?: string | null
     whatsapp_verified?: YesNoOption
+    pj_whatsapp_verified?: YesNoOption
   }
 }
 

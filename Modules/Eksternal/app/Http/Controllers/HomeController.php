@@ -121,7 +121,7 @@ class HomeController extends Controller
             'pesan'     => 'required',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+        if (!$this->validateCaptcha($request->input('recaptcha'))) {
             return back()->withInput()->withErrors(['recaptcha' => 'Captcha tidak valid.']);
         }
 

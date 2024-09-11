@@ -105,7 +105,7 @@ class UserController extends Controller
             'new_password' => 'required|confirmed|min:8|different:old_password',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+        if (!$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 
@@ -128,7 +128,7 @@ class UserController extends Controller
             'recaptcha' => 'sometimes',
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+        if (!$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 
@@ -401,7 +401,7 @@ class UserController extends Controller
             'recaptcha' => ['nullable'],
         ]);
 
-        if (config('google.recaptcha.enabled') && !$this->validateCaptcha($request->input('recaptcha'))) {
+        if (!$this->validateCaptcha($request->input('recaptcha'))) {
             return responseJSON('Captcha tidak valid.', [], 400);
         }
 

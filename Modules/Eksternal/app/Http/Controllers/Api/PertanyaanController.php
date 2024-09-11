@@ -110,7 +110,7 @@ class PertanyaanController extends Controller
 			]);
 
 			/**
-			 * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+			 * if (!$this->verifyCaptcha($request->input('recaptcha'))) {
 			 * return responseJSON('Captcha tidak valid.', [], 400);
 			 * }
 			 */
@@ -171,7 +171,7 @@ class PertanyaanController extends Controller
 			]);
 
 			/**
-			 * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+			 * if (!$this->verifyCaptcha($request->input('recaptcha'))) {
 			 * return responseJSON('Captcha tidak valid.', [], 400);
 			 * }
 			 */
@@ -224,7 +224,7 @@ class PertanyaanController extends Controller
 			]);
 
 			/**
-			 * if (config('google.recaptcha.enabled') && !$this->verifyCaptcha($request->input('recaptcha'))) {
+			 * if (!$this->verifyCaptcha($request->input('recaptcha'))) {
 			 * return responseJSON('Captcha tidak valid.', [], 400);
 			 * }
 			 */
@@ -264,7 +264,7 @@ class PertanyaanController extends Controller
 				'rating'    => 'in:1,2,3,4,5|nullable',
 				'testimoni' => 'string|nullable',
 			]);
-			
+
 			if ($pertanyaan->is_review !== 'yes' && $pertanyaan->status === 'closed') {
 				$pertanyaan->rating    = $request->rating != '' ? $request->rating : null;
 				$pertanyaan->is_review = 'yes';
@@ -303,7 +303,7 @@ class PertanyaanController extends Controller
             }
         }
     }
-	
+
 	private function idVerifWa(Request $request) : bool
     {
         $user_pelanggan = Pelanggan::where('id', '=', $request->user()->pelanggan->id)->with(['user'])->first();

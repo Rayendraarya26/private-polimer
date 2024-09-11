@@ -38,7 +38,7 @@ export default () => {
 
   const validationSchema = useMemo<yup.SchemaOf<Fields>>(
     () => {
-      const { dok_npwp, dok_nib, whatsapp } = profile?.detail ?? {}
+      const { dok_npwp, dok_nib } = profile?.detail ?? {}
 
       return yup.object({
         nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),

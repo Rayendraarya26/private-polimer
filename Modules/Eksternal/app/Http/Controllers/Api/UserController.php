@@ -181,7 +181,7 @@ class UserController extends Controller
         }
 
         // check WhatsApp otp should be required if any changes
-        if (config('services.whatsapp.enabled') && ($pelanggan->whatsapp != $input['whatsapp'] || $pelanggan->whatsapp_verified == Option::NO)) {
+        if (config('services.whatsapp.enabled') && ($pelanggan->whatsapp != $input['whatsapp'] || $pelanggan->whatsapp_verified == Option::NO->value)) {
             if (empty($input['whatsapp_otp'])) {
                 throw new Exception('OTP tidak boleh kosong');
             }
@@ -254,7 +254,7 @@ class UserController extends Controller
 
         $pelanggan = PelangganInstansi::where('pelanggan_id', $request->user()->pelanggan->id)->first();
 
-        if (config('services.whatsapp.enabled') && ($pelanggan->pj_whatsapp != $input['pj_whatsapp'] || $pelanggan->pj_whatsapp_verified == Option::NO)) {
+        if (config('services.whatsapp.enabled') && ($pelanggan->pj_whatsapp != $input['pj_whatsapp'] || $pelanggan->pj_whatsapp_verified == Option::NO->value)) {
             if (empty($input['pj_whatsapp_otp'])) {
                 throw new Exception('OTP tidak boleh kosong');
             }
@@ -342,7 +342,7 @@ class UserController extends Controller
             throw new Exception('NIB wajib diunggah.');
         }
 
-        if (config('services.whatsapp.enabled') && ($pelanggan->pj_whatsapp != $input['pj_whatsapp'] || $pelanggan->pj_whatsapp_verified == Option::NO)) {
+        if (config('services.whatsapp.enabled') && ($pelanggan->pj_whatsapp != $input['pj_whatsapp'] || $pelanggan->pj_whatsapp_verified == Option::NO->value)) {
             if (empty($input['pj_whatsapp_otp'])) {
                 throw new Exception('OTP tidak boleh kosong');
             }

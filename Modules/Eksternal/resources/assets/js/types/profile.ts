@@ -1,3 +1,5 @@
+import { YesNoOption } from "./core"
+
 export type ProfileType = {
   id: string
   name: string
@@ -42,6 +44,7 @@ export type ProfileType = {
     pendidikan_terakhir?: string | null
     tempat_lahir?: string | null
     tanggal_lahir?: string | null
+    whatsapp_verified?: YesNoOption
   }
 }
 

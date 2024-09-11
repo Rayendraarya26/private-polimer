@@ -8,6 +8,7 @@ import { updateProfile } from '../../services/profile'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { refEducations } from '../../constants/common'
 import { useNavigate } from 'react-router-dom'
+import { getPlainPhoneNumber } from '../../utils/common'
 
 export type Fields = {
   nama: string
@@ -21,6 +22,7 @@ export type Fields = {
   pendidikan_lainnya?: string | null
   surel: string
   whatsapp: string | null
+  whatsapp_otp?: string
   npwp: string | null
   nib?: string | null
   dok_npwp?: File | null
@@ -36,7 +38,7 @@ export default () => {
 
   const validationSchema = useMemo<yup.SchemaOf<Fields>>(
     () => {
-      const { dok_npwp, dok_nib } = profile?.detail ?? {}
+      const { dok_npwp, dok_nib, whatsapp } = profile?.detail ?? {}
 
       return yup.object({
         nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
@@ -54,6 +56,7 @@ export default () => {
         }),
         surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
         whatsapp: yup.string().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        whatsapp_otp: yup.string().optional(),
         npwp: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NPWP harus 16 digit', val => `${val || ''}`.length === 16),
         nib: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NIB harus 13 digit', val => `${val || ''}`.length === 13),
         dok_npwp: yup.mixed()
@@ -120,7 +123,8 @@ export default () => {
         pendidikan_terakhir: pendidikan_lainnya ? 'OTHER' : (pendidikan_terakhir || ''),
         pendidikan_lainnya,
         surel: surel || '',
-        whatsapp: whatsapp ? (whatsapp.startsWith('62') ? whatsapp.replace('62', '') : whatsapp) : null,
+        whatsapp: getPlainPhoneNumber(whatsapp || ''),
+        whatsapp_otp: '',
         npwp: npwp || null,
         nib: nib || null,
         dok_npwp: null,

@@ -30,3 +30,12 @@ export const updateProfile = async (formData: FormData) => {
     return Promise.reject(error)
   }
 }
+
+export const requestWhatsappOTP = async (payload: { whatsapp: string, recaptcha: string }) => {
+  try {
+    const { data } = await api.post<DefaultApiResponse<unknown>>('/eksternal/user/request-whatsapp-otp', payload)
+    return data.results
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}

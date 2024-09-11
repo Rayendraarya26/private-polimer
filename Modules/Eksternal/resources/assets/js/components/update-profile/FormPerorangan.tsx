@@ -1,11 +1,12 @@
 import { memo } from "react"
-import { Button, Col, Form, InputGroup, Row } from "react-bootstrap"
+import { Button, Col, Form, InputGroup, Row, Spinner } from "react-bootstrap"
 import useProfile from "../../hooks/useProfile"
 import useEditProfilePerorangan from "../../hooks/profile/useEditProfilePerorangan"
-import { Download } from "react-feather"
+import { Check, Download } from "react-feather"
 import styled from "styled-components"
 import { PelangganGender } from "../../types/profile"
 import { refEducations } from "../../constants/common"
+import useRequestOTP from "../../hooks/useRequestOTP"
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -17,6 +18,8 @@ const StyledRow = styled(Row)`
 const FormPerorangan: React.FC = () => {
   const { profile } = useProfile()
   const { rhf, errors, submitting, onSubmit } = useEditProfilePerorangan()
+
+  const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
 
   return (
     <Form 
@@ -78,7 +81,7 @@ const FormPerorangan: React.FC = () => {
                 </div>
               </Form.Group>
               <StyledRow>
-                <Col xs={12} lg={6}>
+                <Col xs={12} lg={4}>
                   <Form.Group>
                     <Form.Label>
                       Tempat Lahir <span className="text-danger">*</span>
@@ -93,7 +96,7 @@ const FormPerorangan: React.FC = () => {
                     </div>
                   </Form.Group>
                 </Col>
-                <Col xs={12} lg={6}>
+                <Col xs={12} lg={4}>
                   <Form.Group>
                     <Form.Label>
                       Tanggal Lahir <span className="text-danger">*</span>
@@ -108,9 +111,7 @@ const FormPerorangan: React.FC = () => {
                     </div>
                   </Form.Group>
                 </Col>
-              </StyledRow>
-              <StyledRow>
-                <Col xs={12} lg={6}>
+                <Col xs={12} lg={4}>
                   <Form.Group>
                     <Form.Label>
                       Jenis Kelamin <span className="text-danger">*</span>
@@ -127,6 +128,8 @@ const FormPerorangan: React.FC = () => {
                     </div>
                   </Form.Group>
                 </Col>
+              </StyledRow>
+              <StyledRow>
                 <Col xs={12} lg={6}>
                   <Form.Group>
                     <Form.Label>
@@ -142,8 +145,6 @@ const FormPerorangan: React.FC = () => {
                     </div>
                   </Form.Group>
                 </Col>
-              </StyledRow>
-              <StyledRow>
                 <Col xs={12} lg={6}>
                   <Form.Group>
                     <Form.Label>
@@ -156,24 +157,6 @@ const FormPerorangan: React.FC = () => {
                     />
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.surel?.message || ''}
-                    </div>
-                  </Form.Group>
-                </Col>
-                <Col xs={12} lg={6}>
-                  <Form.Group>
-                    <Form.Label>
-                      Nomor Whatsapp <span className="text-danger">*</span>
-                    </Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text>+62</InputGroup.Text>
-                      <Form.Control 
-                        type="number"
-                        isInvalid={!!errors?.whatsapp?.message}
-                        {...rhf.register('whatsapp')}
-                      />
-                    </InputGroup>
-                    <div className="text-danger" style={{ fontSize: '0.75rem' }}>
-                      {errors?.whatsapp?.message || ''}
                     </div>
                   </Form.Group>
                 </Col>
@@ -209,6 +192,63 @@ const FormPerorangan: React.FC = () => {
                       />
                       <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                         {errors?.pendidikan_lainnya?.message || ''}
+                      </div>
+                    </Form.Group>
+                  </Col>
+                )}
+              </StyledRow>
+              <StyledRow>
+                <Col xs={12} lg={7}>
+                  <Form.Group>
+                    <Form.Label>
+                      Nomor Whatsapp <span className="text-danger">*</span>
+                    </Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>+62</InputGroup.Text>
+                      <Form.Control 
+                        type="number"
+                        isInvalid={!!errors?.whatsapp?.message}
+                        {...rhf.register('whatsapp')}
+                      />
+                      <InputGroup.Text 
+                        as={Button}
+                        variant="primary"
+                        disabled={requesting}
+                        onClick={() => getWhatsappOTP(rhf.getValues('whatsapp'))}
+                      >
+                        <div className="d-inline-flex align-items-center gap-2">
+                          {requesting && <Spinner size="sm"/>}
+                          <div>Request OTP</div>
+                        </div>
+                      </InputGroup.Text>
+                    </InputGroup>
+                    <div className="text-danger" style={{ fontSize: '0.75rem' }}>
+                      {errors?.whatsapp?.message || ''}
+                    </div>
+                    {!isRequested && (
+                      <span 
+                        className="text-success"
+                        style={{ fontSize: '0.85rem' }}
+                      >
+                        <Check size={18}/>{' '}Telah terverifikasi
+                      </span>
+                    )}
+                  </Form.Group>
+                </Col>
+                {isRequested && (
+                  <Col xs={12} lg={5}>
+                    <Form.Group>
+                      <Form.Label>
+                        Kode OTP
+                      </Form.Label>
+                      <Form.Control 
+                        type="text"
+                        placeholder="Masukkan kode OTP"
+                        isInvalid={!!errors?.whatsapp_otp?.message}
+                        {...rhf.register('whatsapp_otp')}
+                      />
+                      <div className="text-danger" style={{ fontSize: '0.75rem' }}>
+                        {errors?.whatsapp_otp?.message || ''}
                       </div>
                     </Form.Group>
                   </Col>
@@ -334,7 +374,7 @@ const FormPerorangan: React.FC = () => {
           <Button 
             type="submit"
             size="lg"
-            disabled={submitting}
+            disabled={submitting || requesting}
           >
             Simpan
           </Button>

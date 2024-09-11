@@ -7,3 +7,7 @@ export const REGEX = {
   oneNumber: /[0-9]/,
   oneSymbol: /(?=.*\W)/
 }
+
+export const getPlainPhoneNumber = (value: string) => {
+  return value ? (value.startsWith('62') ? value.replace('62', '') : value) : null
+}

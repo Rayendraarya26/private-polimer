@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import React, { memo, useEffect, useMemo, useState } from "react"
 import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
-import { Award, FilePlus, HelpCircle } from "react-feather"
+import { Award, FilePlus, HelpCircle, Layers } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
@@ -17,6 +17,22 @@ const StyledBannerImage = styled.img`
   aspect-ratio: 4/1;
   object-fit: cover;
   object-position: center;
+`
+
+const StyledLayananCard = styled.div`
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  scale: 0.95;
+  border-color: #cecece !important;
+
+  &:hover {
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+    color: white;
+    cursor: pointer;
+    scale: 1;
+  }
 `
 
 const StyledStatsCard = styled.div`
@@ -45,11 +61,17 @@ const DashboardPage: React.FC = () => {
   const {
     loading,
     statisticData,
-    getStatisticData
+    layanan,
+    getStatisticData,
+    getLayanan
   } = useDashboard()
 
   const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<FeedbackItemStatusOrder | undefined>(undefined)
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
+
+  useEffect(() => {
+    getLayanan()
+  }, [])
 
   useEffect(() => {
     getStatisticData(selectedStatisticYear)
@@ -123,21 +145,6 @@ const DashboardPage: React.FC = () => {
     }
   ]), [statisticData])
 
-  const services = useMemo(() => ([
-    { name: 'Service 1' },
-    { name: 'Service 2' },
-    { name: 'Service 3' },
-    { name: 'Service 4' },
-    { name: 'Service 5' },
-    { name: 'Service 6' },
-    { name: 'Service 7' },
-    { name: 'Service 8' },
-    { name: 'Service 9' },
-    { name: 'Service 10' },
-    { name: 'Service 11' },
-    { name: 'Service 12'  }
-  ]), [])
-
   return (
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
       <div className="w-100">
@@ -160,24 +167,39 @@ const DashboardPage: React.FC = () => {
                 <h6 className="mb-0">Layanan Jasa</h6>
               </div>
             </Card.Header>
-            <Card.Body>
+            <Card.Body className="position-relative">
+              {loading.layanan && (
+                <div 
+                  className="w-100 h-100 position-absolute bg-white"
+                  style={{
+                    inset: 0,
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <Spinner variant="primary"/>
+                </div>
+              )}
               <div className="w-100 row m-0">
-                {services.map((r, i) => (
+                {layanan.map((r, i) => (
                   <div
                     key={i}
-                    className="col-6 col-md-4 col-lg-3 p-1"
+                    className="col-6 col-md-4 col-lg-3 p-1 h-100"
                   >
-                    <div className="border rounded-3 p-2 bg-primary text-white">
+                    <StyledLayananCard 
+                      className="border rounded-3 p-2 h-100"
+                      onClick={() => window.open(r.url)}
+                    >
                       <div className="w-100 d-flex justify-content-center py-2">
-                        <FilePlus size={64}/>
+                        <Layers size={60}/>
                       </div>
                       <div 
                         className="fw-semibold text-center"
-                        style={{ fontSize: '0.85rem' }}
+                        style={{ fontSize: '0.75rem' }}
                       >
-                        {r.name}
+                        {r.nama_layanan}
                       </div>
-                    </div>
+                    </StyledLayananCard>
                   </div>
                 ))}
               </div>

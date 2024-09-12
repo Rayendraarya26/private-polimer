@@ -9,3 +9,8 @@ export type StatisticLayanan = {
   total_selesai: number
   total_ditolak: number
 }
+
+export type LayananItem = {
+  nama_layanan: string
+  url: string
+}

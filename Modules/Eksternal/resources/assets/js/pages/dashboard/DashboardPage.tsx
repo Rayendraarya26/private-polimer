@@ -145,18 +145,20 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
-      <div className="w-100">
-        <Carousel className="rounded-3 overflow-hidden">
-          {sliders.map((r, i) => (
-            <Carousel.Item key={i}>
-              <StyledBannerImage
-                src={r.image}
-                draggable="false"
-              />
-            </Carousel.Item>
-          ))}
-        </Carousel>
-      </div>
+      {sliders.length > 0 && (
+        <div className="w-100">
+          <Carousel className="rounded-3 overflow-hidden">
+            {sliders.map((r, i) => (
+              <Carousel.Item key={i}>
+                <StyledBannerImage
+                  src={r.image}
+                  draggable="false"
+                />
+              </Carousel.Item>
+            ))}
+          </Carousel>
+        </div>
+      )}
       <Row>
         <Col xs={12} lg={7} className="px-3 py-2">
           <Card>

@@ -1,10 +1,11 @@
 import clsx from "clsx"
-import React, { memo, useMemo, useState } from "react"
-import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row } from "react-bootstrap"
+import React, { memo, useEffect, useMemo, useState } from "react"
+import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
 import { Award, FilePlus, HelpCircle } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
+import useDashboard from "../../hooks/useDashboard"
 
 const images = [
   'https://t4.ftcdn.net/jpg/04/95/28/65/360_F_495286577_rpsT2Shmr6g81hOhGXALhxWOfx1vOQBa.jpg',
@@ -41,8 +42,18 @@ const StyledStatsCard = styled.div`
 const currentYear = (new Date()).getFullYear()
 
 const DashboardPage: React.FC = () => {
+  const {
+    loading,
+    statisticData,
+    getStatisticData
+  } = useDashboard()
+
   const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<FeedbackItemStatusOrder | undefined>(undefined)
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
+
+  useEffect(() => {
+    getStatisticData(selectedStatisticYear)
+  }, [selectedStatisticYear])
 
   const historyStatusOptions = useMemo(() => ([
     {
@@ -84,33 +95,33 @@ const DashboardPage: React.FC = () => {
       colClassName: 'col-6',
       classNames: 'fw-semibold bg-primary text-white',
       title: 'Total Permohonan',
-      total: 5,
+      total: statisticData?.total_all || 0,
     },
     {
       colClassName: 'col-6',
       classNames: 'fw-semibold bg-warning',
       title: 'Belum Dibayar',
-      total: 4,
+      total: statisticData?.total_pembayaran || 0,
     },
     {
       colClassName: 'col-4',
       classNames: 'fw-semibold bg-success text-white',
       title: 'Selesai',
-      total: 3,
+      total: statisticData?.total_selesai || 0,
     },
     {
       colClassName: 'col-4',
       classNames: 'fw-semibold bg-info',
       title: 'On Progress',
-      total: 2,
+      total: statisticData?.total_proses || 0,
     },
     {
       colClassName: 'col-4',
       classNames: 'fw-semibold bg-danger text-white',
       title: 'Ditolak',
-      total: 1,
+      total: statisticData?.total_ditolak || 0,
     }
-  ]), [])
+  ]), [statisticData])
 
   const services = useMemo(() => ([
     { name: 'Service 1' },
@@ -181,13 +192,26 @@ const DashboardPage: React.FC = () => {
                 <Form.Select 
                   style={{ width: '7rem' }}
                   value={selectedStatisticYear}
+                  disabled={loading.statistic}
                   onChange={e => setSelectedStatisticYear(parseInt(e.target.value))}
                 >
                   {statisticYearOptions.map(v => <option key={v} value={v}>{v}</option>)}
                 </Form.Select>
               </div>
             </Card.Header>
-            <Card.Body>
+            <Card.Body className="position-relative">
+              {loading.statistic && (
+                <div 
+                  className="w-100 h-100 position-absolute bg-white"
+                  style={{
+                    inset: 0,
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <Spinner variant="primary"/>
+                </div>
+              )}
               <div className="w-100 row m-0">
                 {statistics.map((r, i) => (
                   <StyledStatsCard 

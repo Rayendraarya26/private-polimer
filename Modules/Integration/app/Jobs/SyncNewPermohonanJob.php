@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class SyncStatusPermohonanJob implements ShouldQueue
+class SyncNewPermohonanJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -20,7 +20,6 @@ class SyncStatusPermohonanJob implements ShouldQueue
      */
     public function __construct(
         public MasterLayanan $layanan,
-        public string $idOrder,
     ) {
     }
 
@@ -35,12 +34,11 @@ class SyncStatusPermohonanJob implements ShouldQueue
             'accept'    => 'application/json',
         ])
             ->post($this->layanan->integration_url, [
-                'id'   => $this->idOrder,
-                'sync' => 'one',
+                'sync' => 'new',
             ]);
 
         // log response
-        Log::info('Syncing layanan: #' . $this->layanan->code . ' ID: ' . $this->idOrder, [
+        Log::info(sprintf('Syncing permohonan baru: #%s', $this->layanan->code), [
             'response' => $response->json(),
         ]);
     }

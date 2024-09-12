@@ -5,6 +5,7 @@ namespace Modules\Integration\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Integration\Console\SyncNewPermohonanCmd;
 use Modules\Integration\Console\SyncStatusPermohonanCmd;
 use Modules\Integration\Console\SyncUser;
 use Modules\Integration\Console\SyncUserApps;
@@ -63,6 +64,7 @@ class IntegrationServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command(SyncStatusPermohonanCmd::class)->hourly();
+            $schedule->command(SyncNewPermohonanCmd::class)->everyFourHours();
         });
     }
 

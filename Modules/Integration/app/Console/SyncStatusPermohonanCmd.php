@@ -12,7 +12,7 @@ class SyncStatusPermohonanCmd extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'integration:sync-permohonan';
+    protected $signature = 'integration:sync-status-permohonan';
 
     /**
      * The console command description.

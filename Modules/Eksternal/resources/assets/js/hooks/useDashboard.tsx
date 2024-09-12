@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react"
 import toast from "react-hot-toast"
 import { getErrorMessage } from "../utils/error"
-import { getAllLayanan, getSummaryLayanan } from "../services/dashboard"
-import { LayananItem, StatisticLayanan } from "../types/dashboard"
+import { getAllLayanan, getAllSliders, getSummaryLayanan } from "../services/dashboard"
+import { LayananItem, SliderItem, StatisticLayanan } from "../types/dashboard"
 
 type LoadingStates = {
   statistic: boolean
@@ -16,6 +16,7 @@ export default () => {
   })
   const [statisticData, setStatisticData] = useState<StatisticLayanan | null>(null)
   const [layanan, setLayanan] = useState<LayananItem[]>([])
+  const [sliders, setSliders] = useState<SliderItem[]>([])
 
   const getStatisticData = useCallback(
     async (year: number) => {
@@ -47,11 +48,25 @@ export default () => {
     []
   )
 
+  const getSliders = useCallback(
+    async () => {
+      try {
+        const results = await getAllSliders()
+        setSliders(results)
+      } catch (error) {
+        toast.error(getErrorMessage(error))
+      }
+    },
+    []
+  )
+
   return {
     loading,
     statisticData,
     layanan,
+    sliders,
     getStatisticData,
     getLayanan,
+    getSliders
   }
 }

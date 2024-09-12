@@ -14,3 +14,10 @@ export type LayananItem = {
   nama_layanan: string
   url: string
 }
+
+export type SliderItem = {
+  description: string
+  order: number
+  url: string
+  image: string
+}

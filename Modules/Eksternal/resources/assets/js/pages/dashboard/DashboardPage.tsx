@@ -7,11 +7,6 @@ import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
 import useDashboard from "../../hooks/useDashboard"
 
-const images = [
-  'https://t4.ftcdn.net/jpg/04/95/28/65/360_F_495286577_rpsT2Shmr6g81hOhGXALhxWOfx1vOQBa.jpg',
-  'https://t3.ftcdn.net/jpg/07/78/74/72/360_F_778747218_NplmwtoqLpjZvfklKFwlL0ruknNGKrPN.jpg'
-]
-
 const StyledBannerImage = styled.img`
   width: 100%;
   aspect-ratio: 4/1;
@@ -62,8 +57,10 @@ const DashboardPage: React.FC = () => {
     loading,
     statisticData,
     layanan,
+    sliders,
     getStatisticData,
-    getLayanan
+    getLayanan,
+    getSliders
   } = useDashboard()
 
   const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<FeedbackItemStatusOrder | undefined>(undefined)
@@ -71,6 +68,7 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     getLayanan()
+    getSliders()
   }, [])
 
   useEffect(() => {
@@ -149,10 +147,10 @@ const DashboardPage: React.FC = () => {
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
       <div className="w-100">
         <Carousel className="rounded-3 overflow-hidden">
-          {images.map(url => (
-            <Carousel.Item key={url}>
+          {sliders.map((r, i) => (
+            <Carousel.Item key={i}>
               <StyledBannerImage
-                src={url}
+                src={r.image}
                 draggable="false"
               />
             </Carousel.Item>

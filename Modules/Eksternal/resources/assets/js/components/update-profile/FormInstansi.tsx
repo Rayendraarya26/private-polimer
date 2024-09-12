@@ -238,17 +238,19 @@ const FormInstansi: React.FC = () => {
                         isInvalid={!!errors?.pj_whatsapp?.message}
                         {...rhf.register('pj_whatsapp')}
                       />
-                      <InputGroup.Text 
-                        as={Button}
-                        variant="primary"
-                        disabled={requesting}
-                        onClick={() => getWhatsappOTP(rhf.getValues('pj_whatsapp'))}
-                      >
-                        <div className="d-inline-flex align-items-center gap-2">
-                          {requesting && <Spinner size="sm"/>}
-                          <div>Request OTP</div>
-                        </div>
-                      </InputGroup.Text>
+                      {isWhatsappChanged && (
+                        <InputGroup.Text 
+                          as={Button}
+                          variant="primary"
+                          disabled={requesting}
+                          onClick={() => getWhatsappOTP(rhf.getValues('pj_whatsapp'))}
+                        >
+                          <div className="d-inline-flex align-items-center gap-2">
+                            {requesting && <Spinner size="sm"/>}
+                            <div>Request OTP</div>
+                          </div>
+                        </InputGroup.Text>
+                      )}
                     </InputGroup>
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.pj_whatsapp?.message || ''}

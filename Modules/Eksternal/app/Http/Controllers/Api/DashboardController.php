@@ -2,14 +2,10 @@
 
 namespace Modules\Eksternal\Http\Controllers\Api;
 
-use App\Enums\Common\Products;
 use App\Http\Controllers\Controller;
-use App\Models\Db1\SettingBanner;
 use App\Models\Db1\OauthClient;
-
-use Illuminate\Http\Request;
+use App\Models\Db1\SettingBanner;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Octane\Facades\Octane;
 
 class DashboardController extends Controller
 {
@@ -29,26 +25,27 @@ class DashboardController extends Controller
 
         return responseJSON('Data Found', $slider->map(function ($item) {
             return [
-                'description'   => $item->description,
-                'order'   => $item->order,
-                'url'   => $item->link,
-                'image' => Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour()),
+                'description' => $item->description,
+                'order'       => $item->order,
+                'url'         => $item->link,
+                'image'       => Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour()),
             ];
         }));
     }
-	
-	public function layanan()
+
+    public function layanan()
     {
-       $listSso = OauthClient::query()
+        $listSso = OauthClient::query()
             ->orderBy('name')
             ->where('revoked', 0)
+            ->where('display', 1)
             ->where('accessibility', 'public')
             ->get();
 
         return responseJSON('Data Found', $listSso->map(function ($item) {
             return [
-                'nama_layanan'   => $item->name_full,
-                'url'   => $item->login_url,
+                'nama_layanan' => $item->name_full,
+                'url'          => $item->login_url,
             ];
         }));
     }

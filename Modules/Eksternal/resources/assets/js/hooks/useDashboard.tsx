@@ -2,21 +2,21 @@ import { useCallback, useState } from "react"
 import toast from "react-hot-toast"
 import { getErrorMessage } from "../utils/error"
 import { getAllLayanan, getAllSliders, getSummaryLayanan } from "../services/dashboard"
-import { LayananItem, SliderItem, StatisticLayanan } from "../types/dashboard"
+import { StatisticLayanan } from "../types/dashboard"
+import { useDispatch } from "react-redux"
+import { setLayanan, setLoadingLayanan, setSliders } from "../store/dashboard"
+import { useSelector } from "react-redux"
+import { RootState } from "../store"
 
 type LoadingStates = {
   statistic: boolean
-  layanan: boolean
 }
 
 export default () => {
-  const [loading, setLoading] = useState<LoadingStates>({
-    statistic: false,
-    layanan: false
-  })
+  const dispatch = useDispatch()
+  const { loadingLayanan, layanan, sliders } = useSelector(({ dashboard }: RootState) => dashboard)
+  const [loading, setLoading] = useState<LoadingStates>({ statistic: false })
   const [statisticData, setStatisticData] = useState<StatisticLayanan | null>(null)
-  const [layanan, setLayanan] = useState<LayananItem[]>([])
-  const [sliders, setSliders] = useState<SliderItem[]>([])
 
   const getStatisticData = useCallback(
     async (year: number) => {
@@ -36,13 +36,13 @@ export default () => {
   const getLayanan = useCallback(
     async () => {
       try {
-        setLoading(c => ({...c, layanan: true}))
+        dispatch(setLoadingLayanan(true))
         const results = await getAllLayanan()
-        setLayanan(results)
+        dispatch(setLayanan(results))
       } catch (error) {
         toast.error(getErrorMessage(error))
       } finally {
-        setLoading(c => ({...c, layanan: false}))
+        dispatch(setLoadingLayanan(false))
       }
     },
     []
@@ -52,7 +52,7 @@ export default () => {
     async () => {
       try {
         const results = await getAllSliders()
-        setSliders(results)
+        dispatch(setSliders(results))
       } catch (error) {
         toast.error(getErrorMessage(error))
       }
@@ -62,6 +62,7 @@ export default () => {
 
   return {
     loading,
+    loadingLayanan,
     statisticData,
     layanan,
     sliders,

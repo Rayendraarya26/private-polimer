@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux"
 import { setWindowWidth } from "../store/common"
 import { Spinner } from "react-bootstrap"
 import useProfile from "../hooks/useProfile"
+import useDashboard from "../hooks/useDashboard"
 
 const PrivateLayoutContainer = styled.div`
   width: 100%;
@@ -67,9 +68,15 @@ const PrivateLayout: React.FC = () => {
   const isShowSidebar = useSelector(({ common }: RootState) => common.isShowSidebar)
   const dispatch = useDispatch()
   const { getMyProfile } = useProfile()
+  const {
+    getLayanan,
+    getSliders
+  } = useDashboard()
 
   useEffect(() => {
     getMyProfile()
+    getLayanan()
+    getSliders()
     const resize = () => dispatch(setWindowWidth(window.innerWidth))
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)

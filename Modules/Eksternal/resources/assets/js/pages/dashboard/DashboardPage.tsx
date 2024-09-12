@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import React, { memo, useEffect, useMemo, useState } from "react"
 import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
-import { Award, FilePlus, HelpCircle, Layers } from "react-feather"
+import { Award, HelpCircle, Layers } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
@@ -55,21 +55,15 @@ const currentYear = (new Date()).getFullYear()
 const DashboardPage: React.FC = () => {
   const {
     loading,
+    loadingLayanan,
     statisticData,
     layanan,
     sliders,
-    getStatisticData,
-    getLayanan,
-    getSliders
+    getStatisticData
   } = useDashboard()
 
   const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<FeedbackItemStatusOrder | undefined>(undefined)
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
-
-  useEffect(() => {
-    getLayanan()
-    getSliders()
-  }, [])
 
   useEffect(() => {
     getStatisticData(selectedStatisticYear)
@@ -168,7 +162,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </Card.Header>
             <Card.Body className="position-relative">
-              {loading.layanan && (
+              {loadingLayanan && (
                 <div 
                   className="w-100 h-100 position-absolute bg-white"
                   style={{

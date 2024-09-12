@@ -2,10 +2,12 @@ import { configureStore } from '@reduxjs/toolkit'
 import { combineReducers } from 'redux'
 import common from './common'
 import profile from './profile'
+import dashboard from './dashboard'
 
 const rootReducer = combineReducers({
   common,
-  profile
+  profile,
+  dashboard
 })
 
 const store = configureStore({

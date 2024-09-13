@@ -68,10 +68,6 @@ set-storage-link:
 	@echo "Link storage"
 	@docker exec -w /var/www -t $(shell docker compose ps -q bbkkp_polimer) php artisan storage:link
 
-install-npm:
-	@echo "Installing npm in host via docker"
-	@docker exec -w /var/www -t $(shell docker compose ps -q bbkkp_polimer) npm install
-
 install-composer:
 	@echo "Installing composer in host via docker"
 	@docker run --rm -u "$(shell id -u):$(shell id -g)" -v "$(shell pwd):/var/www" -w /var/www laravelsail/php82-composer:latest composer install --ignore-platform-reqs

@@ -6,7 +6,8 @@ const api = axios.create({
   baseURL: BASE_API_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
   }
 })
 

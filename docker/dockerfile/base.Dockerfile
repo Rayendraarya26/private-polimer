@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick-doc \
     pdftk \
     iputils-ping \
-    git
+    git \
+    logrotate
 
 ENV TZ=Asia/Jakarta
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -38,6 +39,3 @@ ENV PATH="/root/.nvm/versions/node/$(node -v)/bin:${PATH}"
 
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Copy Imagick Policy
-COPY /docker/imagick/policy.xml /etc/ImageMagick-6/policy.xml

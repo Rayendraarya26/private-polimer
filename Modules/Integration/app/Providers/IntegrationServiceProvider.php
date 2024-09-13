@@ -48,6 +48,7 @@ class IntegrationServiceProvider extends ServiceProvider
     {
         $this->commands([
             SyncStatusPermohonanCmd::class,
+            SyncNewPermohonanCmd::class,
             SyncUser::class,
             SyncUserApps::class,
             SyncUserPuk::class,

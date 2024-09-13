@@ -124,6 +124,8 @@ class LoginController
                             'is_default' => 'yes'
                         ]);
 
+                        $user->pegawai()->create();
+
                         DB::commit();
 
                         return $user;

@@ -14,4 +14,16 @@ enum DataIntegrasiLayananStatusOrder: string
     case REVIEW = 'review';
     case SELESAI = 'selesai';
     case DITOLAK = 'ditolak';
+	
+	public function getPersentaseOrder(): string
+    {
+		return match ($this) {
+            self::PERMOHONAN => 20,
+            self::PEMBAYARAN => 40,
+            self::PROSES => 60,
+            self::REVIEW => 80,
+            self::SELESAI => 100,
+            self::DITOLAK => 0
+        };
+    }
 }

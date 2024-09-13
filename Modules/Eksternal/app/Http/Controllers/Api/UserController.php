@@ -213,17 +213,7 @@ class UserController extends Controller
             'dok_lainnya' => 'Dokumen Lainnya',
         ];
 
-        foreach ($dokumen as $key => $value) {
-            if ($request->hasFile($key)) {
-                $file            = $request->file($key);
-                $path            = $file->store('pelanggan/' . $request->user()->id . '/dokumen', 's3');
-                $pelanggan->$key = $path;
-            }
-        }
-
-        $pelanggan->save();
-
-        return $pelanggan;
+        return $this->saveAndUploadFileToStorage($dokumen, $request, $pelanggan);
     }
 
     /**
@@ -288,17 +278,7 @@ class UserController extends Controller
             'dok_lainnya'        => 'Dokumen Lainnya',
         ];
 
-        foreach ($dokumen as $key => $value) {
-            if ($request->hasFile($key)) {
-                $file            = $request->file($key);
-                $path            = $file->store('pelanggan/' . $request->user()->id . '/dokumen', 's3');
-                $pelanggan->$key = $path;
-            }
-        }
-
-        $pelanggan->save();
-
-        return $pelanggan;
+        return $this->saveAndUploadFileToStorage($dokumen, $request, $pelanggan);
     }
 
     /**
@@ -381,17 +361,7 @@ class UserController extends Controller
             'dok_lainnya'        => 'Dokumen Lainnya',
         ];
 
-        foreach ($dokumen as $key => $value) {
-            if ($request->hasFile($key)) {
-                $file            = $request->file($key);
-                $path            = $file->store('pelanggan/' . $request->user()->id . '/dokumen', 's3');
-                $pelanggan->$key = $path;
-            }
-        }
-
-        $pelanggan->save();
-
-        return $pelanggan;
+        return $this->saveAndUploadFileToStorage($dokumen, $request, $pelanggan);
     }
 
     public function reqWhatsappOtp(Request $request)
@@ -418,5 +388,31 @@ class UserController extends Controller
     private function getCacheName($waNumber)
     {
         return 'whatsapp_otp_update_profile_' . auth()->user()->id . $waNumber;
+    }
+
+    /**
+     * @param array $dokumen
+     * @param Request $request
+     * @param mixed $pelanggan
+     * @return mixed
+     */
+    private function saveAndUploadFileToStorage(array $dokumen, Request $request, mixed $pelanggan)
+    {
+        foreach ($dokumen as $key => $value) {
+            if ($request->hasFile($key)) {
+                // delete old file if exists
+                if (!empty($pelanggan->$key)) {
+                    Storage::disk('s3')->delete($pelanggan->$key);
+                }
+
+                $file            = $request->file($key);
+                $path            = $file->store('pelanggan/' . $request->user()->id . '/dokumen', 's3');
+                $pelanggan->$key = $path;
+            }
+        }
+
+        $pelanggan->save();
+
+        return $pelanggan;
     }
 }

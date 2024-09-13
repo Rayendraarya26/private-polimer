@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\Restriction;
+use App\Http\Middleware\SentryContext;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\BannerController;
 use Modules\Admin\Http\Controllers\PertanyaanController;
@@ -23,7 +26,7 @@ use Modules\Admin\Http\Controllers\ManageHomepageController;
 */
 
 Route::prefix('/admin')
-    ->middleware(['custom_auth', 'restrict'])
+    ->middleware([CustomAuthMiddleware::class, Restriction::class, SentryContext::class])
     ->group(function () {
         Route::prefix('/setting-banner')->group(function () {
             Route::get('/', [BannerController::class, 'index']);

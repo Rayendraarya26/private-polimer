@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\InternalUserMiddleware;
+use App\Http\Middleware\SentryContext;
 use Illuminate\Support\Facades\Route;
 use Modules\Home\Http\Controllers\AccountController;
 use Modules\Home\Http\Controllers\DashboardController;
@@ -17,7 +20,7 @@ use Modules\Home\Http\Controllers\NotificationController;
 |
 */
 
-Route::middleware(['custom_auth', 'internal'])->group(function () {
+Route::middleware([CustomAuthMiddleware::class, InternalUserMiddleware::class, SentryContext::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('home');
 
     Route::prefix('notifications')->group(function () {

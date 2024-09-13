@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SentryContext;
 use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Middleware\AccesibilityMiddleware;
@@ -15,7 +16,7 @@ use Modules\Eksternal\Http\Middleware\AccesibilityMiddleware;
  *
 */
 
-Route::middleware(['auth:api', AccesibilityMiddleware::class])
+Route::middleware(['auth:api', AccesibilityMiddleware::class, SentryContext::class])
     ->group(function () {
         Route::get('user', [UserController::class, 'index']);
     });

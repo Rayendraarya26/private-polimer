@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\Restriction;
+use App\Http\Middleware\SentryContext;
 use Illuminate\Support\Facades\Route;
 use Modules\System\Http\Controllers\ManageGroupController;
 use Modules\System\Http\Controllers\ManageMenuActionController;
@@ -17,7 +20,7 @@ use Modules\System\Http\Controllers\ManageUserController;
 |
 */
 
-Route::prefix('system')->middleware(['custom_auth', 'restrict'])->group(function () {
+Route::prefix('system')->middleware([CustomAuthMiddleware::class, Restriction::class, SentryContext::class])->group(function () {
     Route::redirect("/", "/system/menu");
 
     Route::resource("user", ManageUserController::class);

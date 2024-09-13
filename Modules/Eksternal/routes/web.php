@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CustomAuthMiddleware;
+use App\Http\Middleware\SentryContext;
 use Illuminate\Support\Facades\Route;
 use Modules\Eksternal\Http\Controllers\Api\DashboardController;
 use Modules\Eksternal\Http\Controllers\Api\NotificationController;
@@ -30,7 +32,7 @@ Route::get('/clear-cache', function () {
 
 Route::get('/app', [AppController::class, 'index'])
     ->name('app')
-    ->middleware(['custom_auth']);
+    ->middleware([CustomAuthMiddleware::class, SentryContext::class]);
 
 Route::get('/', [HomeController::class, 'index']);
 Route::post('/', [HomeController::class, 'contactUs']);
@@ -53,7 +55,7 @@ Route::prefix('pertanyaan')->group(function () {
 
 
 // Semua API Eksternal didefinisikan disini
-Route::middleware('auth:web')->group(function () {
+Route::middleware('auth:web')->middleware(SentryContext::class)->group(function () {
     Route::prefix('api/eksternal')->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class, 'index']); // get user

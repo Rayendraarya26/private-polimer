@@ -55,14 +55,14 @@ class PermintaanController extends Controller
         $permintaanData = $permintaanData
             ->orderByDesc('tanggal_order')
             ->paginate($rows);
-		
-		
+
+
         return responseJSON("Success", [
             'data'  => $permintaanData->map(function ($item) {
                 $file_attachment = $item->file_attachment;
                 foreach ($file_attachment as $key => $file) {
                     $file_attachment[$key]['download_link'] = route('download-certificate', ['integrasi' => $item->id, 'kode' => $file['kode']]);
-                }				
+                }
                 return [
                     'id'                => $item->id,
                     'layanan_id'        => $item->layanan->id,
@@ -70,7 +70,7 @@ class PermintaanController extends Controller
                     'fullname'          => $item->user->name,
                     'kode_order'        => $item->kode_order,
                     'status_order'      => $item->status_order,
-                    'persentase_order'      => (int) DataIntegrasiLayananStatusOrder::tryFrom($item->status_order)->getPersentaseOrder(),
+                    'persentase_order'  => (int)DataIntegrasiLayananStatusOrder::tryFrom($item->status_order)->getPersentaseOrder(),
                     'file_attachment'   => $file_attachment,
                     'is_given_feedback' => !!$item->is_given_feedback,
                     'feedback_json'     => $item->feedback_json,

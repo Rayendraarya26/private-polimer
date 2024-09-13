@@ -48,7 +48,7 @@ class ManageUserController
             new Breadcrumbs('Add')
         ];
 
-        $groups = SysGroup::orderBy('id')->get();
+        $groups = SysGroup::query()->where('id', '!=', \App\Enums\SysGroup::PELANGGAN->value)->orderBy('id')->get();
         $parse  = array_merge($this->defaultParser(), [
             'breadcrumbs'       => $breadcrumbs,
             'data'              => null,
@@ -69,7 +69,7 @@ class ManageUserController
             new Breadcrumbs('Update')
         ];
         $data            = SysUser::findOrFail($id);
-        $groups          = SysGroup::orderBy('id')->get();
+        $groups          = SysGroup::query()->where('id', '!=', \App\Enums\SysGroup::PELANGGAN->value)->orderBy('id')->get();
         $defaultGroup    = $data->sys_user_groups()->where("is_default", "yes")->first()?->group_id;
         $selectedGroupId = $data->sys_user_groups()->pluck('group_id')->toArray();
 
@@ -141,6 +141,8 @@ class ManageUserController
             if (!empty($input['password'])) $user->password = bcrypt($input['password']);
             $user->save();
 
+            $isPegawai = true;
+
             // Delete User Group
             SysUserGroup::where("user_id", $user->id)->delete();
             // Reinsert User Group
@@ -150,6 +152,10 @@ class ManageUserController
                     'group_id'   => $group,
                     'is_default' => $input['group_default'] == $group ? 'yes' : 'no'
                 ]);
+
+                if ($group == \App\Enums\SysGroup::PELANGGAN->value) {
+                    $isPegawai = false;
+                }
             }
             $user->save();
 
@@ -167,6 +173,10 @@ class ManageUserController
 
                 $user->picture = $imageName;
                 $user->save();
+            }
+
+            if ($isPegawai) {
+                $user->pegawai()->create();
             }
         });
 

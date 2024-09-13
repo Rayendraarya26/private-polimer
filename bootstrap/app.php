@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Sentry\Laravel\Integration;
+use Sentry\State\Scope;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -39,5 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        Integration::configureScope(function (Scope $scope) {
+            if (auth()->check()) {
+                $scope->setUser([
+                    'id'    => auth()->id(),
+                    'email' => auth()->user()->email,
+                ]);
+            }
+        });
         Integration::handles($exceptions);
     })->create();

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom"
 import api from "../../utils/api"
 import toast from "react-hot-toast"
 import { getErrorMessage } from "../../utils/error"
+import { getFilenameFromContentDisposition } from "../../utils/common"
 
 const StyledBannerImage = styled.img`
   width: 100%;
@@ -162,11 +163,12 @@ const DashboardPage: React.FC = () => {
     const toastId = toast.loading('Mengunduh sertifikat')
     try {
       const res = await api.get(data.download_link, {responseType: 'blob'})
-      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const blob = new Blob([res.data], { type: res?.headers?.['content-type'] })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `${data.nama}.pdf`
+      const filename = getFilenameFromContentDisposition(res?.headers?.['content-disposition'] || '')
+      if (filename) link.download = filename
       document.body.appendChild(link)
       link.click()
       URL.revokeObjectURL(url)

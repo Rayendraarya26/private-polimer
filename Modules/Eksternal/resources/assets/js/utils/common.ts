@@ -11,3 +11,10 @@ export const REGEX = {
 export const getPlainPhoneNumber = (value: string) => {
   return value ? (value.startsWith('62') ? value.replace('62', '') : value) : null
 }
+
+export const getFilenameFromContentDisposition = (contentDisposition: string): string | null => {
+  if (!contentDisposition) return null
+  const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+  if (!matches) return null
+  return matches[1].replace(/['"]/g, '')
+}

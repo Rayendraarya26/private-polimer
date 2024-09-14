@@ -355,7 +355,7 @@ const DashboardPage: React.FC = () => {
                       {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <ProgressBar variant="primary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                       {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                     </div>
-                    {r.status_order === FeedbackItemStatusOrder.DONE && r.file_attachment.length < 1 && (
+                    {r.status_order === FeedbackItemStatusOrder.DONE && r.file_attachment.length < 1 && r.is_given_feedback && (
                       <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                         Saat ini sertifikat belum tersedia. Jika dalam waktu 1 hari sertifikat belum muncul, silakan hubungi CS kami di nomor{' '}
                         <a href={`https://wa.me/628112827821?text=Sertifikat Saya pada layanan *${r.layanan}* dengan ID Order *${r.kode_order}* belum tersedia pada portal JIS, mohon bantuannya untuk pengecekan data terkait. Terimakasih`} target="_blank" rel="noopener noreferrer">

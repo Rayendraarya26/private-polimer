@@ -271,13 +271,17 @@ class PertanyaanController extends Controller
             return responseJSON("Anda belum memverifikasi nomor WA anda, silahkan update telebih dahulu di pengaturan 'Profile'.", [], 404);
         }
 
-        $request->validate([
-            'rating'    => 'in:1,2,3,4,5|nullable',
+        $input = $request->validate([
+            'rating'    => 'in:1,2,3,4,5|required',
             'testimoni' => 'string|nullable',
         ]);
 
         if ($pertanyaan->is_review === 'yes' && $pertanyaan->status === 'closed') {
             return responseJSON("Anda sudah memberikan review dan rating layanan untuk pertanyaan ini.", [], 404);
+        }
+
+        if ($input['rating'] < 5 && str_word_count(trim($input['testimoni'])) < 5) {
+            return responseJSON("Testimoni harus diisi minimal 5 kata", [], 404);
         }
 
         $pertanyaan->rating    = $request->rating != '' ? $request->rating : null;

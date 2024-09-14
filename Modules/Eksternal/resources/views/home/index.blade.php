@@ -459,11 +459,11 @@
                     </div>
                     <div class="col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center gap-5">
                         <div class="fs-2 fw-bold py-4">Lokasi Kami</div>
-                        <!-- <img
+                        <img
                             alt=""
                             class="w-75"
-                            src="{{ asset('assets/media/logos/logo-jis.png') }}"
-                        /> -->
+                            src="{{ asset('assets/media/logos/logo-jis-white.png') }}"
+                        />
                         <div class="w-100 w-lg-75 d-flex flex-column gap-3">
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-solid fa-location-dot pt-1 text-white"></i>

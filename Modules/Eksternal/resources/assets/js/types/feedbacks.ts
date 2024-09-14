@@ -32,6 +32,7 @@ export type FeedbackItem = {
   feedback_json: unknown | null
   created_at: string
   persentase_order: number
+  tanggal_order: string
 }
 
 export enum FeedbackInputType {

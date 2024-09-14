@@ -346,7 +346,7 @@ const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                     <div style={{ fontSize: '0.75rem' }}>
-                      Tanggal Order: {getDateDisplay(r.created_at)}
+                      Tanggal Order: {getDateDisplay(r.tanggal_order, true)}
                     </div>
                     <div className="py-3">
                       {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <ProgressBar variant="secondary" now={r.persentase_order} label={`${r.persentase_order}%`} />}

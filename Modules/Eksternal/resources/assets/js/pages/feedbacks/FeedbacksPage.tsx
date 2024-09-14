@@ -1,5 +1,3 @@
-import { format } from "date-fns"
-import { id } from "date-fns/locale/id"
 import React, { memo, useEffect } from "react"
 import { Badge, Button, Card, Form, InputGroup, Spinner } from "react-bootstrap"
 import { Calendar, Check, Clock, Search } from "react-feather"
@@ -7,6 +5,7 @@ import styled from "styled-components"
 import { useNavigate } from "react-router-dom"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
+import { getDateDisplay } from "../../utils/date"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -102,7 +101,7 @@ const FeedbacksPage: React.FC = () => {
                   <div className="d-inline-flex align-items-center gap-2">
                     <Calendar size={12}/>
                     <div>
-                      {format(new Date(r.created_at), 'dd MMMM yyyy, HH:mm', { locale: id })}
+                      Tanggal Order: {getDateDisplay(r.tanggal_order, true)}
                     </div>
                   </div>
                   {r.is_given_feedback ? (

@@ -1,11 +1,16 @@
 import clsx from "clsx"
-import React, { memo, useEffect, useMemo, useState } from "react"
-import { Badge, Button, Card, Carousel, Col, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
-import { Award, HelpCircle, Layers } from "react-feather"
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { Badge, Button, Card, Carousel, Col, Dropdown, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
+import { Award, Download, Edit, HelpCircle, Layers } from "react-feather"
 import styled from "styled-components"
-import { FeedbackItemStatusOrder } from "../../types/feedbacks"
+import { FeedbackItem, FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
 import useDashboard from "../../hooks/useDashboard"
+import useFeedbacks from "../../hooks/feedback/useFeedbacks"
+import { useNavigate } from "react-router-dom"
+import api from "../../utils/api"
+import toast from "react-hot-toast"
+import { getErrorMessage } from "../../utils/error"
 
 const StyledBannerImage = styled.img`
   width: 100%;
@@ -53,6 +58,7 @@ const StyledStatsCard = styled.div`
 const currentYear = (new Date()).getFullYear()
 
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate()
   const {
     loading,
     loadingLayanan,
@@ -61,9 +67,23 @@ const DashboardPage: React.FC = () => {
     sliders,
     getStatisticData
   } = useDashboard()
+  const { 
+    loading: loadingHistory,
+    data,
+    page,
+    total,
+    totalPages,
+    status,
+    getFeedbacks,
+    setPage,
+    changeStatus
+  } = useFeedbacks({ useLoadMore: true })
 
-  const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<FeedbackItemStatusOrder | undefined>(undefined)
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
+
+  useEffect(() => {
+    getFeedbacks()
+  }, [page, status])
 
   useEffect(() => {
     getStatisticData(selectedStatisticYear)
@@ -136,6 +156,27 @@ const DashboardPage: React.FC = () => {
       total: statisticData?.total_ditolak || 0,
     }
   ]), [statisticData])
+
+  const onDownloadCertificate = useCallback(async (data: SertifikatItem) => {
+    if (!data) return
+    const toastId = toast.loading('Mengunduh sertifikat')
+    try {
+      const res = await api.get(data.download_link)
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${data.nama}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      URL.revokeObjectURL(url)
+      link.parentNode?.removeChild(link)
+    } catch (error) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      toast.remove(toastId)
+    }
+  }, [])
 
   return (
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
@@ -250,42 +291,67 @@ const DashboardPage: React.FC = () => {
         </Col>
         <Col xs={12} className="px-3 py-2">
           <Card>
-            <Card.Header className="pt-2">
+            <Card.Header className="pt-3">
               <div className="w-100 d-flex justify-content-between align-items-center gap-2">
-                <h6 className="mb-0">Riwayat Permohonan Layanan</h6>
+                <div>
+                  <h6 className="mb-0">Riwayat Permohonan Layanan</h6>
+                  <small style={{ fontSize: '0.75rem' }}>Menampilkan {data.length} dari {total}</small>
+                </div>
                 <Form.Select 
                   style={{ width: '12rem' }}
-                  value={selectedHistoryStatus}
-                  onChange={e => setSelectedHistoryStatus(e.target.value as FeedbackItemStatusOrder | undefined)}
+                  value={status}
+                  onChange={e => changeStatus((e.target.value || undefined) as FeedbackItemStatusOrder | undefined)}
                 >
-                  {historyStatusOptions.map((r, i) => <option key={i} value={r.value}>{r.label}</option>)}
+                  {historyStatusOptions.map((r, i) => 
+                    <option 
+                      key={i}
+                      value={r.value || ''}
+                    >
+                      {r.label}
+                    </option>
+                  )}
                 </Form.Select>
               </div>
             </Card.Header>
             <Card.Body className="w-100">
-              <div className="w-100 d-flex flex-column gap-2">
-                {[1,2,3,4,5,6,7,8,9,10].map(v => (
+              <div 
+                className="w-100 d-flex align-items-center flex-column gap-2"
+                style={{
+                  maxHeight: '75dvh',
+                  overflowY: 'auto'
+                }}
+              >
+                {data.map(r => (
                   <div 
-                    key={v}
+                    key={r.id}
                     className="w-100 border rounded-3 p-3 bg-light"
                   >
-                    <h6 className="fw-semibold">Nama Layanan</h6>
+                    <h6 className="fw-semibold">{r.layanan}</h6>
                     <div className="d-inline-flex align-items-center gap-3 mb-2">
                       <div 
                         style={{ fontSize: '0.75rem' }}
                         className="fw-semibold"
                       >
-                        ID: XXX-XXX-XXX
+                        ID: {r.kode_order}
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.75rem' }}>Status:</span> <Badge className="fw-semibold" bg="success">Selesai</Badge>
+                        <span style={{ fontSize: '0.75rem' }}>Status:</span>{' '}
+                        {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <Badge bg="secondary">Permohonan</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.PEMBAYARAN && <Badge bg="info">Pembayaran</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.PROCESS && <Badge bg="warning">Dalam proses</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <Badge bg="primary">Dalam Review</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.DONE && <Badge bg="success">Selesai</Badge>}
                       </div>
                     </div>
                     <div style={{ fontSize: '0.75rem' }}>
-                      Tanggal Order: {getDateDisplay('2024-9-8')}
+                      Tanggal Order: {getDateDisplay(r.created_at)}
                     </div>
                     <div className="py-3">
-                      <ProgressBar variant="success" now={70} label={`${70}%`} />
+                      {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <ProgressBar variant="secondary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                      {r.status_order === FeedbackItemStatusOrder.PEMBAYARAN && <ProgressBar variant="info" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                      {r.status_order === FeedbackItemStatusOrder.PROCESS && <ProgressBar variant="warning" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                      {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <ProgressBar variant="primary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                      {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                     </div>
                     <div className="d-flex justify-content-end gap-2">
                       {/* <Button 
@@ -306,21 +372,56 @@ const DashboardPage: React.FC = () => {
                       >
                         <Clipboard size={16}/>
                       </Button> */}
-                      <Button 
-                        size="sm"
-                        title="Kuesioner"
-                      >
-                        <HelpCircle size={16}/>
-                      </Button>
-                      <Button 
-                        size="sm"
-                        title="Sertifikat"
-                      >
-                        <Award size={16}/>
-                      </Button>
+                      {!r.is_given_feedback && r.status_order === FeedbackItemStatusOrder.DONE && (
+                        <Button 
+                          size="sm"
+                          className="d-inline-flex align-items-center gap-1"
+                          onClick={() => navigate(`/feedbacks/${r.id}`)}
+                        >
+                          <Edit size={16}/>
+                          <div>Feedback</div>
+                        </Button>
+                      )}
+                      {r.file_attachment.length > 0 && (
+                        <Dropdown>
+                          <Dropdown.Toggle 
+                            size="sm"
+                            className="d-inline-flex align-items-center gap-1"
+                          >
+                            <Award size={16}/>
+                            <div>Sertifikat</div>
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu>
+                            {r.file_attachment.map((f, i) => (
+                              <Dropdown.Item 
+                                key={i}
+                                onClick={() => onDownloadCertificate(f)}
+                                className="d-inline-flex align-items-center gap-2"
+                              >
+                                <Download size={16}/>
+                                {f.nama}
+                              </Dropdown.Item>
+                            ))}
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      )}
                     </div>
                   </div>
                 ))}
+                {(total > 0 && page < totalPages) && (
+                  <div className='w-100 d-flex justify-content-center'>
+                    <Button 
+                      type="button"
+                      variant="primary"
+                      className="d-inline-flex align-items-center gap-2"
+                      disabled={loadingHistory}
+                      onClick={() => setPage(c => c + 1)}
+                    >
+                      {loadingHistory && <Spinner size="sm"/>}
+                      <div>Load More</div>
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card.Body>
           </Card>

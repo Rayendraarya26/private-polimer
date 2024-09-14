@@ -13,6 +13,13 @@ export enum FeedbackItemStatusOrder {
   DONE = 'selesai',
 }
 
+export type SertifikatItem = {
+  kode: string
+  nama: string
+  ref_code: string | null
+  download_link: string
+}
+
 export type FeedbackItem = {
   id: string
   layanan_id: string
@@ -20,10 +27,11 @@ export type FeedbackItem = {
   fullname: string
   kode_order: string
   status_order: FeedbackItemStatusOrder
-  file_attachment: string | null
+  file_attachment: Array<SertifikatItem>
   is_given_feedback: boolean
   feedback_json: unknown | null
   created_at: string
+  persentase_order: number
 }
 
 export enum FeedbackInputType {

@@ -24,7 +24,7 @@ export default (options?: Options) => {
   useEffect(() => {
     setData([])
     setTotal(0)
-  }, [debouncedSearch])
+  }, [debouncedSearch, status])
 
   const getFeedbacks = useCallback(
     async () => {
@@ -59,6 +59,11 @@ export default (options?: Options) => {
     setPage(1)
   }, [])
 
+  const changeStatus = useCallback((value: FeedbackItemStatusOrder | undefined) => {
+    setPage(1)
+    setStatus(value)
+  }, [])
+
   return {
     loading,
     data,
@@ -69,9 +74,10 @@ export default (options?: Options) => {
     setPage,
     rows,
     debouncedSearch,
+    status,
     getFeedbacks,
     changeSearch,
-    setStatus,
+    changeStatus,
     setData
   }
 }

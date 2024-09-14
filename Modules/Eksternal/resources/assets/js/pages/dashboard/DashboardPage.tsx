@@ -198,7 +198,7 @@ const DashboardPage: React.FC = () => {
       )}
       <Row>
         <Col xs={12} lg={7} className="px-3 py-2">
-          <Card>
+          <Card className="h-100">
             <Card.Header className="py-3">
               <div className="w-100 d-flex justify-content-between align-items-center gap-2">
                 <h6 className="mb-0">Layanan Jasa</h6>
@@ -244,7 +244,7 @@ const DashboardPage: React.FC = () => {
           </Card>
         </Col>
         <Col xs={12} lg={5} className="px-3 py-2">
-          <Card>
+          <Card className="h-100">
             <Card.Header className="pt-2">
               <div className="w-100 d-flex justify-content-between align-items-center gap-2">
                 <h6 className="mb-0">Statistik Layanan</h6>

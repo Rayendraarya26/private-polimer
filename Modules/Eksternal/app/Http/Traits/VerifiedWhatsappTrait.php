@@ -19,4 +19,16 @@ trait VerifiedWhatsappTrait
             default => false,
         };
     }
+
+    public function getWhatsappNumber(SysUser $user): string
+    {
+        $user->load('pelanggan.detail');
+        $pelanggan = $user->pelanggan;
+
+        return match (PelangganJenisPelanggan::tryFrom($pelanggan->jenis_pelanggan)) {
+            PelangganJenisPelanggan::PERORANGAN => $pelanggan->detail->whatsapp,
+            PelangganJenisPelanggan::BADAN_USAHA, PelangganJenisPelanggan::INSTANSI_PEMERINTAH => $pelanggan->detail->pj_whatsapp,
+            default => '',
+        };
+    }
 }

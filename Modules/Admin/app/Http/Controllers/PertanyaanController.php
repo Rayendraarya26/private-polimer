@@ -103,13 +103,25 @@ class PertanyaanController extends Controller
                 PertanyaanPelangganPesan::create($data_pesan);
             });
 
+            $url = url('app/#/ask-questions?id=' . $pertanyaan->id);
+
+            $pesanWA = sprintf("Balasan dari BBSJJIKKP (*%s*) \n", auth()->user()->name);
+            $pesanWA .= sprintf("Nomor Tiket #%s \n", $pertanyaan->id);
+            $pesanWA .= sprintf("Topik : %s \n", $pertanyaan->topik);
+            if ($pertanyaan->layanan) {
+                $pesanWA .= sprintf("ID Layanan : %s \n", $pertanyaan->layanan);
+            }
+            $pesanWA .= sprintf("Pesan : %s \n", $input['pesan']);
+            $pesanWA .= sprintf("\n\nDetail: %s", $url);
+
+
             $notifParameter = [
                 'pelanggan_id' => $pertanyaan->pelanggan_id,
-                'judul'        => 'Pesan Pertanyaan Baru',
-                'pesan_notif'  => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"',
-                'url_notif'    => url('/app/#/ask-questions'),
-                'pesan_wa'     => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"',
-                'pesan_email'  => 'Pesan pertanyaan dari ' . auth()->user()->name . ', tiket #' . $pertanyaan->id . ' "' . $request->pesan . '"'
+                'judul'        => 'Balasan Pertanyaan dari BBSJJIKKP',
+                'pesan_notif'  => sprintf("%s membalas pertanyaan anda, tiket #%s", auth()->user()->name, $pertanyaan->id),
+                'url_notif'    => $url,
+                'pesan_wa'     => $pesanWA,
+                'pesan_email'  => sprintf("%s membalas pertanyaan anda, tiket #%s", auth()->user()->name, $pertanyaan->id),
             ];
 
             $this->notif_pelanggan($notifParameter);
@@ -183,7 +195,7 @@ class PertanyaanController extends Controller
             }
 
             $libNotif = new Notification($user_pelanggan->user->id, $notifParameter['judul'], $notifParameter['pesan_notif'], $notifParameter['url_notif']);
-            $libNotif->sendInBackground(true);
+            $libNotif->sendInBackground();
 
             if ($email != '') {
                 $libMailer = new Mailer();

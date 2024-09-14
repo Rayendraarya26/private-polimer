@@ -6,17 +6,25 @@
     <!--begin::Inbox App - Messages -->
     <div class="d-flex flex-column flex-lg-row">
         <!--begin::Sidebar-->
-        <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true" data-kt-drawer-name="inbox-aside" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_inbox_aside_toggle">
+        <div class="d-none d-lg-flex flex-column flex-lg-row-auto w-100 w-lg-275px" data-kt-drawer="true"
+             data-kt-drawer-name="inbox-aside" data-kt-drawer-activate="{default: true, lg: false}"
+             data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start"
+             data-kt-drawer-toggle="#kt_inbox_aside_toggle">
             <!--begin::Sticky aside-->
-            <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky" data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}" data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false" data-kt-sticky-zindex="95">
+            <div class="card card-flush mb-0" data-kt-sticky="true" data-kt-sticky-name="inbox-aside-sticky"
+                 data-kt-sticky-offset="{default: false, xl: '100px'}" data-kt-sticky-width="{lg: '275px'}"
+                 data-kt-sticky-left="auto" data-kt-sticky-top="100px" data-kt-sticky-animation="false"
+                 data-kt-sticky-zindex="95">
                 <!--begin::Aside content-->
                 <div class="card-body">
                     <!--begin::Menu-->
-                    <div class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
+                    <div
+                        class="menu menu-column menu-rounded menu-state-bg menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary mb-10">
                         <!--begin::Menu item-->
                         <div class="menu-item mb-3">
                             <!--begin::Inbox-->
-                            <a href="{{ url("$url") }}" class="menu-link @if ($status_message != 'closed') ? active :  @endif">
+                            <a href="{{ url("$url") }}"
+                               class="menu-link @if ($status_message != 'closed') ? active :  @endif">
                                 <span class="menu-icon">
                                     <i class="fa-solid fa-comment fs-2 me-3"></i>
                                         <span class="path1"></span>
@@ -24,7 +32,9 @@
                                     </i>
                                 </span>
                                 <span class="menu-title fw-bold">Pertanyaan Aktif (Opened)</span>
-                                @if($total_new > 0) <span class="badge badge-light-success">{{$total_new}}</span>@endif
+                                @if($total_new > 0)
+                                    <span class="badge badge-light-success">{{$total_new}}</span>
+                                @endif
                             </a>
                             <!--end::Inbox-->
                         </div>
@@ -32,7 +42,8 @@
                         <!--begin::Menu item-->
                         <div class="menu-item mb-3">
                             <!--begin::Marked-->
-                            <a href="{{ url("$url?status_message=closed") }}" class="menu-link @if ($status_message == 'closed') ? active :  @endif">
+                            <a href="{{ url("$url?status_message=closed") }}"
+                               class="menu-link @if ($status_message == 'closed') ? active :  @endif">
                                 <span class="menu-icon">
                                     <i class="fa-sharp-duotone fa-solid fa-comments fs-2 me-3">
                                         <span class="path1"></span>
@@ -72,23 +83,10 @@
                     <!--end::Title-->
                     <div class="card-toolbar">
                         <!--begin::Menu-->
-                        <div class="me-n3">
-                            <button class="btn btn-sm btn-icon btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                <i class="fa-light fa-list-dropdown fs-2"><span class="path1"></span></i>
-                            </button>
-
-                            <!--begin::Menu 3-->
-                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3" data-kt-menu="true" style="">
-                                <!--begin::Heading-->
-                                <div class="menu-item px-3">
-                                    <a href="#" data-kt-btn-closed="closed_chat" class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">
-                                        Close Pertanyaan
-                                    </a>
-                                </div>
-                                <!--end::Heading-->
-                            </div>
-                            <!--end::Menu 3-->
-                        </div>
+                        <button href="#" data-kt-btn-closed="closed_chat"
+                                class="btn btn-danger btn-sm px-3 text-uppercase">
+                            Tutup Pertanyaan
+                        </button>
                         <!--end::Menu-->
                     </div>
                 </div>
@@ -97,29 +95,36 @@
                 <!--begin::Card body-->
                 <div class="card-body" id="kt_chat_messenger_body">
                     <!--begin::Messages-->
-                    <div class="scroll-y me-n5 pe-5 h-300px h-lg-auto" data-kt-element="messages" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto" data-kt-scroll-dependencies="#kt_header, #kt_app_header, #kt_app_toolbar, #kt_toolbar, #kt_footer, #kt_app_footer, #kt_chat_messenger_header, #kt_chat_messenger_footer" data-kt-scroll-wrappers="#kt_content, #kt_app_content, #kt_chat_messenger_body" data-kt-scroll-offset="5px" style="max-height: 225px;">
+                    <div class="scroll-y me-n5 pe-5 h-300px h-lg-auto" data-kt-element="messages" data-kt-scroll="true"
+                         data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-max-height="auto"
+                         data-kt-scroll-dependencies="#kt_header, #kt_app_header, #kt_app_toolbar, #kt_toolbar, #kt_footer, #kt_app_footer, #kt_chat_messenger_header, #kt_chat_messenger_footer"
+                         data-kt-scroll-wrappers="#kt_content, #kt_app_content, #kt_chat_messenger_body"
+                         data-kt-scroll-offset="5px" style="max-height: 225px;">
                         <!--end::Message(in)-->
                         @foreach($data->pesans as $pesan)
                             <!--begin::Message(out)-->
-                            <div class="d-flex @if($pesan->created_by !== $data->pelanggan->user->id) justify-content-end @else justify-content-start @endif mb-10 ">
+                            <div
+                                class="d-flex @if($pesan->created_by !== $data->pelanggan->user->id) justify-content-end @else justify-content-start @endif mb-10 ">
                                 <!--begin::Wrapper-->
-                                <div class="d-flex flex-column @if($pesan->created_by !== $data->pelanggan->user->id) align-items-end @else align-items-start @endif">
+                                <div
+                                    class="d-flex flex-column @if($pesan->created_by !== $data->pelanggan->user->id) align-items-end @else align-items-start @endif">
                                     <!--begin::User-->
                                     <div class="d-flex align-items-center mb-2">
                                         @if($pesan->created_by == $data->pelanggan->user->id)
-                                        <!--begin::Avatar-->
-                                        <div class="symbol  symbol-35px symbol-circle ">
-                                            <div class="symbol-label bg-light-danger">
-                                                <span class="text-danger">U</span>
-                                            </div>
-                                        </div><!--end::Avatar-->
+                                            <!--begin::Avatar-->
+                                            <div class="symbol  symbol-35px symbol-circle ">
+                                                <div class="symbol-label bg-light-danger">
+                                                    <span class="text-danger">U</span>
+                                                </div>
+                                            </div><!--end::Avatar-->
                                         @endif
                                         <!--begin::Details-->
                                         <div class="me-3">
                                             @if($pesan->created_by !== $data->pelanggan->user->id)
-                                            <span class="text-muted fs-7 mb-1">{{$pesan->user->created_at}}</span>
+                                                <span class="text-muted fs-7 mb-1">{{$pesan->user->created_at}}</span>
                                             @endif
-                                            <a href="#" class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{$pesan->user->name}}</a>
+                                            <a href="#"
+                                               class="fs-5 fw-bold text-gray-900 text-hover-primary ms-1">{{$pesan->user->name}}</a>
                                             @if($pesan->created_by == $data->pelanggan->user->id)
                                                 <span class="text-muted fs-7 mb-1">{{$pesan->user->created_at}}</span>
                                             @endif
@@ -138,7 +143,9 @@
                                     <!--end::User-->
 
                                     <!--begin::Text-->
-                                    <div class="p-5 rounded @if($pesan->created_by !== $data->pelanggan->user->id) bg-light-primary @else bg-light-info @endif text-gray-900 fw-semibold mw-lg-400px @if($pesan->created_by !== $data->pelanggan->user->id) text-end @else text-start @endif" data-kt-element="message-text">
+                                    <div
+                                        class="p-5 rounded @if($pesan->created_by !== $data->pelanggan->user->id) bg-light-primary @else bg-light-info @endif text-gray-900 fw-semibold mw-lg-400px @if($pesan->created_by !== $data->pelanggan->user->id) text-end @else text-start @endif"
+                                        data-kt-element="message-text">
                                         {{$pesan->pesan}}
                                     </div>
                                     <!--end::Text-->
@@ -169,7 +176,8 @@
                         @csrf
                         @method('POST')
                         <!--begin::Input-->
-                        <textarea class="form-control mb-3" rows="3" name="pesan" placeholder="Type a message"></textarea>
+                        <textarea class="form-control mb-3" rows="3" name="pesan"
+                                  placeholder="Type a message"></textarea>
                         <!--end::Input-->
 
                         <!--begin:Toolbar-->
@@ -183,7 +191,7 @@
                 </div>
                 <!--end::Card footer-->
             </div>
-        <!--end::Content-->
+            <!--end::Content-->
         </div>
     </div>
     <!--end::Inbox App - Messages -->
@@ -221,7 +229,7 @@
                         confirmButton: "btn fw-bold btn-primary",
                     }
                 }).then(function () {
-                    window.location="{{url("$url")}}";
+                    window.location = "{{url("$url")}}";
                 });
 
                 // Remove header checked box

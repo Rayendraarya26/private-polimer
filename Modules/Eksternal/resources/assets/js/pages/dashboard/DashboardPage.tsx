@@ -355,6 +355,14 @@ const DashboardPage: React.FC = () => {
                       {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <ProgressBar variant="primary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                       {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                     </div>
+                    {r.status_order === FeedbackItemStatusOrder.DONE && r.file_attachment.length < 1 && (
+                      <div className="text-danger" style={{ fontSize: '0.75rem' }}>
+                        Sertifikat belum tersedia. Jika dalam waktu 1 hari sertifikat belum muncul, silakan hubungi CS kami di nomor{' '}
+                        <a href="https://wa.me/628112827821" target="_blank" rel="noopener noreferrer">
+                          +628112827821
+                        </a> untuk bantuan lebih lanjut.
+                      </div>
+                    )}
                     <div className="d-flex justify-content-end gap-2">
                       {/* <Button
                         size="sm"

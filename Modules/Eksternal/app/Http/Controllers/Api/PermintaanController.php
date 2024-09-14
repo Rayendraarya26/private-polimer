@@ -290,6 +290,6 @@ class PermintaanController extends Controller
 
         return response($response->body())
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $response->header('Content-Disposition') . '"');
+            ->header('Content-Disposition', $response->header('Content-Disposition'));
     }
 }

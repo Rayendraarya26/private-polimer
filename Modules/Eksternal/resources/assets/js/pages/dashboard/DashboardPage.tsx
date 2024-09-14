@@ -1,9 +1,9 @@
 import clsx from "clsx"
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { Badge, Button, Card, Carousel, Col, Dropdown, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
-import { Award, Download, Edit, HelpCircle, Layers } from "react-feather"
+import { Award, Download, Edit, Layers } from "react-feather"
 import styled from "styled-components"
-import { FeedbackItem, FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
+import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
 import useDashboard from "../../hooks/useDashboard"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -67,7 +67,7 @@ const DashboardPage: React.FC = () => {
     sliders,
     getStatisticData
   } = useDashboard()
-  const { 
+  const {
     loading: loadingHistory,
     data,
     page,
@@ -161,7 +161,7 @@ const DashboardPage: React.FC = () => {
     if (!data) return
     const toastId = toast.loading('Mengunduh sertifikat')
     try {
-      const res = await api.get(data.download_link)
+      const res = await api.get(data.download_link, {responseType: 'blob'})
       const blob = new Blob([res.data], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -204,7 +204,7 @@ const DashboardPage: React.FC = () => {
             </Card.Header>
             <Card.Body className="position-relative">
               {loadingLayanan && (
-                <div 
+                <div
                   className="w-100 h-100 position-absolute bg-white"
                   style={{
                     inset: 0,
@@ -221,14 +221,14 @@ const DashboardPage: React.FC = () => {
                     key={i}
                     className="col-6 col-md-4 col-lg-3 p-1 h-100"
                   >
-                    <StyledLayananCard 
+                    <StyledLayananCard
                       className="border rounded-3 p-2 h-100"
                       onClick={() => window.open(r.url)}
                     >
                       <div className="w-100 d-flex justify-content-center py-2">
                         <Layers size={60}/>
                       </div>
-                      <div 
+                      <div
                         className="fw-semibold text-center"
                         style={{ fontSize: '0.75rem' }}
                       >
@@ -246,7 +246,7 @@ const DashboardPage: React.FC = () => {
             <Card.Header className="pt-2">
               <div className="w-100 d-flex justify-content-between align-items-center gap-2">
                 <h6 className="mb-0">Statistik Layanan</h6>
-                <Form.Select 
+                <Form.Select
                   style={{ width: '7rem' }}
                   value={selectedStatisticYear}
                   disabled={loading.statistic}
@@ -258,7 +258,7 @@ const DashboardPage: React.FC = () => {
             </Card.Header>
             <Card.Body className="position-relative">
               {loading.statistic && (
-                <div 
+                <div
                   className="w-100 h-100 position-absolute bg-white"
                   style={{
                     inset: 0,
@@ -271,7 +271,7 @@ const DashboardPage: React.FC = () => {
               )}
               <div className="w-100 row m-0">
                 {statistics.map((r, i) => (
-                  <StyledStatsCard 
+                  <StyledStatsCard
                     key={i}
                     className={clsx(r.colClassName)}
                   >
@@ -297,13 +297,13 @@ const DashboardPage: React.FC = () => {
                   <h6 className="mb-0">Riwayat Permohonan Layanan</h6>
                   <small style={{ fontSize: '0.75rem' }}>Menampilkan {data.length} dari {total}</small>
                 </div>
-                <Form.Select 
+                <Form.Select
                   style={{ width: '12rem' }}
                   value={status}
                   onChange={e => changeStatus((e.target.value || undefined) as FeedbackItemStatusOrder | undefined)}
                 >
-                  {historyStatusOptions.map((r, i) => 
-                    <option 
+                  {historyStatusOptions.map((r, i) =>
+                    <option
                       key={i}
                       value={r.value || ''}
                     >
@@ -314,7 +314,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </Card.Header>
             <Card.Body className="w-100">
-              <div 
+              <div
                 className="w-100 d-flex align-items-center flex-column gap-2"
                 style={{
                   maxHeight: '75dvh',
@@ -322,13 +322,13 @@ const DashboardPage: React.FC = () => {
                 }}
               >
                 {data.map(r => (
-                  <div 
+                  <div
                     key={r.id}
                     className="w-100 border rounded-3 p-3 bg-light"
                   >
                     <h6 className="fw-semibold">{r.layanan}</h6>
                     <div className="d-inline-flex align-items-center gap-3 mb-2">
-                      <div 
+                      <div
                         style={{ fontSize: '0.75rem' }}
                         className="fw-semibold"
                       >
@@ -354,26 +354,26 @@ const DashboardPage: React.FC = () => {
                       {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
                     </div>
                     <div className="d-flex justify-content-end gap-2">
-                      {/* <Button 
+                      {/* <Button
                         size="sm"
                         title="Quot."
                       >
                         <FileText size={16}/>
                       </Button>
-                      <Button 
+                      <Button
                         size="sm"
                         title="Invoice"
                       >
                         <DollarSign size={16}/>
                       </Button>
-                      <Button 
+                      <Button
                         size="sm"
                         title="Kwitansi"
                       >
                         <Clipboard size={16}/>
                       </Button> */}
                       {!r.is_given_feedback && r.status_order === FeedbackItemStatusOrder.DONE && (
-                        <Button 
+                        <Button
                           size="sm"
                           className="d-inline-flex align-items-center gap-1"
                           onClick={() => navigate(`/feedbacks/${r.id}`)}
@@ -384,7 +384,7 @@ const DashboardPage: React.FC = () => {
                       )}
                       {r.file_attachment.length > 0 && (
                         <Dropdown>
-                          <Dropdown.Toggle 
+                          <Dropdown.Toggle
                             size="sm"
                             className="d-inline-flex align-items-center gap-1"
                           >
@@ -393,7 +393,7 @@ const DashboardPage: React.FC = () => {
                           </Dropdown.Toggle>
                           <Dropdown.Menu>
                             {r.file_attachment.map((f, i) => (
-                              <Dropdown.Item 
+                              <Dropdown.Item
                                 key={i}
                                 onClick={() => onDownloadCertificate(f)}
                                 className="d-inline-flex align-items-center gap-2"
@@ -410,7 +410,7 @@ const DashboardPage: React.FC = () => {
                 ))}
                 {(total > 0 && page < totalPages) && (
                   <div className='w-100 d-flex justify-content-center'>
-                    <Button 
+                    <Button
                       type="button"
                       variant="primary"
                       className="d-inline-flex align-items-center gap-2"

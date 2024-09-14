@@ -80,7 +80,7 @@
                 Belum Punya Akun? <a class="text-primary" href="{{ route('auth.register') }}">Buat Akun Sekarang</a>
             </div>
 
-            <a href="#" type="button" class="btn btn-success">
+            <a href="{{ route('tracking-permohonan') }}" type="button" class="btn btn-success">
                 <i class="fa fa-search"></i>
                 Lacak Permohonan
             </a>

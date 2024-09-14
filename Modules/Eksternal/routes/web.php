@@ -10,10 +10,9 @@ use Modules\Eksternal\Http\Controllers\Api\PermintaanController;
 use Modules\Eksternal\Http\Controllers\Api\PertanyaanController;
 use Modules\Eksternal\Http\Controllers\Api\UserController;
 use Modules\Eksternal\Http\Controllers\AppController;
-use Modules\Eksternal\Http\Controllers\DownloadSertifikatController;
 use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
-use Modules\Eksternal\Http\Controllers\HomePageController;
+use Modules\Eksternal\Http\Controllers\TrackingPermohonanController;
 use Modules\Eksternal\Http\Controllers\TteController;
 
 /*
@@ -50,10 +49,14 @@ Route::prefix('tte')->group(function () {
     Route::post('verify-by-doc', [TteController::class, 'processVerifyByDoc'])->name('tte.verify-by-doc');
 });
 
+Route::prefix('tracking')->group(function () {
+    Route::get('/permohonan', [TrackingPermohonanController::class, 'index'])->name('tracking-permohonan');
+    Route::post('/permohonan', [TrackingPermohonanController::class, 'search']);
+});
+
 Route::prefix('pertanyaan')->group(function () {
     Route::get('/topik', [PertanyaanController::class, 'listTopic'])->name('pertanyaan.topic');
 });
-
 
 // Semua API Eksternal didefinisikan disini
 Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpRequestMiddleware::class])->group(function () {

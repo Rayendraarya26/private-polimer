@@ -30,7 +30,7 @@ class TteController extends Controller
         ]);
 
         if (!$this->validateCaptcha($input['recaptcha-by-id'])) {
-            return redirect()->back()->with('error', 'Captcha tidak valid');
+            return responseJSON('Captcha tidak valid', [], 400, 'BAD_REQUEST');
         }
 
         $tteService = new TteService();
@@ -58,7 +58,7 @@ class TteController extends Controller
         ]);
 
         if (!$this->validateCaptcha($input['recaptcha-by-doc'])) {
-            return redirect()->back()->with('error', 'Captcha tidak valid');
+            return responseJSON('Captcha tidak valid', [], 400, 'BAD_REQUEST');
         }
 
         $tteService = new TteService();

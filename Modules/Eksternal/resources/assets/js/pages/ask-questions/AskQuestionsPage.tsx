@@ -114,7 +114,6 @@ const AskQuestionsPage: React.FC = () => {
                   <div className="d-inline-flex align-items-center gap-2">
                     <MessageCircle size={12}/>
                     <div>{r.total_pesan}</div>
-                    {r.new_reply > 0 && <div className="fw-bold">(<span className="text-danger">*</span>{r.new_reply})</div>}
                   </div>
                 </div>
                 {r.status === QuestionStatus.CLOSED && r.is_review === 'no' && (

@@ -56,7 +56,7 @@ Route::prefix('pertanyaan')->group(function () {
 
 
 // Semua API Eksternal didefinisikan disini
-Route::middleware([CustomAuthMiddleware::class, SentryContext::class])->group(function () {
+Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpRequestMiddleware::class])->group(function () {
     Route::prefix('api/eksternal')->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class, 'index']); // get user

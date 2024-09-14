@@ -457,7 +457,7 @@ const FormPerusahaan: React.FC = () => {
                   {errors?.dok_iup?.message || ''}
                 </div>
               </Form.Group>
-              <Form.Group>
+              {/* <Form.Group>
                 <Form.Label className="w-100 w-100 d-flex justify-content-between">
                   <div>Lainnya (Maksimal 5 MB)</div>
                   {profile?.detail?.dok_lainnya && (
@@ -481,7 +481,7 @@ const FormPerusahaan: React.FC = () => {
                 <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                   {errors?.dok_lainnya?.message || ''}
                 </div>
-              </Form.Group>
+              </Form.Group> */}
             </div>
           </div>
         </Col>

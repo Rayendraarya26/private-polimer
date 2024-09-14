@@ -139,11 +139,12 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                                 maxWidth: '80%'
                               }}
                               className={clsx(
-                                "border px-3 py-2 rounded d-flex flex-column gap-2",
+                                "border px-3 py-2 rounded d-flex flex-column gap-1",
                                 r.is_author ? 'bg-success text-white' : 'bg-light'
                               )}
                             >
-                              <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                              {(!r.is_author && r.created_by) && <div style={{ fontSize: '0.75rem' }}>{r.created_by}</div>}
+                              <p className="mb-2" style={{ whiteSpace: 'pre-wrap' }}>
                                 {r.pesan}
                               </p>
                               <div className="d-flex justify-content-end" style={{ fontSize: '0.75rem' }}>

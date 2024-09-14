@@ -70,6 +70,7 @@ class PermintaanController extends Controller
                     'fullname'          => $item->user->name,
                     'kode_order'        => $item->kode_order,
                     'status_order'      => $item->status_order,
+                    'tanggal_order'     => $item->tanggal_order,
                     'persentase_order'  => (int)DataIntegrasiLayananStatusOrder::tryFrom($item->status_order)->getPersentaseOrder(),
                     'file_attachment'   => $file_attachment,
                     'is_given_feedback' => !!$item->is_given_feedback,

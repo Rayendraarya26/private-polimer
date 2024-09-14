@@ -24,7 +24,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
 
   const onSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!rating || rating <= 3 && !testimoni) return
+    if (!rating || rating <= 3 && !testimoni.trim()) return
     const res = await reviewQuestion(id, { rating, testimoni })
     if (res) onAfterReview()
   }, [id, rating, testimoni])
@@ -79,7 +79,7 @@ const ReviewQuestion: React.FC<Props> = ({ id, show, onClose, onAfterReview }) =
               size="lg"
               variant="primary"
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !testimoni.trim()}
             >
               <Send size={20}/>
               &nbsp;&nbsp;Kirim

@@ -87,6 +87,11 @@
             transition-duration: 300ms;
             opacity: 0.85;
             transform: scale(0.8);
+            display: flex;
+        }
+
+        .slick-carousel-scale-animate .slick-slide > div {
+            margin: auto;
         }
 
         .slick-carousel-scale-animate .slick-current {
@@ -281,14 +286,14 @@
                     @foreach($services as $item)
                         <div class="p-4">
                             <div class="p-5 card bg-blue" style="border-radius: 3rem;">
-                                <div class="card-body d-flex flex-column align-items-center gap-5">
+                                <div class="card-body d-flex flex-column align-items-center gap-5 p-5">
                                     <div class="w-100">
                                         <img
                                             src="{{ $item['image_url'] }}"
-                                            class="w-100"
+                                            class="w-100 rounded-3"
                                         >
                                     </div>
-                                    <div class="fs-1 fw-bold text-white">{{ $item['name'] }}</div>
+                                    <div class="fs-1 fw-bold text-white text-center">{{ $item['name'] }}</div>
                                 </div>
                             </div>
                         </div>

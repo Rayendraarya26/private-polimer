@@ -22,6 +22,16 @@
             }
         }
 
+        .ql-align-right {
+            text-align: right;
+        }
+        .ql-align-center {
+            text-align: center;
+        }
+        .ql-align-left {
+            text-align: left;
+        }
+
         main {
             gap: 8rem;
         }

@@ -33,7 +33,7 @@ class SyncUserPuk extends Command
      */
     public function handle(): void
     {
-        $this->info('===== Sync sis puk to polimer =====');
+        $this->info('===== Sync puk to polimer =====');
 
         $userPuk = DB::connection('puk')
             ->table('sys_user')

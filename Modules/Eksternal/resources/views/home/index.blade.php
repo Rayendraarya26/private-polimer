@@ -1,6 +1,6 @@
 @extends('layouts.home')
 
-@section('title', 'JIS - Jogjakarta Industrial Services')
+@section('title', 'JIS')
 
 @push('styles')
     <style>
@@ -245,12 +245,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a
-                            class="nav-link"
-                            href="{{ route('auth.login') }}"
-                        >
-                            Login
-                        </a>
+                        @if(auth()->check())
+                            <a class="nav-link" href="{{ route('home') }}">
+                                Polimer
+                            </a>
+                        @else
+                            <a class="nav-link" href="{{ route('auth.login') }}">
+                                Login
+                            </a>
+                        @endif
+
                     </li>
                 </ul>
             </div>

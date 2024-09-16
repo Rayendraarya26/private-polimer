@@ -1,6 +1,6 @@
 @extends('layouts.no_header')
 
-@section('title', 'FAQ')
+@section('title', 'Verifikasi Dokumen')
 
 @push('styles')
     <style>

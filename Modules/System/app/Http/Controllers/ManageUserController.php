@@ -176,7 +176,9 @@ class ManageUserController
             }
 
             if ($isPegawai) {
-                $user->pegawai()->create();
+                $user->pegawai()->updateOrCreate([
+                    'user_id' => $user->id
+                ]);
             }
         });
 

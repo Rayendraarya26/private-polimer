@@ -41,9 +41,14 @@ class PertanyaanController extends Controller
             new Breadcrumbs('Pertanyaan Pelanggan', url($this->url)),
         ];
 
-        $total_new = PertanyaanPelanggan::where('status', 'opened')->whereHas('pesans', function (Builder $query) {
-            $query->where('is_replied', 'no');
-        })->count();
+        $total_new = PertanyaanPelanggan::join('pelanggan', 'pelanggan.id', '=', 'pertanyaan_pelanggan.pelanggan_id')
+			->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
+				$join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
+				$join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
+				$join->where('is_replied', 'no');
+			})
+			->where('pertanyaan_pelanggan.status', 'opened')			
+			->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
 
         $parser = array_merge($this->defaultParser(), [
             'breadcrumbs'    => $breadcrumbs,
@@ -63,9 +68,14 @@ class PertanyaanController extends Controller
             new Breadcrumbs('Detail Pesan', url($this->url . "/" . $pertanyaan->id . "/" . "add")),
         ];
 
-        $total_new = PertanyaanPelanggan::where('status', 'opened')->whereHas('pesans', function (Builder $query) {
-            $query->where('is_replied', 'no');
-        })->count();
+		$total_new = PertanyaanPelanggan::join('pelanggan', 'pelanggan.id', '=', 'pertanyaan_pelanggan.pelanggan_id')
+			->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
+				$join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
+				$join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
+				$join->where('is_replied', 'no');
+			})
+			->where('pertanyaan_pelanggan.status', 'opened')			
+			->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
 
         $parser = array_merge($this->defaultParser(), [
             'breadcrumbs'    => $breadcrumbs,
@@ -168,7 +178,8 @@ class PertanyaanController extends Controller
             ->with('pelanggan', 'pelanggan.user')
             ->withCount([
                 'pesans' => function ($query) {
-                    $query->where('is_replied', 'no');
+					$query->where('created_by', '!=', 'pelanggan.user_id')
+					->where('is_replied', 'no');
                 }
             ]);
 

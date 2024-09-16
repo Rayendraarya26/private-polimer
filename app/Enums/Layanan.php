@@ -21,7 +21,7 @@ enum Layanan: string
             self::SER => 'Sertifikasi',
             self::UJI => 'Pengujian',
             self::KAL => 'Kalibrasi',
-            self::PUP => 'Uni Profisienis',
+            self::PUP => 'Sertifikasi Profesi',
             self::HLL => 'Halal',
             self::PDP => 'Pendampingan',
         };

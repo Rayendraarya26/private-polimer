@@ -1,6 +1,6 @@
 <div class="d-flex flex-row justify-content-center gap-5 pb-10">
     <a href="{{ url('/') }}" class="text-center fw-bold text-decoration-underline">
-        JIS
+        JIS - Jogja Industrial Services
     </a>
     {{--<a href="#" class="text-center fw-bold text-decoration-underline">
         Panduan

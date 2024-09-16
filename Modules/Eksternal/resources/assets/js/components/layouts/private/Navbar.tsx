@@ -30,7 +30,7 @@ const NavBar: React.FC = () => {
     <StyledNavbar expand="lg" className="bg-body-tertiary position-sticky top-0 py-0">
       <div className="w-100 px-3 px-md-4 py-2 d-flex align-items-center justify-content-between">
         <Navbar.Brand className="d-inline-flex align-items-center gap-3">
-          <Menu 
+          <Menu
             style={{ cursor: 'pointer' }}
             onClick={() => dispatch(setShowSidebar(!isShowSidebar))}
           />
@@ -42,8 +42,8 @@ const NavBar: React.FC = () => {
         </Navbar.Brand>
         <Navbar>
           <Nav className="ms-auto" style={{ gap: '1.25rem' }}>
-            <Nav.Link href="/" className="d-none d-md-block">JIS</Nav.Link>
-            <Nav.Link 
+            <Nav.Link href="/" className="d-none d-md-block">JIS - Jogja Industrial Services</Nav.Link>
+            <Nav.Link
               href={window.location.origin + '/faq'}
               className="d-none d-md-block"
             >

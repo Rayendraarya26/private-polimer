@@ -319,7 +319,7 @@
                 <div class="fs-1 fw-bold text-center">Mitra Kami</div>
                 <div class="slick-carousel-partners slick-carousel-scale-animate">
                     @foreach($partners as $item)
-                        <div class="p-4">
+                        <div class="p-4 d-flex justify-content-center align-items-center h-100">
                             <img
                                 src="{{ $item['image_url'] }}"
                                 class="w-100 rounded-3"

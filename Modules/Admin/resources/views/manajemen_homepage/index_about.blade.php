@@ -35,7 +35,7 @@
 						<form method="post" id="kt_form" action="{{ url("$url/about/update") }}">
 							@csrf
 							@method('POST')
-							
+
 							<div class="form-group row mb-3">
 								<div class="col-sm-12">
 									<div id="quilEditorApp"></div>
@@ -67,7 +67,7 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script>
-		
+
         "use strict";
         const KTUpsert = function () {
 
@@ -84,7 +84,7 @@
                     theme: 'snow'
                 };
                 const quill = new Quill('#quilEditorApp', options);
-                quill.root.innerHTML = "{!! old('question') ?? $about_us !!}";
+                quill.root.innerHTML = `{!! old('question') ?? $about_us !!}`;
             }
 
             // Public methods

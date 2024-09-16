@@ -85,7 +85,6 @@
                     <table class="table table-hover table-row-dashed fs-6 gy-5 my-0" id="kt_datatable">
                         <thead class="d-none">
                         <tr>
-                            <th>Actions</th>
                             <th>Author</th>
                             <th>Title</th>
                             <th>Date</th>
@@ -186,31 +185,13 @@
                         url: "{{ url("$url/ajax?action=datatable-pesan") }}&status_message={{$status_message}}",
                     },
                     columns: [
-                        { data: 'id', "sClass": "ps-9 min-w-80px" },
-                        { data: 'fullname', "sClass": "w-150px w-md-175px" },
+                        { data: 'fullname', "sClass": "ps-9 min-w-80px" },
                         { data: 'topik' },
                         { data: 'created_at' },
                     ],
                     columnDefs: [
                         {
                             targets: 0,
-                            searchable: false,
-                            orderable: false,
-                            render: function (data, type, row) {
-                                var btn = '';
-                                if(row.status == 'opened'){
-                                    btn = `<a href="{{url("$url")}}/${data}/add" class="btn btn-icon btn-color-gray-500 btn-active-color-primary w-35px h-35px" data-bs-toggle="tooltip" data-bs-placement="right" title="Balas">
-                                        <i class="fa-light fa-message-dots fs-3"></i>
-                                    </a>`;
-                                }
-                                else{
-
-                                }
-                                return `${btn}`;
-                            }
-                        },
-                        {
-                            targets: 1,
                             searchable: true,
                             orderable: false,
                             render: function (data, type, row) {
@@ -236,7 +217,7 @@
                             }
                         },
                         {
-                            targets: 2,
+                            targets: 1,
                             searchable: true,
                             orderable: false,
                             render: function (data, type, row) {
@@ -253,7 +234,7 @@
                             }
                         },
                         {
-                            targets: 3,
+                            targets: 2,
                             render: function (data) {
                                 var date = moment(data).format('DD MMM YY HH:mm');
                                 return `
@@ -277,6 +258,12 @@
                 dt.on('draw', function () {
                     handleDeleteRows();
                 });
+				
+ 
+				dt.on('click', 'tbody tr', function () {
+					let dataTabl = dt.row(this).data();
+					window.location.href = `{{url("$url")}}/${dataTabl.id}/add`;
+				});
             };
 
             // Search Datatable --- official docs reference: https://datatables.net/reference/api/search()

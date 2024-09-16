@@ -24,7 +24,7 @@
                         <div class="menu-item mb-3">
                             <!--begin::Inbox-->
                             <a href="{{ url("$url") }}"
-                               class="menu-link @if ($status_message != 'closed') ? active :  @endif">
+                               class="menu-link @if ($data->status != 'closed') ? active :  @endif">
                                 <span class="menu-icon">
                                     <i class="fa-solid fa-comment fs-2 me-3"></i>
                                         <span class="path1"></span>
@@ -43,7 +43,7 @@
                         <div class="menu-item mb-3">
                             <!--begin::Marked-->
                             <a href="{{ url("$url?status_message=closed") }}"
-                               class="menu-link @if ($status_message == 'closed') ? active :  @endif">
+                               class="menu-link @if ($data->status == 'closed') ? active :  @endif">
                                 <span class="menu-icon">
                                     <i class="fa-sharp-duotone fa-solid fa-comments fs-2 me-3">
                                         <span class="path1"></span>
@@ -80,6 +80,7 @@
                             <!--end::Info-->
                         </div>
                     </div>
+					@if ($data->status !== 'closed')
                     <!--end::Title-->
                     <div class="card-toolbar">
                         <!--begin::Menu-->
@@ -89,6 +90,16 @@
                         </button>
                         <!--end::Menu-->
                     </div>
+					@else
+						<div class="card-toolbar">
+                        <!--begin::Menu-->
+                        <button href="#" 
+                                class="btn btn-warning btn-sm px-3 text-uppercase">
+                            Closed
+                        </button>
+                        <!--end::Menu-->
+                    </div>
+					@endif
                 </div>
                 <!--end::Card header-->
 
@@ -158,7 +169,7 @@
                     <!--end::Messages-->
                 </div>
                 <!--end::Card body-->
-
+				@if ($data->status !== 'closed')
                 <!--begin::Card footer-->
                 <div class="card-footer pt-4" id="kt_chat_messenger_footer">
                     @if ($errors->any())
@@ -190,6 +201,53 @@
                     <!--end::Toolbar-->
                 </div>
                 <!--end::Card footer-->
+				@else
+				<div class="card-body">
+					<div class="hover-scroll-overlay-y pe-6 me-n6" style="min-height: 100px">
+						<div class="border border-dashed border-gray-300 rounded px-7 py-3 mb-6">                 
+							<div class="mb-6">
+							@if ($data->is_review !== 'no')
+								<!--begin::Text-->
+								<span class="fw-semibold text-gray-600 fs-6 mb-8 d-block">
+									{{$data->testimoni}}
+								</span>
+								<!--end::Text-->
+
+								<!--begin::Stats-->
+								<div class="d-flex">
+									<!--begin::Stat-->
+									<div class="border border-gray-300 border-dashed rounded min-w-100px w-100 py-2 px-4 me-6 mb-3">
+										<!--begin::Date-->                                     
+										<span class="fs-6 text-gray-700 fw-bold">Closed By :</span>                                
+										<!--end::Date-->
+
+										<!--begin::Label-->
+										<div class="fw-semibold text-gray-500">{{$data->user_closed->name}}</div>
+										<!--end::Label-->
+									</div>
+									<!--end::Stat-->
+
+									<!--begin::Stat-->
+									<div class="border border-gray-300 border-dashed rounded min-w-100px w-100 py-2 px-4 mb-3">
+										<!--begin::Number-->                                 
+										<span class="fs-6 text-gray-700 fw-bold">Rating</span>                               
+										<!--end::Number-->
+
+										<!--begin::Label-->
+										<div class="fw-semibold text-gray-500">{{$data->rating}} <i class="fa-regular fa-stars"></i></div>
+										<!--end::Label-->
+									</div>
+									<!--end::Stat-->                             
+								</div>
+								<!--end::Stats-->
+								@else
+									<span class="badge py-3 px-4 fs-7 badge-light-warning">Belum Di-Review</span>
+								@endif
+							</div>
+						</div>
+					</div>
+				</div>
+				@endif
             </div>
             <!--end::Content-->
         </div>
@@ -206,7 +264,7 @@
             // Shared variables
             let table;
             let dt;
-
+			@if ($data->status !== 'closed')
             const swalActionError = (message) => {
                 Swal.fire({
                     text: message,
@@ -276,11 +334,14 @@
                     })
                 });
             }
+			@endif
 
             // Public methods
             return {
                 init: function () {
+					@if ($data->status !== 'closed')
                     handleClosed();
+					@endif
                 },
             }
         }();

@@ -69,6 +69,7 @@ class SyncUserSis extends Command
                 "sis_pelanggan.*"
             )
             ->where('user_is_active', '=', 'yes')
+            ->where('user_is_banned', '=', 'no')
             ->get();
 
         $created = 0;

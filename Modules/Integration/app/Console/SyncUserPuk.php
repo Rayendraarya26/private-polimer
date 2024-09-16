@@ -44,6 +44,7 @@ class SyncUserPuk extends Command
             ->leftJoin('sys_group', 'sys_user_group.group_id', '=', 'sys_group.id')
             ->select('sys_user.*', 'sys_group.name as group_name')
             ->where('sys_user.is_active', '=', 'yes')
+            ->where('sys_user.is_banned', '=', 'no')
             ->get();
 
         $created = 0;

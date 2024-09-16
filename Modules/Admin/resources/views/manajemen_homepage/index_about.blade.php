@@ -43,8 +43,8 @@
 									<input name="action" type="hidden" value="about">
 								</div>
 							</div>
-							<div class="form-group row mt-20">
-								<div class="form-buttons-w offset-sm-3 col-sm-8">
+							<div class="form-group row" style="padding-top: 80px">
+								<div class="form-buttons-w ">
 									<button class="btn btn-success" type="button" onclick="submitApi()">
 										<i class="fas fa-save"></i> Simpan
 									</button>

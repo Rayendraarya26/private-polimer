@@ -12,6 +12,7 @@ import api from "../../utils/api"
 import toast from "react-hot-toast"
 import { getErrorMessage } from "../../utils/error"
 import { getFilenameFromContentDisposition } from "../../utils/common"
+import Head from "../../components/common/Head"
 
 const StyledBannerImage = styled.img`
   width: 100%;
@@ -182,6 +183,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
+      <Head title="Dashboard"/>
       {sliders.length > 0 && (
         <div className="w-100">
           <Carousel className="rounded-3 overflow-hidden">

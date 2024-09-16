@@ -3,6 +3,7 @@ import { Button, Card, Form, InputGroup } from "react-bootstrap"
 import { Eye, EyeOff } from "react-feather"
 import styled from "styled-components"
 import useChangePassword from "../../hooks/profile/useChangePassword"
+import Head from "../../components/common/Head"
 
 const StyledForm = styled.form`
   width: 100%;
@@ -29,6 +30,7 @@ const ChangePasswordPage: React.FC = () => {
 
   return (
     <div className="w-100">
+      <Head title="Ubah Kata Sandi"/>
       <Card>
         <Card.Header className="bg-transparent">
           <div className="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-2">

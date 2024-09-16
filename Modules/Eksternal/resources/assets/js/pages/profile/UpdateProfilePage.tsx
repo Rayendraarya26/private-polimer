@@ -3,6 +3,7 @@ import useProfile from "../../hooks/useProfile"
 import { Card, Spinner } from "react-bootstrap"
 import { ProfileClientType } from "../../types/profile"
 import styled from "styled-components"
+import Head from "../../components/common/Head"
 
 const FallbackContainer = styled.div`
   width: 100%;
@@ -19,6 +20,7 @@ const UpdateProfilePage: React.FC = () => {
   const { cleintType } = useProfile()
   return (
     <div className="w-100">
+      <Head title="Edit Profile"/>
       <Card>
         <Card.Header className="bg-transparent">
           <div className="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-2">

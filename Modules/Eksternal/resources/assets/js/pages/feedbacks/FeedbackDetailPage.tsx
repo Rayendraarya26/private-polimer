@@ -6,6 +6,7 @@ import FeedbackFieldItem from "../../components/feedbacks/FeedbackFieldItem"
 import { Button, Card, Spinner } from "react-bootstrap"
 import styled from "styled-components"
 import { ArrowLeft } from "react-feather"
+import Head from "../../components/common/Head"
 
 const FallbackContainer = styled.div`
   width: 100%;
@@ -28,6 +29,7 @@ const FeedbackDetailPage: React.FC = () => {
 
   return (
     <>
+      <Head title="Submit Feedback"/>
       <FormProvider {...form}>
         <Card>
           <Card.Header className="bg-transparent">

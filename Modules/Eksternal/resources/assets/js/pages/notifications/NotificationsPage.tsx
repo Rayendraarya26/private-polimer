@@ -5,6 +5,7 @@ import styled from "styled-components"
 import clsx from "clsx"
 import { Clock } from "react-feather"
 import { getDateDisplay } from "../../utils/date"
+import Head from "../../components/common/Head"
 
 const NotificationCard = styled(Card)`
   text-decoration: none;
@@ -44,6 +45,7 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <div className="w-100 d-flex flex-column gap-4">
+      <Head title="Notifikasi"/>
       <div className="w-100 d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
         <div>
           <div className="fs-3 fw-semibold">Notifikasi</div>

@@ -11,6 +11,7 @@ import useQuestions from "../../hooks/ask-questions/useQuestions"
 import { QuestionStatus } from "../../types/ask-questions"
 import CloseQuestion from "../../components/ask-questions/CloseQuestion"
 import ReviewQuestion from "../../components/ask-questions/ReviewQuestion"
+import Head from "../../components/common/Head"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -62,6 +63,7 @@ const AskQuestionsPage: React.FC = () => {
 
   return (
     <div className="w-100">
+      <Head title="Ajukan Pertanyaan"/>
       <Card>
         <Card.Header className="bg-transparent">
           <div className="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-2">

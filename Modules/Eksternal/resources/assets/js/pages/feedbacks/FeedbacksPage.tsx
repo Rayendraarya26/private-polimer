@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
 import { FeedbackItemStatusOrder } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
+import Head from "../../components/common/Head"
 
 const StyledInputGroupSearch = styled(InputGroup)`
   width: 100%;
@@ -52,6 +53,7 @@ const FeedbacksPage: React.FC = () => {
 
   return (
     <div className="w-100">
+      <Head title="Survey Kepuasan"/>
       <Card>
         <Card.Header className="bg-transparent">
           <div className="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-2">

@@ -3,9 +3,12 @@
 namespace Modules\Eksternal\Http\Controllers;
 
 use App\Enums\HomepageKey;
+use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
+use App\Libraries\MultiNotification;
 use App\Models\Db1\SiteContactUs;
 use App\Models\Db1\SiteManajemen;
+use App\Models\Db1\SysUser;
 use App\Traits\CaptchaTrait;
 use Exception;
 use Illuminate\Http\Request;
@@ -133,6 +136,21 @@ class HomeController extends Controller
             $contact_us->instansi = $request->instansi;
             $contact_us->pesan    = $request->pesan;
             $contact_us->save();
+
+            // send to all root user
+            $admin = SysUser::whereHas('sys_user_groups', function ($query) {
+                $query->where('group_id', SysGroup::ADMIN->value);
+            })->get();
+
+            foreach ($admin as $user) {
+                $notifBuilder = new MultiNotification($user, url('/admin/data-contact-us'));
+
+                $notifBuilder
+                    ->buildEmailNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
+                    ->buildPushNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
+                    ->buildWhatsapp("Ada pesan baru (Contact Us) dari $request->nama. \nPesan: $request->pesan")
+                    ->send();
+            }
 
             return back()->with('success', 'Pesan berhasil dikirim.');
         } catch (Exception $e) {

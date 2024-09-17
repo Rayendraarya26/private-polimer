@@ -12,7 +12,6 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Modules\Auth\Jobs\QueuedPasswordResetJob;
 use Modules\Auth\Jobs\QueueEmailVerificationJob;
-use Modules\Auth\Notifications\ResetPasswordNotification;
 
 class SysUser extends Authenticatable implements MustVerifyEmail
 {
@@ -60,9 +59,13 @@ class SysUser extends Authenticatable implements MustVerifyEmail
             'force_update_password' => 'boolean',
             'password_updated_at'   => 'datetime',
             'last_login'            => 'datetime',
-
             'banned_at'             => 'datetime',
         ];
+    }
+
+    public function isPegawai(): bool
+    {
+        return $this->sys_user_groups()->where('group_id', '!=', \App\Enums\SysGroup::PELANGGAN->value)->exists();
     }
 
     public function sendPasswordResetNotification($token): void

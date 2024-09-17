@@ -418,7 +418,7 @@
                                            name="nama" placeholder="Masukkan Nama Lengkap"
                                            value="{{ old('nama') }}">
                                     @error('nama')
-                                    <div class="text-danger">{{ $message }}</div>
+                                    <div class="text-danger fw-bold">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="w-100">
@@ -429,7 +429,7 @@
                                            name="email" placeholder="Masukkan Alamat Email"
                                            value="{{ old('email') }}">
                                     @error('email')
-                                    <div class="text-danger">{{ $message }}</div>
+                                    <div class="text-danger fw-bold">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -442,7 +442,7 @@
                                            name="telp" placeholder="Masukkan Nomor Telepon"
                                            value="{{ old('telp') }}">
                                     @error('telp')
-                                    <div class="text-danger">{{ $message }} Gunakan awalan 62, contoh: 628123456789
+                                    <div class="text-danger fw-bold">{{ $message }} Gunakan awalan 62, contoh: 628123456789
                                     </div>
                                     @enderror
                                 </div>
@@ -454,7 +454,7 @@
                                            name="instansi" placeholder="Masukkan Nama Perusahaan / Instansi"
                                            value="{{ old('instansi') }}">
                                     @error('instansi')
-                                    <div class="text-danger">{{ $message }}</div>
+                                    <div class="text-danger fw-bold">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
@@ -466,7 +466,7 @@
                                           placeholder="Tulis Pesan..." rows="3"
                                 >{{ old('pesan') }}</textarea>
                                 @error('pesan')
-                                <div class="text-danger">{{ $message }}</div>
+                                <div class="text-danger fw-bold">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="w-100 d-flex justify-content-start">

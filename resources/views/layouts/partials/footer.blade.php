@@ -5,14 +5,33 @@
         <!--begin::Copyright-->
         <div class="text-gray-900 order-2 order-md-1">
             <span class="text-muted fw-semibold me-1">2024&copy;</span>
-            <a href="https://keenthemes.com" target="_blank" class="text-gray-800 text-hover-primary">Keenthemes</a>
+            <a href="https://keenthemes.com" target="_blank" class="text-gray-800 text-hover-primary">
+                JIS - {{ config('app.name') }}
+            </a>
         </div>
         <!--end::Copyright-->
         <!--begin::Menu-->
         <ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1">
-            <li class="menu-item"><a href="https://keenthemes.com" target="_blank" class="menu-link px-2">About</a></li>
-            <li class="menu-item"><a href="https://devs.keenthemes.com" target="_blank" class="menu-link px-2">Support</a></li>
-            <li class="menu-item"><a href="https://1.envato.market/EA4JP" target="_blank" class="menu-link px-2">Purchase</a></li>
+            <li class="menu-item">
+                <a href="{{ route('faq') }}" target="_blank" class="menu-link px-2">
+                    FAQ
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{{ route('tte.verify') }}" target="_blank" class="menu-link px-2">
+                    TTE Verification
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{{ route('tracking-permohonan') }}" target="_blank" class="menu-link px-2">
+                    Lacak Permohonan
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="https://bbkkp.kemenperin.go.id" target="_blank" class="menu-link px-2">
+                    Portal Kemenperin
+                </a>
+            </li>
         </ul>
         <!--end::Menu-->        </div>
     <!--end::Footer container-->

@@ -4,9 +4,7 @@ namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Enums\SysGroup;
 use App\Http\Controllers\Controller;
-use App\Libraries\Mailer;
-use App\Libraries\Notification;
-use App\Libraries\WhatsappService;
+use App\Libraries\MultiNotification;
 use App\Models\Db1\DataIntegrasiLayanan;
 use App\Models\Db1\MasterTopikPertanyaan;
 use App\Models\Db1\PertanyaanPelanggan;
@@ -140,7 +138,7 @@ class PertanyaanController extends Controller
             $pesan->is_replied    = 'no';
             $pesan->save();
 
-            $pesanWA = sprintf("Pertanyaan baru dari *%s* ( @%s ) \n", auth()->user()->name, $this->getWhatsappNumber($request->user()));
+            $pesanWA = sprintf("Pertanyaan baru dari *%s* (@%s) \n", auth()->user()->name, $this->getWhatsappNumber($request->user()));
             $pesanWA .= sprintf("Nomor Tiket #%s \n", $pertanyaan->id);
             $pesanWA .= sprintf("Topik : %s \n", $pertanyaan->topik);
             if ($pertanyaan->layanan) {
@@ -201,14 +199,13 @@ class PertanyaanController extends Controller
             ->where('pertanyaan_id', $pertanyaan->id)
             ->update(['is_replied' => 'yes']);
 
-        $pesanWA = sprintf("Pesan baru dari *%s* ( @%s ) \n", auth()->user()->name, $this->getWhatsappNumber($request->user()));
+        $pesanWA = sprintf("Pesan baru dari *%s* (@%s) \n", auth()->user()->name, $this->getWhatsappNumber($request->user()));
         $pesanWA .= sprintf("Nomor Tiket #%s \n", $pertanyaan->id);
         $pesanWA .= sprintf("Topik : %s \n", $pertanyaan->topik);
         if ($pertanyaan->layanan) {
             $pesanWA .= sprintf("ID Layanan : %s \n", $pertanyaan->layanan);
         }
         $pesanWA .= sprintf("Pesan : %s \n", $request->pesan);
-        $pesanWA .= sprintf("\n\nDetail: %s", url('admin/pertanyaan/' . $pertanyaan->id . '/add'));
 
         $notifParameter = [
             'judul'       => 'Pesan Baru #' . $pertanyaan->id,
@@ -301,18 +298,12 @@ class PertanyaanController extends Controller
     {
         $user_admin = SysUserGroup::query()->with(['sys_user'])->where('group_id', '=', SysGroup::ROOT)->get();
         foreach ($user_admin as $usr) {
-            $libNotif = new Notification($usr->sys_user->id, $notifParameter['judul'], $notifParameter['pesan_notif'], $notifParameter['url_notif']);
-            $libNotif->sendInBackground();
-
-            $libMailer = new Mailer();
-            $libMailer->subject($notifParameter['judul'])
-                ->to($usr->sys_user->email)
-                ->body($notifParameter['pesan_email'])
-                ->sendInBackground();
-
-            if (!empty($usr->sys_user->pegawai->whatsapp)) {
-                WhatsappService::sendMessage($usr->sys_user->pegawai->whatsapp, $notifParameter['pesan_wa'])->sendInBackground();
-            }
+            $notifBuilder = new MultiNotification($usr->sys_user, $notifParameter['url_notif']);
+            $notifBuilder
+                ->buildEmailNotification($notifParameter['judul'], $notifParameter['pesan_email'])
+                ->buildPushNotification($notifParameter['judul'], $notifParameter['pesan_notif'])
+                ->buildWhatsapp($notifParameter['pesan_wa'])
+                ->send();
         }
     }
 }

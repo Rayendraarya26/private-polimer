@@ -5,6 +5,7 @@ namespace App\Libraries;
 use App\Enums\Option;
 use App\Enums\PelangganJenisPelanggan;
 use App\Models\Db1\SysUser;
+use App\Notifications\GeneralNotification;
 
 class MultiNotification
 {
@@ -62,11 +63,7 @@ class MultiNotification
 
     private function sendEmailNotification($subject, $body): void
     {
-        $mailer = new Mailer();
-        $mailer->subject($subject)
-            ->to($this->user->email)
-            ->body($body)
-            ->sendInBackground();
+        \Illuminate\Support\Facades\Notification::send($this->user, new GeneralNotification($subject, $body, $this->clickableUrl));
     }
 
     private function sendWhatsapp($message): void

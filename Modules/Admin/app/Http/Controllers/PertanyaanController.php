@@ -3,16 +3,12 @@
 namespace Modules\Admin\Http\Controllers;
 
 use App\Classes\Breadcrumbs;
-use App\Enums\PelangganJenisPelanggan;
 use App\Http\Controllers\Controller;
-use App\Libraries\Mailer;
-use App\Libraries\Notification;
-use App\Libraries\WhatsappService;
+use App\Libraries\MultiNotification;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,13 +38,13 @@ class PertanyaanController extends Controller
         ];
 
         $total_new = PertanyaanPelanggan::join('pelanggan', 'pelanggan.id', '=', 'pertanyaan_pelanggan.pelanggan_id')
-			->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
-				$join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
-				$join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
-				$join->where('is_replied', 'no');
-			})
-			->where('pertanyaan_pelanggan.status', 'opened')			
-			->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
+            ->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
+                $join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
+                $join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
+                $join->where('is_replied', 'no');
+            })
+            ->where('pertanyaan_pelanggan.status', 'opened')
+            ->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
 
         $parser = array_merge($this->defaultParser(), [
             'breadcrumbs'    => $breadcrumbs,
@@ -68,14 +64,14 @@ class PertanyaanController extends Controller
             new Breadcrumbs('Detail Pesan', url($this->url . "/" . $pertanyaan->id . "/" . "add")),
         ];
 
-		$total_new = PertanyaanPelanggan::join('pelanggan', 'pelanggan.id', '=', 'pertanyaan_pelanggan.pelanggan_id')
-			->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
-				$join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
-				$join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
-				$join->where('is_replied', 'no');
-			})
-			->where('pertanyaan_pelanggan.status', 'opened')			
-			->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
+        $total_new = PertanyaanPelanggan::join('pelanggan', 'pelanggan.id', '=', 'pertanyaan_pelanggan.pelanggan_id')
+            ->leftJoin('pertanyaan_pelanggan_pesan', function ($join) {
+                $join->on('pertanyaan_pelanggan.id', '=', 'pertanyaan_pelanggan_pesan.pertanyaan_id');
+                $join->on('pelanggan.user_id', '=', 'pertanyaan_pelanggan_pesan.created_by');
+                $join->where('is_replied', 'no');
+            })
+            ->where('pertanyaan_pelanggan.status', 'opened')
+            ->count(DB::raw('DISTINCT pertanyaan_pelanggan_pesan.id'));
 
         $parser = array_merge($this->defaultParser(), [
             'breadcrumbs'    => $breadcrumbs,
@@ -122,7 +118,6 @@ class PertanyaanController extends Controller
                 $pesanWA .= sprintf("ID Layanan : %s \n", $pertanyaan->layanan);
             }
             $pesanWA .= sprintf("Pesan : %s \n", $input['pesan']);
-            $pesanWA .= sprintf("\n\nDetail: %s", $url);
 
 
             $notifParameter = [
@@ -178,8 +173,8 @@ class PertanyaanController extends Controller
             ->with('pelanggan', 'pelanggan.user')
             ->withCount([
                 'pesans' => function ($query) {
-					$query->where('created_by', '!=', 'pelanggan.user_id')
-					->where('is_replied', 'no');
+                    $query->where('created_by', '!=', 'pelanggan.user_id')
+                        ->where('is_replied', 'no');
                 }
             ]);
 
@@ -194,32 +189,15 @@ class PertanyaanController extends Controller
     private function notif_pelanggan(array $notifParameter)
     {
         $user_pelanggan = Pelanggan::where('id', '=', $notifParameter['pelanggan_id'])->with(['user'])->first();
-        if ($user_pelanggan) {
-            if ($user_pelanggan->jenis_pelanggan === PelangganJenisPelanggan::PERORANGAN->value) {
-                $nomor_wa     = ($user_pelanggan->detail->whatsapp) ? $user_pelanggan->detail->whatsapp : '';
-                $email        = ($user_pelanggan->detail->surel) ? $user_pelanggan->detail->surel : '';
-                $isWAVerified = $user_pelanggan->detail->whatsapp_verified;
-            } else {
-                $nomor_wa     = ($user_pelanggan->detail->pj_whatsapp) ? $user_pelanggan->detail->pj_whatsapp : '';
-                $email        = ($user_pelanggan->detail->pj_surel) ? $user_pelanggan->detail->pj_surel : '';
-                $isWAVerified = $user_pelanggan->detail->pj_whatsapp_verified;
-            }
-
-            $libNotif = new Notification($user_pelanggan->user->id, $notifParameter['judul'], $notifParameter['pesan_notif'], $notifParameter['url_notif']);
-            $libNotif->sendInBackground();
-
-            if ($email != '') {
-                $libMailer = new Mailer();
-                $libMailer->subject($notifParameter['judul'])
-                    ->to($email)
-                    ->body($notifParameter['pesan_email'])
-                    ->sendInBackground();
-            }
-
-            if ($isWAVerified && $nomor_wa != '') {
-                WhatsappService::sendMessage($nomor_wa, $notifParameter['pesan_wa'])
-                    ->sendInBackground();
-            }
+        if (!$user_pelanggan) {
+            return;
         }
+
+        $notifBulder = new MultiNotification($user_pelanggan->user, $notifParameter['url_notif']);
+        $notifBulder
+            ->buildPushNotification($notifParameter['judul'], $notifParameter['pesan_notif'])
+            ->buildEmailNotification($notifParameter['judul'], $notifParameter['pesan_email'])
+            ->buildWhatsapp($notifParameter['pesan_wa'])
+            ->send();
     }
 }

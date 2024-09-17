@@ -5,6 +5,7 @@ namespace Modules\Integration\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Integration\Console\PatchUserPegawai;
 use Modules\Integration\Console\SyncNewPermohonanCmd;
 use Modules\Integration\Console\SyncStatusPermohonanCmd;
 use Modules\Integration\Console\SyncUser;
@@ -49,6 +50,7 @@ class IntegrationServiceProvider extends ServiceProvider
         $this->commands([
             SyncStatusPermohonanCmd::class,
             SyncNewPermohonanCmd::class,
+            PatchUserPegawai::class,
             SyncUser::class,
             SyncUserApps::class,
             SyncUserPuk::class,

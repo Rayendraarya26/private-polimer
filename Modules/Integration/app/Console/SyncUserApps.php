@@ -4,6 +4,7 @@ namespace Modules\Integration\Console;
 
 use App\Enums\PelangganJenisPelanggan;
 use App\Enums\SysGroup;
+use App\Models\Db1\Pegawai;
 use App\Models\Db1\Pelanggan;
 use App\Models\Db1\PelangganPerusahaan;
 use App\Models\Db1\SysUser;
@@ -69,7 +70,7 @@ class SyncUserApps extends Command
                 $userGroup->group_id   = $row->acc_type === 'pegawai' ? SysGroup::PEGAWAI : SysGroup::PELANGGAN;
                 $userGroup->save();
 
-                if ($row->acc_type === 'PELANGGAN') {
+                if ($row->acc_type === SysGroup::PELANGGAN->value) {
                     // create new pelanggan
                     // create pelanggan
                     $pelanggan = Pelanggan::updateOrCreate(
@@ -88,6 +89,12 @@ class SyncUserApps extends Command
                     );
 
                     $pelanggan->detail()->associate($detail)->save();
+                } elseif ($row->acc_type === SysGroup::PEGAWAI->value) {
+                    // update or create pegawai
+                    Pegawai::updateOrCreate(
+                        ['user_id' => $user->id],
+                        []
+                    );
                 }
 
                 DB::commit();

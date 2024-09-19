@@ -140,6 +140,19 @@
             object-position: center;
         }
 
+        .banner-image-container {
+            position: relative;
+        }
+
+        .banner-image-overlay {
+            background: rgba(0, 0, 0, .5);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         .banner-card {
             position: absolute;
             bottom: 20%;
@@ -200,6 +213,36 @@
             .footer-img {
                 width: 10rem;
             }
+        }
+
+        img.mitra-logo {
+            -webkit-filter: grayscale(100%);
+            filter: grayscale(100%);
+        }
+
+        .social-logo {
+            cursor: pointer;
+            width: 2.75rem;
+            aspect-ratio: 1/1;
+            border: 1px solid white;
+            display: grid;
+            place-items: center;
+            color: white;
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+        
+        .social-logo > i {
+            color: white;
+        }
+
+        .social-logo:hover {
+            background-color: white;
+        }
+
+        .social-logo:hover > i {
+            color: #0D47A1;
         }
 
         body {
@@ -276,16 +319,17 @@
         >
             <div class="slick-carousel-banners">
                 @foreach($banners as $item)
-                    <div class="w-100 position-relative">
+                    <div class="w-100 position-relative banner-image-container">
+                        <div class="banner-image-overlay"></div>
                         <img
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
                         >
                         @if($item['title'] && $item['description'])
-                            <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
+                            <!-- <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
                                 <h3 class="fs-1 text-white">{{ $item['title'] }}</h3>
                                 <p class="mb-0 fs-4">{{ $item['description'] }}</p>
-                            </div>
+                            </div> -->
                         @endif
                     </div>
                 @endforeach
@@ -299,7 +343,12 @@
                 <div class="slick-carousel-services slick-carousel-scale-animate">
                     @foreach($services as $item)
                         <div class="p-4">
-                            <div class="p-5 card bg-blue" style="border-radius: 3rem;">
+                            <a 
+                                class="p-5 card bg-transparent shadow-none border-0"
+                                data-bs-toggle="modal"
+                                href="#service-{{ $item['id'] }}"
+                                role="button"
+                            >
                                 <div class="card-body d-flex flex-column align-items-center gap-5 p-5">
                                     <div class="w-100">
                                         <img
@@ -307,12 +356,43 @@
                                             class="w-100 rounded-3"
                                         >
                                     </div>
-                                    <div class="fs-1 fw-bold text-white text-center">{{ $item['name'] }}</div>
+                                    <div class="fs-1 fw-bold text-center">{{ $item['name'] }}</div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     @endforeach
                 </div>
+                @foreach($services as $item)
+                    <div 
+                        class="modal fade"
+                        id="service-{{ $item['id'] }}"
+                        aria-hidden="true"
+                        aria-labelledby="service-title-{{ $item['id'] }}"
+                        tabindex="-1"
+                    >
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 
+                                        class="modal-title"
+                                        id="service-title-{{ $item['id'] }}"
+                                    >
+                                        {{ $item['name'] }}
+                                    </h5>
+                                    <button 
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+                                <div class="modal-body">
+                                    {{ $item['description'] }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
                 <div class="fs-3 fw-bold text-center py-5">Ada yang bisa kami bantu? Daftar disini</div>
                 <img
                     alt="Logo"
@@ -341,7 +421,7 @@
                         <div class="p-4 d-flex justify-content-center align-items-center h-100">
                             <img
                                 src="{{ $item['image_url'] }}"
-                                class="w-100 rounded-3"
+                                class="w-100 rounded-3 mitra-logo"
                                 style="object-fit: contain;"
                             >
                         </div>
@@ -357,13 +437,12 @@
                 <div class="slick-carousel-testimonials slick-carousel-scale-animate">
                     @foreach($testimonials as $item)
                         <div class="p-5">
-                            <div class="card shadow-sm bg-blue text-white" style="border-radius: 3rem;">
+                            <div class="card bg-transparent shadow-none" style="border-radius: 3rem;">
                                 <div class="quotes display-2 text-body-tertiary">
                                     <i class="bi bi-quote"></i>
                                 </div>
                                 <div class="card-body">
-                                    <p class="card-text fs-5 fw-semibold">"{{ $item['content'] }}"</p>
-                                    <div class="d-flex align-items-center gap-4 pt-2">
+                                    <div class="d-flex align-items-center gap-4 pb-5">
                                         @if(isset($item['avatar']))
                                             <img
                                                 src="{{ $item['avatar'] }}"
@@ -371,10 +450,11 @@
                                             >
                                         @endif
                                         <div>
-                                            <h5 class="fw-bold text-white">{{ $item['title'] }}</h5>
+                                            <h3 class="fs-1 fw-bold">{{ $item['title'] }}</h3>
                                             <span class="text-gray">{{ $item['subtitle'] }}</span>
                                         </div>
                                     </div>
+                                    <p class="card-text fs-4 fw-semibold">"{{ $item['content'] }}"</p>
                                 </div>
                             </div>
                         </div>
@@ -387,10 +467,43 @@
             class="w-100 d-flex justify-content-center"
             style="padding: 2rem;"
         >
-            <div class="w-100 section-wrapper d-flex flex-column gap-4">
-                <div class="fs-1 fw-bold text-center">Tentang Kami</div>
+            <div class="w-100 section-wrapper">
+                <div class="w-100 row">
+                    <div class="col-12 col-lg-7 d-flex flex-column gap-5">
+                        <div class="fs-1 fw-bold text-center">Tentang Kami</div>
 
-                {!! $aboutUs !!}
+                        <div class="w-100 d-flex justify-content-center">
+                            <img
+                                alt=""
+                                class="w-50"
+                                src="{{ asset('assets/media/logos/logo-jis.png') }}"
+                            />
+                        </div>
+
+                        {!! $aboutUs !!}
+                    </div>
+
+                    <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+                        @foreach($collapsible as $index => $item)
+                            <div class="card">
+                                <div class="card-body d-flex flex-column gap-4 p-5">
+                                    <a 
+                                        data-bs-toggle="collapse"
+                                        href="#collapsible-{{ $index }}"
+                                        role="button"
+                                        aria-expanded="false"
+                                        class="fs-3 fw-bold"
+                                    >
+                                        {{ $item['title'] }}
+                                    </a>
+                                    <div class="collapse" id="collapsible-{{ $index }}">
+                                        <p class="mb-0">{{ $item['description'] }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </section>
         <section
@@ -506,6 +619,18 @@
                                     <div>Senin - Jumat: 08:00 - 15:30</div>
                                     <div>Sabtu, Minggu: Tutup</div>
                                 </div>
+                            </div>
+                            <div class="d-inline-flex align-items-center gap-3 pt-2">
+                                @foreach($social_medias as $item)
+                                    <a
+                                        href="{{ $item['url'] }}"
+                                        target="_blank"
+                                        class="social-logo rounded-3"
+                                        title="{{ $item['title'] }}"
+                                    >
+                                        <i class="{{ $item['icon_class'] }}"></i>
+                                    </a>
+                                @endforeach
                             </div>
                         </div>
                     </div>

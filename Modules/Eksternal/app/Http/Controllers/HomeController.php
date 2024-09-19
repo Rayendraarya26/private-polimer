@@ -41,9 +41,11 @@ class HomeController extends Controller
         $services    = [];
         foreach ($servicesObj->data as $item) {
             $services[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
-                "name"      => $item['title'],
-                'order'     => $item['order']
+                "id"            => $item['id'],
+                "image_url"     => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "name"          => $item['title'],
+                "description"   => '', // TODO
+                'order'         => $item['order']
             ];
         }
         usort($services, function ($a, $b) {
@@ -104,12 +106,52 @@ class HomeController extends Controller
         $aboutUsObj = SiteManajemen::query()->where('key', HomepageKey::ABOUT)->first();
         $aboutUs    = $aboutUsObj->data['data'];
 
+        $collapsible = [
+            [
+                "title"         => "Layanan",
+                "description"   => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
+            ],
+            [
+                "title"         => "Quality is Quality",
+                "description"   => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
+            ],
+            [
+                "title"         => "Jaminan Integritas dan Solusi",
+                "description"   => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
+            ]
+        ];
+
+        $social_medias = [
+            [
+                "icon_class"    => "fa-brands fa-facebook-f",
+                "title"         => "Facebook",
+                "url"           => "https://www.facebook.com/bbkkp.yogyakarta"
+            ],
+            [
+                "icon_class"    => "fa-brands fa-twitter",
+                "title"         => "Twitter",
+                "url"           => "https://twitter.com/BbkkpKemenperin"
+            ],
+            [
+                "icon_class"    => "fa-brands fa-youtube",
+                "title"         => "YouTube",
+                "url"           => "https://www.youtube.com/c/BBKKPKemenperin"
+            ],
+            [
+                "icon_class"    => "fa-brands fa-instagram",
+                "title"         => "Instagram",
+                "url"           => "https://www.instagram.com/bbkkp.kemenperin"
+            ]
+        ];
+
         return view("$this->view.index", [
-            "banners"      => $banners,
-            "services"     => $services,
-            "partners"     => $partners,
-            "testimonials" => $testimonials,
-            'aboutUs'      => $aboutUs
+            "banners"       => $banners,
+            "services"      => $services,
+            "partners"      => $partners,
+            "testimonials"  => $testimonials,
+            'aboutUs'       => $aboutUs,
+            'social_medias' => $social_medias,
+            'collapsible'   => $collapsible
         ]);
     }
 

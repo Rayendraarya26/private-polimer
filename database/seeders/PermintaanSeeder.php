@@ -44,7 +44,11 @@ class PermintaanSeeder extends Seeder
                     ],
                 ] : [],
                 'feedback_json'     => [],
-                'is_given_feedback' => 0
+                'is_given_feedback' => 0,
+                'metadata'          => [
+                    'No Pengujian' => $faker->unique()->regexify('UJI-' . date('ym') . '-[0-9]{8}'),
+                    'Nama Pemohon' => $faker->company,
+                ]
             ]);
         }
     }

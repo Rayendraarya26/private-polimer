@@ -23,6 +23,7 @@ class DataIntegrasiLayanan extends Model
         'is_given_feedback',
         'feedback_json',
         'last_sync_at',
+        'metadata',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class DataIntegrasiLayanan extends Model
         'tanggal_order'     => 'datetime',
         'feedback_json'     => 'json',
         'last_sync_at'      => 'datetime',
+        'metadata'          => 'json',
     ];
 
     public function layanan(): BelongsTo

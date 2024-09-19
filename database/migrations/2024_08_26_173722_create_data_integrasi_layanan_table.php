@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->boolean('is_given_feedback')->default(false);
             $table->json('feedback_json')->nullable();
             $table->timestampTz('feedback_at')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestampTz('last_sync_at')->nullable();
             $table->timestampsTz();
         });

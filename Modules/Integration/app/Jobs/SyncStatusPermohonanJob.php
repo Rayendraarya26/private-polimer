@@ -36,7 +36,7 @@ class SyncStatusPermohonanJob implements ShouldQueue
         ])
             ->post($this->layanan->integration_url, [
                 'id'   => $this->idOrder,
-                'sync' => 'one',
+                'sync' => 'update',
             ]);
 
         // log response

@@ -9,6 +9,7 @@ use App\Models\Db1\MasterLayanan;
 use App\Models\Db1\SysUser;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -23,6 +24,7 @@ class IntegrationController extends Controller
             'permohonan_tanggal'    => 'required|date',
             'permohonan_status'     => 'required',
             'permohonan_sertifikat' => 'nullable|array', // should contain 'ref_code' for tte, '
+            'metadata'              => 'nullable|array',
         ]);
 
         try {
@@ -49,15 +51,26 @@ class IntegrationController extends Controller
                 'id_order'   => $input['permohonan_id'],
             ]);
 
-            $dil->layanan_id      = $masterLayanan->id;
-            $dil->user_id         = $user->id;
-            $dil->kode_order      = $this->formatKodeOrder($layanan->getCode(), $input['permohonan_id'], $input['permohonan_tanggal']);
-            $dil->id_order        = $input['permohonan_id'];
-            $dil->tanggal_order   = $input['permohonan_tanggal'];
-            $dil->status_order    = $input['permohonan_status'];
-            $dil->file_attachment = $input['permohonan_sertifikat'] ?? [];
-            $dil->feedback_json   = [];
-            $dil->last_sync_at    = now();
+            $dil->layanan_id    = $masterLayanan->id;
+            $dil->user_id       = $user->id;
+            $dil->kode_order    = $this->formatKodeOrder($layanan->getCode(), $input['permohonan_id'], $input['permohonan_tanggal']);
+            $dil->id_order      = $input['permohonan_id'];
+            $dil->tanggal_order = $input['permohonan_tanggal'];
+            $dil->status_order  = $input['permohonan_status'];
+            $dil->last_sync_at  = now();
+            $dil->metadata      = $input['metadata'] ?? [];
+
+            if (empty($dil->feedback_json)) {
+                $dil->feedback_json = [];
+            }
+
+            // file attachment already exist and the for contains is_download = true, we not update this part/row. so we only update another row
+            if (empty($dil->file_attachment)) {
+                $dil->file_attachment = $input['permohonan_sertifikat'] ?? [];
+            } else {
+                $dil->file_attachment = $this->updatedNeededAttachment($dil->file_attachment, $input['permohonan_sertifikat'] ?? []);
+            }
+
             $dil->save();
 
             return responseJSON('Data berhasil disimpan', $dil);
@@ -85,5 +98,25 @@ class IntegrationController extends Controller
         $id = str_pad($permohonanId, 8, '0', STR_PAD_LEFT);
 
         return strtoupper("{$layananKode}-{$ym}-{$id}");
+    }
+
+    private function updatedNeededAttachment($currentData, $newData)
+    {
+        // only update attachment that doesn't have is_download = true, we only update by kode
+        // $dil->file_attachment = [{"kode": "STU", "nama": "Sertifikat STU", "ref_code": "85b30039-e9a3-41fe-975f-1b7916a52a9e", "is_downloaded": true}, {"kode": "EHU", "nama": "Sertifikat EHU", "ref_code": "3dd7901d-01fa-4773-98d5-959cc7a31f58"}]
+        // $input['permohonan_sertifikat'] = [{"kode": "STU", "nama": "Sertifikat STU", "ref_code": "85b30039-e9a3-41fe-975f-1b7916a52a9e"}, {"kode": "APU", "nama": "Sertifikat EHU", "ref_code": "3dd7901d-01fa-4773-98d5-959cc7a31f58"}]
+        // so we skip the first row, remove the second row, and add the third row
+        // the final result will be [{"kode":"STU","nama":"Sertifikat STU","ref_code":"85b30039-e9a3-41fe-975f-1b7916a52a9e","is_downloaded":true},{"kode":"APU","nama":"Sertifikat EHU","ref_code":"3dd7901d-01fa-4773-98d5-959cc7a31f58"}]
+
+        $currentData = collect($currentData)->filter(function ($item) {
+            return Arr::get($item, 'is_downloaded') === true;
+        });
+
+        // new Data should not have KODE that already exist in currentData
+        $newData = collect($newData)->filter(function ($item) use ($currentData) {
+            return !$currentData->contains('kode', Arr::get($item, 'kode'));
+        });
+
+        return $currentData->merge($newData)->toArray();
     }
 }

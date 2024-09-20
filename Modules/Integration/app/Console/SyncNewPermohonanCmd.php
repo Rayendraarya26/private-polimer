@@ -2,6 +2,7 @@
 
 namespace Modules\Integration\Console;
 
+use App\Enums\IntegrationType;
 use App\Enums\Option;
 use App\Models\Db1\MasterLayanan;
 use Illuminate\Console\Command;
@@ -12,7 +13,7 @@ class SyncNewPermohonanCmd extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'integration:sync-new-permohonan';
+    protected $signature = 'integration:sync-new-permohonan {type=new}';
 
     /**
      * The console command description.
@@ -32,7 +33,14 @@ class SyncNewPermohonanCmd extends Command
      */
     public function handle()
     {
-        $this->info('Syncing permohonan baru');
+        $type = $this->argument('type');
+
+        if (!in_array($type, [IntegrationType::NEW->value, IntegrationType::INITIAL->value])) {
+            $this->error('Invalid type. Use new or initial');
+            return;
+        }
+
+        $this->info('Sinkronisasi permohonan ' . $type);
 
         // Get ALL Layanan
         $listLayanan = MasterLayanan::query()
@@ -41,10 +49,10 @@ class SyncNewPermohonanCmd extends Command
 
         foreach ($listLayanan as $layanan) {
             // Dispatch Job
-            SyncNewPermohonanJob::dispatch($layanan);
-            $this->info(sprintf('Syncing pemohonan pada layanan %s', $layanan->name));
+            SyncNewPermohonanJob::dispatchSync($layanan, $type);
+            $this->info(sprintf('Sinkronisasi pemohonan pada layanan %s', $layanan->name));
         }
 
-        $this->info('Syncing permohonan selesai.');
+        $this->info('Sinkronisasi sedang berjalan di background proses.');
     }
 }

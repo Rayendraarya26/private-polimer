@@ -2,6 +2,7 @@
 
 namespace Modules\Integration\Http\Controllers;
 
+use App\Enums\IntegrationType;
 use App\Enums\Layanan;
 use App\Http\Controllers\Controller;
 use App\Models\Db1\DataIntegrasiLayanan;
@@ -25,9 +26,12 @@ class IntegrationController extends Controller
             'permohonan_status'     => 'required',
             'permohonan_sertifikat' => 'nullable|array', // should contain 'ref_code' for tte, '
             'metadata'              => 'nullable|array',
+            'integration_type'      => 'required|in:' . implode(',', IntegrationType::toArray()),
         ]);
 
         try {
+            $integrationType = IntegrationType::tryFrom($input['integration_type']);
+
             $masterLayanan = MasterLayanan::where('code', $input['layanan'])->first();
             throw_if(is_null($masterLayanan), Exception::class, 'Master layanan tidak ditemukan');
 
@@ -69,6 +73,10 @@ class IntegrationController extends Controller
                 $dil->file_attachment = $input['permohonan_sertifikat'] ?? [];
             } else {
                 $dil->file_attachment = $this->updatedNeededAttachment($dil->file_attachment, $input['permohonan_sertifikat'] ?? []);
+            }
+
+            if ($integrationType == IntegrationType::INITIAL) {
+                $dil->is_given_feedback = true;
             }
 
             $dil->save();

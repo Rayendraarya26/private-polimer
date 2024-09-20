@@ -108,16 +108,19 @@ class HomeController extends Controller
 
         $collapsible = [
             [
-                "title"         => "Layanan",
-                "description"   => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
+                "title"             => "Layanan",
+                "is_default_open"   => true,
+                "description"       => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
             ],
             [
-                "title"         => "Quality is Quality",
-                "description"   => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
+                "title"             => "Quality is Quality",
+                "is_default_open"   => false,
+                "description"       => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
             ],
             [
-                "title"         => "Jaminan Integritas dan Solusi",
-                "description"   => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
+                "title"             => "Jaminan Integritas dan Solusi",
+                "is_default_open"   => false,
+                "description"       => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
             ]
         ];
 
@@ -128,7 +131,7 @@ class HomeController extends Controller
                 "url"           => "https://www.facebook.com/bbkkp.yogyakarta"
             ],
             [
-                "icon_class"    => "fa-brands fa-twitter",
+                "icon_class"    => "fa-brands fa-x-twitter",
                 "title"         => "Twitter",
                 "url"           => "https://twitter.com/BbkkpKemenperin"
             ],

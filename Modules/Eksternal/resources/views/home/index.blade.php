@@ -22,6 +22,12 @@
             }
         }
 
+        .navbar {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
         .ql-align-right {
             text-align: right;
         }
@@ -71,7 +77,6 @@
             display: none !important;
             height: 60px;
             width: 40px;
-            background-color: #0D47A1 !important;
             border-radius: 0.25rem;
         }
 
@@ -79,7 +84,6 @@
             display: none !important;
             height: 60px;
             width: 40px;
-            background-color: #0D47A1 !important;
             border-radius: 0.25rem;
         }
 
@@ -105,7 +109,7 @@
         }
 
         .slick-carousel-scale-animate .slick-current {
-            transform: scale(1);
+            transform: scale(1.1);
             opacity: 1;
         }
 
@@ -127,10 +131,9 @@
         }
 
         .logo-bg {
+            border: none !important;
             padding: 1.25rem 1.5rem 1.5rem 1.5rem !important;
-            border-radius: 1rem;
             margin-left: 0.5rem;
-            opacity: 0.9;
         }
 
         .banner-image-background {
@@ -163,14 +166,6 @@
             border-radius: 0.5rem;
         }
 
-        .nav-link {
-            color: white;
-        }
-
-        .navbar-collapse {
-            background-color: #0D47A1;
-        }
-
         .footer-img {
             width: 3.5rem;
             aspect-ratio: 1/1;
@@ -178,24 +173,14 @@
         }
 
         @media screen and (min-width: 768px) {
-            .navbar-collapse {
-                background-color: unset;
-            }
-
             .logo-bg {
                 width: fit-content;
                 border: 1px solid #cecece;
-                background-color: var(--bs-light) !important;
-            }
-
-            .navbar-nav {
-                box-shadow: var(--bs-box-shadow-lg) !important;
             }
 
             .nav-link {
-                border-radius: 0.35rem;
-                background-color: #0D47A1;
-                padding: 1rem 4rem !important;
+                font-size: 1.5rem;
+                padding: 1rem 1.5rem !important;
             }
 
             .slick-prev-banner, .slick-next-banner {
@@ -245,6 +230,10 @@
             color: #0D47A1;
         }
 
+        .navbar:not(.bg-light) .nav-link {
+            color: white;
+        }
+
         body {
             background-color: white;
         }
@@ -252,13 +241,12 @@
 @endpush
 
 @section('content')
-    <nav class="navbar fixed-top navbar-expand-lg navbar-light">
-        <div class="container-fluid m-0 p-0">
+    <nav class="navbar shadow fixed-top navbar-expand-lg navbar-light d-flex justify-content-center">
+        <div class="container-fluid w-100 section-wrapper m-0 p-0">
             <a
-                class="navbar-brand logo-bg bg-light shadow"
-                href="/"
+                class="navbar-brand logo-bg"
+                href="https://bbkkp.kemenperin.go.id"
             >
-                <div class="fw-bold mb-3"><i>Powered By</i></div>
                 <img
                     alt="Logo"
                     class="logo"
@@ -266,7 +254,7 @@
                 />
             </a>
             <button
-                class="navbar-toggler me-4 bg-blue py-3"
+                class="navbar-toggler me-4 py-3"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarNavDropdown"
@@ -274,13 +262,21 @@
                 aria-expanded="false"
                 aria-label="Toggle navigation"
             >
-                <i class="fa-solid fa-bars text-white" style="font-size: 1.5rem;"></i>
+                <i class="fa-solid fa-bars" style="font-size: 1.5rem;"></i>
             </button>
             <div
                 class="collapse navbar-collapse p-4"
                 id="navbarNavDropdown"
             >
                 <ul class="navbar-nav fw-bold fs-1" style="gap: 0.1rem;">
+                    <li class="nav-item">
+                        <a
+                            class="nav-link"
+                            href="#our-services"
+                        >
+                            Layanan Kami
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a
                             class="nav-link"
@@ -320,22 +316,23 @@
             <div class="slick-carousel-banners">
                 @foreach($banners as $item)
                     <div class="w-100 position-relative banner-image-container">
-                        <div class="banner-image-overlay"></div>
+                        <!-- <div class="banner-image-overlay"></div> -->
                         <img
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
                         >
                         @if($item['title'] && $item['description'])
-                            <!-- <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
+                            <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
                                 <h3 class="fs-1 text-white">{{ $item['title'] }}</h3>
                                 <p class="mb-0 fs-4">{{ $item['description'] }}</p>
-                            </div> -->
+                            </div>
                         @endif
                     </div>
                 @endforeach
             </div>
         </section>
         <section
+            id='our-services'
             class="w-100 d-flex justify-content-center"
         >
             <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
@@ -414,7 +411,7 @@
         <section
             class="w-100 d-flex justify-content-center"
         >
-            <div class="w-100 d-flex flex-column gap-5 py-5">
+            <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
                 <div class="fs-1 fw-bold text-center">Mitra Kami</div>
                 <div class="slick-carousel-partners slick-carousel-scale-animate">
                     @foreach($partners as $item)
@@ -432,12 +429,12 @@
         <section
             class="w-100 d-flex justify-content-center bg-light"
         >
-            <div class="w-100 d-flex flex-column gap-5" style="padding: 5rem 0;">
+            <div class="w-100 section-wrapper d-flex flex-column gap-5" style="padding: 5rem 0;">
                 <div class="fs-1 fw-bold text-center">Ulasan dan Komentar</div>
                 <div class="slick-carousel-testimonials slick-carousel-scale-animate">
                     @foreach($testimonials as $item)
                         <div class="p-5">
-                            <div class="card bg-transparent shadow-none" style="border-radius: 3rem;">
+                            <div class="card" style="border-radius: 3rem;">
                                 <div class="quotes display-2 text-body-tertiary">
                                     <i class="bi bi-quote"></i>
                                 </div>
@@ -469,39 +466,53 @@
         >
             <div class="w-100 section-wrapper">
                 <div class="w-100 row">
-                    <div class="col-12 col-lg-7 d-flex flex-column gap-5">
+                    <div class="col-12 d-flex flex-column align-items-center gap-5 pb-5">
                         <div class="fs-1 fw-bold text-center">Tentang Kami</div>
-
-                        <div class="w-100 d-flex justify-content-center">
-                            <img
-                                alt=""
-                                class="w-50"
-                                src="{{ asset('assets/media/logos/logo-jis.png') }}"
-                            />
-                        </div>
-
-                        {!! $aboutUs !!}
+                        <img
+                            alt=""
+                            class="w-50 w-lg-25"
+                            src="{{ asset('assets/media/logos/logo-jis.png') }}"
+                        />
+                    </div>
+                    <div class="col-12 col-lg-7 d-flex flex-column gap-5">
+                        <p>{!! $aboutUs !!}</p>
                     </div>
 
                     <div class="col-12 col-lg-5 d-flex flex-column gap-4">
-                        @foreach($collapsible as $index => $item)
-                            <div class="card">
-                                <div class="card-body d-flex flex-column gap-4 p-5">
-                                    <a 
-                                        data-bs-toggle="collapse"
-                                        href="#collapsible-{{ $index }}"
-                                        role="button"
-                                        aria-expanded="false"
-                                        class="fs-3 fw-bold"
+                        <div 
+                            class="accordion"
+                            id="accordion-1"
+                        >
+                            @foreach($collapsible as $index => $item)
+                                <div class="accordion-item mb-2 rounded-4">
+                                    <h2 
+                                        class="accordion-header"
+                                        id="heading-{{ $index }}"
                                     >
-                                        {{ $item['title'] }}
-                                    </a>
-                                    <div class="collapse" id="collapsible-{{ $index }}">
-                                        <p class="mb-0">{{ $item['description'] }}</p>
+                                        <button 
+                                            class="accordion-button"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#collapse-{{ $index }}"
+                                            aria-expanded="true"
+                                            aria-controls="collapse-{{ $index }}"
+                                        >
+                                            <div class="fs-1 fw-semibold">{{ $item['title'] }}</div>
+                                        </button>
+                                    </h2>
+                                    <div 
+                                        id="collapse-{{ $index }}"
+                                        class="accordion-collapse collapse {{ $item['is_default_open'] ? 'show' : '' }}"
+                                        aria-labelledby="heading-{{ $index }}"
+                                        data-bs-parent="#accordion-1"
+                                    >
+                                        <div class="accordion-body">
+                                            <p class="mb-0 fs-5">{{ $item['description'] }}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>
@@ -605,14 +616,29 @@
                                 <i class="fa-solid fa-phone pt-1 text-white"></i>
                                 <div>+62 (274) 512-929</div>
                             </div>
-                            <div class="d-inline-flex gap-3">
+                            <a 
+                                href="https://wa.me/628112827821"
+                                target="_blank"
+                                class="d-inline-flex gap-3 text-white"
+                            >
                                 <i class="fa-brands fa-whatsapp pt-1 text-white"></i>
                                 <div>+62 811-2827-821</div>
-                            </div>
-                            <div class="d-inline-flex gap-3">
+                            </a>
+                            <a
+                                href="mailto:bbkkp_jogja@yahoo.com"
+                                class="d-inline-flex gap-3 text-white"
+                            >
                                 <i class="fa-solid fa-envelope pt-1 text-white"></i>
                                 <div>bbkkp_jogja@yahoo.com</div>
-                            </div>
+                            </a>
+                            <a
+                                href="https://bbkkp.kemenperin.go.id"
+                                target="_blank"
+                                class="d-inline-flex gap-3 text-white"
+                            >
+                                <i class="fa-solid fa-globe pt-1 text-white"></i>
+                                <div>Website</div>
+                            </a>
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-regular fa-clock pt-1 text-white"></i>
                                 <div>
@@ -677,6 +703,15 @@
         // go to contact us section
         document.getElementById('contact-us').scrollIntoView({ behavior: 'instant' });
         @endif
+
+        window.addEventListener("scroll", (event) => {
+            const nav = document.querySelector('nav')
+            if (this.scrollY > 200) {
+                nav.classList.add('bg-light')
+            } else {
+                nav.classList.remove('bg-light')
+            }
+        });
 
         const initRecaptcha = async function () {
             const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });

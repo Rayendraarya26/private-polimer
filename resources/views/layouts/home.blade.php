@@ -5,7 +5,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="canonical" href="http://authentication/layouts/overlay/sign-in.html"/>
-    <link rel="shortcut icon" href="{{asset('assets/media/logos/favicon.ico')}}"/>
+    <link rel="shortcut icon" href="{{asset('assets/media/logos/jis-logo-icon-only.png')}}"/>
     <!--begin::Fonts(mandatory for all pages)-->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet">

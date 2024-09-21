@@ -13,7 +13,7 @@ services:
         networks:
             - bbkkp_network
         ports:
-            - "4700-4705:80"
+            - "4700-4703:80"
 
 #Docker Networks
 networks:

@@ -8,6 +8,7 @@ use App\Models\Db1\SiteManajemen;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -17,6 +18,7 @@ class ManageHomepageController
     public string $module = __CLASS__;
     private string $url = 'admin/manajemen-homepage';
     private string $view = 'admin::manajemen_homepage';
+    const CACHE_NAME = 'home_parser';
 
     private function defaultParser(): array
     {
@@ -53,7 +55,7 @@ class ManageHomepageController
 
     public function update(Request $request, $action)
     {
-        return match ($action) {
+        $data = match ($action) {
             'about' => $this->upsert_about($request),
             'store_slider' => $this->store_slider($request),
             'store_services' => $this->store_services($request),
@@ -63,6 +65,10 @@ class ManageHomepageController
             'update_partner' => $this->update_partner($request),
             default => abort(404),
         };
+
+        Cache::forget(self::CACHE_NAME);
+
+        return $data;
     }
 
     public function store_slider(Request $request)
@@ -96,10 +102,10 @@ class ManageHomepageController
     public function store_services(Request $request)
     {
         $input = $request->validate([
-            'order' => 'required|integer',
-            'title' => 'required',
+            'order'       => 'required|integer',
+            'title'       => 'required',
             'description' => 'nullable',
-            'image' => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
+            'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
         $image = $request->file('image');
@@ -108,11 +114,11 @@ class ManageHomepageController
         $banner      = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
         $data_json   = $banner->data;
         $data_json[] = [
-            'id'         => Str::uuid()->toString(),
-            'order'      => $input['order'],
-            'title'      => $input['title'],
-            'description'      => $input['description'],
-            'image_path' => $key,
+            'id'          => Str::uuid()->toString(),
+            'order'       => $input['order'],
+            'title'       => $input['title'],
+            'description' => $input['description'],
+            'image_path'  => $key,
         ];
 
         $banner->data = $data_json;
@@ -173,10 +179,10 @@ class ManageHomepageController
     public function update_services(Request $request)
     {
         $input = $request->validate([
-            'order' => 'required|integer',
-            'id'    => 'required',
+            'order'       => 'required|integer',
+            'id'          => 'required',
             'description' => 'nullable',
-            'title' => 'nullable',
+            'title'       => 'nullable',
         ]);
 
         $banner       = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
@@ -230,17 +236,22 @@ class ManageHomepageController
         $siteAbout       = SiteManajemen::query()->where('key', '=', 'ABOUT')->firstOrNew();
         $siteAbout->data = $input;
         $siteAbout->save();
+
         return redirect()->back()->with('message', "Sukses mengubah data About Us");
     }
 
     public function destroy(Request $request, $action)
     {
-        return match ($action) {
+        $data = match ($action) {
             'destroy_slider' => $this->destroy_slider($request),
             'destroy_services' => $this->destroy_services($request),
             'destroy_partner' => $this->destroy_partner($request),
             default => abort(404),
         };
+
+        Cache::forget(self::CACHE_NAME);
+
+        return $data;
     }
 
     private function removeSiteData(Request $request, HomepageKey $key)

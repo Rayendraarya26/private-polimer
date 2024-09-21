@@ -13,6 +13,7 @@ use App\Traits\CaptchaTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -23,11 +24,16 @@ class HomeController extends Controller
 
     public function index()
     {
+        if (Cache::has('home_parser')) {
+            $parser = Cache::get('home_parser');
+            return view("$this->view.index", $parser);
+        }
+
         $bannersObj = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
         $banners    = [];
         foreach ($bannersObj->data as $item) {
             $banners[] = [
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
                 "title"       => $item['title'],
                 "description" => $item['description'],
                 'order'       => $item['order']
@@ -43,7 +49,7 @@ class HomeController extends Controller
         foreach ($servicesObj->data as $item) {
             $services[] = [
                 "id"          => $item['id'],
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
                 "name"        => Arr::get($item, 'title'),
                 "description" => Arr::get($item, 'description'),
                 'order'       => Arr::get($item, 'order'),
@@ -57,7 +63,7 @@ class HomeController extends Controller
         $partners    = [];
         foreach ($partnersObj->data as $item) {
             $partners[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
                 'order'     => $item['order']
             ];
         }
@@ -147,6 +153,18 @@ class HomeController extends Controller
                 "url"        => "https://www.instagram.com/bbkkp.kemenperin"
             ]
         ];
+
+        $parser = [
+            "banners"       => $banners,
+            "services"      => $services,
+            "partners"      => $partners,
+            "testimonials"  => $testimonials,
+            'aboutUs'       => $aboutUs,
+            'social_medias' => $social_medias,
+            'collapsible'   => $collapsible
+        ];
+
+        Cache::put('home_parser', $parser, now()->addMinutes(5));
 
         return view("$this->view.index", [
             "banners"       => $banners,

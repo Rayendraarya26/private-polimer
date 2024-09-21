@@ -29,11 +29,13 @@ class HomeController extends Controller
             return view("$this->view.index", $parser);
         }
 
-        $bannersObj = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
-        $banners    = [];
+        $cacheDuration = now()->addMinutes(60);
+        $bannersObj    = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
+        $banners       = [];
+
         foreach ($bannersObj->data as $item) {
             $banners[] = [
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
                 "title"       => $item['title'],
                 "description" => $item['description'],
                 'order'       => $item['order']
@@ -49,7 +51,7 @@ class HomeController extends Controller
         foreach ($servicesObj->data as $item) {
             $services[] = [
                 "id"          => $item['id'],
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
                 "name"        => Arr::get($item, 'title'),
                 "description" => Arr::get($item, 'description'),
                 'order'       => Arr::get($item, 'order'),
@@ -63,7 +65,7 @@ class HomeController extends Controller
         $partners    = [];
         foreach ($partnersObj->data as $item) {
             $partners[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(10)),
+                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
                 'order'     => $item['order']
             ];
         }
@@ -164,7 +166,7 @@ class HomeController extends Controller
             'collapsible'   => $collapsible
         ];
 
-        Cache::put('home_parser', $parser, now()->addMinutes(5));
+        Cache::put('home_parser', $parser, $cacheDuration);
 
         return view("$this->view.index", [
             "banners"       => $banners,

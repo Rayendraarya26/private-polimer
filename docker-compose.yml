@@ -1,5 +1,8 @@
 services:
     bbkkp_polimer:
+#        deploy:
+#            mode: replicated
+#            replicas: 4
         build:
             context: .
             dockerfile: ./docker/dockerfile/app.Dockerfile
@@ -10,7 +13,7 @@ services:
         networks:
             - bbkkp_network
         ports:
-            - "4700:80"
+            - "4700-4705:80"
 
 #Docker Networks
 networks:

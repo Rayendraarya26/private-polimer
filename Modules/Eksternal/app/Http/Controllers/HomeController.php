@@ -12,6 +12,7 @@ use App\Models\Db1\SysUser;
 use App\Traits\CaptchaTrait;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -41,11 +42,11 @@ class HomeController extends Controller
         $services    = [];
         foreach ($servicesObj->data as $item) {
             $services[] = [
-                "id"            => $item['id'],
-                "image_url"     => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
-                "name"          => $item['title'],
-                "description"   => '', // TODO
-                'order'         => $item['order']
+                "id"          => $item['id'],
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], now()->addMinutes(1)),
+                "name"        => Arr::get($item, 'title'),
+                "description" => Arr::get($item, 'description'),
+                'order'       => Arr::get($item, 'order'),
             ];
         }
         usort($services, function ($a, $b) {
@@ -108,42 +109,42 @@ class HomeController extends Controller
 
         $collapsible = [
             [
-                "title"             => "Layanan",
-                "is_default_open"   => true,
-                "description"       => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
+                "title"           => "Layanan",
+                "is_default_open" => true,
+                "description"     => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
             ],
             [
-                "title"             => "Quality is Quality",
-                "is_default_open"   => false,
-                "description"       => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
+                "title"           => "Quality is Quality",
+                "is_default_open" => false,
+                "description"     => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
             ],
             [
-                "title"             => "Jaminan Integritas dan Solusi",
-                "is_default_open"   => false,
-                "description"       => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
+                "title"           => "Jaminan Integritas dan Solusi",
+                "is_default_open" => false,
+                "description"     => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
             ]
         ];
 
         $social_medias = [
             [
-                "icon_class"    => "fa-brands fa-facebook-f",
-                "title"         => "Facebook",
-                "url"           => "https://www.facebook.com/bbkkp.yogyakarta"
+                "icon_class" => "fa-brands fa-facebook-f",
+                "title"      => "Facebook",
+                "url"        => "https://www.facebook.com/bbkkp.yogyakarta"
             ],
             [
-                "icon_class"    => "fa-brands fa-x-twitter",
-                "title"         => "Twitter",
-                "url"           => "https://twitter.com/BbkkpKemenperin"
+                "icon_class" => "fa-brands fa-x-twitter",
+                "title"      => "Twitter",
+                "url"        => "https://twitter.com/BbkkpKemenperin"
             ],
             [
-                "icon_class"    => "fa-brands fa-youtube",
-                "title"         => "YouTube",
-                "url"           => "https://www.youtube.com/c/BBKKPKemenperin"
+                "icon_class" => "fa-brands fa-youtube",
+                "title"      => "YouTube",
+                "url"        => "https://www.youtube.com/c/BBKKPKemenperin"
             ],
             [
-                "icon_class"    => "fa-brands fa-instagram",
-                "title"         => "Instagram",
-                "url"           => "https://www.instagram.com/bbkkp.kemenperin"
+                "icon_class" => "fa-brands fa-instagram",
+                "title"      => "Instagram",
+                "url"        => "https://www.instagram.com/bbkkp.kemenperin"
             ]
         ];
 

@@ -217,7 +217,7 @@
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
             transition-duration: 300ms;
         }
-        
+
         .social-logo > i {
             color: white;
         }
@@ -321,12 +321,12 @@
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
                         >
-                        @if($item['title'] && $item['description'])
+                        {{--@if($item['title'] && $item['description'])
                             <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
                                 <h3 class="fs-1 text-white">{{ $item['title'] }}</h3>
                                 <p class="mb-0 fs-4">{{ $item['description'] }}</p>
                             </div>
-                        @endif
+                        @endif--}}
                     </div>
                 @endforeach
             </div>
@@ -340,7 +340,7 @@
                 <div class="slick-carousel-services slick-carousel-scale-animate">
                     @foreach($services as $item)
                         <div class="p-4">
-                            <a 
+                            <a
                                 class="p-5 card bg-transparent shadow-none border-0"
                                 data-bs-toggle="modal"
                                 href="#service-{{ $item['id'] }}"
@@ -360,7 +360,7 @@
                     @endforeach
                 </div>
                 @foreach($services as $item)
-                    <div 
+                    <div
                         class="modal fade"
                         id="service-{{ $item['id'] }}"
                         aria-hidden="true"
@@ -370,13 +370,13 @@
                         <div class="modal-dialog modal-lg modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 
+                                    <h5
                                         class="modal-title"
                                         id="service-title-{{ $item['id'] }}"
                                     >
                                         {{ $item['name'] }}
                                     </h5>
-                                    <button 
+                                    <button
                                         type="button"
                                         class="btn-close"
                                         data-bs-dismiss="modal"
@@ -479,17 +479,17 @@
                     </div>
 
                     <div class="col-12 col-lg-5 d-flex flex-column gap-4">
-                        <div 
+                        <div
                             class="accordion"
                             id="accordion-1"
                         >
                             @foreach($collapsible as $index => $item)
                                 <div class="accordion-item mb-2 rounded-4">
-                                    <h2 
+                                    <h2
                                         class="accordion-header"
                                         id="heading-{{ $index }}"
                                     >
-                                        <button 
+                                        <button
                                             class="accordion-button"
                                             type="button"
                                             data-bs-toggle="collapse"
@@ -500,7 +500,7 @@
                                             <div class="fs-1 fw-semibold">{{ $item['title'] }}</div>
                                         </button>
                                     </h2>
-                                    <div 
+                                    <div
                                         id="collapse-{{ $index }}"
                                         class="accordion-collapse collapse {{ $item['is_default_open'] ? 'show' : '' }}"
                                         aria-labelledby="heading-{{ $index }}"
@@ -616,7 +616,7 @@
                                 <i class="fa-solid fa-phone pt-1 text-white"></i>
                                 <div>+62 (274) 512-929</div>
                             </div>
-                            <a 
+                            <a
                                 href="https://wa.me/628112827821"
                                 target="_blank"
                                 class="d-inline-flex gap-3 text-white"

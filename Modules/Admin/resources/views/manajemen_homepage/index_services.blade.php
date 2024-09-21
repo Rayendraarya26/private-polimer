@@ -172,6 +172,7 @@
                             <th>Image</th>
                             <th>Urut</th>
                             <th>Nama Layanan</th>
+                            <th>Deskripsi Layanan</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>
@@ -180,6 +181,7 @@
                             <td><img :src="services.image_url" alt="services" style="max-width: 100px"></td>
                             <td>@{{ services.order }}</td>
                             <td>@{{ services.title }}</td>
+                            <td>@{{ services.description }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">
                                  <button class="btn btn-sm btn-primary" @click="handleEditServices(services)" title="Edit Services">

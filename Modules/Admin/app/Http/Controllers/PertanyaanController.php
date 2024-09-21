@@ -180,9 +180,6 @@ class PertanyaanController extends Controller
 
         return Datatables::eloquent($data)
             ->addIndexColumn()
-            ->addColumn('fullname', function ($data) {
-                return $data->pelanggan->user->name;
-            })
             ->make();
     }
 

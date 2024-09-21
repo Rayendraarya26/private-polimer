@@ -24,6 +24,11 @@
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
                 </div>
                 <div class="mb-2">
+                    <label for="modal-desc" class="form-label fw-semibold">Deskripsi</label>
+                    <textarea class="form-control" placeholder="Deskripsi..." id="modal-desc"
+                              v-model="payload.description"></textarea>
+                </div>
+                <div class="mb-2">
 
                 </div>
             </div>
@@ -50,6 +55,7 @@
                         id: '',
                         order: 1,
                         title: '',
+                        description: '',
                         image_url: '',
                     }
                 }
@@ -70,6 +76,7 @@
                     formData.append('_token', "{{ csrf_token() }}")
                     formData.append('order', this.payload.order)
                     formData.append('title', this.payload.title)
+                    formData.append('description', this.payload.description)
                     formData.append('id', this.payload.id)
 
                     if (this.mode === 'create') {
@@ -90,6 +97,7 @@
                             id: '',
                             order: 1,
                             title: '',
+                            description: '',
                             image_url: '',
                         }
                     } else {
@@ -99,6 +107,7 @@
                             id: payload.id,
                             order: payload.order,
                             title: payload.title,
+                            description: payload.description,
                             image_url: payload.image_url,
                         }
                     }

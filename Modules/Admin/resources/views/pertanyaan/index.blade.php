@@ -185,7 +185,7 @@
                         url: "{{ url("$url/ajax?action=datatable-pesan") }}&status_message={{$status_message}}",
                     },
                     columns: [
-                        { data: 'fullname', "sClass": "ps-9 min-w-80px" },
+                        { data: 'pelanggan.user.name', name: 'pelanggan.user.name', "sClass": "ps-9 min-w-80px" },
                         { data: 'topik' },
                         { data: 'created_at' },
                     ],
@@ -222,6 +222,7 @@
                             orderable: false,
                             render: function (data, type, row) {
                                 var color_bold = row.pesans_count > 0 ? 'fw-semibold' : '';
+								var total_new = row.pesans_count > 0 ? `<div class="badge badge-light-primary">Total Belum Dibalas : ${row.pesans_count}</div>` : ``;
                                 return `
                                    <div class="text-gray-900 gap-1 pt-2">
                                         <span class="${color_bold}">Topik : ${data}</span>
@@ -229,7 +230,7 @@
                                    <div class="text-gray-900 gap-1 pt-2">
                                         Layanan : ${row.layanan}
                                     </div>
-                                <div class="badge badge-light-primary">Total Belum Dibalas : ${row.pesans_count}</div>
+                                ${total_new}
                             `;
                             }
                         },

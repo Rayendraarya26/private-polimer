@@ -98,6 +98,7 @@ class ManageHomepageController
         $input = $request->validate([
             'order' => 'required|integer',
             'title' => 'required',
+            'description' => 'nullable',
             'image' => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
@@ -110,6 +111,7 @@ class ManageHomepageController
             'id'         => Str::uuid()->toString(),
             'order'      => $input['order'],
             'title'      => $input['title'],
+            'description'      => $input['description'],
             'image_path' => $key,
         ];
 
@@ -173,6 +175,7 @@ class ManageHomepageController
         $input = $request->validate([
             'order' => 'required|integer',
             'id'    => 'required',
+            'description' => 'nullable',
             'title' => 'nullable',
         ]);
 
@@ -183,6 +186,7 @@ class ManageHomepageController
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.description", $input['description']);
         }
 
         $banner->data = $updated_data;

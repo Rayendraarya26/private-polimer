@@ -66,8 +66,8 @@ class IntegrationServiceProvider extends ServiceProvider
     {
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command(SyncStatusPermohonanCmd::class)->hourly()->onOneServer();
-            $schedule->command(SyncNewPermohonanCmd::class)->onOneServer();
+            $schedule->command(SyncStatusPermohonanCmd::class)->everyTwoHours()->onOneServer();
+            $schedule->command(SyncNewPermohonanCmd::class)->everyFourHours()->onOneServer();
         });
     }
 

@@ -75,8 +75,8 @@ class ManageHomepageController
     {
         $input = $request->validate([
             'order'       => 'required|integer',
-            'title'       => 'required',
-            'description' => 'required',
+            'title'       => 'nullable',
+            'description' => 'nullable',
             'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
@@ -207,8 +207,8 @@ class ManageHomepageController
         $input = $request->validate([
             'order'       => 'required|integer',
             'id'          => 'required',
-            'description' => 'required',
-            'title'       => 'required',
+            'title'       => 'nullable',
+            'description' => 'nullable',
         ]);
 
         $banner       = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();

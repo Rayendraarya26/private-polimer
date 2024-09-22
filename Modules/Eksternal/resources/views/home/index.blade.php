@@ -162,7 +162,6 @@
             left: 5%;
             right: 5%;
             padding: 2rem;
-            background-color: #0D47A1;
             border-radius: 0.5rem;
         }
 
@@ -321,12 +320,12 @@
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
                         >
-                        {{--@if($item['title'] && $item['description'])
-                            <div class="banner-card shadow-lg text-white d-flex flex-column gap-5">
+                        @if($item['title'] && $item['description'])
+                            <div class="banner-card text-white d-flex flex-column gap-5">
                                 <h3 class="fs-1 text-white">{{ $item['title'] }}</h3>
                                 <p class="mb-0 fs-4">{{ $item['description'] }}</p>
                             </div>
-                        @endif--}}
+                        @endif
                     </div>
                 @endforeach
             </div>

@@ -80,8 +80,10 @@ class SyncUserSil extends Command
 
     private function upsert(SysUser $user, $us): void
     {
+        if (!$user->password) {
+            $user->password = $us->password; // already hashed
+        }
         $user->email             = $us->email;
-        $user->password          = $us->password; // already hashed
         $user->name              = $us->nama;
         $user->email_verified_at = $us->email_verified_at;
         $user->save();

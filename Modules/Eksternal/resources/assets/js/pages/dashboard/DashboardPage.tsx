@@ -175,7 +175,16 @@ const DashboardPage: React.FC = () => {
       URL.revokeObjectURL(url)
       link.parentNode?.removeChild(link)
     } catch (error) {
-      toast.error(getErrorMessage(error))
+        if (error?.response?.headers['content-type'] === 'application/json') {
+            const blobMessage = error?.response?.data
+            const reader = new FileReader()
+            reader.readAsText(blobMessage)
+            reader.onload = () => {
+                const errorData = JSON.parse(reader.result as string)
+                console.log(errorData.message)
+                toast.error(errorData.message)
+            }
+        }
     } finally {
       toast.remove(toastId)
     }

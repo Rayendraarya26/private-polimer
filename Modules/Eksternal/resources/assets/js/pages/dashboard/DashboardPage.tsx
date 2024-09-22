@@ -10,9 +10,9 @@ import useFeedbacks from "../../hooks/feedback/useFeedbacks"
 import { useNavigate } from "react-router-dom"
 import api from "../../utils/api"
 import toast from "react-hot-toast"
-import { getErrorMessage } from "../../utils/error"
 import { getFilenameFromContentDisposition } from "../../utils/common"
 import Head from "../../components/common/Head"
+import { AxiosError } from "axios"
 
 const StyledBannerImage = styled.img`
   width: 100%;
@@ -175,16 +175,15 @@ const DashboardPage: React.FC = () => {
       URL.revokeObjectURL(url)
       link.parentNode?.removeChild(link)
     } catch (error) {
-        if (error?.response?.headers['content-type'] === 'application/json') {
-            const blobMessage = error?.response?.data
-            const reader = new FileReader()
-            reader.readAsText(blobMessage)
-            reader.onload = () => {
-                const errorData = JSON.parse(reader.result as string)
-                console.log(errorData.message)
-                toast.error(errorData.message)
-            }
+      const err = error as AxiosError
+      if (err?.response?.headers['content-type'] === 'application/json') {
+        const reader = new FileReader()
+        reader.readAsText(err?.response?.data as Blob)
+        reader.onload = () => {
+          const errorData = JSON.parse(reader.result as string)
+          toast.error(errorData?.message)
         }
+      }
     } finally {
       toast.remove(toastId)
     }

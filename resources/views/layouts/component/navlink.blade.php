@@ -11,7 +11,14 @@
     <a href="{{ route('tte.verify') }}" class="text-center fw-bold text-decoration-underline">
         Verifikasi Dokumen
     </a>
-    <a href="{{ route('auth.login') }}" class="text-center fw-bold text-decoration-underline">
-        Login
-    </a>
+
+    @if(auth()->check())
+        <a href="{{ route('home') }}" class="text-center fw-bold text-decoration-underline">
+            Polimer
+        </a>
+    @else
+        <a href="{{ route('auth.login') }}" class="text-center fw-bold text-decoration-underline">
+            Login
+        </a>
+    @endif
 </div>

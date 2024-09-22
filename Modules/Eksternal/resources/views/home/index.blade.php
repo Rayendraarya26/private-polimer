@@ -755,6 +755,16 @@
                 dots: false,
                 arrows: true,
                 centerMode: true,
+                prevArrow: `
+                    <button type="button" class="slick-prev" style="left: 0;">
+                    <i class="fa-solid fa-chevron-left text-white"></i>
+                    </button>
+                `,
+                nextArrow: `
+                    <button type="button" class="slick-next" style="right: 10px;">
+                    <i class="fa-solid fa-chevron-right text-white"></i>
+                    </button>
+                `,
                 responsive: [
                     {
                         breakpoint: 1330,

@@ -15,6 +15,8 @@ COPY /docker/imagick/policy.xml /etc/ImageMagick-6/policy.xml
 # Set PHP ini
 COPY /docker/php/php.ini "$PHP_INI_DIR/php.ini"
 
+COPY /docker/php/opcache.ini "$PHP_INI_DIR/conf.d/opcache.ini"
+
 COPY /docker/supervisor /etc/
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

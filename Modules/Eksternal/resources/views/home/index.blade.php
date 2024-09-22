@@ -338,24 +338,22 @@
                 <div class="fs-1 fw-bold text-center">Layanan Kami</div>
                 <div class="slick-carousel-services slick-carousel-scale-animate">
                     @foreach($services as $item)
-                        <div class="p-3">
-                            <a
-                                class="p-5 card bg-transparent shadow-none border-0"
-                                data-bs-toggle="modal"
-                                href="#service-{{ $item['id'] }}"
-                                role="button"
-                            >
-                                <div class="card-body d-flex flex-column align-items-center gap-5 p-5">
-                                    <div class="w-100">
-                                        <img
-                                            src="{{ $item['image_url'] }}"
-                                            class="w-100 rounded-3"
-                                        >
-                                    </div>
-                                    <div class="fs-1 fw-bold text-center">{{ $item['name'] }}</div>
+                        <a
+                            class="p-0 card bg-transparent shadow-none border-0"
+                            data-bs-toggle="modal"
+                            href="#service-{{ $item['id'] }}"
+                            role="button"
+                        >
+                            <div class="card-body d-flex flex-column align-items-center gap-5 p-5">
+                                <div class="w-100">
+                                    <img
+                                        src="{{ $item['image_url'] }}"
+                                        class="w-100 rounded-3"
+                                    >
                                 </div>
-                            </a>
-                        </div>
+                                <div class="fs-1 fw-bold text-center">{{ $item['name'] }}</div>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
                 @foreach($services as $item)
@@ -412,7 +410,7 @@
         >
             <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
                 <div class="fs-1 fw-bold text-center">Mitra Kami</div>
-                <div class="slick-carousel-partners slick-carousel-scale-animate">
+                <div class="slick-carousel-partners">
                     @foreach($partners as $item)
                         <div class="p-4 d-flex justify-content-center align-items-center h-100">
                             <img

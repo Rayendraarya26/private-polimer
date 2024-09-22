@@ -95,24 +95,6 @@
             font-size: 2rem !important;
         }
 
-        .slick-carousel-scale-animate .slick-slide {
-            transition-property: all;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 300ms;
-            opacity: 0.85;
-            transform: scale(0.8);
-            display: flex;
-        }
-
-        .slick-carousel-scale-animate .slick-slide > div {
-            margin: auto;
-        }
-
-        .slick-carousel-scale-animate .slick-current {
-            transform: scale(1.1);
-            opacity: 1;
-        }
-
         .testimonial-avatar {
             width: 64px;
             aspect-ratio: 1/1;
@@ -196,6 +178,26 @@
 
             .footer-img {
                 width: 10rem;
+            }
+
+            .slick-carousel-scale-animate .slick-slide {
+                transition-property: all;
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                transition-duration: 300ms;
+                opacity: 0.85;
+                transform: scale(0.8);
+                display: flex;
+            }
+
+            .slick-carousel-scale-animate .slick-slide > div {
+                margin: auto;
+            }
+
+            .slick-carousel-scale-animate .slick-current {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+                transform: scale(1.1);
+                opacity: 1;
             }
         }
 
@@ -737,6 +739,7 @@
                 autoplaySpeed: 5000,
                 pauseOnFocus: false,
                 pauseOnHover: false,
+                adaptiveHeight: true,
                 prevArrow: `
         <button type="button" class="slick-prev slick-prev-banner">
           <i class="fa-solid fa-chevron-left text-white"></i>
@@ -755,33 +758,35 @@
                 dots: false,
                 arrows: true,
                 centerMode: true,
+                adaptiveHeight: true,
                 prevArrow: `
                     <button type="button" class="slick-prev" style="left: 0;">
-                    <i class="fa-solid fa-chevron-left text-white"></i>
                     </button>
                 `,
                 nextArrow: `
                     <button type="button" class="slick-next" style="right: 10px;">
-                    <i class="fa-solid fa-chevron-right text-white"></i>
                     </button>
                 `,
                 responsive: [
                     {
                         breakpoint: 1330,
                         settings: {
-                            slidesToShow: 5
+                            slidesToShow: 5,
+                            adaptiveHeight: true,
                         }
                     },
                     {
                         breakpoint: 1024,
                         settings: {
-                            slidesToShow: 3
+                            slidesToShow: 3,
+                            adaptiveHeight: true,
                         }
                     },
                     {
                         breakpoint: 512,
                         settings: {
-                            slidesToShow: 1
+                            slidesToShow: 1,
+                            adaptiveHeight: true,
                         }
                     }
                 ]
@@ -793,23 +798,27 @@
                 dots: false,
                 arrows: true,
                 centerMode: true,
+                adaptiveHeight: true,
                 responsive: [
                     {
                         breakpoint: 1330,
                         settings: {
-                            slidesToShow: 3
+                            slidesToShow: 3,
+                            adaptiveHeight: true,
                         }
                     },
                     {
                         breakpoint: 1024,
                         settings: {
-                            slidesToShow: 2
+                            slidesToShow: 2,
+                            adaptiveHeight: true,
                         }
                     },
                     {
                         breakpoint: 512,
                         settings: {
-                            slidesToShow: 1
+                            slidesToShow: 1,
+                            adaptiveHeight: true,
                         }
                     }
                 ]
@@ -821,17 +830,20 @@
                 dots: false,
                 arrows: true,
                 centerMode: true,
+                adaptiveHeight: true,
                 responsive: [
                     {
                         breakpoint: 1024,
                         settings: {
-                            slidesToShow: 2
+                            slidesToShow: 2,
+                            adaptiveHeight: true,
                         }
                     },
                     {
                         breakpoint: 512,
                         settings: {
-                            slidesToShow: 1
+                            slidesToShow: 1,
+                            adaptiveHeight: true,
                         }
                     }
                 ]

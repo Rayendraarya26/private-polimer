@@ -21,7 +21,7 @@ export default () => {
   const validationSchema = useMemo<yup.SchemaOf<ProfileChangeAccountFields>>(
     () =>
       yup.object({
-        name: yup.string().default('').required('Mohon isi password saat ini'),
+        name: yup.string().default('').required('Mohon isi nama'),
       }),
     []
   )

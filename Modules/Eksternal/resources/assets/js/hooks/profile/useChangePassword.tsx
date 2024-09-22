@@ -6,6 +6,7 @@ import useHookForm from '../useHookForm'
 import { changePassword } from '../../services/profile'
 import { getErrorMessage } from '../../utils/error'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
+import { useNavigate } from 'react-router-dom'
 
 export type ProfileChangePasswordFields = {
   old_password: string
@@ -14,6 +15,7 @@ export type ProfileChangePasswordFields = {
 }
 
 export default () => {
+  const navigate = useNavigate()
   const { executeRecaptcha } = useGoogleReCaptcha()
   const [submitting, setSubmitting] = useState<boolean>(false)
 
@@ -61,6 +63,7 @@ export default () => {
         await changePassword({ recaptcha, ...payload })
         rhf.reset()
         toast.success('Kata sandi berhasil diubah')
+        navigate('/dashboard')
       } catch (error) {
         toast.error(getErrorMessage(error))
       } finally {

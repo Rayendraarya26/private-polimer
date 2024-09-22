@@ -117,20 +117,39 @@ class HomeController extends Controller
 
         $collapsible = [
             [
-                "title"           => "Layanan",
+                "title"           => "Kenapa Harus JIS ?",
                 "is_default_open" => true,
-                "description"     => "Saat ini, JIS bergerak di bidang layanan jasa Pendampingan, Pengujian, Kalibrasi, Sertifikasi, Inspeksi, Verifikasi dan Validasi GRK, Verifikasi TKDN, Pemeriksa Halal, Audit Teknologi, Penyelenggara Uji Profisiensi, Produsen Bahan Acuan, Miniplant Kulit, Miniplant Karet, serta layanan jasa lain."
+                "description"     => "Bagaikan JOGJA, keistimewaan JIS terletak pada keramahan dan tradisinya dalam menjaga kualitas dan nilai luhur yang dimilikinya. Nilai luhur tersebut tertuang dalam komitmennya untuk selalu menjalankan proses bisnis dengan standar kualitas tertinggi, menjaga integritas, reliabilitas, responsifitas, empati, jaminan kualitas, dan kepuasan pelanggan.
+<br><br>Dalam memberikan pelayanan, JIS mampu menyesuaikan dengan kebutuhan pelanggan, mendengar dan memenuhi keinginan pelanggan, sehingga dapat memberikan pengalaman berharga di benak pelanggan. JIS staff SIAP melayani dengan Semangat, Ikhlas, Amanah, dan Profesional.
+<br><br>JIS kini memiliki tiga belas layanan jasa industri dalam satu genggaman."
+            ],
+            [
+                "title"           => "Layanan",
+                "is_default_open" => false,
+                "description"     => "Saat ini, JIS bergerak di bidang layanan jasa
+                <ol><li>Pendampingan</li>
+  <li>Pengujian</li>
+  <li>Kalibrasi</li>
+  <li>Sertifikasi</li>
+  <li>Inspeksi</li>
+  <li>Verifikasi dan Validasi GRK</li>
+  <li>Verifikasi TKDN</li>
+  <li>Pemeriksa Halal</li>
+  <li>Audit Teknologi</li>
+  <li>Penyelenggara Uji Profisiensi</li>
+  <li>Produsen Bahan Acuan</li>
+  <li>Miniplant Kulit, Karet, dan Plastik</li>
+  <li>Layanan jasa lain</li></ol>"
             ],
             [
                 "title"           => "Quality is Quality",
                 "is_default_open" => false,
-                "description"     => 'Di JIS, kami percaya bahwa kualitas bukan hanya sekedar standart, tetapi juga sebuah komitmen. Sebagai penyedia layanan one-stop service terkemuka, kami berkomitmen untuk membantu industri meningkatkan produktivitas dan mencapai keunggulan melalui solusi kami yang komprehensif. Tim ahli kami berpegang teguh pada moto "Quality is Quality," memastikan bahwa setiap layanan yang kami berikan memenuhi standar dan kesesuaiannya.Layanan'
+                "description"     => 'Industri mana yang tidak ingin dikenal? Industri mana yang tidak ingin menjaga kualitas? <br><br>
+“You’re known because of Quality” adalah sebuah inspirasi kami dalam memberikan pelayanan kepada pelanggan. Kami memahami bahwa pelaku industri selalu ingin dikenal dengan kualitasnya. Untuk itu kami ingin menjadi bagian dari seluruh pelaku industri dalam memberikan nilai tambah sehingga tercapai produktivitas dan profitabilitas yang berkelanjutan.<br><br>
+JIS menjalankan proses bisnis dengan standar kualitas tertinggi. Rasakan pengalaman kualitas yang kami tawarkan..<br><br>
+Quality is QUALITY.
+'
             ],
-            [
-                "title"           => "Jaminan Integritas dan Solusi",
-                "is_default_open" => false,
-                "description"     => "Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan."
-            ]
         ];
 
         $social_medias = [

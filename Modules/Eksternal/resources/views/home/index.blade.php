@@ -338,7 +338,7 @@
                 <div class="fs-1 fw-bold text-center">Layanan Kami</div>
                 <div class="slick-carousel-services slick-carousel-scale-animate">
                     @foreach($services as $item)
-                        <div class="p-4">
+                        <div class="p-3">
                             <a
                                 class="p-5 card bg-transparent shadow-none border-0"
                                 data-bs-toggle="modal"
@@ -417,7 +417,7 @@
                         <div class="p-4 d-flex justify-content-center align-items-center h-100">
                             <img
                                 src="{{ $item['image_url'] }}"
-                                class="w-100 rounded-3 mitra-logo"
+                                class="w-50 rounded-3 mitra-logo"
                                 style="object-fit: contain;"
                             >
                         </div>
@@ -506,7 +506,7 @@
                                         data-bs-parent="#accordion-1"
                                     >
                                         <div class="accordion-body">
-                                            <p class="mb-0 fs-5">{{ $item['description'] }}</p>
+                                            <p class="mb-0 fs-5">{!! $item['description'] !!}</p>
                                         </div>
                                     </div>
                                 </div>

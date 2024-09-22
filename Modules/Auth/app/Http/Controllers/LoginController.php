@@ -54,8 +54,10 @@ class LoginController
             return back()->onlyInput('account_id')->withErrors(['message' => 'Silakan coba login beberapa waktu lagi.']);
         }
 
-        // Search from Kemenperin API first
-        if (config('intranet.enabled')) {
+        $isEmail = filter_var($input['account_id'], FILTER_VALIDATE_EMAIL);
+
+        // Search from Kemenperin API first, if account_id is not email
+        if (config('intranet.enabled') && !$isEmail) {
             $user = $this->attemptKemenperinLogin($input['account_id'], $input['password']);
             if ($user) return $this->loginUser($user, $request);
         }

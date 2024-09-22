@@ -344,7 +344,7 @@
                             href="#service-{{ $item['id'] }}"
                             role="button"
                         >
-                            <div class="card-body d-flex flex-column align-items-center gap-5 p-5">
+                            <div class="card-body d-flex flex-column align-items-center gap-5 p-1">
                                 <div class="w-100">
                                     <img
                                         src="{{ $item['image_url'] }}"
@@ -778,7 +778,7 @@
             });
 
             $('.slick-carousel-partners').slick({
-                slidesToShow: 5,
+                slidesToShow: 6,
                 centerPadding: 0,
                 dots: false,
                 arrows: true,

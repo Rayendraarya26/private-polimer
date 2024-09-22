@@ -79,9 +79,9 @@
                             </div>
                             <div class="card-body pt-0 p-3 text-center">
                                 <h6 class="text-center mb-0">
-                                    DASLOK
+                                    PNBP
                                 </h6>
-                                <span class="text-xs">Dashboard Looker</span>
+                                <span class="text-xs">Monitoring Capaian PNBP</span>
                                 <hr class="horizontal dark my-3">
                                 <div class="mb-0">
                                         <span class="btn btn-default"

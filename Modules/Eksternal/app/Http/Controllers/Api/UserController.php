@@ -122,6 +122,26 @@ class UserController extends Controller
         return responseJSON('Password berhasil diubah.', null);
     }
 
+    public function updateAccount(Request $request)
+    {
+        $request->validate([
+            'recaptcha' => 'required',
+            'name'      => 'required|string|max:255',
+        ]);
+
+        if (!$this->validateCaptcha($request->input('recaptcha'))) {
+            return responseJSON('Captcha tidak valid.', [], 400);
+        }
+
+        $user       = $request->user();
+        $user->name = $request->name;
+        $user->save();
+
+        Cache::forget('user_' . $user->id);
+
+        return responseJSON('Nama berhasil diperbarui.');
+    }
+
     public function updateProfile(Request $request)
     {
         $request->validate([

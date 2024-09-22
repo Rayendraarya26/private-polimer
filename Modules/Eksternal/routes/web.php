@@ -63,6 +63,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
     Route::prefix('api/eksternal')->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class, 'index']); // get user
+            Route::patch('/account', [UserController::class, 'updateAccount']);
             Route::patch('/password', [UserController::class, 'updatePassword']);
             Route::patch('/profile', [UserController::class, 'updateProfile']);
             Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;

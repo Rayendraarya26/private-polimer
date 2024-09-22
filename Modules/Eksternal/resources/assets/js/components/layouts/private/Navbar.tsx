@@ -43,6 +43,7 @@ const NavBar: React.FC = () => {
         <Navbar>
           <Nav className="ms-auto" style={{ gap: '1.25rem' }}>
             <Nav.Link href="/" className="d-none d-md-block">JIS</Nav.Link>
+            <Nav.Link href={window.location.origin + '/tte/verify'} className="d-none d-md-block">TTE</Nav.Link>
             <Nav.Link
               href={window.location.origin + '/faq'}
               className="d-none d-md-block"

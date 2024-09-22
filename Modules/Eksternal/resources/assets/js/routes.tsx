@@ -10,7 +10,7 @@ const PaymentHistoryPage = lazy(() => import('./pages/payment-history/PaymentHis
 const FeedbacksPage = lazy(() => import('./pages/feedbacks/FeedbacksPage'))
 const FeedbackDetailPage = lazy(() => import('./pages/feedbacks/FeedbackDetailPage'))
 const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPage'))
-const ChangePasswordPage = lazy(() => import('./pages/profile/ChangePasswordPage'))
+const ChangeAccountAndPasswordPage = lazy(() => import('./pages/profile/ChangeAccountAndPasswordPage'))
 const UpdateProfilePage = lazy(() => import('./pages/profile/UpdateProfilePage'))
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'))
 
@@ -35,7 +35,7 @@ const AppRoutes: React.FC = () => {
           <Route index element={<AskQuestionsPage/>}/>
         </Route>
         <Route path='/profile'>
-          <Route path="change-password" element={<ChangePasswordPage/>}/>
+          <Route path="change-account-and-password" element={<ChangeAccountAndPasswordPage/>}/>
           <Route path="update" element={<UpdateProfilePage/>}/>
         </Route>
         <Route

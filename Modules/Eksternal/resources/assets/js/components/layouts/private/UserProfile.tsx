@@ -60,9 +60,9 @@ const UserProfile: React.FC = () => {
           </Dropdown.Item>
           <Dropdown.Item 
             as={Link}
-            to='/profile/change-password'
+            to='/profile/change-account-and-password'
           >
-            Ubah Kata Sandi
+            Ubah Akun & Kata Sandi
           </Dropdown.Item>
           <Dropdown.Divider/>
           <Dropdown.Item onClick={onLogout}>Logout</Dropdown.Item>

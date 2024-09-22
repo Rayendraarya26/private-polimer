@@ -11,6 +11,15 @@ export const getProfile = async () => {
   }
 }
 
+export const changeAccount = async (payload: object) => {
+  try {
+    const { data } = await api.patch<DefaultApiResponse<unknown>>('/eksternal/user/account', payload)
+    return data.results
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}
+
 export const changePassword = async (payload: object) => {
   try {
     const { data } = await api.patch<DefaultApiResponse<unknown>>('/eksternal/user/password', payload)

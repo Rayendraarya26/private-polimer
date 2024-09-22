@@ -19,13 +19,15 @@
                     <input type="text" class="form-control" placeholder="Nama..." id="modal-desc"
                               v-model="payload.title">
                 </div>
-                <div class="mb-2" v-if="mode === 'create'">
+                <div class="mb-2">
                     <label for="modal-file-image" class="form-label fw-semibold">Image Partner</label>
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
-                </div>
-                <div class="mb-2">
-
-                </div>
+					<div v-if="mode === 'update'">
+						*silahkan kosong jika tidak ingin meng-update image
+						<input type="hidden" value="" id="modal-image"
+                           v-model="payload.image_path">
+					</div>
+				</div>
             </div>
             <div class="modal-footer">
                 <button type="button" @click="handleSubmit()"
@@ -51,6 +53,7 @@
                         order: 1,
                         title: '',
                         image_url: '',
+                        image_path: '',
                     }
                 }
             },
@@ -79,6 +82,10 @@
                         }
                         formData.append('image', document.getElementById('modal-file-image').files[0])
                     }
+					else{
+						formData.append('image', document.getElementById('modal-file-image').files[0])
+						formData.append('image_old', this.payload.image_path)
+					}
 
                     return formData
                 },
@@ -91,6 +98,7 @@
                             order: 1,
                             title: '',
                             image_url: '',
+                            image_path: '',
                         }
                     } else {
                         this.title = 'Perbarui Partner'
@@ -100,6 +108,7 @@
                             order: payload.order,
                             title: payload.title,
                             image_url: payload.image_url,
+                            image_path: payload.image_path,
                         }
                     }
                     this.modal.show()

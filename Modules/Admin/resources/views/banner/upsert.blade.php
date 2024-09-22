@@ -9,10 +9,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-2" v-if="mode === 'create'">
+                <div class="mb-2">
                     <label for="modal-file-image" class="form-label fw-semibold">Image Banner</label>
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
-                </div>
+					<div v-if="mode === 'update'">
+						*silahkan kosong jika tidak ingin meng-update image
+						<input type="hidden" value="" id="modal-image"
+                           v-model="payload.image_path">
+					</div>
+				</div>
                 <div class="mb-2">
                     <label for="modal-url" class="form-label fw-semibold">URL</label>
                     <input type="text" class="form-control" placeholder="https://google.com..." id="modal-url"
@@ -86,6 +91,7 @@
                         description: '',
                         is_active: 1,
                         image_url: '',
+                        image_path: '',
                         start_at: null,
                         end_at: null,
                     }
@@ -139,6 +145,11 @@
                         }
                         formData.append('image', document.getElementById('modal-file-image').files[0])
                     }
+					else{
+						formData.append('image', document.getElementById('modal-file-image').files[0])
+						formData.append('image_old', this.payload.image_path)
+					}
+					
 
                     return formData
                 },
@@ -153,6 +164,7 @@
                             description: '',
                             is_active: '1',
                             image_url: '',
+                            image_path: '',
                             start_at: null,
                             end_at: null,
                         }
@@ -166,6 +178,7 @@
                             description: payload.description,
                             is_active: payload.is_active ? '1' : '0',
                             image_url: payload.image_url,
+                            image_path: payload.image_path,
                             start_at: payload.start_at,
                             end_at: payload.end_at,
                         }
@@ -194,7 +207,7 @@
                             } else {
                                 url = '{{ url("$url") }}' + '/' + this.payload.id
                             }
-
+							
 
                             // show loading
                             Swal.fire({

@@ -155,76 +155,150 @@ class ManageHomepageController
 
     public function update_partner(Request $request)
     {
-        $input = $request->validate([
+		$validate = [
             'order' => 'required|integer',
             'id'    => 'required',
             'title' => 'nullable',
-        ]);
+            'image' => 'nullable',
+            'image_old'   => 'required',
+        ];
+		
+        $image = $request->file('image');
+		if($image != null){
+			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+		}
+		
+        $input = $request->validate($validate);
 
-        $banner       = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
-        $updated_data = $banner->data;
+        $partners       = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
+        $updated_data = $partners->data;
         $key          = $this->searchForId($request->id, $updated_data);
-
+		$path =  null;
+		
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.title", $input['title']);
+			if($image != null){
+				$path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+				Arr::set($updated_data, "$key.image_path", $path);
+			}
         }
 
-        $banner->data = $updated_data;
-        $banner->save();
+        $partners->data = $updated_data;		
+		$saved = $partners->save();
 
-        return responseJSON('Sukses menginput partner');
+        if(!$saved){
+			if($path !== null){
+				Storage::disk('s3')->delete($path);
+			}
+			return responseJSON('Galat mengubah data services.');
+		}
+		else{
+			if($image != null){
+				Storage::disk('s3')->delete($input['image_old']);
+			}
+			return responseJSON('Sukses mengubah data services.');
+		}
     }
 
     public function update_services(Request $request)
     {
-        $input = $request->validate([
+		$validate = [
             'order'       => 'required|integer',
             'id'          => 'required',
             'description' => 'nullable',
             'title'       => 'nullable',
-        ]);
+            'image' => 'nullable',
+            'image_old'   => 'required',
+        ];
+		
+		$image = $request->file('image');
+		if($image != null){
+			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+		}
+		
+        $input = $request->validate($validate);
 
-        $banner       = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
-        $updated_data = $banner->data;
+        $services       = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
+        $updated_data = $services->data;
         $key          = $this->searchForId($request->id, $updated_data);
-
+		$path =  null;
+		
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.title", $input['title']);
             Arr::set($updated_data, "$key.description", $input['description']);
+			if($image != null){
+				$path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+				Arr::set($updated_data, "$key.image_path", $path);
+			}
         }
 
-        $banner->data = $updated_data;
-        $banner->save();
+        $services->data = $updated_data;
+		$saved = $services->save();
 
-        return responseJSON('Sukses menginput services');
+        if(!$saved){
+			if($path !== null){
+				Storage::disk('s3')->delete($path);
+			}
+			return responseJSON('Galat mengubah data services.');
+		}
+		else{
+			if($image != null){
+				Storage::disk('s3')->delete($input['image_old']);
+			}
+			return responseJSON('Sukses mengubah data services.');
+		}
     }
-
 
     public function update_slider(Request $request)
     {
-        $input = $request->validate([
+		$validate = [
             'order'       => 'required|integer',
             'id'          => 'required',
             'title'       => 'nullable',
             'description' => 'nullable',
-        ]);
+            'image' => 'nullable',
+            'image_old'   => 'required',
+        ];
+		
+		$image = $request->file('image');
+		if($image != null){
+			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+		}
+		
+        $input = $request->validate($validate);
 
         $banner       = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
         $updated_data = $banner->data;
         $key          = $this->searchForId($request->id, $updated_data);
-
+		$path =  null;
+		
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.title", $input['title']);
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.description", $input['description']);
+			if($image != null){
+				$path   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+				Arr::set($updated_data, "$key.image_path", $path);
+			}
         }
 
         $banner->data = $updated_data;
-        $banner->save();
-
-        return responseJSON('Sukses menginput slider');
+        $saved = $banner->save();
+		
+		if(!$saved){
+			if($path !== null){
+				Storage::disk('s3')->delete($path);
+			}
+			return responseJSON('Galat mengubah data slider.');
+		}
+		else{
+			if($image != null){
+				Storage::disk('s3')->delete($input['image_old']);
+			}
+			return responseJSON('Sukses mengubah data slider.');
+		}
     }
 
     public function upsert_about(Request $request)

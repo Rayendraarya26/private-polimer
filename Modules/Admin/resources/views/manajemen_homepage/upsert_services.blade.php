@@ -19,10 +19,15 @@
                     <input type="text" class="form-control" placeholder="Judul..." id="modal-desc"
                               v-model="payload.title">
                 </div>
-                <div class="mb-2" v-if="mode === 'create'">
+                <div class="mb-2">
                     <label for="modal-file-image" class="form-label fw-semibold">Image Services</label>
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
-                </div>
+					<div v-if="mode === 'update'">
+						*silahkan kosong jika tidak ingin meng-update image
+						<input type="hidden" value="" id="modal-image"
+                           v-model="payload.image_path">
+					</div>
+				</div>
                 <div class="mb-2">
                     <label for="modal-desc" class="form-label fw-semibold">Deskripsi</label>
                     <textarea class="form-control" placeholder="Deskripsi..." id="modal-desc"
@@ -57,6 +62,7 @@
                         title: '',
                         description: '',
                         image_url: '',
+                        image_path: '',
                     }
                 }
             },
@@ -86,7 +92,11 @@
                         }
                         formData.append('image', document.getElementById('modal-file-image').files[0])
                     }
-
+					else{
+						formData.append('image', document.getElementById('modal-file-image').files[0])
+						formData.append('image_old', this.payload.image_path)
+					}
+					
                     return formData
                 },
                 show(payload) {
@@ -99,6 +109,7 @@
                             title: '',
                             description: '',
                             image_url: '',
+                            image_path: '',
                         }
                     } else {
                         this.title = 'Perbarui Services'
@@ -109,6 +120,7 @@
                             title: payload.title,
                             description: payload.description,
                             image_url: payload.image_url,
+                            image_path: payload.image_path,
                         }
                     }
                     this.modal.show()

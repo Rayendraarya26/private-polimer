@@ -70,32 +70,59 @@ class BannerController extends Controller
 
     public function update(Request $request, $id)
     {
-        $input = $request->validate([
+		$validate = [
             'order'       => 'required|integer',
             'description' => 'nullable',
             'link'        => 'required|url',
             'start_at'    => 'nullable',
             'end_at'      => 'nullable',
             'is_active'   => 'required|boolean',
-        ]);
-
+            'image_old'   => 'required',
+			'image'       => 'nullable',
+        ];
+		
+		$image = $request->file('image');
+		if($image != null){
+			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+		}
+		
+		$input = $request->validate($validate);
+		
         // set null if "null" string
-        foreach ($input as $key => $value) {
+		foreach ($input as $key => $value) {
             if ($value === 'null') {
                 $input[$key] = null;
             }
+			else if($value == 'undefined'){
+				$input[$key] = null;
+			}
         }
-
+		
         $banner = SettingBanner::find($id);
+		
+		if($image != null){
+			$path   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+			$banner->image_path = $path;
+		}
+		
         $banner->order = $request->order;
         $banner->description = $request->description;
         $banner->link = $request->link;
         $banner->start_at = $request->start_at;
         $banner->end_at = $request->end_at;
         $banner->is_active = $request->is_active;
-        $banner->save();
-
-        return responseJSON('Sukses mengubah data slider');
+        $saved = $banner->save();
+		
+		if(!$saved){
+			Storage::disk('s3')->delete($path);
+			return responseJSON('Galat mengubah data slider.');
+		}
+		else{
+			if($image != null){
+				Storage::disk('s3')->delete($input['image_old']);
+			}
+			return responseJSON('Sukses mengubah data slider.');
+		}
     }
 
     public function destroy(Request $request, $id)

@@ -4,7 +4,6 @@ run:
 	@docker compose up -d --build
 	@make set-storage-permission
 	@make set-storage-link
-	@make install-npm
 	@echo "Server is started"
 
 update-base-multiarch:

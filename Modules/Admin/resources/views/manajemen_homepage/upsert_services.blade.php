@@ -31,7 +31,7 @@
                 <div class="mb-2">
                     <label for="modal-desc" class="form-label fw-semibold">Deskripsi</label>
 					<div ref="editor" v-html="value" style="height: 250px;"></div>
-                    <textarea class="form-control" id="modal-desc" v-model="payload.description"></textarea>
+                    <input type="hidden" class="form-control" id="modal-desc" v-model="payload.description">
                 </div>
                 <div class="mb-2">
 

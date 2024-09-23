@@ -39,19 +39,19 @@ const StyledLayananCard = styled.div`
 
 const StyledStatsCard = styled.div`
   padding: 0.25rem;
-  @media screen and (min-width: 768px) {
+  @media screen and (min-width: 1366px) {
     padding: 0.5rem;
   }
   .title {
     white-space: nowrap;
     font-size: 0.65rem;
-    @media screen and (min-width: 768px) {
+    @media screen and (min-width: 1366px) {
       font-size: 0.85rem;
     }
   }
   .total {
     font-size: 3rem;
-    @media screen and (min-width: 768px) {
+    @media screen and (min-width: 1366px) {
       font-size: 6rem;
     }
   }
@@ -287,7 +287,7 @@ const DashboardPage: React.FC = () => {
                     key={i}
                     className={clsx(r.colClassName)}
                   >
-                    <div className={clsx("w-100 border rounded-3 p-3", r.classNames)}>
+                    <div className={clsx("w-100 border rounded-3 py-3", r.classNames)}>
                       <div className="w-100 text-center title">{r.title}</div>
                       <div className="w-100 h-100 d-flex">
                         <div className="m-auto total">

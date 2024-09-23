@@ -383,7 +383,7 @@
                                     ></button>
                                 </div>
                                 <div class="modal-body">
-                                    {{ $item['description'] }}
+                                    {!! $item['description'] !!}
                                 </div>
                             </div>
                         </div>

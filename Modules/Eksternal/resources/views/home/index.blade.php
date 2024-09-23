@@ -506,7 +506,7 @@
                                         data-bs-parent="#accordion-1"
                                     >
                                         <div class="accordion-body">
-                                            <p class="mb-0 fs-5">{!! $item['description'] !!}</p>
+                                            <p class="mb-0">{!! $item['description'] !!}</p>
                                         </div>
                                     </div>
                                 </div>

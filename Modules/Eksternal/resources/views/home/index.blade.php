@@ -473,11 +473,11 @@
                             src="{{ asset('assets/media/logos/logo-jis.png') }}"
                         />
                     </div>
-                    <div class="col-12 col-lg-7 d-flex flex-column gap-5">
+                    <div class="col-12 col-lg-6 d-flex flex-column gap-5">
                         <p>{!! $aboutUs !!}</p>
                     </div>
 
-                    <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+                    <div class="col-12 col-lg-6 d-flex flex-column gap-4">
                         <div
                             class="accordion"
                             id="accordion-1"

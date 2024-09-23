@@ -14,6 +14,7 @@ Portal Utama pelanggan BBKKP, dibuat dengan menggunakan framework Laravel dan Re
 6. Jalankan perintah `php artisan migrate:fresh --seed`
 7. Jalankan perintah `composer install`
 8. Jalankan perintah `npm install`
-9. Jalankan perintah:
+9. Jalankan perintah `php artisan passport:keys`
+10. Jalankan perintah:
     - `php artisan serve` untuk menjalankan backend
     - `npm run dev` untuk develop frontend

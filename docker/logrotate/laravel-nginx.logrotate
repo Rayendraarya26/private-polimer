@@ -1,4 +1,4 @@
-/var/www/storage/logs/laravel-worker.log {
+/var/www/storage/logs/nginx-*.log {
     daily
     copytruncate
     rotate 7

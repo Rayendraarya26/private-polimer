@@ -8,6 +8,7 @@ COPY /docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy Logrotate Configuration
 COPY /docker/logrotate/* /etc/logrotate.d/
+RUN chmod 600 /etc/logrotate.d/laravel-*
 
 # Copy Imagick Policy
 COPY /docker/imagick/policy.xml /etc/ImageMagick-6/policy.xml

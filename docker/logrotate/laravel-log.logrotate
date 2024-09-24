@@ -1,4 +1,4 @@
-/var/www/storage/logs/laravel-scheduler-*.log {
+/var/www/storage/logs/laravel.log {
     su www-data www-data
     daily
     copytruncate

@@ -1,4 +1,5 @@
 /var/www/storage/logs/nginx-*.log {
+    su www-data www-data
     daily
     copytruncate
     rotate 7

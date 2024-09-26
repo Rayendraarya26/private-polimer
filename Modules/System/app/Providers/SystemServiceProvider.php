@@ -50,7 +50,7 @@ class SystemServiceProvider extends ServiceProvider
     {
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command('sys:rotate-log')->daily();
+            $schedule->command(RotateLogCmd::class)->daily();
         });
     }
 

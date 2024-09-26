@@ -20,9 +20,6 @@ COPY /docker/php/opcache.ini "$PHP_INI_DIR/conf.d/opcache.ini"
 
 COPY /docker/supervisor /etc/
 
-# RUN Cron Service
-RUN service cron start
-
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
 USER root

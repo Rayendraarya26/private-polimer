@@ -3,7 +3,7 @@
 namespace Modules\System\Providers;
 
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Schedule;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Modules\System\Console\RotateLogCmd;
 

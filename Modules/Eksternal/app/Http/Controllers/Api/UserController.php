@@ -183,7 +183,7 @@ class UserController extends Controller
             'kewarganegaraan'     => 'required|string',
             'nik'                 => 'required|numeric|digits:16',
             'surel'               => 'required|email:rfc,dns',
-            'whatsapp'            => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'whatsapp'            => 'required|numeric|digits_between:10,15',
             'whatsapp_otp'        => 'nullable',
             'pendidikan_terakhir' => 'required|string',
             'npwp'                => 'required|numeric|digits:16',
@@ -248,12 +248,12 @@ class UserController extends Controller
             'telepon'            => 'required',
             'fax'                => 'required',
             'surel'              => 'required|email:rfc,dns',
-            'whatsapp'           => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'whatsapp'           => 'required|numeric|digits_between:10,15',
             'npwp'               => 'required|numeric|digits:16',
             'nib'                => 'nullable|numeric|digits:13',
             'sk_nomenklatur'     => 'required|string',
             'pj_nama'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
-            'pj_whatsapp'        => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'pj_whatsapp'        => 'required|numeric|digits_between:10,15',
             'pj_whatsapp_otp'    => 'nullable',
             'pj_surel'           => 'required|email:rfc,dns',
             'dok_npwp'           => 'nullable|file|mimes:pdf|max:5120',
@@ -316,13 +316,13 @@ class UserController extends Controller
             'telepon'            => 'required',
             'fax'                => 'required',
             'surel'              => 'required|email:rfc,dns',
-            'whatsapp'           => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'whatsapp'           => 'required|numeric|digits_between:10,15',
             'npwp'               => 'required|numeric|digits:16',
             'nib'                => 'required|numeric|digits:13',
             'no_akta_pendirian'  => 'nullable|string',
             'iup'                => 'nullable|string',
             'pj_nama'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
-            'pj_whatsapp'        => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
+            'pj_whatsapp'        => 'required|numeric|digits_between:10,15',
             'pj_whatsapp_otp'    => 'nullable',
             'pj_surel'           => 'required|email:rfc,dns',
             'dok_npwp'           => 'nullable|file|mimes:pdf|max:5120',
@@ -387,7 +387,7 @@ class UserController extends Controller
     public function reqWhatsappOtp(Request $request)
     {
         $request->validate([
-            'whatsapp'  => ['required', 'numeric', 'digits_between:10,15', 'regex:/^62/'],
+            'whatsapp'  => ['required', 'numeric', 'digits_between:10,15'],
             'recaptcha' => ['nullable'],
         ]);
 

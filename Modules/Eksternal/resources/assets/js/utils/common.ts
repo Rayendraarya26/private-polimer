@@ -12,6 +12,14 @@ export const getPlainPhoneNumber = (value: string) => {
   return value ? (value.startsWith('62') ? value.replace('62', '') : value) : null
 }
 
+export const getE164PhoneNumber = (value: string) => {
+  return value ? (value.startsWith('+') ? value : `+${value}`) : null
+}
+
+export const getPlainE164PhoneNumber = (value: string) => {
+  return value ? (value.startsWith('+') ? value.replace('+', '') : value) : null
+}
+
 export const getFilenameFromContentDisposition = (contentDisposition: string): string | null => {
   if (!contentDisposition) return null
   const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)

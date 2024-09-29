@@ -7,6 +7,7 @@ import useProfile from '../useProfile'
 import { updateProfile } from '../../services/profile'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { useNavigate } from 'react-router-dom'
+import { getE164PhoneNumber, getPlainE164PhoneNumber } from '../../utils/common'
 
 export type Fields = {
   nama: string
@@ -44,12 +45,12 @@ export default () => {
         telepon: yup.string().default('').trim().required('Field ini wajib diisi'),
         fax: yup.string().default('').trim().required('Field ini wajib diisi'),
         surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
-        whatsapp: yup.string().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        whatsapp: yup.string().required('Field ini wajib diisi').matches(/^\+[1-9]\d{1,14}$/, 'Nomor tidak valid').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
         npwp: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NPWP harus 16 digit', val => `${val || ''}`.length === 16),
         nib: yup.string().nullable().optional().test('len', 'Nomor NPWP harus 13 digit', val => val ? `${val || ''}`.length === 13 : true),
         sk_nomenklatur: yup.string().default('').trim().required('Field ini wajib diisi'),
         pj_nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
-        pj_whatsapp: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        pj_whatsapp: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^\+[1-9]\d{1,14}$/, 'Nomor tidak valid').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
         pj_whatsapp_otp: yup.string().optional(),
         pj_surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
         dok_npwp: yup.mixed()
@@ -117,12 +118,12 @@ export default () => {
         telepon: telepon ? (telepon.startsWith('62') ? telepon.replace('62', '') : telepon) : '',
         fax: fax || '',
         surel: surel || '',
-        whatsapp: whatsapp ? (whatsapp.startsWith('62') ? whatsapp.replace('62', '') : whatsapp) : null,
+        whatsapp: whatsapp ? getE164PhoneNumber(whatsapp) : null,
         npwp: npwp || null,
         nib: nib || null,
         sk_nomenklatur: sk_nomenklatur || '',
         pj_nama: pj_nama || '',
-        pj_whatsapp: pj_whatsapp ? (pj_whatsapp.startsWith('62') ? pj_whatsapp.replace('62', '') : pj_whatsapp) : '',
+        pj_whatsapp: pj_whatsapp ? getE164PhoneNumber(pj_whatsapp) || '' : '',
         pj_whatsapp_otp: '',
         pj_surel: pj_surel || '',
         dok_npwp: null,
@@ -144,9 +145,14 @@ export default () => {
         setSubmitting(true)
         const recaptcha = await executeRecaptcha()
         const formData = new FormData()
+        payload = {
+          ...payload,
+          whatsapp: getPlainE164PhoneNumber(payload.whatsapp || ''),
+          pj_whatsapp: getPlainE164PhoneNumber(payload.pj_whatsapp || '')
+        }
         Object.entries({ recaptcha, _method: 'patch', ...payload }).map(([key, value]) => {
           if (value) {
-            if (['telepon','whatsapp','pj_whatsapp'].includes(key)) {
+            if (['telepon'].includes(key)) {
               formData.append(key, `62${value}`)
             } else {
               formData.append(key, value)

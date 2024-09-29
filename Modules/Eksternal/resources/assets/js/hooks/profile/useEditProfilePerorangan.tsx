@@ -8,7 +8,7 @@ import { updateProfile } from '../../services/profile'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { refEducations } from '../../constants/common'
 import { useNavigate } from 'react-router-dom'
-import { getPlainPhoneNumber } from '../../utils/common'
+import { getE164PhoneNumber, getPlainE164PhoneNumber } from '../../utils/common'
 
 export type Fields = {
   nama: string
@@ -55,7 +55,7 @@ export default () => {
           otherwise: yup.string().default('').trim().nullable()
         }),
         surel: yup.string().default('').trim().email('Email tidak valid').required('Field ini wajib diisi'),
-        whatsapp: yup.string().required('Field ini wajib diisi').matches(/^[0-9]*$/, 'Nomor hanya boleh angka').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
+        whatsapp: yup.string().required('Field ini wajib diisi').matches(/^\+[1-9]\d{1,14}$/, 'Nomor tidak valid').test('len', 'Nomor WhatsApp harus 9-15 digit', val => `${val || ''}`.length >= 9 && `${val || ''}`.length <= 15),
         whatsapp_otp: yup.string().optional(),
         npwp: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NPWP harus 16 digit', val => `${val || ''}`.length === 16),
         nib: yup.string().required('Field ini wajib diisi').test('len', 'Nomor NIB harus 13 digit', val => `${val || ''}`.length === 13),
@@ -123,7 +123,7 @@ export default () => {
         pendidikan_terakhir: pendidikan_lainnya ? 'OTHER' : (pendidikan_terakhir || ''),
         pendidikan_lainnya,
         surel: surel || '',
-        whatsapp: getPlainPhoneNumber(whatsapp || ''),
+        whatsapp: getE164PhoneNumber(whatsapp || ''),
         whatsapp_otp: '',
         npwp: npwp || null,
         nib: nib || null,
@@ -147,16 +147,11 @@ export default () => {
         const formData = new FormData()
         payload = {
           ...payload,
+          whatsapp: getPlainE164PhoneNumber(payload.whatsapp || ''),
           pendidikan_terakhir: payload.pendidikan_terakhir === 'OTHER' ? pendidikan_lainnya : payload.pendidikan_terakhir
         }
         Object.entries({ recaptcha, _method: 'patch', ...payload }).map(([key, value]) => {
-          if (value) {
-            if (['whatsapp'].includes(key)) {
-              formData.append(key, `62${value}`)
-            } else {
-              formData.append(key, value)
-            }
-          }
+          formData.append(key, value)
         })
         await updateProfile(formData)
         getMyProfile()

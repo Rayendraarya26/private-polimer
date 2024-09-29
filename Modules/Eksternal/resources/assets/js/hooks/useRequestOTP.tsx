@@ -3,6 +3,7 @@ import toast from "react-hot-toast"
 import { getErrorMessage } from "../utils/error"
 import { requestWhatsappOTP } from "../services/profile"
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3"
+import { getPlainE164PhoneNumber } from "../utils/common"
 
 export default () => {
   const { executeRecaptcha } = useGoogleReCaptcha()
@@ -15,7 +16,7 @@ export default () => {
       try {
         setRequesting(true)
         const recaptcha = await executeRecaptcha()
-        await requestWhatsappOTP({ whatsapp: `62${phone_number}`, recaptcha })
+        await requestWhatsappOTP({ whatsapp: getPlainE164PhoneNumber(phone_number || '') || '', recaptcha })
         setIsRequested(true)
       } catch (error) {
         toast.error(getErrorMessage(error))

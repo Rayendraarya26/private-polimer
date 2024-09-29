@@ -6,8 +6,10 @@ import useEditProfilePerusahaan from "../../hooks/profile/useEditProfilePerusaha
 import { PerusahaanBadanHukumType, PerusahaanJenisType } from "../../types/profile"
 import styled from "styled-components"
 import useRequestOTP from "../../hooks/useRequestOTP"
-import { getPlainPhoneNumber } from "../../utils/common"
+import { getPlainE164PhoneNumber } from "../../utils/common"
 import { YesNoOption } from "../../types/core"
+import PhoneInputWithCountrySelect from "react-phone-number-input"
+import 'react-phone-number-input/style.css'
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -22,7 +24,7 @@ const FormPerusahaan: React.FC = () => {
 
   const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
   const isWhatsappChanged = useMemo<boolean>(() => {
-    return rhf.getValues('pj_whatsapp') !== getPlainPhoneNumber(profile?.detail?.pj_whatsapp || '')
+    return getPlainE164PhoneNumber(rhf.getValues('pj_whatsapp')) !== getPlainE164PhoneNumber(profile?.detail?.pj_whatsapp || '')
   }, [rhf.watch('pj_whatsapp'), profile])
 
   return (
@@ -189,14 +191,13 @@ const FormPerusahaan: React.FC = () => {
                     <Form.Label>
                       Nomor Whatsapp Perusahaan <span className="text-danger">*</span>
                     </Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text>+62</InputGroup.Text>
-                      <Form.Control 
-                        type="number"
-                        isInvalid={!!errors?.whatsapp?.message}
-                        {...rhf.register('whatsapp')}
-                      />
-                    </InputGroup>
+                    <PhoneInputWithCountrySelect
+                      defaultCountry="ID"
+                      placeholder="Masukkan nomor"
+                      className="align-items-stretch"
+                      value={rhf.watch('whatsapp')}
+                      onChange={v => rhf.setValue('whatsapp', v)}
+                    />
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.whatsapp?.message || ''}
                     </div>
@@ -300,13 +301,14 @@ const FormPerusahaan: React.FC = () => {
                       Nomor Whatsapp <span className="text-danger">*</span>
                     </Form.Label>
                     <InputGroup>
-                      <InputGroup.Text>+62</InputGroup.Text>
-                      <Form.Control 
-                        type="number"
-                        isInvalid={!!errors?.pj_whatsapp?.message}
-                        {...rhf.register('pj_whatsapp')}
+                      <PhoneInputWithCountrySelect
+                        defaultCountry="ID"
+                        placeholder="Masukkan nomor"
+                        className="align-items-stretch"
+                        value={rhf.watch('pj_whatsapp')}
+                        onChange={v => rhf.setValue('pj_whatsapp', v)}
                       />
-                      {isWhatsappChanged && (
+                      {isWhatsappChanged && !!rhf.watch('pj_whatsapp') && (
                         <InputGroup.Text 
                           as={Button}
                           variant="primary"

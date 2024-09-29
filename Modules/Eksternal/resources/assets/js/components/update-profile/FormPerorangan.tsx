@@ -7,8 +7,10 @@ import styled from "styled-components"
 import { PelangganGender } from "../../types/profile"
 import { refEducations } from "../../constants/common"
 import useRequestOTP from "../../hooks/useRequestOTP"
-import { getPlainPhoneNumber } from "../../utils/common"
+import { getPlainE164PhoneNumber } from "../../utils/common"
 import { YesNoOption } from "../../types/core"
+import PhoneInputWithCountrySelect from "react-phone-number-input"
+import 'react-phone-number-input/style.css'
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -23,7 +25,7 @@ const FormPerorangan: React.FC = () => {
 
   const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
   const isWhatsappChanged = useMemo<boolean>(() => {
-    return rhf.getValues('whatsapp') !== getPlainPhoneNumber(profile?.detail?.whatsapp || '')
+    return getPlainE164PhoneNumber(rhf.getValues('whatsapp')) !== getPlainE164PhoneNumber(profile?.detail?.whatsapp || '')
   }, [rhf.watch('whatsapp'), profile])
 
   return (
@@ -209,13 +211,14 @@ const FormPerorangan: React.FC = () => {
                       Nomor Whatsapp <span className="text-danger">*</span>
                     </Form.Label>
                     <InputGroup>
-                      <InputGroup.Text>+62</InputGroup.Text>
-                      <Form.Control 
-                        type="number"
-                        isInvalid={!!errors?.whatsapp?.message}
-                        {...rhf.register('whatsapp')}
+                      <PhoneInputWithCountrySelect
+                        defaultCountry="ID"
+                        placeholder="Masukkan nomor"
+                        className="align-items-stretch"
+                        value={rhf.watch('whatsapp')}
+                        onChange={v => rhf.setValue('whatsapp', v)}
                       />
-                      {isWhatsappChanged && (
+                      {isWhatsappChanged && !!rhf.watch('whatsapp') && (
                         <InputGroup.Text 
                           as={Button}
                           variant="primary"

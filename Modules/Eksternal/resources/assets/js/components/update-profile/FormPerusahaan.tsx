@@ -198,6 +198,9 @@ const FormPerusahaan: React.FC = () => {
                       value={rhf.watch('whatsapp')}
                       onChange={v => rhf.setValue('whatsapp', v)}
                     />
+                    <div style={{ fontSize: '0.65rem' }}>
+                      Pilih negara dan masukkan nomor anda. Contoh: Indonesia, 8123456789
+                    </div>
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.whatsapp?.message || ''}
                     </div>
@@ -295,12 +298,12 @@ const FormPerusahaan: React.FC = () => {
                 </div>
               </Form.Group>
               <StyledRow>
-                <Col xs={12} lg={7}>
+                <Col xs={12} xxl={7}>
                   <Form.Group>
                     <Form.Label>
                       Nomor Whatsapp <span className="text-danger">*</span>
                     </Form.Label>
-                    <InputGroup>
+                    <InputGroup className="flex-nowrap">
                       <PhoneInputWithCountrySelect
                         defaultCountry="ID"
                         placeholder="Masukkan nomor"
@@ -322,6 +325,9 @@ const FormPerusahaan: React.FC = () => {
                         </InputGroup.Text>
                       )}
                     </InputGroup>
+                    <div style={{ fontSize: '0.65rem' }}>
+                      Pilih negara dan masukkan nomor anda. Contoh: Indonesia, 8123456789
+                    </div>
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.pj_whatsapp?.message || ''}
                     </div>
@@ -336,7 +342,7 @@ const FormPerusahaan: React.FC = () => {
                   </Form.Group>
                 </Col>
                 {isRequested && (
-                  <Col xs={12} lg={5}>
+                  <Col xs={12} xxl={5}>
                     <Form.Group>
                       <Form.Label>
                         Kode OTP

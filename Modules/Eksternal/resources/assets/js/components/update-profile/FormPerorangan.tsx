@@ -37,7 +37,7 @@ const FormPerorangan: React.FC = () => {
       }}
     >
       <Row>
-        <Col xs={12} lg={6} className="d-flex flex-column gap-5">
+        <Col xs={12} lg={7} className="d-flex flex-column gap-5">
           <div className="w-100 d-flex flex-column gap-2">
             <div className="fs-5 fw-bold">Data Umum</div>
             <div className="w-100 d-flex flex-column gap-3 border rounded-3 p-3 bg-light">
@@ -205,12 +205,12 @@ const FormPerorangan: React.FC = () => {
                 )}
               </StyledRow>
               <StyledRow>
-                <Col xs={12} lg={7}>
+                <Col xs={12} xxl={7}>
                   <Form.Group>
                     <Form.Label>
                       Nomor Whatsapp <span className="text-danger">*</span>
                     </Form.Label>
-                    <InputGroup>
+                    <InputGroup className="flex-nowrap">
                       <PhoneInputWithCountrySelect
                         defaultCountry="ID"
                         placeholder="Masukkan nomor"
@@ -232,6 +232,9 @@ const FormPerorangan: React.FC = () => {
                         </InputGroup.Text>
                       )}
                     </InputGroup>
+                    <div style={{ fontSize: '0.65rem' }}>
+                      Pilih negara dan masukkan nomor anda. Contoh: Indonesia, 8123456789
+                    </div>
                     <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                       {errors?.whatsapp?.message || ''}
                     </div>
@@ -246,7 +249,7 @@ const FormPerorangan: React.FC = () => {
                   </Form.Group>
                 </Col>
                 {isRequested && (
-                  <Col xs={12} lg={5}>
+                  <Col xs={12} xxl={5}>
                     <Form.Group>
                       <Form.Label>
                         Kode OTP
@@ -298,7 +301,7 @@ const FormPerorangan: React.FC = () => {
             </div>
           </div>
         </Col>
-        <Col xs={12} lg={6} className="d-flex flex-column gap-5">
+        <Col xs={12} lg={5} className="d-flex flex-column gap-5">
           <div className="w-100 d-flex flex-column gap-2">
             <div className="fs-5 fw-bold">Unggah Dokumen</div>
             <div className="w-100 d-flex flex-column gap-3 border rounded-3 p-3 bg-light">

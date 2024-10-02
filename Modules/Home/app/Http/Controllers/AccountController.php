@@ -109,14 +109,6 @@ class AccountController
             return back()->withErrors(['message' => 'Current password is incorrect']);
         }
 
-        // Password cannot 3x same in history
-        $histories = $user->sys_history_passwords()->latest()->limit(3)->get();
-        foreach ($histories as $history) {
-            if (Hash::check($input['new_password'], $history->password)) {
-                return back()->withErrors(['message' => 'Password cannot be the same as the last 3 passwords']);
-            }
-        }
-
         DB::transaction(function () use ($user, $input) {
             $newPassword    = Hash::make($input['new_password']);
             $user->password = $newPassword;

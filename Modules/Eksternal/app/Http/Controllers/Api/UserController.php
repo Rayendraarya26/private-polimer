@@ -34,6 +34,7 @@ class UserController extends Controller
             $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first();
 
             $isPelanggan = $groupData->group_id === SysGroup::PELANGGAN->value;
+            $detail = $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : $this->extractDetailPegawai($request->user()->pegawai ?? Pegawai::create(['user_id' => $request->user()->id]));
 
             return responseJSON("success", [
                 'id'                    => $request->user()->id,
@@ -47,7 +48,7 @@ class UserController extends Controller
                     'id'   => $groupData->group_id,
                     'name' => $groupData->sys_group->name,
                 ],
-                'detail'                => $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : $this->extractDetailPegawai($request->user()->pegawai),
+                'detail'                => $detail,
             ]);
         });
     }

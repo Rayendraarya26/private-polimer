@@ -1,6 +1,6 @@
 @extends('layouts.no_header')
 
-@section('title', 'FAQ')
+@section('title', 'Lacak Permohonan')
 
 @push('styles')
     <style>

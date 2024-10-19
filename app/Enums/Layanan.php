@@ -63,6 +63,6 @@ enum Layanan: string
     */
     public function getStatus(): array
     {
-        return ['Permohonan', 'Pembayaran', 'Proses', 'Review', 'Selesai'];
+        return ['permohonan', 'pembayaran', 'proses', 'review', 'selesai'];
     }
 }

@@ -12,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Modules\Integration\Notifications\UpdateStatusPermohonanNotification;
 use Throwable;
 
 class IntegrationController extends Controller
@@ -48,12 +49,13 @@ class IntegrationController extends Controller
                 return responseJSON('User tidak ditemukan', $input, 200, 'SKIPPED');
             }
 
-
-            $dil = DataIntegrasiLayanan::firstOrNew([
+            $dil = DataIntegrasiLayanan::with('user')->firstOrNew([
                 'layanan_id' => $masterLayanan->id,
                 'user_id'    => $user->id,
                 'id_order'   => $input['permohonan_id'],
             ]);
+
+            $isStatusChanged = $dil->status_order !== $input['permohonan_status'];
 
             $dil->layanan_id    = $masterLayanan->id;
             $dil->user_id       = $user->id;
@@ -80,6 +82,10 @@ class IntegrationController extends Controller
             }
 
             $dil->save();
+
+            if ($isStatusChanged) {
+                $dil->user->notify(new UpdateStatusPermohonanNotification($dil));
+            }
 
             return responseJSON('Data berhasil disimpan', $dil);
         } catch (Exception|Throwable $e) {

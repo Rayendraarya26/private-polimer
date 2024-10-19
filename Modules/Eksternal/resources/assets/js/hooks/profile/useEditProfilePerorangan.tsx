@@ -151,7 +151,11 @@ export default () => {
           pendidikan_terakhir: payload.pendidikan_terakhir === 'OTHER' ? pendidikan_lainnya : payload.pendidikan_terakhir
         }
         Object.entries({ recaptcha, _method: 'patch', ...payload }).map(([key, value]) => {
-          formData.append(key, value)
+          if (['dok_npwp', 'dok_nib', 'dok_lainnya'].includes(key)) {
+            if (value) formData.append(key, value)
+          } else {
+            formData.append(key, value)
+          }
         })
         await updateProfile(formData)
         getMyProfile()

@@ -187,7 +187,11 @@ export default () => {
             if (['telepon'].includes(key)) {
               formData.append(key, `62${value}`)
             } else {
-              formData.append(key, value)
+              if (['dok_npwp','dok_nib','dok_iup','dok_akta_pendirian','dok_lainnya'].includes(key)) {
+                if (value) formData.append(key, value)
+              } else {
+                formData.append(key, value)
+              }
             }
           }
         })

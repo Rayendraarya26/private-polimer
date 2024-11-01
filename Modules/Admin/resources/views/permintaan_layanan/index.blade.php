@@ -27,7 +27,89 @@
 
                     <!--begin::Toolbar-->
                     <div class="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
+						<!--begin::Filter-->
+                        <button type="button" class="btn btn-light-secondary btn-sm me-3" data-kt-menu-trigger="click"
+                                data-kt-menu-placement="bottom-end">
+                            <i class="fad fa-filter"><span class="path1"></span><span class="path2"></span></i>
+                            Filter
+                        </button>
+                        <!--begin::Menu 1-->
+                        <div class="menu menu-sub menu-sub-dropdown w-150px w-md-225px" data-kt-menu="true"
+                             id="kt-toolbar-filter">
+                            <!--begin::Header-->
+                            <div class="px-7 py-5">
+                                <div class="fs-4 text-dark fw-bold">Filter Options</div>
+                            </div>
+                            <!--end::Header-->
 
+                            <!--begin::Separator-->
+                            <div class="separator border-gray-200"></div>
+                            <!--end::Separator-->
+
+                            <!--begin::Content-->
+                            <div class="px-7 py-5">
+                                <div class="row">
+                                    <!--begin::Input group-->
+                                    <div class="col-md-6">
+                                        <div class="mb-12">
+                                            <!--begin::Label-->
+                                            <label class="form-label fs-6 fw-semibold mb-3">Mengisi Feedback:</label>
+                                            <!--end::Label-->
+
+                                            <!--begin::Options-->
+                                            <div class="d-flex flex-start">
+                                                <div class="d-flex flex-column flex-wrap fw-semibold"
+                                                     data-kt-docs-table-filter="filter_feedback">
+                                                    <!--begin::Option-->
+                                                    <label
+                                                        class="form-check form-check-sm form-check-custom form-check-solid mb-3">
+                                                        <input class="form-check-input" type="radio"
+                                                               name="filter_feedback"
+                                                               value="1"/>
+                                                        <span class="form-check-label text-gray-600">Sudah</span>
+                                                    </label>
+                                                    <!--end::Option-->
+
+                                                    <!--begin::Option-->
+                                                    <label
+                                                        class="form-check form-check-sm form-check-custom form-check-solid">
+                                                        <input class="form-check-input" type="radio"
+                                                               name="filter_feedback"
+                                                               value="0"/>
+                                                        <span class="form-check-label text-gray-600">Belum</span>
+                                                    </label>
+                                                    <!--end::Option-->
+                                                </div>
+                                                <!--end::Options-->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end::Input group-->
+                                </div>
+
+                                <!--begin::Actions-->
+                                <div class="d-flex justify-content-end">
+                                    <button type="reset" class="btn btn-light btn-sm btn-active-light-primary me-2"
+                                            data-kt-menu-dismiss="true" data-kt-docs-table-filter="reset">Reset
+                                    </button>
+
+                                    <button type="submit" class="btn btn-sm btn-primary" data-kt-menu-dismiss="true"
+                                            data-kt-docs-table-filter="filter">Apply
+                                    </button>
+                                </div>
+                                <!--end::Actions-->
+                            </div>
+                            <!--end::Content-->
+                        </div>
+                        <!--end::Menu 1-->
+                        <!--end::Filter-->
+
+                        <!--begin::cetak  
+                        <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="tooltip">
+                            <i class="fad fa-print"></i>
+                            Rekap Data
+                        </a>
+                        <!--end::cetak -->
                     </div>
                     <!--end::Toolbar-->
 
@@ -43,6 +125,7 @@
                         <th>Pemohon</th>
                         <th>Nama Layanan</th>
                         <th>Status</th>
+                        <th>Isi Feedback?</th>
                         <th class="text-end min-w-100px">Aksi</th>
                     </tr>
                     </thead>
@@ -70,6 +153,9 @@
             // Shared variables
             let table;
             let dt;
+			let filter = {
+                feedback: null,
+            };
 
             // Private functions
             const initDatatable = function () {
@@ -87,6 +173,7 @@
                         { data: 'user', name: 'user.name', orderable: false },
                         { data: 'layanan', name: 'layanan.name', orderable: false },
                         { data: 'status_order' },
+                        { data: 'is_given_feedback' },
                         { data: null },
                     ],
                     columnDefs: [
@@ -94,6 +181,23 @@
                             targets: 1,
                             render: function (data) {
                                 return moment(data).format('DD MMM YYYY HH:mm');
+                            }
+                        },
+						{
+                            targets: -3,
+                            render: function (data) {
+                                return `<span class="badge badge-light-info">${data}</span>`;
+                            }
+                        },
+						{
+                            targets: -2,
+                            render: function (data) {
+								if(data === false){
+									return `<span class="badge badge-light-warning">Belum Mengisi</span>`;
+								}
+								else{
+									return `<span class="badge badge-light-info">Sudah Mengisi</span>`;
+								}
                             }
                         },
                         {
@@ -138,8 +242,6 @@
 
                 // Re-init functions on every table re-draw -- more info: https://datatables.net/reference/event/draw
                 dt.on('draw', function () {
-                    handleDeleteRows();
-                    handleRegenerateSecret();
                     KTMenu.createInstances();
                 });
             };
@@ -157,89 +259,38 @@
                 });
             };
 
-            // Delete customer
-            const handleDeleteRows = () => {
-                // Select all delete buttons
-                const deleteButtons = document.querySelectorAll('[data-kt-docs-table-filter="delete_row"]');
+            // Filter Datatable
+            const handleFilterDatatable = () => {
+                // Select filter options
+                filter.feedback = document.querySelectorAll('[data-kt-docs-table-filter="filter_feedback"] [name="filter_feedback"]');
+                const filterButton = document.querySelector('[data-kt-docs-table-filter="filter"]');
 
-                deleteButtons.forEach(d => {
-                    // Delete button on click
-                    d.addEventListener('click', function (e) {
-                        e.preventDefault();
+                // Filter datatable on submit
+                filterButton.addEventListener('click', function () {
+                    // Get filter values
+                    let feedValue = '';
+                    filter.feedback.forEach(r => {
+                        if (r.checked) {
+                            feedValue = r.value;
+                        }
+                    });
 
-                        // Select parent row
-                        const parent = e.target.closest('tr');
-
-                        // Get customer name
-                        const id = e.target.getAttribute('data-id');
-                        const namaCabang = parent.querySelectorAll('td')[0].innerText;
-
-                        // SweetAlert2 pop up --- official docs reference: https://sweetalert2.github.io/
-                        Swal.fire({
-                            text: "Anda yakin untuk menghapus " + namaCabang + "?",
-                            icon: "warning",
-                            showCancelButton: true,
-                            buttonsStyling: false,
-                            confirmButtonText: "Ya, Hapus!",
-                            cancelButtonText: "Batal",
-                            customClass: {
-                                confirmButton: "btn fw-bold btn-danger",
-                                cancelButton: "btn fw-bold btn-active-light-primary"
-                            }
-                        }).then(function (result) {
-                            if (result.value) {
-                                apiDelete(id)
-                            }
-                        });
-                    })
+                    if (!_.isEmpty(feedValue)) dt.column(findColumnIndex('is_given_feedback')).search(feedValue).draw();
+                });
+            };
+			
+			const findColumnIndex = (columnName) => {
+                return dt.columns().indexes().filter(function (idx) {
+                    return dt.column(idx).dataSrc() === columnName;
                 });
             }
-
-            // Regenerate Client Secret
-            const handleRegenerateSecret = () => {
-                // Select all delete buttons
-                const deleteButtons = document.querySelectorAll('[data-kt-docs-table-filter="regenerate_row"]');
-
-                deleteButtons.forEach(d => {
-                    // Delete button on click
-                    d.addEventListener('click', function (e) {
-                        e.preventDefault();
-
-                        // Select parent row
-                        const parent = e.target.closest('tr');
-
-                        // Get customer name
-                        const id = e.target.getAttribute('data-id');
-                        const namaApp = parent.querySelectorAll('td')[0].innerText;
-
-                        // SweetAlert2 pop up --- official docs reference: https://sweetalert2.github.io/
-                        Swal.fire({
-                            text: "Anda yakin update client secret " + namaApp + "?",
-                            icon: "warning",
-                            showCancelButton: true,
-                            buttonsStyling: false,
-                            confirmButtonText: "Ya, Generate!",
-                            cancelButtonText: "Batal",
-                            customClass: {
-                                confirmButton: "btn fw-bold btn-danger",
-                                cancelButton: "btn fw-bold btn-active-light-primary"
-                            }
-                        }).then(function (result) {
-                            if (result.value) {
-                                apiRegenerateSecret(id)
-                            }
-                        });
-                    })
-                });
-            }
-
+			
             // Public methods
             return {
                 init: function () {
                     initDatatable();
                     handleSearchDatatable();
-                    handleDeleteRows();
-                    handleRegenerateSecret();
+                    handleFilterDatatable();
                 },
             }
         }();

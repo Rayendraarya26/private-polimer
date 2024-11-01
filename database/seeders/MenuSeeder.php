@@ -155,6 +155,7 @@ class MenuSeeder extends Seeder
                             ['name' => 'index', 'controller' => $moduleAdmin . '\ManageOrderController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageOrderController@ajax'],
                             ['name' => 'detail', 'controller' => $moduleAdmin . '\ManageOrderController@detail'],
+                            ['name' => 'download', 'controller' => $moduleAdmin . '\ManageOrderController@download'],
                             ['name' => 'rekap', 'controller' => $moduleAdmin . '\ManageOrderController@rekap'],
                         ]
                     ],

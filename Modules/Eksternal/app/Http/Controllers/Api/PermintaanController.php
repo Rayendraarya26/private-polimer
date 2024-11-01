@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Eksternal\Http\Traits\VerifiedWhatsappTrait;
+use Carbon\Carbon;
 
 class PermintaanController extends Controller
 {
@@ -160,8 +161,10 @@ class PermintaanController extends Controller
             $feedbacks = $request->input('feedbacks');
             try {
                 $this->validateFeedback($feedbacks);
+				$date = Carbon::now();
 
                 $integrasi->feedback_json     = $feedbacks;
+                $integrasi->feedback_at = $date->format('Y-m-d H:i:s');
                 $integrasi->is_given_feedback = true;
                 $integrasi->save();
 

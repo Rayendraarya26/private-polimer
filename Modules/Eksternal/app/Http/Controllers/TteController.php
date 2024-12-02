@@ -7,6 +7,7 @@ use App\Libraries\TteService;
 use App\Traits\CaptchaTrait;
 use BBSPJIKKP\Sdk\Esign\ApiException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TteController extends Controller
 {
@@ -46,7 +47,8 @@ class TteController extends Controller
                 'metadata'    => $result->getRefMetadata() ? json_decode($result->getRefMetadata(), true) : null,
             ]);
         } catch (ApiException $e) {
-            return responseJSON($e->getMessage(), [], 500, 'INTERNAL_SERVER_ERROR');
+            Log::error('Error verify by id', ['message' => $e->getMessage()]);
+            return responseJSON('Data TTE tidak ditemukan', [], 500, 'INTERNAL_SERVER_ERROR');
         }
     }
 
@@ -74,7 +76,8 @@ class TteController extends Controller
                 'metadata'    => $result->getRefMetadata() ? json_decode($result->getRefMetadata(), true) : null,
             ]);
         } catch (ApiException $e) {
-            return responseJSON($e->getMessage(), [], 500, 'INTERNAL_SERVER_ERROR');
+            Log::error('Error verify by doc', ['message' => $e->getMessage()]);
+            return responseJSON('Data TTE tidak ditemukan', [], 500, 'INTERNAL_SERVER_ERROR');
         }
     }
 }

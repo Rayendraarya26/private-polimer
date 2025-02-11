@@ -95,7 +95,7 @@ Route::prefix('/admin')
             Route::get('/ajax', [ManageOrderController::class, 'ajax']);
             Route::get('{order}/feedback', [ManageOrderController::class, 'feedback']);
             Route::get('{order}/detail', [ManageOrderController::class, 'detail']);
-			Route::get('{integrasi}/download-certificate', [ManageOrderController::class, 'download'])->name('download-certificate');
+			Route::get('{integrasi}/download-certificate', [ManageOrderController::class, 'download']);
         });
 
         Route::get('integrasi-sso/ajax', [IntegrasiSsoController::class, 'ajax']);

@@ -15,9 +15,9 @@ use Illuminate\Support\Str;
 class ManageHomepageController
 {
 
-    public string $module = __CLASS__;
-    private string $url = 'admin/manajemen-homepage';
-    private string $view = 'admin::manajemen_homepage';
+    public string  $module = __CLASS__;
+    private string $url    = 'admin/manajemen-homepage';
+    private string $view   = 'admin::manajemen_homepage';
     const CACHE_NAME = 'home_parser';
 
     private function defaultParser(): array
@@ -33,7 +33,7 @@ class ManageHomepageController
     {
         $breadcrumbs = [
             new Breadcrumbs('Admin'),
-            new Breadcrumbs('Manage Home Page')
+            new Breadcrumbs('Manage Home Page'),
         ];
 
         $key_option    = ($request->data) ? $request->data : 'slider';
@@ -56,14 +56,16 @@ class ManageHomepageController
     public function update(Request $request, $action)
     {
         $data = match ($action) {
-            'about' => $this->upsert_about($request),
-            'store_slider' => $this->store_slider($request),
-            'store_services' => $this->store_services($request),
-            'store_partner' => $this->store_partner($request),
-            'update_slider' => $this->update_slider($request),
-            'update_services' => $this->update_services($request),
-            'update_partner' => $this->update_partner($request),
-            default => abort(404),
+            'about'               => $this->upsert_about($request),
+            'store_slider'        => $this->store_slider($request),
+            'store_services'      => $this->store_services($request),
+            'store_partner'       => $this->store_partner($request),
+            'store_social_media'  => $this->store_social_media($request),
+            'update_slider'       => $this->update_slider($request),
+            'update_services'     => $this->update_services($request),
+            'update_partner'      => $this->update_partner($request),
+            'update_social_media' => $this->update_social_media($request),
+            default              => abort(404),
         };
 
         Cache::forget(self::CACHE_NAME);
@@ -153,152 +155,205 @@ class ManageHomepageController
         return responseJSON('Sukses menginput partner');
     }
 
+    public function store_social_media(Request $request)
+    {
+        $input = $request->validate([
+            'order'      => 'required|integer',
+            'title'      => 'required',
+            'icon_class' => 'required',
+            'url'        => 'required|url',
+        ]);
+
+        $socialMedia = SiteManajemen::where('key', '=', HomepageKey::SOCIAL_MEDIA->value)->firstOrNew();
+        $data_json   = $socialMedia->data ?? [];
+        $data_json[] = [
+            'id'         => Str::uuid()->toString(),
+            'order'      => $input['order'],
+            'title'      => $input['title'],
+            'icon_class' => $input['icon_class'],
+            'url'        => $input['url'],
+        ];
+
+        $socialMedia->key = HomepageKey::SOCIAL_MEDIA->value;
+        $socialMedia->data = $data_json;
+        $socialMedia->save();
+
+        return responseJSON('Sukses menginput social media');
+    }
+
     public function update_partner(Request $request)
     {
-		$validate = [
-            'order' => 'required|integer',
-            'id'    => 'required',
-            'title' => 'nullable',
-            'image' => 'nullable',
-            'image_old'   => 'required',
+        $validate = [
+            'order'     => 'required|integer',
+            'id'        => 'required',
+            'title'     => 'nullable',
+            'image'     => 'nullable',
+            'image_old' => 'required',
         ];
-		
+
         $image = $request->file('image');
-		if($image != null){
-			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
-		}
-		
+        if ($image != null) {
+            $validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+        }
+
         $input = $request->validate($validate);
 
-        $partners       = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
+        $partners     = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
         $updated_data = $partners->data;
         $key          = $this->searchForId($request->id, $updated_data);
-		$path =  null;
-		
+        $path         = null;
+
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.title", $input['title']);
-			if($image != null){
-				$path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-				Arr::set($updated_data, "$key.image_path", $path);
-			}
+            if ($image != null) {
+                $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+                Arr::set($updated_data, "$key.image_path", $path);
+            }
         }
 
-        $partners->data = $updated_data;		
-		$saved = $partners->save();
+        $partners->data = $updated_data;
+        $saved          = $partners->save();
 
-        if(!$saved){
-			if($path !== null){
-				Storage::disk('s3')->delete($path);
-			}
-			return responseJSON('Galat mengubah data services.');
-		}
-		else{
-			if($image != null){
-				Storage::disk('s3')->delete($input['image_old']);
-			}
-			return responseJSON('Sukses mengubah data services.');
-		}
+        if (!$saved) {
+            if ($path !== null) {
+                Storage::disk('s3')->delete($path);
+            }
+            return responseJSON('Galat mengubah data services.');
+        } else {
+            if ($image != null) {
+                Storage::disk('s3')->delete($input['image_old']);
+            }
+            return responseJSON('Sukses mengubah data services.');
+        }
     }
 
     public function update_services(Request $request)
     {
-		$validate = [
+        $validate = [
             'order'       => 'required|integer',
             'id'          => 'required',
             'description' => 'nullable',
             'title'       => 'nullable',
-            'image' => 'nullable',
+            'image'       => 'nullable',
             'image_old'   => 'required',
         ];
-		
-		$image = $request->file('image');
-		if($image != null){
-			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
-		}
-		
+
+        $image = $request->file('image');
+        if ($image != null) {
+            $validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+        }
+
         $input = $request->validate($validate);
 
-        $services       = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
+        $services     = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
         $updated_data = $services->data;
         $key          = $this->searchForId($request->id, $updated_data);
-		$path =  null;
-		
+        $path         = null;
+
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.title", $input['title']);
             Arr::set($updated_data, "$key.description", $input['description']);
-			if($image != null){
-				$path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-				Arr::set($updated_data, "$key.image_path", $path);
-			}
+            if ($image != null) {
+                $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+                Arr::set($updated_data, "$key.image_path", $path);
+            }
         }
 
         $services->data = $updated_data;
-		$saved = $services->save();
+        $saved          = $services->save();
 
-        if(!$saved){
-			if($path !== null){
-				Storage::disk('s3')->delete($path);
-			}
-			return responseJSON('Galat mengubah data services.');
-		}
-		else{
-			if($image != null){
-				Storage::disk('s3')->delete($input['image_old']);
-			}
-			return responseJSON('Sukses mengubah data services.');
-		}
+        if (!$saved) {
+            if ($path !== null) {
+                Storage::disk('s3')->delete($path);
+            }
+            return responseJSON('Galat mengubah data services.');
+        } else {
+            if ($image != null) {
+                Storage::disk('s3')->delete($input['image_old']);
+            }
+            return responseJSON('Sukses mengubah data services.');
+        }
     }
 
     public function update_slider(Request $request)
     {
-		$validate = [
+        $validate = [
             'order'       => 'required|integer',
             'id'          => 'required',
             'title'       => 'nullable',
             'description' => 'nullable',
-            'image' => 'nullable',
+            'image'       => 'nullable',
             'image_old'   => 'required',
         ];
-		
-		$image = $request->file('image');
-		if($image != null){
-			$validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
-		}
-		
+
+        $image = $request->file('image');
+        if ($image != null) {
+            $validate['image'] = ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))];
+        }
+
         $input = $request->validate($validate);
 
         $banner       = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
         $updated_data = $banner->data;
         $key          = $this->searchForId($request->id, $updated_data);
-		$path =  null;
-		
+        $path         = null;
+
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.title", $input['title']);
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.description", $input['description']);
-			if($image != null){
-				$path   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-				Arr::set($updated_data, "$key.image_path", $path);
-			}
+            if ($image != null) {
+                $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+                Arr::set($updated_data, "$key.image_path", $path);
+            }
         }
 
         $banner->data = $updated_data;
-        $saved = $banner->save();
-		
-		if(!$saved){
-			if($path !== null){
-				Storage::disk('s3')->delete($path);
-			}
-			return responseJSON('Galat mengubah data slider.');
-		}
-		else{
-			if($image != null){
-				Storage::disk('s3')->delete($input['image_old']);
-			}
-			return responseJSON('Sukses mengubah data slider.');
-		}
+        $saved        = $banner->save();
+
+        if (!$saved) {
+            if ($path !== null) {
+                Storage::disk('s3')->delete($path);
+            }
+            return responseJSON('Galat mengubah data slider.');
+        } else {
+            if ($image != null) {
+                Storage::disk('s3')->delete($input['image_old']);
+            }
+            return responseJSON('Sukses mengubah data slider.');
+        }
+    }
+
+    public function update_social_media(Request $request)
+    {
+        $input = $request->validate([
+            'order'      => 'required|integer',
+            'id'         => 'required',
+            'title'      => 'required',
+            'icon_class' => 'required',
+            'url'        => 'required|url',
+        ]);
+
+        $socialMedia  = SiteManajemen::where('key', '=', HomepageKey::SOCIAL_MEDIA->value)->firstOrFail();
+        $updated_data = $socialMedia->data;
+        $key          = $this->searchForId($request->id, $updated_data);
+
+        if (!is_null($key)) {
+            Arr::set($updated_data, "$key.order", $input['order']);
+            Arr::set($updated_data, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.icon_class", $input['icon_class']);
+            Arr::set($updated_data, "$key.url", $input['url']);
+        }
+
+        $socialMedia->data = $updated_data;
+        $saved = $socialMedia->save();
+
+        if (!$saved) {
+            return responseJSON('Galat mengubah data social media.');
+        }
+        return responseJSON('Sukses mengubah data social media.');
     }
 
     public function upsert_about(Request $request)
@@ -317,10 +372,11 @@ class ManageHomepageController
     public function destroy(Request $request, $action)
     {
         $data = match ($action) {
-            'destroy_slider' => $this->destroy_slider($request),
-            'destroy_services' => $this->destroy_services($request),
-            'destroy_partner' => $this->destroy_partner($request),
-            default => abort(404),
+            'destroy_slider'       => $this->destroy_slider($request),
+            'destroy_services'     => $this->destroy_services($request),
+            'destroy_partner'      => $this->destroy_partner($request),
+            'destroy_social_media' => $this->destroy_social_media($request),
+            default               => abort(404),
         };
 
         Cache::forget(self::CACHE_NAME);
@@ -366,14 +422,20 @@ class ManageHomepageController
         return $this->removeSiteData($request, HomepageKey::SLIDER);
     }
 
+    public function destroy_social_media(Request $request)
+    {
+        return $this->removeSiteData($request, HomepageKey::SOCIAL_MEDIA);
+    }
+
     public function ajax(Request $request)
     {
         $request->validate(['action' => 'required']);
         return match ($request->input('action')) {
-            'slider' => $data = $this->ajax_slider($request),
-            'services' => $data = $this->ajax_services($request),
-            'partner' => $data = $this->ajax_partner($request),
-            default => abort(404),
+            'slider'       => $data = $this->ajax_slider($request),
+            'services'     => $data = $this->ajax_services($request),
+            'partner'      => $data = $this->ajax_partner($request),
+            'social_media' => $data = $this->ajax_social_media($request),
+            default        => abort(404),
         };
     }
 
@@ -385,11 +447,13 @@ class ManageHomepageController
         }
 
         $data_result = $data_slider->data;
-        foreach ($data_result as $key => $value) {
-            Arr::set($data_result, "$key.image_url", Storage::disk('s3')->temporaryUrl(
-                $value['image_path'],
-                now()->addMinutes(5)
-            ));
+        if ($action !== HomepageKey::SOCIAL_MEDIA) {
+            foreach ($data_result as $key => $value) {
+                Arr::set($data_result, "$key.image_url", Storage::disk('s3')->temporaryUrl(
+                    $value['image_path'],
+                    now()->addMinutes(5),
+                ));
+            }
         }
 
         // sort by order
@@ -413,6 +477,11 @@ class ManageHomepageController
     private function ajax_slider(Request $request): JsonResponse
     {
         return responseJSON('Sukses', $this->getSiteData(HomepageKey::SLIDER));
+    }
+
+    private function ajax_social_media(Request $request): JsonResponse
+    {
+        return responseJSON('Sukses', $this->getSiteData(HomepageKey::SOCIAL_MEDIA));
     }
 
     private function searchForId($id, $array)

@@ -1,20 +1,20 @@
 @extends("$view.index_layout")
 
-@section('title', 'Manage Homepage Partner')
+@section('title', 'Manage Homepage Social Media')
 
 @section('child_content')
-    <div class="widget-content searchable-container list" id="partnerVue">
+    <div class="widget-content searchable-container list" id="socialMediaVue">
         <div class="form-with-tabs">
             <h5 class="card-title fw-semibold mb-4">
-                Data Partner yang tampil pada landing page JIS
+                Data Social Media yang tampil pada landing page JIS
             </h5>
 
             <div class="d-flex flex-row-reverse">
-                <button class="btn btn-primary btn-sm" @click="handleAddPartner()">
-                    <i class="fas fa-plus"></i> Tambah Partner
+                <button class="btn btn-primary btn-sm" @click="handleAddSocialMedia()">
+                    <i class="fas fa-plus"></i> Tambah Social Media
                 </button>
             </div>
-            <partner-table :list-partner="listPartnerActive" @delete-partner="handleDeletePartner"></partner-table>
+            <social-media-table :list-social-media="listSocialMediaActive" @delete-social-media="handleDeleteSocialMedia"></social-media-table>
         </div>
     </div>
 @endsection
@@ -33,25 +33,25 @@
             createApp
         } = Vue;
 
-        window.partnerVue = createApp({
+        window.socialMediaVue = createApp({
             data() {
                 return {
-                    listPartnerActive: [],
+                    listSocialMediaActive: [],
                 };
             },
             mounted() {
-                this.refreshListPartner();
+                this.refreshListSocialMedia();
             },
             methods: {
-                refreshListPartner() {
-                    this.apiFetchPartner('aktif').then(data => {
-                        this.listPartnerActive = data;
+                refreshListSocialMedia() {
+                    this.apiFetchSocialMedia('aktif').then(data => {
+                        this.listSocialMediaActive = data;
                     });
                 },
-                handleAddPartner() {
+                handleAddSocialMedia() {
                     window.upsertVue.show();
                 },
-                handleDeletePartner(id) {
+                handleDeleteSocialMedia(id) {
                     Swal.fire({
                         title: 'Apakah anda yakin?',
                         text: "Anda tidak akan dapat mengembalikan ini!",
@@ -64,35 +64,35 @@
                             // swal loading
                             Swal.fire({
                                 title: 'Mohon tunggu',
-                                html: 'Sedang menghapus partner',
+                                html: 'Sedang menghapus social media',
                                 didOpen: () => {
                                     Swal.showLoading()
                                 },
                             });
 
-                            this.apiDeletePartner(id)
+                            this.apiDeleteSocialMedia(id)
                                 .then(() => {
-                                    this.refreshListPartner();
+                                    this.refreshListSocialMedia();
                                     Swal.fire(
                                         'Deleted!',
-                                        'Partner berhasil dihapus.',
+                                        'Social Media berhasil dihapus.',
                                         'success'
                                     )
                                 })
                                 .catch(() => {
                                     Swal.fire(
                                         'Failed!',
-                                        'Partner gagal dihapus.',
+                                        'Social Media gagal dihapus.',
                                         'error'
                                     )
                                 });
                         }
                     })
                 },
-                apiDeletePartner(id) {
+                apiDeleteSocialMedia(id) {
                     return new Promise((resolve, reject) => {
                         $.ajax({
-                            url: "{!! url("$url") !!}/destroy_partner/delete?" + $.param({
+                            url: "{!! url("$url") !!}/destroy_social_media/delete?" + $.param({
                                 "id": `${id}`
                             }),
                             type: 'DELETE',
@@ -110,9 +110,9 @@
                         });
                     });
                 },
-                apiFetchPartner(tipe = 'aktif') {
+                apiFetchSocialMedia(tipe = 'aktif') {
                     return new Promise((resolve, reject) => {
-                        fetch(`{!! url("$url/ajax?action=partner") !!}`)
+                        fetch(`{!! url("$url/ajax?action=social_media") !!}`)
                             .then(response => response.json())
                             .then(data => {
                                 resolve(data.results);
@@ -123,13 +123,13 @@
                     });
                 },
             },
-        }).component('partner-table', {
-            props: ['listPartner'],
+        }).component('social-media-table', {
+            props: ['listSocialMedia'],
             methods: {
-                handleDeletePartner(id) {
-                    this.$emit('deletePartner', id);
+                handleDeleteSocialMedia(id) {
+                    this.$emit('deleteSocialMedia', id);
                 },
-                handleEditPartner(payload) {
+                handleEditSocialMedia(payload) {
                     window.upsertVue.show(payload);
                 }
             },
@@ -138,23 +138,25 @@
                     <table class="table">
                         <thead>
                         <tr>
-                            <th>Image</th>
                             <th>Urut</th>
-                            <th>Nama Partner</th>
+                            <th>Icon</th>
+                            <th>Nama Social Media</th>
+                            <th>URL</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="partner in listPartner">
-                            <td><img :src="partner.image_url" alt="partner" style="max-width: 100px"></td>
-                            <td>@{{ partner.order }}</td>
-                            <td>@{{ partner.title }}</td>
+                        <tr v-for="socialMedia in listSocialMedia">
+                            <td>@{{ socialMedia.order }}</td>
+                            <td><i :class="socialMedia.icon_class" style="font-size: 24px;"></i></td>
+                            <td>@{{ socialMedia.title }}</td>
+                            <td>@{{ socialMedia.url }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">
-                                 <button class="btn btn-sm btn-primary" @click="handleEditPartner(partner)" title="Edit Partner">
+                                 <button class="btn btn-sm btn-primary" @click="handleEditSocialMedia(socialMedia)" title="Edit Social Media">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                 <button class="btn btn-sm btn-danger" @click="handleDeletePartner(partner.id)" title="Delete Partner">
+                                 <button class="btn btn-sm btn-danger" @click="handleDeleteSocialMedia(socialMedia.id)" title="Delete Social Media">
                                     <i class="fas fa-trash"></i>
                                 </button>
                              </div>
@@ -164,10 +166,8 @@
                     </table>
                 </div>
 `
-        }).mount('#partnerVue');
+        }).mount('#socialMediaVue');
     </script>
 @endpush
 
-
-
-@include("$view.upsert_partner")
+@include("$view.upsert_social_media")

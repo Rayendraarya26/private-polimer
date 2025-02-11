@@ -1,55 +1,23 @@
-@extends('layouts.app')
+@extends("$view.index_layout")
 
 @section('title', 'Manage Homepage Slider')
 
-@section('content')
-    <div class="card" id="kt_card">
-        <!--begin::Card body-->
-        <div class="card-body">
-            @if(session('message'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('message') }}
-                </div>
-            @endif
-            <!--begin::Row-->
-            <div class="row">
-                <div class="mb-5 hover-scroll-x">
-					<div class="d-grid">
-						<ul class="nav nav-tabs">
-							@foreach($key as $dt)
-							<li class="nav-link @if($selected_key === strtolower($dt)) active @endif">
-								<a class="nav-link @if($selected_key === strtolower($dt)) btn btn-text-primary @endif" href="{{ url("$url?data=".strtolower($dt)) }}">{{ $dt }}</a>
-							</li>
-							@endforeach
-						</ul>
-					</div>
-				</div>
+@section('child_content')
+<div class="widget-content searchable-container list" id="sliderVue">
+    <div class="form-with-tabs">
+        <h5 class="card-title fw-semibold mb-4">
+            Slider yang tampil pada hero section JIS
+        </h5>
 
-				<div class="tab-content">
-					<div class="tab-pane fade show active" role="tabpanel">
-						<div class="widget-content searchable-container list" id="sliderVue">
-							<div class="form-with-tabs">
-								<h5 class="card-title fw-semibold mb-4">
-									Slider yang tampil pada halaman utama
-									<a href="{{ config('app.frontend_url') }}" target="_blank">
-										{{ config('app.frontend_url') }}
-									</a>
-								</h5>
-
-								<div class="d-flex flex-row-reverse">
-									<button class="btn btn-primary" @click="handleAddSlider()">
-										<i class="fas fa-plus"></i> Tambah Slider
-									</button>
-								</div>
-								<banner-table :list-slider="listSliderActive"
-														  @delete-banner="handleDeleteSlider"></banner-table>
-							</div>
-						</div>
-					</div>
-				</div>
-            </div>
+        <div class="d-flex flex-row-reverse">
+            <button class="btn btn-primary btn-sm" @click="handleAddSlider()">
+                <i class="fas fa-plus"></i> Tambah Slider
+            </button>
         </div>
+        <banner-table :list-slider="listSliderActive"
+                                  @delete-banner="handleDeleteSlider"></banner-table>
     </div>
+</div>
 @endsection
 
 

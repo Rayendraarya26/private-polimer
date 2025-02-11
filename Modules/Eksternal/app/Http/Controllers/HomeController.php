@@ -24,10 +24,10 @@ class HomeController extends Controller
 
     public function index()
     {
-        if (Cache::has('home_parser')) {
-            $parser = Cache::get('home_parser');
-            return view("$this->view.index", $parser);
-        }
+        // if (Cache::has('home_parser')) {
+        //     $parser = Cache::get('home_parser');
+        //     return view("$this->view.index", $parser);
+        // }
 
         $cacheDuration = now()->addMinutes(60);
         $bannersObj    = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
@@ -152,28 +152,7 @@ Quality is QUALITY.
             ],
         ];
 
-        $social_medias = [
-            [
-                "icon_class" => "fa-brands fa-facebook-f",
-                "title"      => "Facebook",
-                "url"        => "https://www.facebook.com/bbkkp.yogyakarta"
-            ],
-            [
-                "icon_class" => "fa-brands fa-x-twitter",
-                "title"      => "Twitter",
-                "url"        => "https://twitter.com/BbkkpKemenperin"
-            ],
-            [
-                "icon_class" => "fa-brands fa-youtube",
-                "title"      => "YouTube",
-                "url"        => "https://www.youtube.com/c/BBKKPKemenperin"
-            ],
-            [
-                "icon_class" => "fa-brands fa-instagram",
-                "title"      => "Instagram",
-                "url"        => "https://www.instagram.com/bbkkp.kemenperin"
-            ]
-        ];
+        $social_medias = SiteManajemen::query()->where('key', HomepageKey::SOCIAL_MEDIA)->first()?->data ?? [];
 
         $parser = [
             "banners"       => $banners,

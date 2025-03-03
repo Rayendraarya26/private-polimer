@@ -122,6 +122,9 @@
                         <button type="button" class="btn btn-light" data-kt-docs-table-filter="reset_all">
                             <i class="fa-duotone fa-rotate-right me-2"></i>Reset Filter
                         </button>
+                        <button type="button" class="btn btn-primary" data-kt-docs-table-filter="apply">
+                            <i class="fa-duotone fa-filter me-2"></i>Terapkan Filter
+                        </button>
                     </div>
                 </div>
             </div>
@@ -428,29 +431,42 @@
                         // Update display values
                         document.getElementById('display_start_date').textContent = start.format('DD MMM YYYY');
                         document.getElementById('display_end_date').textContent = end.format('DD MMM YYYY');
-                        
-                        // Auto apply filters
-                        applyFilters();
                     });
                 }
 
-                // Handle feedback filter changes
+                // Remove auto-apply from feedback filter
                 feedbackArray.forEach(r => {
                     r.addEventListener('change', function() {
                         filter.feedback = this.value;
-                        applyFilters();
                     });
                 });
 
-                // Handle status order filter changes
+                // Remove auto-apply from status order filter
                 statusOrderArray.forEach(r => {
                     r.addEventListener('change', function() {
                         filter.statusOrder = Array.from(statusOrderInputs)
                             .filter(input => input.checked)
                             .map(input => input.value);
-                        
-                        applyFilters();
                     });
+                });
+
+                // Remove auto-apply from date range picker
+                $('#kt_daterangepicker').daterangepicker({
+                    // ... existing daterangepicker config ...
+                }, function(start, end) {
+                    // Update filter values
+                    filter.startDate = start.format('YYYY-MM-DD');
+                    filter.endDate = end.format('YYYY-MM-DD');
+                    
+                    // Update display values
+                    document.getElementById('display_start_date').textContent = start.format('DD MMM YYYY');
+                    document.getElementById('display_end_date').textContent = end.format('DD MMM YYYY');
+                });
+
+                // Add apply filter button handler
+                const applyFilterBtn = document.querySelector('[data-kt-docs-table-filter="apply"]');
+                applyFilterBtn.addEventListener('click', function() {
+                    applyFilters();
                 });
 
                 // Apply filters function
@@ -458,9 +474,6 @@
                     dt.draw();
                 }
 
-                // Remove the Apply Filters button click handler since we're auto-applying
-                // But keep the button for UI consistency
-                
                 initDateRangePicker();
             };
 
@@ -507,6 +520,14 @@
                     if (searchInput) {
                         searchInput.value = '';
                     }
+
+                    // Reset filter values
+                    filter = {
+                        feedback: null,
+                        startDate: null,
+                        endDate: null,
+                        statusOrder: []
+                    };
 
                     // Single redraw after all filters are reset
                     dt.search('').draw();

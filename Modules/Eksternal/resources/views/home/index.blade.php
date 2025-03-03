@@ -206,6 +206,12 @@
             filter: grayscale(100%);
         }
 
+        /* Add color on hover */
+        img.mitra-logo:hover {
+            -webkit-filter: grayscale(0%);
+            filter: grayscale(0%);
+        }
+
         .social-logo {
             cursor: pointer;
             width: 2.75rem;
@@ -237,6 +243,16 @@
 
         body {
             background-color: white;
+        }
+
+        /* Add shadow to cards */
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Rounded input */
+        .form-control {
+            border-radius: 0.5rem;
         }
     </style>
 @endpush
@@ -535,7 +551,7 @@
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
                                     <label for="nama" class="form-label text-white">
-                                        Nama Lengkap <span>*</span>
+                                        Nama Lengkap <span class="required">*</span>
                                     </label>
                                     <input type="text" required class="form-control" id="nama"
                                            name="nama" placeholder="Masukkan Nama Lengkap"
@@ -546,7 +562,7 @@
                                 </div>
                                 <div class="w-100">
                                     <label for="email" class="form-label text-white">
-                                        Alamat Email <span>*</span>
+                                        Alamat Email <span class="required">*</span>
                                     </label>
                                     <input type="email" required class="form-control" id="email"
                                            name="email" placeholder="Masukkan Alamat Email"
@@ -559,7 +575,7 @@
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
                                     <label for="telp" class="form-label text-white">
-                                        Nomor Telepon <span>*</span>
+                                        Nomor Telepon <span class="required">*</span>
                                     </label>
                                     <input type="number" required class="form-control" id="telp"
                                            name="telp" placeholder="Masukkan Nomor Telepon"
@@ -571,7 +587,7 @@
                                 </div>
                                 <div class="w-100">
                                     <label for="instansi" class="form-label text-white">
-                                        Nama Perusahaan / Instansi <span>*</span>
+                                        Nama Perusahaan / Instansi <span class="required">*</span>
                                     </label>
                                     <input type="text" required class="form-control" id="instansi"
                                            name="instansi" placeholder="Masukkan Nama Perusahaan / Instansi"
@@ -583,7 +599,7 @@
                             </div>
                             <div class="w-100">
                                 <label for="pesan" class="for text-whitem-label">
-                                    Pesan <span>*</span>
+                                    Pesan <span class="required">*</span>
                                 </label>
                                 <textarea class="form-control" required id="pesan" name="pesan"
                                           placeholder="Tulis Pesan..." rows="3"
@@ -700,7 +716,7 @@
     <script>
         @if ($errors->any())
         // go to contact us section
-        document.getElementById('contact-us').scrollIntoView({ behavior: 'instant' });
+        document.getElementById('contact-us').scrollIntoView({behavior: 'instant'});
         @endif
 
         window.addEventListener("scroll", (event) => {
@@ -713,7 +729,7 @@
         });
 
         const initRecaptcha = async function () {
-            const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
+            const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'});
             const recaptchaInput = document.querySelector('[name="recaptcha"]')
             if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
         };

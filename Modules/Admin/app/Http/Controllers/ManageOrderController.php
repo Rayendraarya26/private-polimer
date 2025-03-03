@@ -103,6 +103,13 @@ class ManageOrderController extends Controller
             ->when($endDate, function ($query) use ($endDate) {
                 return $query->where('tanggal_order', '<=', $endDate);
             })
+            ->when($request->has('status_order'), function ($query) use ($request) {
+                $statusOrder = $request->input('status_order');
+                if (is_array($statusOrder) && count($statusOrder) > 0) {
+                    return $query->whereIn('status_order', $statusOrder);
+                }
+                return $query;
+            })
             ->when($request->has('feedback'), function ($query) use ($request) {
                 $feedback  = $request->input('feedback');
                 $feedback  = ($feedback == '1') ? true : false; 

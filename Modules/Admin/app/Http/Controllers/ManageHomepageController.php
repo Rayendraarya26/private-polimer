@@ -79,6 +79,8 @@ class ManageHomepageController
             'order'       => 'required|integer',
             'title'       => 'nullable',
             'description' => 'nullable',
+            'cta_text'    => 'nullable|string',
+            'cta_url'     => 'nullable|url',
             'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
@@ -92,6 +94,8 @@ class ManageHomepageController
             'title'       => $input['title'],
             'order'       => $input['order'],
             'description' => $input['description'],
+            'cta_text'    => $input['cta_text'] ?? null,
+            'cta_url'     => $input['cta_url'] ?? null,
             'image_path'  => $key,
         ];
 
@@ -284,6 +288,8 @@ class ManageHomepageController
             'id'          => 'required',
             'title'       => 'nullable',
             'description' => 'nullable',
+            'cta_text'    => 'nullable|string',
+            'cta_url'     => 'nullable|url',
             'image'       => 'nullable',
             'image_old'   => 'required',
         ];
@@ -304,6 +310,8 @@ class ManageHomepageController
             Arr::set($updated_data, "$key.title", $input['title']);
             Arr::set($updated_data, "$key.order", $input['order']);
             Arr::set($updated_data, "$key.description", $input['description']);
+            Arr::set($updated_data, "$key.cta_text", $input['cta_text'] ?? null);
+            Arr::set($updated_data, "$key.cta_url", $input['cta_url'] ?? null);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
                 Arr::set($updated_data, "$key.image_path", $path);

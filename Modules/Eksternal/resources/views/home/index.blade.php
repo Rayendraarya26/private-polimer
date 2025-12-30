@@ -39,7 +39,7 @@
         }
 
         main {
-            gap: 8rem;
+            gap: 3rem;
         }
 
         .section-wrapper {
@@ -98,7 +98,7 @@
         .testimonial-avatar {
             width: 64px;
             aspect-ratio: 1/1;
-            border-radius: 50%;
+            border-radius: 35%;
             overflow: hidden;
             object-fit: cover;
             object-position: center;
@@ -118,15 +118,38 @@
             margin-left: 0.5rem;
         }
 
+        img.logo {
+            transition: filter 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            filter: brightness(0) invert(1);
+        }
+
+        img.logo.scrolled {
+            filter: brightness(1) invert(0);
+        }
+
         .banner-image-background {
             width: 100%;
-            height: 95dvh;
+            height: 70dvh;
             object-fit: cover;
             object-position: center;
         }
 
+        /* Prevent flicker: hide banner container until slick initializes */
+        .slick-carousel-banners {
+            visibility: hidden;
+        }
+
+        .slick-carousel-banners.slick-initialized {
+            visibility: visible;
+        }
+
         .banner-image-container {
             position: relative;
+            overflow: hidden;
+        }
+
+        .banner-image-container img {
+            will-change: transform;
         }
 
         .banner-image-overlay {
@@ -140,11 +163,45 @@
 
         .banner-card {
             position: absolute;
-            bottom: 20%;
+            bottom: 10%;
             left: 5%;
             right: 5%;
             padding: 2rem;
             border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.09);
+            backdrop-filter: blur(10px);
+
+            width: 90vw;
+            max-width: 1100px;
+            box-sizing: border-box;
+        }
+
+        .banner-cta-button {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.6rem 1.15rem;
+            background-color: #54aebcff;
+            color: #fff;
+            border-radius: 0.6rem;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background-color .18s ease, transform .12s ease;
+        }
+
+        .banner-cta-button:hover {
+            background-color: #2c8c9bff;
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        @media screen and (max-width: 767px) {
+            .banner-card {
+                padding: 1rem;
+                bottom: 48%;
+            }
+            .banner-cta-button {
+                width: auto;
+            }
         }
 
         .footer-img {
@@ -171,9 +228,12 @@
             }
 
             .banner-card {
-                width: 460px;
-                bottom: 20%;
-                left: 16%;
+                width: 720px;
+                max-width: 65vw;
+                bottom: 25%;
+                left: 8%;
+                border-radius: 1rem;
+                padding: 2.5rem;
             }
 
             .footer-img {
@@ -327,21 +387,31 @@
         </div>
     </nav>
     <main class="w-100 d-flex flex-column align-items-stretch">
-        <section
-            class="w-100"
-        >
+        <section class="w-100 p-0">
             <div class="slick-carousel-banners">
                 @foreach($banners as $item)
                     <div class="w-100 position-relative banner-image-container">
-                        <!-- <div class="banner-image-overlay"></div> -->
                         <img
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
+                            data-parallax="true"
                         >
                         @if($item['title'] && $item['description'])
-                            <div class="banner-card text-white d-flex flex-column gap-5">
-                                <h3 class="fs-1 text-white">{{ $item['title'] }}</h3>
-                                <p class="mb-0 fs-4">{{ $item['description'] }}</p>
+                            <div class="banner-card text-white d-flex flex-column gap-3">
+                                <h3 class="display-3 fw-bold text-white">{{ $item['title'] }}</h3>
+                                <p class="mb-0 fs-5">{{ $item['description'] }}</p>
+                                @php
+                                    $ctaText = $item['cta_text'] ?? null;
+                                    $ctaUrl = $item['cta_url'] ?? null;
+                                    $ctaTarget = $item['cta_target'] ?? null;
+                                @endphp
+                                @if(!empty($ctaText) || !empty($ctaUrl))
+                                    <div class="d-flex">
+                                        <a href="{{ $ctaUrl ?? '#' }}" class="banner-cta-button" @if($ctaTarget == '_blank') target="_blank" rel="noopener noreferrer" @endif>
+                                            {{ $ctaText ?? 'Pelajari Lebih Lanjut' }}
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -681,7 +751,7 @@
     </main>
     <footer class="w-100 text-center py-5">
         <div class="w-100 d-flex justify-content-center align-items-center gap-5 mb-4">
-            <img
+            <!-- <img
                 draggable="false"
                 class="footer-img"
                 src="{{ asset('assets/media/misc/berani-jujur-hebat.png') }}"
@@ -705,7 +775,7 @@
                 draggable="false"
                 class="footer-img"
                 src="{{ asset('assets/media/misc/bangga-melayani-bangsa.png') }}"
-            />
+            /> -->
         </div>
         <p class="mb-0">&copy; {{ date('Y') }} Jogja Industrial Services - BBSPJIKKP.</p>
     </footer>
@@ -721,13 +791,16 @@
 
         window.addEventListener("scroll", (event) => {
             const nav = document.querySelector('nav')
+            const logo = document.querySelector('img.logo')
             if (this.scrollY > 200) {
                 nav.classList.add('bg-light')
+                logo.classList.add('scrolled')
             } else {
                 nav.classList.remove('bg-light')
+                logo.classList.remove('scrolled')
             }
         });
-
+  
         const initRecaptcha = async function () {
             const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'});
             const recaptchaInput = document.querySelector('[name="recaptcha"]')
@@ -743,8 +816,25 @@
             this.setAttribute('disabled', 'disabled');
         });
 
+        // Parallax effect untuk banner
+        window.addEventListener('scroll', () => {
+            const bannerImages = document.querySelectorAll('.banner-image-background');
+            bannerImages.forEach(img => {
+                const rect = img.getBoundingClientRect();
+                const scrolled = window.scrollY;
+                const yPos = scrolled * 1.5; // Adjust parallax speed (0.5 = slower)
+                
+                if (rect.top < window.innerHeight) {
+                    img.style.transform = `translateY(${yPos * 0.3}px)`;
+                }
+            });
+        });
 
         $(document).ready(function () {
+            $('.slick-carousel-banners').on('init', function () {
+                $(this).css('visibility', 'visible');
+            });
+
             $('.slick-carousel-banners').slick({
                 slidesToShow: 1,
                 centerPadding: 0,
@@ -756,16 +846,20 @@
                 pauseOnFocus: false,
                 pauseOnHover: false,
                 adaptiveHeight: true,
-                prevArrow: `
-        <button type="button" class="slick-prev slick-prev-banner">
-          <i class="fa-solid fa-chevron-left text-white"></i>
-        </button>
-      `,
-                nextArrow: `
-        <button type="button" class="slick-next slick-next-banner">
-          <i class="fa-solid fa-chevron-right text-white"></i>
-        </button>
-      `
+                                prevArrow: `
+                <button type="button" class="slick-prev slick-prev-banner" aria-label="Previous">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: white;">
+                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `,
+                                nextArrow: `
+                <button type="button" class="slick-next slick-next-banner" aria-label="Next">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: white;">
+                        <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            `
             });
 
             $('.slick-carousel-services').slick({

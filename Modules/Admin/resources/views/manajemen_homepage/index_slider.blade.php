@@ -141,6 +141,8 @@
                             <th>Urut</th>
                             <th>Title</th>
                             <th>Deskripsi</th>
+                            <th>CTA Text</th>
+                            <th>CTA URL</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>
@@ -149,7 +151,9 @@
                             <td><img :src="slider.image_url" alt="banner" style="max-width: 100px"></td>
                             <td>@{{ slider.order }}</td>
                             <td>@{{ slider.title }}</td>
-                            <td>@{{ slider.description }}</td>
+                            <td style="max-width:320px; white-space:normal;">@{{ slider.description }}</td>
+                            <td>@{{ slider.cta_text || '-' }}</td>
+                            <td style="max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">@{{ slider.cta_url || '-' }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">
                                  <button class="btn btn-sm btn-primary" @click="handleEditSlider(slider)" title="Edit Banner">

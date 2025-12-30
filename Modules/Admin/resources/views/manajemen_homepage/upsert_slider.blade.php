@@ -34,7 +34,16 @@
                               v-model="payload.description"></textarea>
                 </div>
                 <div class="mb-2">
-
+                    <label for="modal-cta-text" class="form-label fw-semibold">CTA Text</label>
+                    <input type="text" class="form-control" id="modal-cta-text" placeholder="Teks tombol CTA..."
+                           v-model="payload.cta_text">
+                </div>
+                <div class="mb-2">
+                    <label for="modal-cta-url" class="form-label fw-semibold">CTA URL</label>
+                    <input type="url" class="form-control" id="modal-cta-url" placeholder="https://..."
+                           v-model="payload.cta_url">
+                </div>
+                <div class="mb-2">
                 </div>
             </div>
             <div class="modal-footer">
@@ -59,9 +68,12 @@
                     payload: {
                         id: '',
                         order: 1,
+                        title: '',
                         description: '',
                         image_url: '',
                         image_path: '',
+                        cta_text: '',
+                        cta_url: '',
                     }
                 }
             },
@@ -82,6 +94,8 @@
                     formData.append('order', this.payload.order)
                     formData.append('description', this.payload.description)
                     formData.append('title', this.payload.title)
+                    formData.append('cta_text', this.payload.cta_text || '')
+                    formData.append('cta_url', this.payload.cta_url || '')
                     formData.append('id', this.payload.id)
 
                     if (this.mode === 'create') {
@@ -109,6 +123,8 @@
                             description: '',
                             image_url: '',
                             image_path: '',
+                            cta_text: '',
+                            cta_url: '',
                         }
                     } else {
                         this.title = 'Perbarui Banner'
@@ -120,6 +136,8 @@
                             description: payload.description,
                             image_url: payload.image_url,
                             image_path: payload.image_path,
+                            cta_text: payload.cta_text || '',
+                            cta_url: payload.cta_url || '',
                         }
                     }
                     this.modal.show()

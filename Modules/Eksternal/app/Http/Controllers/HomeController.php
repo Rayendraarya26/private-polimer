@@ -38,6 +38,9 @@ class HomeController extends Controller
                 "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
                 "title"       => $item['title'],
                 "description" => $item['description'],
+                "cta_text"    => Arr::get($item, 'cta_text', null),
+                "cta_url"     => Arr::get($item, 'cta_url', null),
+                "cta_target"  => Arr::get($item, 'cta_target', null),
                 'order'       => $item['order']
             ];
         }

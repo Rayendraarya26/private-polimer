@@ -113,10 +113,40 @@ class HomeController extends Controller
                 "subtitle" => "PT Hok Tong Jambi, layanan Sertifikasi",
                 "content"  => "Dalam proses sertifikasi industri hijau semua berjalan dengan baik dan lancar dan sangat membantu perusahaan kami untuk lebih baik kedepannya."
             ],
+            [
+                "avatar"   => null,
+                "title"    => "Sari Indah",
+                "subtitle" => "CV Kulit Berkualitas, layanan Pengujian",
+                "content"  => "Laboratorium testing mereka sangat lengkap dan akurat. Hasil analisis yang diberikan sangat membantu dalam pengembangan produk kami. Terima kasih atas pelayanan yang excellent."
+            ],
         ];
 
         $aboutUsObj = SiteManajemen::query()->where('key', HomepageKey::ABOUT)->first();
         $aboutUs    = $aboutUsObj->data['data'];
+
+        $companyOverview = [
+            "title"       => "JIS",
+            "description" => "<strong>Jogja Industrial Services (JIS)</strong> diartikan sebagai Jaminan Integritas dan Solusi. Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan.
+",
+            "statistics"  => [
+                [
+                    "value" => "10+",
+                    "label" => "Jangkauan Negara"
+                ],
+                [
+                    "value" => "1000+",
+                    "label" => "Mitra Industri"
+                ],
+                [
+                    "value" => "13",
+                    "label" => "Jenis Layanan Jasa"
+                ],
+                [
+                    "value" => "99,47%",
+                    "label" => "Ketepatan Waktu"
+                ]
+            ]
+        ];
 
         $collapsible = [
             [
@@ -158,25 +188,27 @@ Quality is QUALITY.
         $social_medias = SiteManajemen::query()->where('key', HomepageKey::SOCIAL_MEDIA)->first()?->data ?? [];
 
         $parser = [
-            "banners"       => $banners,
-            "services"      => $services,
-            "partners"      => $partners,
-            "testimonials"  => $testimonials,
-            'aboutUs'       => $aboutUs,
-            'social_medias' => $social_medias,
-            'collapsible'   => $collapsible
+            "banners"           => $banners,
+            "services"          => $services,
+            "partners"          => $partners,
+            "testimonials"      => $testimonials,
+            'aboutUs'           => $aboutUs,
+            'companyOverview'   => $companyOverview,
+            'social_medias'     => $social_medias,
+            'collapsible'       => $collapsible
         ];
 
         Cache::put('home_parser', $parser, $cacheDuration);
 
         return view("$this->view.index", [
-            "banners"       => $banners,
-            "services"      => $services,
-            "partners"      => $partners,
-            "testimonials"  => $testimonials,
-            'aboutUs'       => $aboutUs,
-            'social_medias' => $social_medias,
-            'collapsible'   => $collapsible
+            "banners"           => $banners,
+            "services"          => $services,
+            "partners"          => $partners,
+            "testimonials"      => $testimonials,
+            'aboutUs'           => $aboutUs,
+            'companyOverview'   => $companyOverview,
+            'social_medias'     => $social_medias,
+            'collapsible'       => $collapsible
         ]);
     }
 
@@ -189,10 +221,15 @@ Quality is QUALITY.
             'telp'      => 'required|numeric|digits_between:10,15|regex:/^62[0-9]*$/',
             'instansi'  => 'required',
             'pesan'     => 'required',
+        ], [
+            'telp.required'        => 'Nomor telepon wajib diisi.',
+            'telp.numeric'         => 'Nomor telepon harus berupa angka.',
+            'telp.digits_between'  => 'Nomor telepon harus antara 10-15 digit. Gunakan awalan 62, contoh: 628123456789',
+            'telp.regex'           => 'Nomor telepon harus dimulai dengan 62. Contoh: 628123456789',
         ]);
 
         if (!$this->validateCaptcha($request->input('recaptcha'))) {
-            return back()->withInput()->withErrors(['recaptcha' => 'Captcha tidak valid.']);
+            return response()->json(['errors' => ['recaptcha' => ['Captcha tidak valid.']]], 422);
         }
 
         try {
@@ -204,24 +241,41 @@ Quality is QUALITY.
             $contact_us->pesan    = $request->pesan;
             $contact_us->save();
 
-            // send to all root user
-            $admin = SysUser::whereHas('sys_user_groups', function ($query) {
-                $query->where('group_id', SysGroup::ADMIN->value);
-            })->get();
+            // send to all root user (wrapped in try-catch to not break success response)
+            try {
+                $admin = SysUser::whereHas('sys_user_groups', function ($query) {
+                    $query->where('group_id', SysGroup::ADMIN->value);
+                })->get();
 
-            foreach ($admin as $user) {
-                $notifBuilder = new MultiNotification($user, url('/admin/data-contact-us'));
+                if ($admin && count($admin) > 0) {
+                    foreach ($admin as $user) {
+                        try {
+                            $notifBuilder = new MultiNotification($user, url('/admin/data-contact-us'));
 
-                $notifBuilder
-                    ->buildEmailNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
-                    ->buildPushNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
-                    ->buildWhatsapp("Ada pesan baru (Contact Us) dari $request->nama. \nPesan: $request->pesan")
-                    ->send();
+                            if ($notifBuilder) {
+                                $notifBuilder
+                                    ->buildEmailNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
+                                    ->buildPushNotification('Pesan Baru Contact Us', "Ada pesan baru dari $request->nama.")
+                                    ->buildWhatsapp("Ada pesan baru (Contact Us) dari $request->nama. \nPesan: $request->pesan")
+                                    ->send();
+                            }
+                        } catch (Exception $notifException) {
+                            // Log notification error but don't fail the response
+                            \Log::warning('Notification error for contact us: ' . $notifException->getMessage());
+                        }
+                    }
+                }
+            } catch (Exception $adminException) {
+                // Log admin fetch error but don't fail the response
+                \Log::warning('Failed to fetch admin users: ' . $adminException->getMessage());
             }
 
-            return back()->with('success', 'Pesan berhasil dikirim.');
+            return response()->json(['success' => 'Pesan berhasil dikirim.'], 200);
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menyimpan pesan.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

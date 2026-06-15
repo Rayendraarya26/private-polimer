@@ -4,5 +4,7 @@
     "Admin": true,
     "Eksternal": true,
     "Home": true,
-    "Integration": true
+    "Integration": true,
+    "Layanan": true,
+    "Permohonan": true
 }

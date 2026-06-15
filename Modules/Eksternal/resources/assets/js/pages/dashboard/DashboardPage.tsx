@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { Badge, Button, Card, Carousel, Col, Dropdown, Form, ProgressBar, Row, Spinner } from "react-bootstrap"
-import { Award, Download, Edit, Layers } from "react-feather"
+import { Award, Download, Edit, Plus, Send, Trash, Eye } from "react-feather"
 import styled from "styled-components"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import { getDateDisplay } from "../../utils/date"
@@ -13,6 +13,8 @@ import toast from "react-hot-toast"
 import { getFilenameFromContentDisposition } from "../../utils/common"
 import Head from "../../components/common/Head"
 import { AxiosError } from "axios"
+import usePelatihan from "../../hooks/service-requests/usePelatihan"
+import { useLSP } from "../../hooks/service-requests/useLSP"
 
 const StyledBannerImage = styled.img`
   width: 100%;
@@ -21,21 +23,6 @@ const StyledBannerImage = styled.img`
   object-position: center;
 `
 
-const StyledLayananCard = styled.div`
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-  scale: 0.95;
-  border-color: #cecece !important;
-
-  &:hover {
-    --bs-bg-opacity: 1;
-    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
-    color: white;
-    cursor: pointer;
-    scale: 1;
-  }
-`
 
 const StyledStatsCard = styled.div`
   padding: 0.25rem;
@@ -63,12 +50,25 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const {
     loading,
-    loadingLayanan,
     statisticData,
-    layanan,
     sliders,
-    getStatisticData
+    getStatisticData,
+    ajukanPermohonan,
+    submittedIds
   } = useDashboard()
+  const getFileUrl = (path: string) => {
+  if (!path) return "";
+  if (path.startsWith("http")) {
+    return path; // sudah URL lengkap
+  }
+  return `${window.location.origin}/storage/${path}`;
+};
+  const {
+    deletePelatihan
+  } = usePelatihan()
+  const {
+    deleteLSP
+  } = useLSP()
   const {
     loading: loadingHistory,
     data,
@@ -80,6 +80,20 @@ const DashboardPage: React.FC = () => {
     setPage,
     changeStatus
   } = useFeedbacks({ useLoadMore: true })
+  const [modalFile, setModalFile] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const handleCatatanClick = (value: string) => {
+  if (!value) return;
+  const isFile =
+    value.includes('/') ||
+    value.includes('.pdf') ||
+    value.includes('.png') ||
+    value.includes('.jpg');
+  if (isFile) {
+    setModalFile(value);
+    setShowModal(true);
+  }
+};
 
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
 
@@ -97,8 +111,20 @@ const DashboardPage: React.FC = () => {
       label: '-- Semua Status --'
     },
     {
+      value: FeedbackItemStatusOrder.DRAFT,
+      label: 'Draft'
+    },
+    {
       value: FeedbackItemStatusOrder.PERMOHONAN,
       label: 'Permohonan'
+    },
+    {
+      value: FeedbackItemStatusOrder.REVISI,
+      label: 'Revisi'
+    },
+    {
+      value: FeedbackItemStatusOrder.IN_REVIEW,
+      label: 'Dalam Review'
     },
     {
       value: FeedbackItemStatusOrder.PEMBAYARAN,
@@ -107,10 +133,6 @@ const DashboardPage: React.FC = () => {
     {
       value: FeedbackItemStatusOrder.PROCESS,
       label: 'Dalam proses'
-    },
-    {
-      value: FeedbackItemStatusOrder.IN_REVIEW,
-      label: 'Dalam Review'
     },
     {
       value: FeedbackItemStatusOrder.DONE,
@@ -128,31 +150,31 @@ const DashboardPage: React.FC = () => {
 
   const statistics = useMemo(() => ([
     {
-      colClassName: 'col-6',
+      colClassName: 'col',
       classNames: 'fw-semibold bg-primary text-white',
       title: 'Total Permohonan',
       total: statisticData?.total_all || 0,
     },
     {
-      colClassName: 'col-6',
+      colClassName: 'col',
       classNames: 'fw-semibold bg-warning',
       title: 'Belum Dibayar',
       total: statisticData?.total_pembayaran || 0,
     },
     {
-      colClassName: 'col-4',
+      colClassName: 'col',
       classNames: 'fw-semibold bg-success text-white',
       title: 'Selesai',
       total: statisticData?.total_selesai || 0,
     },
     {
-      colClassName: 'col-4',
+      colClassName: 'col',
       classNames: 'fw-semibold bg-info',
       title: 'On Progress',
       total: statisticData?.total_proses || 0,
     },
     {
-      colClassName: 'col-4',
+      colClassName: 'col',
       classNames: 'fw-semibold bg-danger text-white',
       title: 'Ditolak',
       total: statisticData?.total_ditolak || 0,
@@ -188,6 +210,44 @@ const DashboardPage: React.FC = () => {
       toast.remove(toastId)
     }
   }, [])
+  // const onEdit = (item: any) => {
+  //     navigate(`/permohonan/edit/${item.id}`)
+  //   }
+    const onEdit = (item: any) => {
+      navigate(`/permohonan/edit/${item.id}`)
+    }
+    const onReapply = async (item: any) => {
+      const confirmAjukan = confirm(`Yakin ingin mengajukan ulang permohonan ${item.kode_order}?`)
+      if (!confirmAjukan) return
+      const toastId = toast.loading("Mengajukan ulang permohonan...")
+      try {
+        await api.post(`/eksternal/pelatihan/${item.id}/ajukan-ulang`)
+        toast.success("Permohonan berhasil diajukan ulang")
+        getFeedbacks() // refresh dashboard
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message || "Gagal mengajukan ulang permohonan"
+        toast.error(message)
+      } finally {
+        toast.remove(toastId)
+      }
+    }
+    const onDelete = async (item: any) => {
+  const isLSP =
+    item.layanan_slug?.includes("lsp") ||
+    item.layanan?.toLowerCase().includes("lsp")
+  if (isLSP) {
+    await deleteLSP(
+      item,
+      getFeedbacks
+    )
+    return
+  }
+  await deletePelatihan(
+    item,
+    getFeedbacks
+  )
+}
 
   return (
     <div className="w-100 d-flex flex-column align-items-stretch gap-4">
@@ -207,53 +267,7 @@ const DashboardPage: React.FC = () => {
         </div>
       )}
       <Row>
-        <Col xs={12} lg={7} className="px-3 py-2">
-          <Card className="h-100">
-            <Card.Header className="py-3">
-              <div className="w-100 d-flex justify-content-between align-items-center gap-2">
-                <h6 className="mb-0">Layanan Jasa</h6>
-              </div>
-            </Card.Header>
-            <Card.Body className="position-relative">
-              {loadingLayanan && (
-                <div
-                  className="w-100 h-100 position-absolute bg-white"
-                  style={{
-                    inset: 0,
-                    display: 'grid',
-                    placeItems: 'center'
-                  }}
-                >
-                  <Spinner variant="primary"/>
-                </div>
-              )}
-              <div className="w-100 row m-0">
-                {layanan.map((r, i) => (
-                  <div
-                    key={i}
-                    className="col-6 col-md-4 col-lg-3 p-1 h-100"
-                  >
-                    <StyledLayananCard
-                      className="border rounded-3 p-2 h-100"
-                      onClick={() => window.open(r.url)}
-                    >
-                      <div className="w-100 d-flex justify-content-center py-2">
-                        <Layers size={60}/>
-                      </div>
-                      <div
-                        className="fw-semibold text-center"
-                        style={{ fontSize: '0.75rem' }}
-                      >
-                        {r.nama_layanan}
-                      </div>
-                    </StyledLayananCard>
-                  </div>
-                ))}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col xs={12} lg={5} className="px-3 py-2">
+        <Col xs={12} lg={12} className="px-3 py-2">
           <Card className="h-100">
             <Card.Header className="pt-2">
               <div className="w-100 d-flex justify-content-between align-items-center gap-2">
@@ -304,26 +318,39 @@ const DashboardPage: React.FC = () => {
         <Col xs={12} className="px-3 py-2">
           <Card>
             <Card.Header className="pt-3">
-              <div className="w-100 d-flex justify-content-between align-items-center gap-2">
-                <div>
-                  <h6 className="mb-0">Riwayat Permohonan Layanan</h6>
-                  <small style={{ fontSize: '0.75rem' }}>Menampilkan {data.length} dari {total}</small>
-                </div>
+            <div className="w-100 d-flex justify-content-between align-items-center gap-2">
+              <div>
+                <h6 className="mb-0">Riwayat Permohonan Layanan</h6>
+                <small style={{ fontSize: '0.75rem' }}>
+                  Menampilkan {data.length} dari {total}
+                </small>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => navigate('/permohonan')}
+                  className="d-flex align-items-center gap-1 shadow-sm"
+                >
+                 
+              <Plus size={16}/>
+              <div>Permohonan Baru</div>
+                </Button>
                 <Form.Select
                   style={{ width: '12rem' }}
                   value={status}
-                  onChange={e => changeStatus((e.target.value || undefined) as FeedbackItemStatusOrder | undefined)}
+                  onChange={e =>
+                    changeStatus((e.target.value || undefined) as FeedbackItemStatusOrder | undefined)
+                  }
                 >
-                  {historyStatusOptions.map((r, i) =>
-                    <option
-                      key={i}
-                      value={r.value || ''}
-                    >
+                  {historyStatusOptions.map((r, i) => (
+                    <option key={i} value={r.value || ''}>
                       {r.label}
                     </option>
-                  )}
+                  ))}
                 </Form.Select>
               </div>
+            </div>
             </Card.Header>
             <Card.Body className="w-100">
               <div
@@ -348,23 +375,26 @@ const DashboardPage: React.FC = () => {
                       </div>
                       <div>
                         <span style={{ fontSize: '0.75rem' }}>Status:</span>{' '}
+                        {r.status_order === FeedbackItemStatusOrder.DRAFT && <Badge bg="secondary">DRAFT</Badge>}
                         {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <Badge bg="secondary">Permohonan</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.REVISI && <Badge bg="warning">Revisi</Badge>}
                         {r.status_order === FeedbackItemStatusOrder.PEMBAYARAN && <Badge bg="info">Pembayaran</Badge>}
                         {r.status_order === FeedbackItemStatusOrder.PROCESS && <Badge bg="warning">Dalam proses</Badge>}
                         {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <Badge bg="primary">Dalam Review</Badge>}
                         {r.status_order === FeedbackItemStatusOrder.DONE && <Badge bg="success">Selesai</Badge>}
+                        {r.status_order === FeedbackItemStatusOrder.DITOLAK && (<Badge bg="danger">Ditolak</Badge>)}
                       </div>
                     </div>
                     <div style={{ fontSize: '0.75rem' }}>
-                      Tanggal Order: {getDateDisplay(r.tanggal_order, true)}
-                    </div>
-                    <div className="py-3">
-                      {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <ProgressBar variant="secondary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
-                      {r.status_order === FeedbackItemStatusOrder.PEMBAYARAN && <ProgressBar variant="info" now={r.persentase_order} label={`${r.persentase_order}%`} />}
-                      {r.status_order === FeedbackItemStatusOrder.PROCESS && <ProgressBar variant="warning" now={r.persentase_order} label={`${r.persentase_order}%`} />}
-                      {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <ProgressBar variant="primary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
-                      {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
-                    </div>
+                      Tanggal Order: {r.tanggal_order ? getDateDisplay(r.tanggal_order, true) : "-"}                    </div>
+                      <div className="py-3">
+                        {r.status_order === FeedbackItemStatusOrder.REVISI && <ProgressBar variant="warning" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                        {r.status_order === FeedbackItemStatusOrder.PERMOHONAN && <ProgressBar variant="secondary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                        {r.status_order === FeedbackItemStatusOrder.PEMBAYARAN && <ProgressBar variant="info" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                        {r.status_order === FeedbackItemStatusOrder.PROCESS && <ProgressBar variant="warning" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                        {r.status_order === FeedbackItemStatusOrder.IN_REVIEW && <ProgressBar variant="primary" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                        {r.status_order === FeedbackItemStatusOrder.DONE && <ProgressBar variant="success" now={r.persentase_order} label={`${r.persentase_order}%`} />}
+                      </div>
                     {r.status_order === FeedbackItemStatusOrder.DONE && r.file_attachment.length < 1 && r.is_given_feedback && (
                       <div className="text-danger" style={{ fontSize: '0.75rem' }}>
                         Saat ini sertifikat belum tersedia. Jika dalam waktu 1 hari sertifikat belum muncul, silakan hubungi CS kami di nomor{' '}
@@ -373,6 +403,128 @@ const DashboardPage: React.FC = () => {
                         </a> untuk bantuan lebih lanjut.
                       </div>
                     )}
+
+                    {/* CATATAN ADMIN */}
+                    {[
+                      FeedbackItemStatusOrder.REVISI,
+                      FeedbackItemStatusOrder.PEMBAYARAN,
+                      FeedbackItemStatusOrder.DONE
+                    ].includes(r.status_order) && r.catatan_admin && (() => {
+                      const isFileAllowed =
+                        r.status_order === FeedbackItemStatusOrder.PEMBAYARAN ||
+                        r.status_order === FeedbackItemStatusOrder.DONE
+                      const showAsFile =
+                        isFileAllowed && typeof r.catatan_admin === "string"
+                      const bgColor =
+                        r.status_order === FeedbackItemStatusOrder.PEMBAYARAN
+                          ? "#d1ecf1"
+                          : "#fff3cd"
+                      const borderColor =
+                        r.status_order === FeedbackItemStatusOrder.PEMBAYARAN
+                          ? "#0dcaf0"
+                          : "#ffc107"
+                      const title =
+                        r.status_order === FeedbackItemStatusOrder.PEMBAYARAN
+                          ? "Dokumen Penawaran:"
+                          : r.status_order === FeedbackItemStatusOrder.DONE
+                          ? "Catatan Admin:"
+                          : "Catatan Revisi:"
+                      return (
+                        <div
+                          className="mb-2 d-flex align-items-center gap-2"
+                          style={{
+                            fontSize: "0.75rem"
+                          }}
+                        >
+                          <strong
+                            style={{
+                              color:
+                                r.status_order === FeedbackItemStatusOrder.REVISI
+                                  ? "#dc3545"
+                                  : "#212529"
+                            }}
+                          >
+                            {title}
+                          </strong>
+                          {showAsFile ? (
+                            <div
+                              role="button"
+                              onClick={() =>
+                                r.catatan_admin && handleCatatanClick(r.catatan_admin)
+                              }
+                              className="d-inline-flex align-items-center gap-1"
+                              style={{
+                                cursor: "pointer",
+                                color: "#0d6efd",
+                                fontWeight: 500,
+                                transition: "0.2s ease",
+                                fontSize: "0.75rem"
+                              }}
+                            >
+                              <Eye size={14} />
+                              <span>Lihat Dokumen</span>
+                            </div>
+                          ) : (
+                            <span>{r.catatan_admin}</span>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    {showModal && modalFile && (
+                      <div className="modal show fade d-block" tabIndex={-1}>
+                        <div className="modal-dialog modal-xl">
+                          <div className="modal-content border-0 shadow">
+                            <div className="modal-header bg-light">
+                              <h5 className="modal-title fw-semibold">
+                                Dokumen Penawaran
+                              </h5>
+                              <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowModal(false)}
+                              />
+                            </div>
+                            <div className="modal-body p-0">
+                              <div
+                                style={{
+                                  width: "100%",
+                                  height: "80vh",
+                                  background: "#f8f9fa",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  overflow: "auto"
+                                }}
+                              >
+                                {modalFile.toLowerCase().endsWith(".pdf") ? (
+                                  <iframe
+                                    src={`${getFileUrl(modalFile)}#toolbar=1&navpanes=0&scrollbar=1`}
+                                    width="100%"
+                                    height="100%"
+                                    style={{
+                                      border: "none",
+                                      borderRadius: "0 0 12px 12px"
+                                    }}
+                                  />
+                                ) : (
+                                  <img
+                                    src={getFileUrl(modalFile)}
+                                    alt="Dokumen Penawaran"
+                                    style={{
+                                      maxWidth: "100%",
+                                      maxHeight: "100%",
+                                      objectFit: "contain",
+                                      padding: "1rem"
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="d-flex justify-content-end gap-2">
                       {/* <Button
                         size="sm"
@@ -392,6 +544,65 @@ const DashboardPage: React.FC = () => {
                       >
                         <Clipboard size={16}/>
                       </Button> */}
+
+                      {/* DRAFT */}
+                      {r.status_order === FeedbackItemStatusOrder.DRAFT && (
+                        <>
+                        <Button
+                          size="sm"
+                          variant="warning"
+                          className="d-inline-flex align-items-center gap-1 text-white"
+                          onClick={() => onEdit(r)}
+                        >
+                          <Edit size={16}/>
+                          <div>Edit</div>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          className="d-inline-flex align-items-center gap-1"
+                          onClick={() => onDelete(r)}
+                        >
+                          <Trash size={16}/>
+                          <div>Hapus</div>
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="success"
+                            className="d-inline-flex align-items-center gap-1 text-white"
+                            style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+                            onClick={() => ajukanPermohonan(r.id, getFeedbacks)}
+                          >
+                            <Send size={16}/>
+                            <div>Ajukan</div>
+                          </Button>
+                        </>
+                      )}
+                      {r.status_order === FeedbackItemStatusOrder.REVISI && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="warning"
+                            className="d-inline-flex align-items-center gap-1 text-white"
+                            onClick={() => onEdit(r)}
+                          >
+                            <Edit size={16}/>
+                            <div>Edit</div>
+                          </Button>
+                          <Button
+                          size="sm"
+                           variant="success"
+                            className="d-inline-flex align-items-center gap-1 text-white"
+                            style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+                            onClick={() => onReapply(r)}
+                          >
+                            <Send size={16}/>
+                            <div>Ajukan Ulang</div>
+                          </Button>
+                     
+                        </>
+                      )}
+
                       {!r.is_given_feedback && r.status_order === FeedbackItemStatusOrder.DONE && (
                         <Button
                           size="sm"

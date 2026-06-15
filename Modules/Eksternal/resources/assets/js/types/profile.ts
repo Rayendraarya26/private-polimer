@@ -17,6 +17,9 @@ export type ProfileType = {
     nama?: string
     pimpinan?: string
     alamat?: string
+    prov_id?: string
+    kab_id?: string
+    kec_id?: string
     telepon?: string
     fax?: string
     surel?: string

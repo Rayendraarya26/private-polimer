@@ -24,6 +24,7 @@ class UserSeeder extends Seeder
             ['name' => 'Developer', 'email' => 'dolkode@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT, 'nip' => '198707062014022001', 'nik' => null],
             ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198706192009012001', 'nik' => '1290412412120932'],
             ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '199104282018012001', 'nik' => '0803202100007062'],
+            ['name' => 'Bendahara', 'email' => 'bendahara@mailinator.com', 'password' => 'password', 'group' => SysGroup::BENDAHARA, 'nip' => '199203120101801001', 'nik' => '1234567890123452'],
         ];
 
         foreach ($data as $item) {

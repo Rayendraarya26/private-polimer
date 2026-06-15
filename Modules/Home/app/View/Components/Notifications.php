@@ -21,13 +21,13 @@ class Notifications extends Component
      */
     public function render(): View|string
     {
-        $notif = SysUserNotif::where("user_id", auth()->id())->orderBy('is_read', 'desc')->orderBy('created_at', 'desc')->take(10)->get();
-        $total = SysUserNotif::where("user_id", auth()->id())->where("is_read", 'no')->selectRaw("count(*) total")->first();
-
-        $data = [
-            'notif' => $notif,
-            'total' => $total->total ?? 0
-        ];
-        return view('home::components.notifications')->with($data);
+        $notifs = SysUserNotif::where('user_id', auth()->id())
+            ->latest()
+            ->take(10)
+            ->get();
+        return view('home::components.notifications')->with([
+            'navNotif' => $notifs,
+            'navTotal' => $notifs->where('is_read', 'no')->count(),
+        ]);
     }
 }

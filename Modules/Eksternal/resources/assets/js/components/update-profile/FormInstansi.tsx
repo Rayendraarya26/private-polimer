@@ -9,6 +9,7 @@ import { getPlainE164PhoneNumber } from "../../utils/common"
 import { YesNoOption } from "../../types/core"
 import PhoneInputWithCountrySelect from "react-phone-number-input"
 import 'react-phone-number-input/style.css'
+import useRegions from "../../hooks/profile/useRegions"
 
 const StyledRow = styled(Row)`
   gap: 1rem;
@@ -20,6 +21,14 @@ const StyledRow = styled(Row)`
 const FormInstansi: React.FC = () => {
   const { profile } = useProfile()
   const { rhf, errors, submitting, onSubmit } = useEditProfileInstansi()
+  const { provinces, regencies, districts, loading } = useRegions(
+    rhf.watch('prov_id'),
+    rhf.watch('kab_id')
+  )
+  const watchAlamat = rhf.watch('alamat');
+  const watchKecamatan = rhf.watch('kec_id');
+  const isRegionLocked = !!watchAlamat && watchAlamat.trim().length > 0;
+  const isAddressDisabled = !watchKecamatan;
 
   const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
   const isWhatsappChanged = useMemo<boolean>(() => {
@@ -52,20 +61,105 @@ const FormInstansi: React.FC = () => {
                   {errors?.nama?.message || ''}
                 </div>
               </Form.Group>
-              <Form.Group>
-                <Form.Label>
-                  Alamat Instansi <span className="text-danger">*</span>
-                </Form.Label>
-                <Form.Control 
-                  as="textarea"
-                  rows={3}
-                  isInvalid={!!errors?.alamat?.message}
-                  {...rhf.register('alamat')}
-                />
-                <div className="text-danger" style={{ fontSize: '0.75rem' }}>
-                  {errors?.alamat?.message || ''}
-                </div>
-              </Form.Group>
+               {/* Baris Wilayah */}
+               <StyledRow className="mb-3">
+                 <Col xs={12} lg={4}>
+                   <Form.Group>
+                     <Form.Label>Provinsi {loading && <Spinner size="sm" animation="border" />}</Form.Label>
+                     <Form.Select 
+                       {...rhf.register('prov_id')} 
+                       isInvalid={!!errors.prov_id}
+                       disabled={isRegionLocked} 
+                       // TAMBAHKAN INI:
+                       value={rhf.watch('prov_id') || ''} 
+                       onChange={(e) => {
+                         rhf.setValue('prov_id', e.target.value);
+                         rhf.setValue('kab_id', '');
+                         rhf.setValue('kec_id', '');
+                         rhf.setValue('alamat', ''); 
+                       }}
+                     >
+                       <option value="">Pilih Provinsi</option>
+                       {provinces.map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}
+                     </Form.Select>
+                   </Form.Group>
+                 </Col>
+ 
+                 <Col xs={12} lg={4}>
+                   <Form.Group>
+                     <Form.Label>Kabupaten {loading && <Spinner size="sm" animation="border" />}</Form.Label>
+                     <Form.Select 
+                       {...rhf.register('kab_id')} 
+                       isInvalid={!!errors.kab_id}
+                       disabled={isRegionLocked || !rhf.watch('prov_id')}
+                       // TAMBAHKAN INI:
+                       value={rhf.watch('kab_id') || ''} 
+                       onChange={(e) => {
+                         rhf.setValue('kab_id', e.target.value);
+                         rhf.setValue('kec_id', '');
+                         rhf.setValue('alamat', ''); 
+                       }}
+                     >
+                       <option value="">Pilih Kabupaten</option>
+                       {regencies.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
+                     </Form.Select>
+                   </Form.Group>
+                 </Col>
+ 
+                 <Col xs={12} lg={4}>
+                   <Form.Group>
+                     <Form.Label>Kecamatan {loading && <Spinner size="sm" animation="border" />}</Form.Label>
+                     <Form.Select 
+                       {...rhf.register('kec_id')} 
+                       isInvalid={!!errors.kec_id}
+                       disabled={isRegionLocked || !rhf.watch('kab_id')}
+                       // TAMBAHKAN INI:
+                       value={rhf.watch('kec_id') || ''} 
+                       onChange={(e) => {
+                         rhf.setValue('kec_id', e.target.value);
+                         rhf.setValue('alamat', ''); 
+                       }}
+                     >
+                       <option value="">Pilih Kecamatan</option>
+                       {districts.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
+                     </Form.Select>
+                   </Form.Group>
+                 </Col>
+               </StyledRow>
+               <Form.Group className="mb-3">
+                 <div className="d-flex justify-content-between align-items-center mb-2">
+                   <Form.Label className="mb-0">
+                     Alamat (Jalan/No. Rumah) <span className="text-danger">*</span>
+                   </Form.Label>
+                   {isRegionLocked && (
+                     <Button
+                       variant="outline-danger"
+                       size="sm"
+                       className="py-0 px-2 d-flex align-items-center"
+                       style={{ fontSize: '0.75rem', height: '24px', borderWidth: '1px' }}
+                       onClick={() => {
+                         rhf.setValue('alamat', '');
+                         rhf.setValue('prov_id', '');
+                         rhf.setValue('kab_id', '');
+                         rhf.setValue('kec_id', '');
+                       }}
+                     >
+                       <i className="bi bi-arrow-clockwise me-1"></i>
+                       Reset Alamat
+                     </Button>
+                   )}
+                 </div>
+                 <Form.Control 
+                   as="textarea" 
+                   {...rhf.register('alamat')} 
+                   isInvalid={!!errors.alamat} 
+                   disabled={isAddressDisabled}
+                   placeholder={isAddressDisabled ? "Pilih wilayah terlebih dahulu..." : "Masukkan nama jalan dan nomor rumah"}
+                 />
+                 <Form.Control.Feedback type="invalid">
+                   {errors.alamat?.message}
+                 </Form.Control.Feedback>
+               </Form.Group>
               <Form.Group>
                 <Form.Label>
                   Nama Pimpinan Instansi <span className="text-danger">*</span>

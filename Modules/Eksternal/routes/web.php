@@ -14,6 +14,12 @@ use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\TrackingPermohonanController;
 use Modules\Eksternal\Http\Controllers\TteController;
+use Modules\Eksternal\Http\Controllers\Api\BimtekController;
+use Modules\Eksternal\Http\Controllers\Api\LSPController;
+use Modules\Eksternal\Http\Controllers\Api\RegionController;
+use Modules\Eksternal\Http\Controllers\Api\PermohonanController;
+use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
+use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,19 +80,26 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/layanan', [DashboardController::class, 'layanan']);
         });
 
+        Route::prefix('bimtek-halal')->group(function () {
+            Route::post('/bimtek-halalReguler', [BimtekController::class, 'HalalReguler']);
+            Route::post('/bimtek-halalUMK', [BimtekController::class, 'HalalUMK']);
+        });
+        Route::prefix('lsp-transformasi-industri')->group(function () {
+            Route::post('/lsp-transformasiIndustri', [LSPController::class, 'TransformasiIndustri']);
+        });
 
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
         });
 
-        Route::prefix('layanan')->group(function () {
-            Route::get('/', [PermintaanController::class, 'index']);
-            Route::get('/summary', [PermintaanController::class, 'summaryDashboard']);
-            Route::get('/{integrasi}/download-certificate', [PermintaanController::class, 'download'])->name('download-certificate');
-            Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
-            Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
-        });
+        // Route::prefix('layanan')->group(function () {
+        //     Route::get('/', [PermintaanController::class, 'index']);
+        //     Route::get('/summary', [PermintaanController::class, 'summaryDashboard']);
+        //     Route::get('/{integrasi}/download-certificate', [PermintaanController::class, 'download'])->name('download-certificate');
+        //     Route::get('/{integrasi}/feedback', [PermintaanController::class, 'feedback']);
+        //     Route::post('/{integrasi}/feedback', [PermintaanController::class, 'storeFeedback']);
+        // });
 
         Route::prefix('pertanyaan')->group(function () {
             Route::get('/', [PertanyaanController::class, 'listPertanyaan']);
@@ -98,6 +111,43 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post("/{pertanyaan}/closed", [PertanyaanController::class, 'closedPertanyaan']);
             Route::post("/{pertanyaan}/review", [PertanyaanController::class, 'giveReviewPertanyaan']);
         });
+        Route::prefix('regions')->group(function () {
+            Route::get('/provinces', [RegionController::class, 'getProvinces']);
+            Route::get('/regencies', [RegionController::class, 'getRegencies']);
+            Route::get('/districts', [RegionController::class, 'getDistricts']);
+        });
+        Route::get('/profile/check-status', [PermohonanController::class, 'checkStatus']);
+        // Route::get('/permohonan', [PermohonanController::class, 'index']);
+        // Route::get('/permohonan/statistik', [PermohonanController::class, 'statistik']);
+        Route::prefix('permohonan')->group(function () {
+            Route::get('/', [PermohonanController::class,'index']);
+            Route::get('/statistik', [PermohonanController::class,'statistik']);
+            Route::get('/riwayat', [PermohonanController::class,'riwayat']);
+            Route::get('/{uuid}/feedback', [PermohonanController::class,'getFeedback']);
+            Route::post('/{uuid}/feedback', [PermohonanController::class,'storeFeedback']);
+            Route::post('/{id}/ajukan', [PermohonanController::class, 'ajukan']);
+            Route::get('/{id}', [PermohonanController::class, 'show']);
+        });
+        Route::prefix('pembayaran')->group(function () {
+            Route::get('/', [PembayaranController::class, 'index']);
+            Route::get('/{id}/invoice',[PembayaranController::class, 'previewInvoice']);
+            Route::get('/{id}/stream-invoice', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamInvoice']);
+            Route::get('/{id}/stream-kuitansi', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamKuitansi']);
+        });
+        Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
+        Route::post('/pelatihan', [PelatihanController::class, 'store']);
+        Route::get('/skema-lsp', [LSPController::class, 'getSkemalsp']);
+        Route::get('/pelatihan/{id}', [PelatihanController::class, 'show']);
+        Route::put('/pelatihan/{id}', [PelatihanController::class, 'update']);
+        Route::delete('/pelatihan/{id}', [PelatihanController::class, 'destroy']);
+        Route::post('/pelatihan/{id}/ajukan-ulang', [PelatihanController::class, 'ajukanUlang']);
+        Route::prefix('lsp-transformasi-industri')->group(function () {
+            Route::post('/lsp-transformasiIndustri', [LSPController::class, 'TransformasiIndustri']);
+            Route::get('/{id}', [LSPController::class, 'show']);
+            Route::post('/{id}', [LSPController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [LSPController::class, 'ajukanUlang']);
+            Route::delete('/{id}', [LSPController::class, 'destroy']);
+        });
     });
-
+   
 });

@@ -1,6 +1,6 @@
 import clsx from "clsx"
-import { memo, useCallback, useEffect, useMemo } from "react"
-import { Edit, Home, Icon, Send } from "react-feather"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { Edit, Home, Icon, Send, FileText, CreditCard} from "react-feather"
 import { useSelector } from "react-redux"
 import { Link, useLocation } from "react-router-dom"
 import styled from "styled-components"
@@ -52,6 +52,10 @@ const Sidebar: React.FC = () => {
   const { pathname } = useLocation()
   const { isShowSidebar, windowWidth } = useSelector(({ common }: RootState) => common)
   const dispatch = useDispatch()
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const toggleMenu = (href: string) => {
+  setOpenMenu(prev => prev === href ? null : href)
+}
 
   useEffect(() => {
     dispatch(setShowSidebar(windowWidth >= TAB_SIZE))
@@ -62,6 +66,7 @@ const Sidebar: React.FC = () => {
     name: string
     is_active: boolean
     icon: Icon
+    children?: { href: string; name: string; icon: Icon }[]
   }>>(() => {
     return [
       {
@@ -77,6 +82,16 @@ const Sidebar: React.FC = () => {
       //   icon: Clock
       // },
       {
+        href: '/service-requests',
+        name: 'Permohonan Layanan',
+        is_active: pathname.startsWith('/service-requests'),
+        icon: FileText,
+        children:[
+          { href: '/permohonan', name:'Permohonan', icon: FileText},
+          { href: '/pembayaran', name:'Pembayaran', icon: CreditCard},
+        ]
+      },
+      {
         href: '/feedbacks',
         name: 'Survey Kepuasan',
         is_active: pathname.startsWith('/feedbacks'),
@@ -90,7 +105,7 @@ const Sidebar: React.FC = () => {
       },
     ]
   }, [pathname])
-  
+ 
   const onMenuItemClick = useCallback(() => {
     if (windowWidth < TAB_SIZE) dispatch(setShowSidebar(false))
   }, [windowWidth])
@@ -104,22 +119,90 @@ const Sidebar: React.FC = () => {
           src={`/assets/media/logos/logo-${isShowSidebar ? 'polimer' : 'only'}.png`}
         />
       </div>
-      <div className="w-100 ps-2 ps-md-4">
-        {menus.map(menu => (
-          <MenuItem 
-            key={menu.href}
-            to={menu.href}
-            onClick={onMenuItemClick}
-            className={clsx(
-              "w-100 fw-medium d-inline-flex align-items-center gap-3",
-              menu.is_active ? 'active bg-primary text-white' : 'bg-transparent text-dark'
-            )}
+<div className="w-100 ps-2 ps-md-4">
+
+
+  {menus.map(menu => (
+    <div key={menu.href}>
+
+
+      {/* MENU INDUK */}
+      <MenuItem
+        to={menu.href}
+        onClick={(e) => {
+          if (menu.children) {
+            e.preventDefault()
+            toggleMenu(menu.href)
+          } else {
+            onMenuItemClick()
+          }
+        }}
+        className={clsx(
+          "w-100 fw-medium d-inline-flex align-items-center justify-content-between gap-3",
+          menu.is_active ? 'active bg-primary text-white' : 'bg-transparent text-dark'
+        )}
+      >
+        <div className="d-flex align-items-center gap-3">
+          <menu.icon style={{ minWidth: '1.5rem', minHeight: '1.5rem' }} />
+          <div className="menu-item-title">{menu.name}</div>
+        </div>
+
+
+        {/* Panah */}
+        {menu.children && (
+          <span
+            style={{
+              display: "inline-block",
+              transition: "transform 0.3s",
+              transform: openMenu === menu.href ? "rotate(90deg)" : "rotate(0deg)"
+            }}
           >
-            <menu.icon style={{ minWidth: '1.5rem', minHeight: '1.5rem' }}/>
-            <div className="menu-item-title">{menu.name}</div>
-          </MenuItem>
-        ))}
-      </div>
+            ▶
+          </span>
+        )}
+      </MenuItem>
+
+
+      {/* SUBMENU */}
+      {menu.children && (
+        <div
+          style={{
+            maxHeight: openMenu === menu.href ? "500px" : "0px",
+            overflow: "hidden",
+            transition: "max-height 0.3s ease"
+          }}
+        >
+          {menu.children.map(child => (
+            <MenuItem
+              key={child.href}
+              to={child.href}
+              onClick={onMenuItemClick}
+              className={clsx(
+                "w-100 d-inline-flex align-items-center gap-3",
+                pathname.startsWith(child.href)
+                  ? "active bg-primary text-white"
+                  : "bg-transparent text-dark"
+              )}
+              style={{
+                paddingLeft: "3.5rem",
+                fontSize: "0.9rem",
+                borderRadius: "1rem 0 0 1rem"
+              }}
+            >
+              {/* ICON SUBMENU */}
+              <child.icon size={16} style={{ opacity: 0.7 }} />
+              <div className="menu-item-title">{child.name}</div>
+            </MenuItem>
+          ))}
+        </div>
+      )}
+
+
+    </div>
+  ))}
+
+
+</div>
     </SidebarContainer>
   )
 }

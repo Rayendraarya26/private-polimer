@@ -1,0 +1,11 @@
+{
+    "name": "Permohonan",
+    "alias": "permohonan",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Permohonan\\Providers\\PermohonanServiceProvider"
+    ],
+    "files": []
+}

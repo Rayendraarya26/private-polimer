@@ -7,7 +7,7 @@ export const getAllFeedbacks = async (params: FeedbacksListQuery) => {
     const { data } = await api.get<DefaultApiResponse<{
       data: FeedbackItem[]
       total: number
-    }>>('/eksternal/layanan', {params})
+    }>>('/eksternal/permohonan', {params})
     return data.results
   } catch (error) {
     return Promise.reject(error)

@@ -6,11 +6,14 @@ export type FeedbacksListQuery = PaginationQuery & {
 }
 
 export enum FeedbackItemStatusOrder {
+  DRAFT = 'draft',
   PERMOHONAN = 'permohonan',
+  REVISI = 'revisi',
   PEMBAYARAN = 'pembayaran',
   PROCESS = 'proses' ,
   IN_REVIEW = 'review',
   DONE = 'selesai',
+  DITOLAK = 'ditolak',
 }
 
 export type SertifikatItem = {
@@ -33,6 +36,7 @@ export type FeedbackItem = {
   created_at: string
   persentase_order: number
   tanggal_order: string
+  catatan_admin?: string | null
 }
 
 export enum FeedbackInputType {

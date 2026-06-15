@@ -13,6 +13,11 @@ const AskQuestionsPage = lazy(() => import('./pages/ask-questions/AskQuestionsPa
 const ChangeAccountAndPasswordPage = lazy(() => import('./pages/profile/ChangeAccountAndPasswordPage'))
 const UpdateProfilePage = lazy(() => import('./pages/profile/UpdateProfilePage'))
 const NotificationsPage = lazy(() => import('./pages/notifications/NotificationsPage'))
+const PermohonanPage = lazy(() => import('./pages/service-requests/PermohonanPage'))
+const PembayaranPage = lazy(() => import('./pages/service-requests/PembayaranPage'))
+const PelatihanPage = lazy(() => import('./pages/service-requests/PelatihanPage'))
+const EditFormRouter = lazy(() => import('./components/input-service-requests/EditFormRouter'))
+const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
 
 const AppRoutes: React.FC = () => {
   return (
@@ -30,6 +35,18 @@ const AppRoutes: React.FC = () => {
         <Route path='/feedbacks'>
           <Route index element={<FeedbacksPage/>}/>
           <Route path=':uuid' element={<FeedbackDetailPage/>}/>
+        </Route>
+        <Route path="/permohonan/*">
+          {/* halaman pilih layanan */}
+          <Route index element={<PermohonanPage/>}/>
+          {/* CREATE */}
+          <Route path="pelatihan" element={<PelatihanPage/>}/>
+          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
+          {/* EDIT DINAMIS */}
+          <Route path="edit/:id" element={<EditFormRouter/>}/>
+        </Route>
+        <Route path="/pembayaran">
+          <Route index element={<PembayaranPage/>}/>
         </Route>
         <Route path='/ask-questions'>
           <Route index element={<AskQuestionsPage/>}/>

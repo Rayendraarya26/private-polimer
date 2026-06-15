@@ -7,6 +7,8 @@ import { useDispatch } from "react-redux"
 import { setLayanan, setLoadingLayanan, setSliders } from "../store/dashboard"
 import { useSelector } from "react-redux"
 import { RootState } from "../store"
+import api from "../utils/api"
+import Swal from "sweetalert2"
 
 type LoadingStates = {
   statistic: boolean
@@ -17,6 +19,7 @@ export default () => {
   const { loadingLayanan, layanan, sliders } = useSelector(({ dashboard }: RootState) => dashboard)
   const [loading, setLoading] = useState<LoadingStates>({ statistic: false })
   const [statisticData, setStatisticData] = useState<StatisticLayanan | null>(null)
+  const [submittedIds, setSubmittedIds] = useState<string[]>([])
 
   const getStatisticData = useCallback(
     async (year: number) => {
@@ -59,6 +62,44 @@ export default () => {
     },
     []
   )
+  const ajukanPermohonan = useCallback(
+    async (id: string, callback?: () => void) => {
+      const confirm = await Swal.fire({
+        title: 'Konfirmasi Pengajuan',
+        text: 'Apakah Anda yakin ingin mengajukan permohonan ini?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Ajukan',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+      })
+      if (!confirm.isConfirmed) return
+      const toastId = toast.loading("Mengajukan permohonan...")
+      try {
+        const res = await api.post(`/eksternal/permohonan/${id}/ajukan`)
+        const response = res?.data ?? res
+        if (response?.success) {
+          toast.success(response.message || "Berhasil diajukan")
+          setSubmittedIds(prev => [...prev, id]) // 🔥 INI PENTING
+          if (callback) callback()
+        } else {
+          toast.error(response?.message || "Gagal mengajukan")
+        }
+        return response
+      } catch (error: any) {
+        const msg =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Terjadi kesalahan sistem"
+        toast.error(msg)
+      } finally {
+        toast.dismiss(toastId)
+      }
+    },
+    []
+  )
 
   return {
     loading,
@@ -68,6 +109,9 @@ export default () => {
     sliders,
     getStatisticData,
     getLayanan,
-    getSliders
+    getSliders,
+    ajukanPermohonan,
+    submittedIds,
+    setSubmittedIds
   }
 }

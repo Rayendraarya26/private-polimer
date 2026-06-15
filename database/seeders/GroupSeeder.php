@@ -19,6 +19,7 @@ class GroupSeeder extends Seeder
             ['name' => 'Admin', 'desc' => 'Manage Setting', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::ADMIN],
             ['name' => 'Pelanggan', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PELANGGAN],
             ['name' => 'Pegawai', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PEGAWAI],
+            ['name' => 'Bendahara', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::BENDAHARA],
         ];
 
         foreach ($data_group as $group) {
@@ -36,6 +37,19 @@ class GroupSeeder extends Seeder
             SysGroupPermission::query()->create([
                 'group_id' => \App\Enums\SysGroup::ROOT,
                 'action_id' => $d->id,
+            ]);
+        }
+        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
+        $invoiceActions = \App\Models\Db1\SysMenuAction::whereIn('controller', [
+            $modulePermohonan . '\InvoiceController@generate',
+            $modulePermohonan . '\InvoiceController@approvalInvoice',
+            $modulePermohonan . '\InvoiceController@page',
+        ])->get();
+
+        foreach ($invoiceActions as $action) {
+            SysGroupPermission::query()->create([
+                'group_id'  => \App\Enums\SysGroup::BENDAHARA,
+                'action_id' => $action->id,
             ]);
         }
     }

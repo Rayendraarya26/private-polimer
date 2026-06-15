@@ -4,7 +4,7 @@ import api from "../utils/api"
 
 export const getSummaryLayanan = async (params: ParamsStatisticLayanan) => {
   try {
-    const { data } = await api.get<DefaultApiResponse<StatisticLayanan>>('/eksternal/layanan/summary', { params })
+    const { data } = await api.get<DefaultApiResponse<StatisticLayanan>>('/eksternal/permohonan/statistik', { params })
     return data.results
   } catch (error) {
     return Promise.reject(error)

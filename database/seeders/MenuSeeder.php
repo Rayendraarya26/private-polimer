@@ -15,6 +15,7 @@ class MenuSeeder extends Seeder
     {
         $moduleSystem = 'Modules\System\Http\Controllers';
         $moduleAdmin  = 'Modules\Admin\Http\Controllers';
+        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
         $menus        = [
             [
                 'name'      => 'System',
@@ -224,7 +225,7 @@ class MenuSeeder extends Seeder
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageHomepageController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageHomepageController@ajax'],
                                     ['name' => 'update', 'controller' => $moduleAdmin . '\ManageHomepageController@update'],
-									['name' => 'delete', 'controller' => $moduleAdmin . '\ManageHomepageController@destroy'],
+                                    ['name' => 'delete', 'controller' => $moduleAdmin . '\ManageHomepageController@destroy'],
                                 ]
                             ],
                         ]
@@ -274,6 +275,94 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                 ]
+            ],
+            [
+                'name'      => 'Management Permohonan',
+                'parent'    => null,
+                'desc'      => 'Manajemen Permohonan',
+                'is_active' => 'yes',
+                'order'     => 90,
+                'icon'      => 'fa-solid fa-file-lines',
+                'action'    => [
+                    ['name' => 'index', 'controller' => '#'],
+                ],
+                'children'  => [
+                    [
+                        'name'      => 'Data Permohonan Layanan',
+                        'desc'      => 'Mengelola data permohonan',
+                        'is_active' => 'yes',
+                        'order'     => 1,
+                        'icon'      => 'fa-regular fa-file',
+                        'action'    => [
+                           ['name' => 'index',           'controller' => $modulePermohonan . '\PermohonanController@index'],
+                            ['name' => 'ajax',            'controller' => $modulePermohonan . '\PermohonanController@ajax'],
+                            ['name' => 'detail',          'controller' => $modulePermohonan . '\PermohonanController@detail'],
+                            ['name' => 'approve',         'controller' => $modulePermohonan . '\PermohonanController@approve'],
+                            ['name' => 'reject',          'controller' => $modulePermohonan . '\PermohonanController@reject'],
+                            ['name' => 'revisi',          'controller' => $modulePermohonan . '\PermohonanController@revisi'],
+                            ['name' => 'simpanTarif',     'controller' => $modulePermohonan . '\PermohonanController@simpanTarif'],
+                            ['name' => 'bulkApprove',     'controller' => $modulePermohonan . '\PermohonanController@bulkApprove'],
+                            ['name' => 'bulkReject',      'controller' => $modulePermohonan . '\PermohonanController@bulkReject'],
+                            ['name' => 'bulkRevisi',      'controller' => $modulePermohonan . '\PermohonanController@bulkRevisi'],
+                            ['name' => 'generate',        'controller' => $modulePermohonan . '\InvoiceController@generate'],
+                            ['name' => 'approvalInvoice', 'controller' => $modulePermohonan . '\InvoiceController@approvalInvoice'],
+                            ['name' => 'page',            'controller' => $modulePermohonan . '\InvoiceController@page'],
+                            ['name' => 'approvalKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@approvalKuitansi'],
+                            ['name' => 'generateKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@generateKuitansi'],
+                            ['name' => 'preview',          'controller' => $modulePermohonan . '\InvoiceController@previewKuitansi'],
+                            ['name' => 'downloadTte',      'controller' => $modulePermohonan . '\InvoiceController@downloadTte'],
+                            ['name' => 'streamTte',        'controller' => $modulePermohonan . '\InvoiceController@streamTte'],
+                        ]
+                    ],
+                    [
+                        'name'      => 'Master Lokasi',
+                        'desc'      => 'Manajemen data Provinsi, Kabupaten/Kota, dan Kecamatan',
+                        'is_active' => 'yes',
+                        'order'     => 2,
+                        'icon'      => 'fa-duotone fa-map-location-dot',
+                        'action'    => [
+                            ['name' => 'index',            'controller' => $modulePermohonan . '\MasterLokasiController@index'],
+                            ['name' => 'ajax',             'controller' => $modulePermohonan . '\MasterLokasiController@ajax'],
+                            ['name' => 'provinsi_store',   'controller' => $modulePermohonan . '\MasterLokasiController@storeProvinsi'],
+                            ['name' => 'provinsi_update',  'controller' => $modulePermohonan . '\MasterLokasiController@updateProvinsi'],
+                            ['name' => 'provinsi_delete',  'controller' => $modulePermohonan . '\MasterLokasiController@destroyProvinsi'],
+                            ['name' => 'kabupaten_store',  'controller' => $modulePermohonan . '\MasterLokasiController@storeKabupaten'],
+                            ['name' => 'kabupaten_update', 'controller' => $modulePermohonan . '\MasterLokasiController@updateKabupaten'],
+                            ['name' => 'kabupaten_delete', 'controller' => $modulePermohonan . '\MasterLokasiController@destroyKabupaten'],
+                            ['name' => 'kecamatan_store',  'controller' => $modulePermohonan . '\MasterLokasiController@storeKecamatan'],
+                            ['name' => 'kecamatan_update', 'controller' => $modulePermohonan . '\MasterLokasiController@updateKecamatan'],
+                            ['name' => 'kecamatan_delete', 'controller' => $modulePermohonan . '\MasterLokasiController@destroyKecamatan'],
+                        ],
+                    ],
+                    [
+                    'name'      => 'Master Jenis Layanan',
+                    'desc'      => 'Manajemen jenis layanan',
+                    'is_active' => 'yes',
+                    'order'     => 3,
+                    'icon'      => 'fa-duotone fa-list',
+                    'action'    => [
+                        ['name' => 'index',  'controller' => $modulePermohonan . '\MasterJenisLayananController@index'],
+                        ['name' => 'ajax',   'controller' => $modulePermohonan . '\MasterJenisLayananController@ajax'],
+                        ['name' => 'store',  'controller' => $modulePermohonan . '\MasterJenisLayananController@store'],
+                        ['name' => 'update', 'controller' => $modulePermohonan . '\MasterJenisLayananController@update'],
+                        ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterJenisLayananController@destroy'],
+                    ],
+                ],
+                [
+                    'name'      => 'Master Lingkup Layanan',
+                    'desc'      => 'Manajemen Lingkup layanan',
+                    'is_active' => 'yes',
+                    'order'     => 4,
+                    'icon'      => 'fa-duotone fa-diagram-project',
+                    'action'    => [
+                        ['name' => 'index',  'controller' => $modulePermohonan . '\MasterLingkupLayananController@index'],
+                        ['name' => 'ajax',   'controller' => $modulePermohonan . '\MasterLingkupLayananController@ajax'],
+                        ['name' => 'store',  'controller' => $modulePermohonan . '\MasterLingkupLayananController@store'],
+                        ['name' => 'update', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@update'],
+                        ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@destroy'],
+                    ],
+                ],
+                ],  
             ],
         ];
 

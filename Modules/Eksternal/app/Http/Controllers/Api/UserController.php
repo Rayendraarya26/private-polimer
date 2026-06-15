@@ -178,6 +178,9 @@ class UserController extends Controller
         $input = $request->validate([
             'nama'                => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'alamat'              => 'required|string',
+            'prov_id'             => 'required|exists:master_provinsi,prov_id',
+            'kab_id'              => 'required|exists:master_kabupaten,kab_id',
+            'kec_id'              => 'required|exists:master_kecamatan,kec_id',
             'tempat_lahir'        => 'required|string',
             'tanggal_lahir'       => 'required|date:Y-m-d',
             'jenis_kelamin'       => 'required|in:' . implode(',', PelangganGender::toArray()),
@@ -214,9 +217,26 @@ class UserController extends Controller
 
             $pelanggan->whatsapp_verified = Option::YES;
         }
+        // logika concate alamat
+        $provinsi = \DB::table('master_provinsi')->where('prov_id',$input['prov_id'])->first();
+        $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
+        $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
+
+       $rawAlamat = $input['alamat'];
+        if (str_contains($rawAlamat, ' KEC. ')) {
+            $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
+        }
+
+        $alamatLengkap = sprintf(
+            "%s, KEC. %s, %s, PROV. %s",
+            $rawAlamat, 
+            $kecamatan->kec_nama,
+            $kabupaten->kab_nama,
+            $provinsi->prov_nama
+        );
 
         $pelanggan->nama                = $input['nama'];
-        $pelanggan->alamat              = $input['alamat'];
+        $pelanggan->alamat              = $alamatLengkap;
         $pelanggan->tempat_lahir        = $input['tempat_lahir'];
         $pelanggan->tanggal_lahir       = $input['tanggal_lahir'];
         $pelanggan->jenis_kelamin       = $input['jenis_kelamin'];
@@ -227,6 +247,11 @@ class UserController extends Controller
         $pelanggan->whatsapp            = $input['whatsapp'];
         $pelanggan->npwp                = $input['npwp'];
         $pelanggan->nib                 = $input['nib'];
+
+        // Input Id Alamat
+        $pelanggan->prov_id          = $input['prov_id'];
+        $pelanggan->kab_id           = $input['kab_id'];
+        $pelanggan->kec_id           = $input['kec_id'];
 
         $dokumen = [
             'dok_npwp'    => 'NPWP',
@@ -245,6 +270,9 @@ class UserController extends Controller
         $input = $request->validate([
             'nama'               => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'alamat'             => 'required|string',
+            'prov_id'            => 'required|exists:master_provinsi,prov_id',
+            'kab_id'             => 'required|exists:master_kabupaten,kab_id',
+            'kec_id'             => 'required|exists:master_kecamatan,kec_id',
             'pimpinan'           => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'telepon'            => 'required',
             'fax'                => 'required',
@@ -278,8 +306,25 @@ class UserController extends Controller
             $pelanggan->pj_whatsapp_verified = Option::YES;
         }
 
+        $provinsi = \DB::table('master_provinsi')->where('prov_id',$input['prov_id'])->first();
+        $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
+        $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
+
+       $rawAlamat = $input['alamat'];
+        if (str_contains($rawAlamat, ' KEC. ')) {
+            $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
+        }
+
+        $alamatLengkap = sprintf(
+            "%s, KEC. %s, %s, PROV. %s",
+            $rawAlamat, 
+            $kecamatan->kec_nama,
+            $kabupaten->kab_nama,
+            $provinsi->prov_nama
+        );
+
         $pelanggan->nama           = $input['nama'];
-        $pelanggan->alamat         = $input['alamat'];
+        $pelanggan->alamat         = $alamatLengkap;
         $pelanggan->pimpinan       = $input['pimpinan'];
         $pelanggan->telepon        = $input['telepon'];
         $pelanggan->fax            = $input['fax'];
@@ -291,6 +336,9 @@ class UserController extends Controller
         $pelanggan->pj_nama        = $input['pj_nama'];
         $pelanggan->pj_whatsapp    = $input['pj_whatsapp'];
         $pelanggan->pj_surel       = $input['pj_surel'];
+        $pelanggan->prov_id          = $input['prov_id'];
+        $pelanggan->kab_id           = $input['kab_id'];
+        $pelanggan->kec_id           = $input['kec_id'];
 
         $dokumen = [
             'dok_npwp'           => 'NPWP',
@@ -310,6 +358,9 @@ class UserController extends Controller
         $input = $request->validate([
             'nama'               => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
             'alamat'             => 'required|string',
+            'prov_id'            => 'required|exists:master_provinsi,prov_id',
+            'kab_id'             => 'required|exists:master_kabupaten,kab_id',
+            'kec_id'             => 'required|exists:master_kecamatan,kec_id',
             'badan_hukum'        => 'required|string',
             'jenis'              => 'required|string',
             'pemilik'            => 'required|string|max:255|regex:/^[a-zA-Z\s]*$/',
@@ -356,8 +407,26 @@ class UserController extends Controller
             $pelanggan->pj_whatsapp_verified = Option::YES;
         }
 
+
+        $provinsi = \DB::table('master_provinsi')->where('prov_id',$input['prov_id'])->first();
+        $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
+        $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
+
+       $rawAlamat = $input['alamat'];
+        if (str_contains($rawAlamat, ' KEC. ')) {
+            $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
+        }
+
+        $alamatLengkap = sprintf(
+            "%s, KEC. %s, %s, PROV. %s",
+            $rawAlamat, 
+            $kecamatan->kec_nama,
+            $kabupaten->kab_nama,
+            $provinsi->prov_nama
+        );
+
         $pelanggan->nama              = $input['nama'];
-        $pelanggan->alamat            = $input['alamat'];
+        $pelanggan->alamat            = $alamatLengkap;
         $pelanggan->badan_hukum       = $input['badan_hukum'];
         $pelanggan->jenis             = $input['jenis'];
         $pelanggan->pemilik           = $input['pemilik'];
@@ -373,6 +442,10 @@ class UserController extends Controller
         $pelanggan->pj_nama           = $input['pj_nama'];
         $pelanggan->pj_whatsapp       = $input['pj_whatsapp'];
         $pelanggan->pj_surel          = $input['pj_surel'];
+
+        $pelanggan->prov_id          = $input['prov_id'];
+        $pelanggan->kab_id           = $input['kab_id'];
+        $pelanggan->kec_id           = $input['kec_id'];
 
         $dokumen = [
             'dok_npwp'           => 'NPWP',

@@ -29,6 +29,9 @@ return new class extends Migration {
             // Fields for Perusahaan
             $table->string('nama')->nullable();
             $table->text('alamat')->nullable();
+            $table->string('prov_id')->nullable();
+            $table->string('kab_id')->nullable();
+            $table->string('kec_id')->nullable();
             $table->string('badan_hukum')->nullable();
             $table->string('jenis')->nullable();
             $table->string('pemilik')->nullable();
@@ -64,6 +67,9 @@ return new class extends Migration {
             // Fields for Instansi
             $table->string('nama')->nullable();
             $table->text('alamat')->nullable();
+            $table->string('prov_id')->nullable();
+            $table->string('kab_id')->nullable();
+            $table->string('kec_id')->nullable();
             $table->string('pimpinan')->nullable();
             $table->string('telepon')->nullable();
             $table->string('fax')->nullable();
@@ -94,6 +100,9 @@ return new class extends Migration {
             // Fields for Instansi
             $table->string('nama')->nullable();
             $table->text('alamat')->nullable();
+            $table->string('prov_id')->nullable();
+            $table->string('kab_id')->nullable();
+            $table->string('kec_id')->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', PelangganGender::toArray())->nullable();

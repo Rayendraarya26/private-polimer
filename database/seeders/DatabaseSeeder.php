@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
         $this->call(UserSeeder::class);
         $this->call(IntegrasiSsoSeeder::class);
         $this->call(MasterSeeder::class);
+        $this->call(MasterProvinceSeeder::class);
+        $this->call(MasterRegencySeeder::class); 
+        $this->call(MasterDistrictSeeder::class);
+        $this->call(MasterJenisLayananSeeder::class);
         if (config('app.env') === 'local') {
             $this->call(NotificationSeeder::class);
             $this->call(PermintaanSeeder::class);

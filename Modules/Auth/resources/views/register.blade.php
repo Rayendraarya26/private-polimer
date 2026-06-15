@@ -98,15 +98,7 @@
                                 class="form-control bg-transparent"
                             />
                         </div>
-                        <div class="fv-row">
-                            <textarea
-                                rows="3"
-                                placeholder="Alamat"
-                                name="general_address"
-                                autocomplete="off"
-                                aria-label="general_address"
-                                class="form-control bg-transparent"></textarea>
-                        </div>
+
                         <div class="fv-row">
                             <input
                                 type="email"
@@ -322,13 +314,7 @@
                                     }
                                 }
                             },
-                            'general_address': {
-                                validators: {
-                                    notEmpty: {
-                                        message: 'Alamat tidak boleh kosong'
-                                    }
-                                }
-                            },
+                            
                             'general_email': {
                                 validators: {
                                     regexp: {

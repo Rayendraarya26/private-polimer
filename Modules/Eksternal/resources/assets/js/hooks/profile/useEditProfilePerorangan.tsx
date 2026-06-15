@@ -13,6 +13,9 @@ import { getE164PhoneNumber, getPlainE164PhoneNumber } from '../../utils/common'
 export type Fields = {
   nama: string
   alamat: string
+  prov_id: string | null
+  kab_id: string | null
+  kec_id: string | null
   tempat_lahir: string
   tanggal_lahir: string
   jenis_kelamin: string
@@ -42,7 +45,10 @@ export default () => {
 
       return yup.object({
         nama: yup.string().default('').trim().required('Field ini wajib diisi').matches(/^[a-zA-Z\s]*$/, 'Nama hanya boleh huruf dan spasi'),
-        alamat: yup.string().default('').trim().required('Field ini wajib diisi'),
+        alamat: yup.string().default('').trim().uppercase().required('Field ini wajib diisi'),
+        prov_id: yup.string().required('Provinsi wajib dipilih'),
+        kab_id: yup.string().required('Kabupaten wajib dipilih'),
+        kec_id: yup.string().required('Kecamatan wajib dipilih'),
         tempat_lahir: yup.string().default('').trim().required('Field ini wajib diisi'),
         tanggal_lahir: yup.string().default('').trim().required('Field ini wajib diisi'),
         jenis_kelamin: yup.string().default('').trim().required('Field ini wajib diisi'),
@@ -98,6 +104,9 @@ export default () => {
       const {
         nama,
         alamat,
+        prov_id,
+        kab_id,
+        kec_id,
         tempat_lahir,
         tanggal_lahir,
         jenis_kelamin,
@@ -115,6 +124,9 @@ export default () => {
       return {
         nama: nama || '',
         alamat: alamat || '',
+        prov_id: prov_id ? String(prov_id) : '',
+        kab_id: kab_id ? String(kab_id) : '',
+        kec_id: kec_id ? String(kec_id) : '',
         tempat_lahir: tempat_lahir || '',
         tanggal_lahir: tanggal_lahir || '',
         jenis_kelamin: jenis_kelamin || '',
@@ -160,7 +172,7 @@ export default () => {
         await updateProfile(formData)
         getMyProfile()
         toast.success('Profile berhasil diperbarui')
-        navigate(-1)
+        navigate('/dashboard', { replace: true });
       } catch (error) {
         toast.error(getErrorMessage(error))
       } finally {

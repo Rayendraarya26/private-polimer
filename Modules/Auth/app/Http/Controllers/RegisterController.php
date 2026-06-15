@@ -29,7 +29,6 @@ class RegisterController
             'recaptcha'                          => 'required',
             'client_type'                        => 'required|in:' . implode(',', PelangganJenisPelanggan::toArray()),
             "general_name"                       => 'required|string|max:255',
-            "general_address"                    => 'required|string|max:255',
             "general_email"                      => 'required|email:dns|max:255',
             "general_phone"                      => 'required|numeric',
             "general_whatsapp_number"            => 'required|numeric',
@@ -75,7 +74,6 @@ class RegisterController
                 ['pelanggan_id' => $pelanggan->id],
                 [
                     'nama'     => $input['general_name'],
-                    'alamat'   => $input['general_address'],
                     'surel'    => $input['general_email'],
                     'whatsapp' => $input['general_whatsapp_number'],
                 ]
@@ -105,7 +103,6 @@ class RegisterController
                 ['pelanggan_id' => $pelanggan->id],
                 [
                     'nama'        => $input['general_name'],
-                    'alamat'      => $input['general_address'],
                     'surel'       => $input['general_email'],
                     'whatsapp'    => $input['general_whatsapp_number'],
                     'fax'         => $input['general_fax'],
@@ -139,7 +136,6 @@ class RegisterController
                 ['pelanggan_id' => $pelanggan->id],
                 [
                     'nama'        => $input['general_name'],
-                    'alamat'      => $input['general_address'],
                     'surel'       => $input['general_email'],
                     'whatsapp'    => $input['general_whatsapp_number'],
                     'fax'         => $input['general_fax'],

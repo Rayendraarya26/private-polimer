@@ -206,6 +206,13 @@ class LoginController
 
         // redirect to intended page
         if ($groupData->group_id === SysGroup::PELANGGAN->value) {
+           $alamat = $user->pelanggan?->detail?->alamat;
+
+            if (empty(trim($alamat ?? ''))) {
+
+                return redirect()->intended(url('/app/#/profile/update'));
+            }
+
             return redirect()->intended(url('/app/#/dashboard'));
         }
 

@@ -25,6 +25,14 @@ const LogoImage = styled.img`
   object-position: center;
 `
 
+const IkmImage = styled.img`
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+`
+
 const MenuItem = styled(Link)`
   display: block;
   text-decoration: none;
@@ -120,6 +128,15 @@ const Sidebar: React.FC = () => {
           </MenuItem>
         ))}
       </div>
+      {isShowSidebar && (
+        <div className="w-100 px-3 px-md-4 pt-3 pb-4">
+          <IkmImage
+            src="/assets/media/misc/ikm.jpeg"
+            alt="Indeks Kepuasan Masyarakat"
+            draggable="false"
+          />
+        </div>
+      )}
     </SidebarContainer>
   )
 }

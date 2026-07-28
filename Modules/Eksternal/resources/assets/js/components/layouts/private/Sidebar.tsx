@@ -25,13 +25,13 @@ const LogoImage = styled.img`
   object-position: center;
 `
 
-const IkmImage = styled.img`
+/* const IkmImage = styled.img`
   width: 100%;
   height: auto;
   object-fit: contain;
   object-position: center;
   display: block;
-`
+` */
 
 const MenuItem = styled(Link)`
   display: block;
@@ -128,7 +128,7 @@ const Sidebar: React.FC = () => {
           </MenuItem>
         ))}
       </div>
-      {isShowSidebar && (
+      {/* {isShowSidebar && (
         <div className="w-100 px-3 px-md-4 pt-3 pb-4">
           <IkmImage
             src="/assets/media/misc/ikm.jpeg"
@@ -136,7 +136,7 @@ const Sidebar: React.FC = () => {
             draggable="false"
           />
         </div>
-      )}
+      )} */}
     </SidebarContainer>
   )
 }

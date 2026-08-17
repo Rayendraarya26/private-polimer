@@ -19,6 +19,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+*.code-workspace
+.agents/
+.gemini/
 .DS_Store
 *.log
 config/credential.json

@@ -213,9 +213,7 @@
                     $data = file_get_contents($path);
                     $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
                 @endphp
-                <img
-                    src="{{ $base64 }}"
-                    class="kop-logo">
+                <img src="{{ $base64 }}" class="kop-logo">
             </td>
             <td class="kop-text">
                 <div class="small">
@@ -245,93 +243,86 @@
 
 
     @php
-$pelatihan = $permohonan->formPelatihan->first();
-$lsp = $permohonan->formLsp->first();
+        $pelatihan = $permohonan->formPelatihan->first();
+        $lsp = $permohonan->formLsp->first();
 
 
-/**
- * default aman
- */
-$namaPemohon = '-';
-$alamatPemohon = '-';
+        /**
+         * default aman
+         */
+        $namaPemohon = '-';
+        $alamatPemohon = '-';
 
 
-if ($permohonan->is_split_bill) {
+        if ($permohonan->is_split_bill) {
 
 
-    /**
-     * SPLIT BILL → peserta langsung
-     */
-    if ($pelatihan) {
-        $namaPemohon = $pelatihan->nama_lengkap ?? '-';
-        $alamatPemohon = $pelatihan->alamat_peserta ?? '-';
-    } elseif ($lsp) {
-        $namaPemohon = $lsp->nama_lengkap ?? '-';
-        $alamatPemohon = $lsp->alamat_peserta ?? '-';
-    }
+            /**
+             * SPLIT BILL → peserta langsung
+             */
+            if ($pelatihan) {
+                $namaPemohon = $pelatihan->nama_lengkap ?? '-';
+                $alamatPemohon = $pelatihan->alamat_peserta ?? '-';
+            } elseif ($lsp) {
+                $namaPemohon = $lsp->nama_lengkap ?? '-';
+                $alamatPemohon = $lsp->alamat_peserta ?? '-';
+            }
 
 
-} else {
+        } else {
 
 
-    /**
-     * GABUNG TAGIHAN → instansi prioritas
-     */
-    if ($pelatihan) {
+            /**
+             * GABUNG TAGIHAN → instansi prioritas
+             */
+            if ($pelatihan) {
 
 
-        $namaPemohon =
-            $pelatihan->nama_instansi
-            ?: $pelatihan->nama_lengkap
-            ?: '-';
+                $namaPemohon =
+                    $pelatihan->nama_instansi
+                    ?: $pelatihan->nama_lengkap
+                    ?: '-';
 
 
-        $alamatPemohon =
-            $pelatihan->alamat_instansi
-            ?: $pelatihan->alamat_peserta
-            ?: '-';
+                $alamatPemohon =
+                    $pelatihan->alamat_instansi
+                    ?: $pelatihan->alamat_peserta
+                    ?: '-';
 
 
-    } elseif ($lsp) {
+            } elseif ($lsp) {
 
 
-        $namaPemohon =
-            $lsp->nama_instansi
-            ?: $lsp->nama_lengkap
-            ?: '-';
+                $namaPemohon =
+                    $lsp->nama_instansi
+                    ?: $lsp->nama_lengkap
+                    ?: '-';
 
 
-        $alamatPemohon =
-            $lsp->alamat_instansi
-            ?: $lsp->alamat_peserta
-            ?: '-';
-    }
-}
-@endphp
+                $alamatPemohon =
+                    $lsp->alamat_instansi
+                    ?: $lsp->alamat_peserta
+                    ?: '-';
+            }
+        }
+    @endphp
 
 
-    <table
-        style="
+    <table style="
             width:100%;
             margin-top:15px;
             margin-bottom:20px;
             font-size:12px;
-        "
-    >
+        ">
         <tr>
             {{-- KOLOM KIRI --}}
-            <td
-                width="45%"
-                valign="top"
-            >
-                <div
-                    style="
+            <td width="45%" valign="top">
+                <div style="
                         font-size:18px;
                         font-weight:bold;
                         text-decoration:underline;
                         margin-bottom:18px;
-                    "
-                >
+                    ">
                     INVOICE
                 </div>
                 <table style="width:100%;">
@@ -376,10 +367,7 @@ if ($permohonan->is_split_bill) {
 
 
             {{-- KOLOM KANAN --}}
-            <td
-                width="50%"
-                valign="top"
-            >
+            <td width="50%" valign="top">
                 <table style="width:100%;">
                     <tr>
                         <td width="38%">
@@ -389,7 +377,7 @@ if ($permohonan->is_split_bill) {
                             :
                         </td>
                         <td>
-                            {{ $pemohon['nama']; }}
+                            {{ $pemohon['nama'] }}
                         </td>
                     </tr>
                     <tr>
@@ -432,41 +420,35 @@ if ($permohonan->is_split_bill) {
 
 
     {{-- VIRTUAL ACCOUNT --}}
-    <table
-        style="
+    <table style="
             width:100%;
             margin-top:15px;
             margin-bottom:25px;
-        "
-    >
+        ">
         <tr>
-            <td
-                style="
+            <td style="
                     text-align:center;
                     font-size:18px;
                     font-weight:bold;
-                "
-            >
+                ">
                 VIRTUAL ACCOUNT BANK BNI
             </td>
         </tr>
         <tr>
-            <td
-                style="
+            <td style="
                     text-align:center;
                     font-size:22px;
                     font-weight:bold;
                     letter-spacing:2px;
                     padding-top:10px;
-                "
-            >
+                ">
                 {{ $va ?: 'BELUM TERSEDIA' }}
             </td>
         </tr>
     </table>
 
 
-     {{-- ========================= --}}
+    {{-- ========================= --}}
     {{-- TABLE PEMBAYARAN --}}
     {{-- ========================= --}}
     <table class="invoice-table">
@@ -502,21 +484,40 @@ if ($permohonan->is_split_bill) {
                     function penyebut($nilai)
                     {
                         $nilai = abs($nilai);
-                        $huruf = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima',
-                                  'Enam', 'Tujuh', 'Delapan', 'Sembilan',
-                                  'Sepuluh', 'Sebelas'];
+                        $huruf = [
+                            '',
+                            'Satu',
+                            'Dua',
+                            'Tiga',
+                            'Empat',
+                            'Lima',
+                            'Enam',
+                            'Tujuh',
+                            'Delapan',
+                            'Sembilan',
+                            'Sepuluh',
+                            'Sebelas'
+                        ];
 
 
 
 
-                        if ($nilai < 12)         return ' ' . $huruf[$nilai];
-                        if ($nilai < 20)         return penyebut($nilai - 10) . ' Belas';
-                        if ($nilai < 100)        return penyebut(floor($nilai / 10)) . ' Puluh' . penyebut($nilai % 10);
-                        if ($nilai < 200)        return ' Seratus' . penyebut($nilai - 100);
-                        if ($nilai < 1000)       return penyebut(floor($nilai / 100)) . ' Ratus' . penyebut($nilai % 100);
-                        if ($nilai < 2000)       return ' Seribu' . penyebut($nilai - 1000);
-                        if ($nilai < 1000000)    return penyebut(floor($nilai / 1000)) . ' Ribu' . penyebut($nilai % 1000);
-                        if ($nilai < 1000000000) return penyebut(floor($nilai / 1000000)) . ' Juta' . penyebut($nilai % 1000000);
+                        if ($nilai < 12)
+                            return ' ' . $huruf[$nilai];
+                        if ($nilai < 20)
+                            return penyebut($nilai - 10) . ' Belas';
+                        if ($nilai < 100)
+                            return penyebut(floor($nilai / 10)) . ' Puluh' . penyebut($nilai % 10);
+                        if ($nilai < 200)
+                            return ' Seratus' . penyebut($nilai - 100);
+                        if ($nilai < 1000)
+                            return penyebut(floor($nilai / 100)) . ' Ratus' . penyebut($nilai % 100);
+                        if ($nilai < 2000)
+                            return ' Seribu' . penyebut($nilai - 1000);
+                        if ($nilai < 1000000)
+                            return penyebut(floor($nilai / 1000)) . ' Ribu' . penyebut($nilai % 1000);
+                        if ($nilai < 1000000000)
+                            return penyebut(floor($nilai / 1000000)) . ' Juta' . penyebut($nilai % 1000000);
                         return '';
                     }
                 }
@@ -526,172 +527,172 @@ if ($permohonan->is_split_bill) {
 
 
             @php
-    $jenisPelanggan = \App\Models\Db1\Pelanggan::where(
-        'user_id',
-        $permohonan->created_by
-    )->value('jenis_pelanggan');
+                $jenisPelanggan = \App\Models\Db1\Pelanggan::where(
+                    'user_id',
+                    $permohonan->created_by
+                )->value('jenis_pelanggan');
 
 
-    $isPerorangan =
-        $jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
-@endphp
+                $isPerorangan =
+                    $jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
+            @endphp
 
 
-@if($permohonan->is_split_bill)
+            @if($permohonan->is_split_bill)
 
 
-    {{-- SPLIT BILL --}}
-    @foreach($detailPembayaran as $index => $item)
+                {{-- SPLIT BILL --}}
+                @foreach($detailPembayaran as $index => $item)
 
 
-        @php
-            $grandTotal += $item->subtotal;
-        @endphp
+                    @php
+                        $grandTotal += $item->subtotal;
+                    @endphp
 
 
-        <tr>
-            <td class="text-center">{{ $index + 1 }}</td>
-            <td>{{ $item->item_bayar }}</td>
-            <td class="text-right">
-                Rp {{ number_format($item->harga_satuan,0,',','.') }}
-            </td>
-            <td class="text-center">
-                {{ $item->kuantitas }}
-            </td>
-            <td class="text-right">
-                Rp {{ number_format($item->subtotal,0,',','.') }}
-            </td>
-        </tr>
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $item->item_bayar }}</td>
+                        <td class="text-right">
+                            Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
+                        </td>
+                        <td class="text-center">
+                            {{ $item->kuantitas }}
+                        </td>
+                        <td class="text-right">
+                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                        </td>
+                    </tr>
 
 
-    @endforeach
+                @endforeach
 
 
-@elseif($isPerorangan)
+            @elseif($isPerorangan)
 
 
-    {{-- PERORANGAN --}}
-    @foreach($detailPembayaran as $index => $item)
+                {{-- PERORANGAN --}}
+                @foreach($detailPembayaran as $index => $item)
 
 
-        @php
-            $grandTotal += $item->subtotal;
-        @endphp
+                    @php
+                        $grandTotal += $item->subtotal;
+                    @endphp
 
 
-        <tr>
-            <td class="text-center">{{ $index + 1 }}</td>
-            <td>{{ $item->item_bayar }}</td>
-            <td class="text-right">
-                Rp {{ number_format($item->harga_satuan,0,',','.') }}
-            </td>
-            <td class="text-center">
-                {{ $item->kuantitas }}
-            </td>
-            <td class="text-right">
-                Rp {{ number_format($item->subtotal,0,',','.') }}
-            </td>
-        </tr>
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $item->item_bayar }}</td>
+                        <td class="text-right">
+                            Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
+                        </td>
+                        <td class="text-center">
+                            {{ $item->kuantitas }}
+                        </td>
+                        <td class="text-right">
+                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
+                        </td>
+                    </tr>
 
 
-    @endforeach
+                @endforeach
 
 
-@else
+            @else
 
 
-    {{-- PERUSAHAAN / INSTANSI GABUNG BILL --}}
-    @php
+                {{-- PERUSAHAAN / INSTANSI GABUNG BILL --}}
+                @php
 
 
-        $groupedItems = collect();
+                    $groupedItems = collect();
 
 
-        foreach ($grupPermohonan as $gp) {
+                    foreach ($grupPermohonan as $gp) {
 
 
-            foreach ($gp->detailPembayaran as $item) {
+                        foreach ($gp->detailPembayaran as $item) {
 
 
-                if (!$item->item_bayar) {
-                    continue;
-                }
+                            if (!$item->item_bayar) {
+                                continue;
+                            }
 
 
-                $key = md5(
-                    $item->item_bayar .
-                    '|' .
-                    $item->harga_satuan
-                );
+                            $key = md5(
+                                $item->item_bayar .
+                                '|' .
+                                $item->harga_satuan
+                            );
 
 
-                if (!$groupedItems->has($key)) {
+                            if (!$groupedItems->has($key)) {
 
 
-                    $groupedItems->put($key, [
-                        'item_bayar'   => $item->item_bayar,
-                        'harga_satuan' => $item->harga_satuan,
-                        'qty'          => 0,
-                        'subtotal'     => 0,
-                    ]);
-                }
+                                $groupedItems->put($key, [
+                                    'item_bayar' => $item->item_bayar,
+                                    'harga_satuan' => $item->harga_satuan,
+                                    'qty' => 0,
+                                    'subtotal' => 0,
+                                ]);
+                            }
 
 
-                $row = $groupedItems[$key];
+                            $row = $groupedItems[$key];
 
 
-                $row['qty'] += $item->kuantitas;
-                $row['subtotal'] += $item->subtotal;
+                            $row['qty'] += $item->kuantitas;
+                            $row['subtotal'] += $item->subtotal;
 
 
-                $groupedItems[$key] = $row;
-            }
-        }
+                            $groupedItems[$key] = $row;
+                        }
+                    }
 
 
-        $no = 1;
+                    $no = 1;
 
 
-    @endphp
+                @endphp
 
 
-    @foreach($groupedItems as $item)
+                @foreach($groupedItems as $item)
 
 
-        @php
-            $grandTotal += $item['subtotal'];
-        @endphp
+                    @php
+                        $grandTotal += $item['subtotal'];
+                    @endphp
 
 
-        <tr>
-            <td class="text-center">{{ $no++ }}</td>
+                    <tr>
+                        <td class="text-center">{{ $no++ }}</td>
 
 
-            <td>
-                {{ $item['item_bayar'] }}
-            </td>
+                        <td>
+                            {{ $item['item_bayar'] }}
+                        </td>
 
 
-            <td class="text-right">
-                Rp {{ number_format($item['harga_satuan'],0,',','.') }}
-            </td>
+                        <td class="text-right">
+                            Rp {{ number_format($item['harga_satuan'], 0, ',', '.') }}
+                        </td>
 
 
-            <td class="text-center">
-                {{ $item['qty'] }}
-            </td>
+                        <td class="text-center">
+                            {{ $item['qty'] }}
+                        </td>
 
 
-            <td class="text-right">
-                Rp {{ number_format($item['subtotal'],0,',','.') }}
-            </td>
-        </tr>
+                        <td class="text-right">
+                            Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
+                        </td>
+                    </tr>
 
 
-    @endforeach
+                @endforeach
 
 
-@endif
+            @endif
 
 
 
@@ -708,8 +709,7 @@ if ($permohonan->is_split_bill) {
 
             {{-- BARIS TOTAL --}}
             <tr>
-                <td colspan="4"
-                    style="border:1px solid #000; padding:8px; font-weight:bold; text-align:left;">
+                <td colspan="4" style="border:1px solid #000; padding:8px; font-weight:bold; text-align:left;">
                     TOTAL
                 </td>
                 <td style="border:1px solid #000; padding:8px; text-align:right; font-weight:bold;">
@@ -774,41 +774,47 @@ if ($permohonan->is_split_bill) {
     <div class="payment-box">
         <h3>
             PERHATIAN:
-        <ol>
-            <li>
-                Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan muncul otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA sebesar Rp. 1.000,- pada nominal transfer.
-            </li>
-            <li>
-                Layanan BI Fast belum bisa dipergunakan, karena tidak mendukung skema Virtual Account (VA)
-            </li>
-            <li>
-                Dimohon untuk segera melakukan pembayaran
-            </li>
-            <li>
-                Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran
-            </li>
-            <li>
-                Biaya admin transfer ditanggung oleh customer
-            </li>
-            <li>
-                Order akan kami proses jika pembayaran telah kami terima
-            </li>
-            <li>
-                Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice diatas/nama perusahaan.
-            </li>
-        </ol>
+            <ol>
+                <li>
+                    Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan
+                    muncul otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA
+                    sebesar Rp. 1.000,- pada nominal transfer.
+                </li>
+                <li>
+                    Layanan BI Fast belum bisa dipergunakan, karena tidak mendukung skema Virtual Account (VA)
+                </li>
+                <li>
+                    Dimohon untuk segera melakukan pembayaran
+                </li>
+                <li>
+                    Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran
+                </li>
+                <li>
+                    Biaya admin transfer ditanggung oleh customer
+                </li>
+                <li>
+                    Order akan kami proses jika pembayaran telah kami terima
+                </li>
+                <li>
+                    Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice
+                    diatas/nama perusahaan.
+                </li>
+            </ol>
     </div>
     {{-- ========================= --}}
     {{-- FOOTER --}}
     {{-- ========================= --}}
     <div class="footer">
         <p>
-            Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara
+            Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan
+            oleh Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara
         </p>
         <p>
-            Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek Pajak Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.
+            Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah
+            dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek
+            Pajak Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.
         </p>
     </div>
 </body>
-</html>
 
+</html>

@@ -116,19 +116,19 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
             <div className="flex flex-col items-start gap-1">
               <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-semibold">
                 <User className="w-3.5 h-3.5" />
-                <span>{detail.user_name || "Pemohon"}</span>
+                <span>Pemohon (Tiket: {detail.topik})</span>
                 <span className="text-slate-400 font-normal">
-                  • {format(new Date(detail.created_at), "dd MMM yyyy, HH:mm", { locale: id })}
+                  • {detail.created_at ? format(new Date(detail.created_at), "dd MMM yyyy, HH:mm", { locale: id }) : "-"}
                 </span>
               </div>
               <div className="bg-white text-slate-800 text-xs p-3.5 rounded-2xl rounded-tl-sm border border-slate-200 shadow-xs max-w-lg leading-relaxed">
-                {detail.pertanyaan}
+                {(detail as any).pertanyaan || detail.topik || "Pertanyaan diajukan"}
               </div>
             </div>
 
             {/* Replies */}
             {responses.map((resp, i) => {
-              const isStaff = resp.user_type === "pegawai" || resp.is_staff
+              const isStaff = !resp.is_author
 
               return (
                 <div
@@ -141,17 +141,17 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                     {isStaff ? (
                       <>
                         <span className="text-slate-400 font-normal">
-                          {format(new Date(resp.created_at), "dd MMM yyyy, HH:mm", { locale: id })} •
+                          {resp.created_at ? format(new Date(resp.created_at), "dd MMM yyyy, HH:mm", { locale: id }) : "-"} •
                         </span>
-                        <span>{resp.user_name || "Petugas BBKKP"}</span>
+                        <span>{resp.created_by || "Petugas BBKKP"}</span>
                         <Shield className="w-3.5 h-3.5 text-brand-600" />
                       </>
                     ) : (
                       <>
                         <User className="w-3.5 h-3.5" />
-                        <span>{resp.user_name || "Anda"}</span>
+                        <span>{resp.created_by || "Anda"}</span>
                         <span className="text-slate-400 font-normal">
-                          • {format(new Date(resp.created_at), "dd MMM yyyy, HH:mm", { locale: id })}
+                          • {resp.created_at ? format(new Date(resp.created_at), "dd MMM yyyy, HH:mm", { locale: id }) : "-"}
                         </span>
                       </>
                     )}
@@ -164,7 +164,7 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                         : "bg-white text-slate-800 rounded-tl-sm border border-slate-200"
                     }`}
                   >
-                    {resp.response || resp.pesan}
+                    {resp.pesan || (resp as any).response}
                   </div>
                 </div>
               )

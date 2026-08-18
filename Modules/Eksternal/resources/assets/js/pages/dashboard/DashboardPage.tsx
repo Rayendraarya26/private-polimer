@@ -214,18 +214,15 @@ const DashboardPage: React.FC = () => {
             >
               <img
                 src={r.image}
-                alt={r.title || "Banner BBKKP"}
+                alt={r.description || "Banner BBKKP"}
                 className="w-full h-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-6 sm:p-8">
-                {r.title && (
+                {r.description && (
                   <div className="text-white max-w-xl space-y-1">
-                    <h3 className="text-lg sm:text-2xl font-bold tracking-tight">{r.title}</h3>
-                    {r.description && (
-                      <p className="text-xs sm:text-sm text-slate-200 line-clamp-2">
-                        {r.description}
-                      </p>
-                    )}
+                    <p className="text-xs sm:text-sm text-slate-200 line-clamp-2">
+                      {r.description}
+                    </p>
                   </div>
                 )}
               </div>
@@ -429,7 +426,7 @@ const DashboardPage: React.FC = () => {
                         {/* Reapply if rejected */}
                         {item.status_order === FeedbackItemStatusOrder.REVISI && (
                           <Button
-                            variant="warning"
+                            variant="secondary"
                             size="sm"
                             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
                             onClick={() => onReapply(item)}

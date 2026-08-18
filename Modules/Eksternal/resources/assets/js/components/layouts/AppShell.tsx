@@ -129,15 +129,15 @@ export const AppShell: React.FC = () => {
           <div className="flex items-center gap-3 pl-1">
             <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-slate-800 leading-none">
-                {profile?.nama || 'Pelanggan BBKKP'}
+                {profile?.name || profile?.detail?.nama || 'Pelanggan BBKKP'}
               </p>
               <span className="text-[11px] text-slate-500 leading-none mt-1 inline-block">
-                {profile?.jenis_pelanggan ? profile.jenis_pelanggan.toUpperCase() : 'PORTAL PELANGGAN'}
+                {profile?.detail?.type ? profile.detail.type.toUpperCase() : 'PORTAL PELANGGAN'}
               </span>
             </div>
 
             <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-brand-100">
-              {(profile?.nama || 'U').charAt(0).toUpperCase()}
+              {(profile?.name || profile?.detail?.nama || 'U').charAt(0).toUpperCase()}
             </div>
 
             <a

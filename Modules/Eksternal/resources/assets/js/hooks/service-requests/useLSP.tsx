@@ -8,6 +8,7 @@ import {
   getDetailLSP,
   updateLSPTransformasiIndustri
 } from "../../services/lsp"
+import api from "../../utils/api"
 
 
 export const useLSP = () => {

@@ -155,7 +155,7 @@ const AskQuestionsPage: React.FC = () => {
                   {!isOpen && r.is_review === "no" && (
                     <Button
                       size="sm"
-                      variant="warning"
+                      variant="secondary"
                       leftIcon={<Star className="w-3.5 h-3.5" />}
                       onClick={(e) => {
                         e.stopPropagation()

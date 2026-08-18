@@ -93,7 +93,7 @@ export default () => {
       try {
         setSubmitting(true)
         const formData = buildFormData(payload)
-        const res = await submitPelatihan(formData)
+        const res: any = await submitPelatihan(formData)
         const response = res?.data ?? res
         if (response?.success) {
           if (!skipToast) {

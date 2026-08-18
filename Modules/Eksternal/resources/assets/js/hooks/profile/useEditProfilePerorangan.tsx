@@ -39,7 +39,7 @@ export default () => {
   const [submitting, setSubmitting] = useState<boolean>(false)
   const { executeRecaptcha } = useGoogleReCaptcha()
 
-  const validationSchema = useMemo<yup.SchemaOf<Fields>>(
+  const validationSchema = useMemo<any>(
     () => {
       const { dok_npwp, dok_nib } = profile?.detail ?? {}
 

@@ -27,13 +27,7 @@ const PrivateLayout: React.FC = () => {
     return () => window.removeEventListener('resize', resize)
   }, [])
 
-  return (
-    <AppShell>
-      <Suspense fallback={<FallbackLoader />}>
-        {/* Outlet handled inside AppShell */}
-      </Suspense>
-    </AppShell>
-  )
+  return <AppShell />
 }
 
 export default memo(PrivateLayout)

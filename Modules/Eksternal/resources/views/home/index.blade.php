@@ -1264,15 +1264,14 @@
                     </li>
                     <li class="nav-item">
                         @if(auth()->check())
-                            <a class="nav-link" href="{{ route('home') }}">
-                                Polimer
+                            <a class="nav-link" href="{{ auth()->user()->hasGroup(\App\Enums\SysGroup::PELANGGAN) ? url('/app/#/dashboard') : url('/app/#/admin/dashboard') }}">
+                                Portal Polimer
                             </a>
                         @else
                             <a class="nav-link" href="{{ route('auth.login') }}">
                                 Login
                             </a>
                         @endif
-
                     </li>
                 </ul>
             </div>

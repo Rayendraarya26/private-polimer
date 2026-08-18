@@ -33,20 +33,32 @@ class DashboardController extends Controller
         }));
     }
 
-    public function layanan()
+    public function ssoHub()
     {
         $listSso = OauthClient::query()
             ->orderBy('name')
             ->where('revoked', 0)
-            ->where('display', 1)
-            ->where('accessibility', 'public')
             ->get();
 
-        return responseJSON('Data Found', $listSso->map(function ($item) {
+        $apps = $listSso->map(function ($item) {
             return [
-                'nama_layanan' => $item->name_full,
-                'url'          => $item->login_url,
+                'id'            => $item->id,
+                'name'          => $item->name,
+                'name_full'     => $item->name_full,
+                'url'           => $item->login_url,
+                'accessibility' => $item->accessibility,
             ];
-        }));
+        })->toArray();
+
+        // Tambahkan PNBP Monitoring Capaian
+        $apps[] = [
+            'id'            => 'pnbp',
+            'name'          => 'PNBP',
+            'name_full'     => 'Monitoring Capaian PNBP',
+            'url'           => 'https://lookerstudio.google.com/u/0/reporting/413af404-7305-44e6-9914-b3d2ef0e0ab7/page/JAy8D',
+            'accessibility' => 'private',
+        ];
+
+        return responseJSON('Data Found', $apps);
     }
 }

@@ -15,10 +15,14 @@ import {
   LogOut,
   Sparkles,
   Loader2,
+  Boxes,
+  Globe,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { Badge } from '../ui/Badge';
+
+import AppLauncherDropdown from '../common/AppLauncherDropdown';
 
 export interface NavItem {
   title: string;
@@ -60,6 +64,12 @@ export const AppShell: React.FC = () => {
       title: 'Ulasan & Feedback',
       href: '/feedbacks',
       icon: <MessageSquareQuote className="w-5 h-5" />,
+    },
+    {
+      title: 'Ekosistem Aplikasi BBKKP',
+      href: '/ekosistem-aplikasi',
+      icon: <Boxes className="w-5 h-5" />,
+      badge: 'SSO',
     },
     {
       title: 'Profil Akun',
@@ -115,6 +125,8 @@ export const AppShell: React.FC = () => {
 
         {/* Right Action Icons & User Dropdown */}
         <div className="flex items-center gap-3">
+          <AppLauncherDropdown />
+
           <Link
             to="/notifications"
             className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
@@ -204,21 +216,13 @@ export const AppShell: React.FC = () => {
 
           {/* Sidebar Footer */}
           {isSidebarOpen && (
-            <div className="p-4 m-3 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-sky-50 border border-brand-100/80 space-y-2">
-              <div className="flex items-center gap-2 text-brand-700 font-semibold text-xs">
-                <Sparkles className="w-4 h-4 text-brand-600" />
-                <span>Bantuan Layanan</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Butuh panduan atau informasi pengujian & sertifikasi?
-              </p>
+            <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
               <a
-                href="https://wa.me/628123456789"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block text-[11px] font-semibold text-brand-700 hover:underline"
+                href="/"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors border border-slate-200 shadow-2xs"
               >
-                Chat WhatsApp CS →
+                <Globe className="w-3.5 h-3.5 text-brand-600" />
+                <span>Buka Homepage</span>
               </a>
             </div>
           )}

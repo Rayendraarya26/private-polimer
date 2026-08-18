@@ -77,7 +77,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
 
         Route::prefix('dashboard')->group(function () {
             Route::get('/banner', [DashboardController::class, 'slider']);
-            Route::get('/layanan', [DashboardController::class, 'layanan']);
+            Route::get('/sso-hub', [DashboardController::class, 'ssoHub']);
         });
 
         Route::prefix('bimtek-halal')->group(function () {

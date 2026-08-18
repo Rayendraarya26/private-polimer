@@ -1,6 +1,8 @@
-import { memo, useCallback } from "react"
-import { Button, Modal } from "react-bootstrap"
+import React, { memo, useCallback } from "react"
+import { AlertTriangle } from "lucide-react"
 import useQuestion from "../../hooks/ask-questions/useQuestion"
+import { Modal } from "../ui/Modal"
+import { Button } from "../ui/Button"
 
 type Props = {
   show: boolean
@@ -15,45 +17,44 @@ const CloseQuestion: React.FC<Props> = ({ id, show, onClose, onAfterClosed }) =>
   const onCloseQuestion = useCallback(async () => {
     const res = await closeQuestion(id)
     if (res) onAfterClosed()
-  }, [id])
+  }, [id, closeQuestion, onAfterClosed])
 
   return (
-    <>
-      <Modal 
-        show={show}
-        centered
-        onHide={submitting ? undefined : onClose}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Konfirmasi
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="w-100 d-flex flex-column gap-2">
-          <p className="mb-0">Apakah anda yakin ingin menutup pertanyaan ini sekarang?</p>
-          <div className="w-100 d-flex align-items-stretch gap-2">
-            <Button 
-              disabled={submitting}
-              type="button"
-              variant="danger"
-              className="w-100"
-              onClick={onCloseQuestion}
-            >
-              {submitting ? 'Memproses...' : 'Ya, tutup sekarang'}
-            </Button>
-            <Button 
-              disabled={submitting}
-              type="button"
-              variant="light"
-              className="w-100"
-              onClick={submitting ? undefined : onClose}
-            >
-              Batal
-            </Button>
-          </div>
-        </Modal.Body>
-      </Modal>
-    </>
+    <Modal
+      isOpen={show}
+      onClose={submitting ? () => {} : onClose}
+      title="Tutup Tiket Pertanyaan"
+      description="Konfirmasi penutupan sesi konsultasi teknis"
+      size="sm"
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-200/80 text-amber-800 text-xs leading-relaxed">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+          <span>
+            Apakah Anda yakin ingin menutup sesi pertanyaan ini? Anda dapat memberikan ulasan kepuasan layanan setelah tiket ditutup.
+          </span>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={submitting}
+            onClick={onClose}
+          >
+            Batal
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            isLoading={submitting}
+            onClick={onCloseQuestion}
+          >
+            Ya, Tutup Tiket
+          </Button>
+        </div>
+      </div>
+    </Modal>
   )
 }
 

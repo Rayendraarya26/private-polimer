@@ -152,7 +152,11 @@
                             // Disable button to avoid multiple click
                             submitButton.disabled = true;
 
-                            await initRecaptcha();
+                            try {
+                                await initRecaptcha();
+                            } catch (e) {
+                                console.warn('reCAPTCHA init error:', e);
+                            }
 
                             // Check axios library docs: https://axios-http.com/docs/intro
                             // submit html form
@@ -173,9 +177,17 @@
 
             // recaptcha
             const initRecaptcha = async function () {
-                const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
-                const recaptchaInput = document.querySelector('[name="recaptcha"]')
-                if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
+                @if(config('google.recaptcha.enabled'))
+                try {
+                    if (typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
+                        const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
+                        const recaptchaInput = document.querySelector('[name="recaptcha"]');
+                        if (recaptchaInput) recaptchaInput.setAttribute('value', token || '');
+                    }
+                } catch (err) {
+                    console.warn('reCAPTCHA execution error:', err);
+                }
+                @endif
             };
 
             const handlePasswordToggle = function () {

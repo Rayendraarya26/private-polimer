@@ -140,7 +140,9 @@
 <!--begin::Global Javascript Bundle(mandatory for all pages)-->
 <script src="{{asset('assets/plugins/global/plugins.bundle.js')}}"></script>
 <script src="{{asset('assets/js/scripts.bundle.js')}}"></script>
+@if(config('google.recaptcha.enabled') && config('google.recaptcha.site_key'))
 <script src="https://www.google.com/recaptcha/api.js?render={{config('google.recaptcha.site_key')}}"></script>
+@endif
 
 @stack('scripts')
 </body>

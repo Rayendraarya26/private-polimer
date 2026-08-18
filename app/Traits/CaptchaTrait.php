@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 trait CaptchaTrait
 {
-    public function validateCaptcha(string $captchaToken): bool
+    public function validateCaptcha(?string $captchaToken = null): bool
     {
         if (config('google.recaptcha.enabled')) {
             if (empty($captchaToken)) {
@@ -19,7 +19,7 @@ trait CaptchaTrait
                 'response' => $captchaToken
             ]);
 
-            return $response->json()['success'] == true;
+            return ($response->json()['success'] ?? false) === true;
         }
         return true;
     }

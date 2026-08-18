@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-400 z-10">
               {leftIcon}
             </div>
           )}
@@ -52,11 +52,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             disabled={disabled}
             className={cn(
-              'w-full bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-lg border border-slate-300 px-3.5 py-2.5 transition-all duration-200',
+              'w-full bg-white text-slate-900 placeholder:text-slate-400 text-xs rounded-lg border border-slate-300 py-2.5 transition-all duration-200',
               'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
               'disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
+              leftIcon ? '!pl-10' : '!pl-3.5',
+              rightIcon ? '!pr-10' : '!pr-3.5',
               error &&
                 'border-rose-500 focus:ring-rose-400 focus:border-rose-500 bg-rose-50/20 text-rose-900',
               className
@@ -65,7 +65,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
 
           {rightIcon && (
-            <div className="absolute right-3.5 flex items-center text-slate-400">
+            <div className="absolute right-3.5 flex items-center text-slate-400 z-10">
               {rightIcon}
             </div>
           )}

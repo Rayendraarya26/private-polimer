@@ -152,11 +152,11 @@ export const AppShell: React.FC = () => {
       </header>
 
       {/* Main Layout Body */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-w-0">
         {/* Sidebar */}
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out md:static flex flex-col',
+            'fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] flex flex-col shrink-0',
             isSidebarOpen ? 'w-64' : 'w-20',
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           )}
@@ -204,7 +204,7 @@ export const AppShell: React.FC = () => {
 
           {/* Sidebar Footer */}
           {isSidebarOpen && (
-            <div className="p-4 m-3 rounded-xl bg-gradient-to-br from-brand-50 to-sky-50 border border-brand-100/80 space-y-2">
+            <div className="p-4 m-3 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-sky-50 border border-brand-100/80 space-y-2">
               <div className="flex items-center gap-2 text-brand-700 font-semibold text-xs">
                 <Sparkles className="w-4 h-4 text-brand-600" />
                 <span>Bantuan Layanan</span>
@@ -225,7 +225,7 @@ export const AppShell: React.FC = () => {
         </aside>
 
         {/* Content View Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             <Suspense
               fallback={

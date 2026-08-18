@@ -7,6 +7,7 @@ import store from './store';
 import { Toaster } from 'react-hot-toast';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PermissionProvider } from './context/PermissionContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +38,7 @@ if (rootElement) {
   );
 
   const content = (
-    <>
+    <PermissionProvider>
       <AppRoutes/>
       <Toaster
         position="top-right"
@@ -58,7 +59,7 @@ if (rootElement) {
           },
         }}
       />
-    </>
+    </PermissionProvider>
   );
 
   root.render(

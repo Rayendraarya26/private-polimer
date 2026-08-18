@@ -140,12 +140,20 @@ export const AdminHasilUjiPage: React.FC = () => {
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="flex items-center justify-center gap-1.5">
-                      <Button size="sm" variant="outline" title="Pratinjau Draf Sertifikat">
-                        <Eye className="w-3.5 h-3.5 mr-1" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        title="Pratinjau Draf Sertifikat"
+                        leftIcon={<Eye className="w-3.5 h-3.5" />}
+                      >
                         Pratinjau PDF
                       </Button>
-                      <Button size="sm" variant="primary" title="Ajukan TTE BSrE">
-                        <FileCheck2 className="w-3.5 h-3.5 mr-1" />
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        title="Ajukan TTE BSrE"
+                        leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+                      >
                         Sign TTE
                       </Button>
                     </div>

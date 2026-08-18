@@ -158,7 +158,7 @@ const PembayaranPage: React.FC = () => {
       className: "text-right",
       headerClassName: "text-right",
       render: (row) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
           <Button
             size="sm"
             variant="outline"
@@ -187,7 +187,7 @@ const PembayaranPage: React.FC = () => {
               )
             }}
           >
-            Kuitansi
+            Download Kuitansi
           </Button>
         </div>
       ),

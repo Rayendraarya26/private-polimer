@@ -89,60 +89,62 @@ export const AdminIntegrasiSsoPage: React.FC = () => {
           <CardTitle className="text-sm">Daftar Aplikasi Terhubung</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4 font-bold">Nama Aplikasi Client</th>
-                <th className="py-3 px-4 font-bold">Client ID & Callback URL</th>
-                <th className="py-3 px-4 font-bold">Client Secret</th>
-                <th className="py-3 px-4 font-bold">Status</th>
-                <th className="py-3 px-4 font-bold text-center w-28">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {clients.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/80">
-                  <td className="py-3.5 px-4 font-bold text-slate-800">{c.client_name}</td>
-                  <td className="py-3.5 px-4 font-mono">
-                    <div className="flex items-center gap-1.5 text-brand-700 font-semibold">
-                      <span>{c.client_id}</span>
-                      <button
-                        onClick={() => handleCopy(c.client_id)}
-                        className="text-slate-400 hover:text-slate-600"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">{c.redirect_url}</span>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono">
-                    <div className="flex items-center gap-1.5 text-slate-600">
-                      <span>{c.client_secret}</span>
-                      <button
-                        onClick={() => handleCopy(c.client_secret)}
-                        className="text-slate-400 hover:text-slate-600"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <Badge variant="success">{c.status}</Badge>
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      onClick={() => handleRegenerateSecret(c.id)}
-                    >
-                      <RotateCcw className="w-3 h-3 mr-1" /> Reset Secret
-                    </Button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-4 font-bold">Nama Aplikasi Client</th>
+                  <th className="py-3 px-4 font-bold">Client ID & Callback URL</th>
+                  <th className="py-3 px-4 font-bold">Client Secret</th>
+                  <th className="py-3 px-4 font-bold">Status</th>
+                  <th className="py-3 px-4 font-bold text-center whitespace-nowrap min-w-[140px]">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {clients.map((c) => (
+                  <tr key={c.id} className="hover:bg-slate-50/80">
+                    <td className="py-3.5 px-4 font-bold text-slate-800">{c.client_name}</td>
+                    <td className="py-3.5 px-4 font-mono">
+                      <div className="flex items-center gap-1.5 text-brand-700 font-semibold">
+                        <span>{c.client_id}</span>
+                        <button
+                          onClick={() => handleCopy(c.client_id)}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">{c.redirect_url}</span>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono">
+                      <div className="flex items-center gap-1.5 text-slate-600">
+                        <span>{c.client_secret}</span>
+                        <button
+                          onClick={() => handleCopy(c.client_secret)}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant="success">{c.status}</Badge>
+                    </td>
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                        onClick={() => handleRegenerateSecret(c.id)}
+                      >
+                        Reset Secret
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 

@@ -101,9 +101,10 @@ export const AdminContactUsPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        leftIcon={<Eye className="w-3.5 h-3.5" />}
                         onClick={() => handleOpenDetail(msg)}
                       >
-                        <Eye className="w-3.5 h-3.5 mr-1" /> Baca
+                        Baca
                       </Button>
                     </td>
                   </tr>

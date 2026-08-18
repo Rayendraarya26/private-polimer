@@ -20,6 +20,6 @@
             "@/*": ["./Modules/Eksternal/resources/assets/js/*"]
         }
     },
-    "include": ["Modules/Eksternal/resources/assets/js"],
+    "include": ["Modules/Eksternal/resources/assets/js", "tests"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

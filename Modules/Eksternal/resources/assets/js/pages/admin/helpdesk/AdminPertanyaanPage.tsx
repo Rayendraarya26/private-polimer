@@ -178,8 +178,13 @@ export const AdminPertanyaanPage: React.FC = () => {
               </p>
             </div>
             {selectedTicket.status === "OPEN" ? (
-              <Button size="sm" variant="secondary" onClick={handleCloseTicket}>
-                <Lock className="w-3.5 h-3.5 mr-1" /> Tutup Tiket
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleCloseTicket}
+                leftIcon={<Lock className="w-3.5 h-3.5" />}
+              >
+                Tutup Tiket
               </Button>
             ) : (
               <Badge variant="secondary">Tiket Telah Ditutup</Badge>

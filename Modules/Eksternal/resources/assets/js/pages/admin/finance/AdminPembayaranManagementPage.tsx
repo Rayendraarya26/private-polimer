@@ -143,9 +143,13 @@ export const AdminPembayaranManagementPage: React.FC = () => {
                             Verifikasi Bukti
                           </Button>
                         ) : (
-                          <Button size="sm" variant="outline" title="Unduh Kuitansi Resmi TTE">
-                            <Download className="w-3.5 h-3.5 mr-1" />
-                            Kuitansi
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            title="Unduh Kuitansi Resmi TTE"
+                            leftIcon={<Download className="w-3.5 h-3.5" />}
+                          >
+                            Download Kuitansi
                           </Button>
                         )}
                       </div>

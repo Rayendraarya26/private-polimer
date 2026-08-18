@@ -1,9 +1,10 @@
 import React, { lazy, memo } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 
-// layouts
+// layouts & guards
 import PrivateLayout from './layouts/PrivateLayout'
 import AdminShell from './components/layouts/AdminShell'
+import PermissionGuard from './guards/PermissionGuard'
 
 // customer portal pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
@@ -21,7 +22,7 @@ const EditFormRouter = lazy(() => import('./components/input-service-requests/Ed
 const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
 const ExternalAppsPage = lazy(() => import('./pages/sso-hub/ExternalAppsPage'))
 
-// admin portal pages (sprint 4)
+// admin portal pages (sprint 4 & 5)
 const AdminDashboardPage = lazy(() => import('./pages/admin/dashboard/AdminDashboardPage'))
 const AdminPermohonanListPage = lazy(() => import('./pages/admin/permohonan/AdminPermohonanListPage'))
 const AdminPermohonanDetailPage = lazy(() => import('./pages/admin/permohonan/AdminPermohonanDetailPage'))
@@ -43,7 +44,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* ========================================================
-          ADMIN & INTERNAL BALAI PORTAL (6 PILAR MODUL)
+          ADMIN & INTERNAL BALAI PORTAL (DYNAMIC RBAC PROTECTED)
           ======================================================== */}
       <Route path="/admin" element={<AdminShell />}>
         <Route index element={<AdminDashboardPage />} />
@@ -53,10 +54,33 @@ const AppRoutes: React.FC = () => {
         <Route path="permohonan" element={<AdminPermohonanListPage />} />
         <Route path="permohonan/detail/:id" element={<AdminPermohonanDetailPage />} />
 
-        {/* Pilar 3: Keuangan & Hasil Uji TTE */}
-        <Route path="finance/invoice" element={<AdminInvoiceManagementPage />} />
-        <Route path="finance/pembayaran" element={<AdminPembayaranManagementPage />} />
-        <Route path="sertifikasi/hasil-uji" element={<AdminHasilUjiPage />} />
+        {/* Pilar 3: Keuangan (Bendahara & Super Admin Only) */}
+        <Route
+          path="finance/invoice"
+          element={
+            <PermissionGuard requiredRoles={['BENDAHARA', 'SUPER_ADMIN']} requiredModule="finance">
+              <AdminInvoiceManagementPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="finance/pembayaran"
+          element={
+            <PermissionGuard requiredRoles={['BENDAHARA', 'SUPER_ADMIN']} requiredModule="finance">
+              <AdminPembayaranManagementPage />
+            </PermissionGuard>
+          }
+        />
+
+        {/* Pilar 3: Hasil Uji & TTE (Petugas Lab, Asesor & Super Admin) */}
+        <Route
+          path="sertifikasi/hasil-uji"
+          element={
+            <PermissionGuard requiredRoles={['PETUGAS_LAB', 'ASESOR', 'SUPER_ADMIN']} requiredModule="sertifikasi">
+              <AdminHasilUjiPage />
+            </PermissionGuard>
+          }
+        />
 
         {/* Pilar 4: Helpdesk & Komunikasi */}
         <Route path="helpdesk/pertanyaan" element={<AdminPertanyaanPage />} />
@@ -67,13 +91,41 @@ const AppRoutes: React.FC = () => {
         <Route path="master/layanan" element={<AdminMasterLayananPage />} />
         <Route path="master/lokasi" element={<AdminMasterLokasiPage />} />
         <Route path="master/banner" element={<AdminBannerHomepagePage />} />
-        <Route path="master/integrasi-sso" element={<AdminIntegrasiSsoPage />} />
+        <Route
+          path="master/integrasi-sso"
+          element={
+            <PermissionGuard requiredRoles={['SUPER_ADMIN']}>
+              <AdminIntegrasiSsoPage />
+            </PermissionGuard>
+          }
+        />
         <Route path="ekosistem-aplikasi" element={<ExternalAppsPage />} />
 
-        {/* Pilar 6: Sistem & Hak Akses (RBAC) */}
-        <Route path="system/users" element={<AdminManageUsersPage />} />
-        <Route path="system/groups" element={<AdminManageGroupsPage />} />
-        <Route path="system/menu" element={<AdminManageMenuPage />} />
+        {/* Pilar 6: Sistem & Hak Akses (Super Admin Only) */}
+        <Route
+          path="system/users"
+          element={
+            <PermissionGuard requiredRoles={['SUPER_ADMIN']}>
+              <AdminManageUsersPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="system/groups"
+          element={
+            <PermissionGuard requiredRoles={['SUPER_ADMIN']}>
+              <AdminManageGroupsPage />
+            </PermissionGuard>
+          }
+        />
+        <Route
+          path="system/menu"
+          element={
+            <PermissionGuard requiredRoles={['SUPER_ADMIN']}>
+              <AdminManageMenuPage />
+            </PermissionGuard>
+          }
+        />
       </Route>
 
       {/* ========================================================

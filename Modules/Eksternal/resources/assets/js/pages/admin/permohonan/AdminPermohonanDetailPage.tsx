@@ -221,8 +221,12 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" className="text-xs">
-                            <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
+                          >
                             Preview
                           </Button>
                           <Button size="sm" variant="ghost" className="text-xs">

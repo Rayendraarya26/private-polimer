@@ -96,52 +96,54 @@ export const AdminManageUsersPage: React.FC = () => {
           <CardTitle className="text-sm">Daftar Pengguna Sistem</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4 font-bold">Nama Lengkap & Email</th>
-                <th className="py-3 px-4 font-bold">Peran (Role)</th>
-                <th className="py-3 px-4 font-bold">Bagian / Unit Kerja</th>
-                <th className="py-3 px-4 font-bold">Tipe Akun</th>
-                <th className="py-3 px-4 font-bold">Status</th>
-                <th className="py-3 px-4 font-bold text-center w-28">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/80">
-                  <td className="py-3.5 px-4">
-                    <p className="font-bold text-slate-900">{u.name}</p>
-                    <span className="text-[11px] text-slate-400">{u.email}</span>
-                  </td>
-                  <td className="py-3.5 px-4 font-semibold text-brand-700">{u.role}</td>
-                  <td className="py-3.5 px-4 text-slate-600">{u.bagian}</td>
-                  <td className="py-3.5 px-4">
-                    <Badge variant={u.tipe === "INTERNAL" ? "info" : "secondary"}>{u.tipe}</Badge>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    {u.status === "AKTIF" ? (
-                      <Badge variant="success">Aktif</Badge>
-                    ) : (
-                      <Badge variant="danger">Diblokir (Banned)</Badge>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Button
-                        size="sm"
-                        variant={u.status === "AKTIF" ? "danger" : "success"}
-                        onClick={() => handleToggleBan(u.id)}
-                        className="text-xs"
-                      >
-                        {u.status === "AKTIF" ? "Blokir" : "Aktifkan"}
-                      </Button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-4 font-bold">Nama Lengkap & Email</th>
+                  <th className="py-3 px-4 font-bold">Peran (Role)</th>
+                  <th className="py-3 px-4 font-bold">Bagian / Unit Kerja</th>
+                  <th className="py-3 px-4 font-bold">Tipe Akun</th>
+                  <th className="py-3 px-4 font-bold">Status</th>
+                  <th className="py-3 px-4 font-bold text-center whitespace-nowrap min-w-[120px]">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {users.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50/80">
+                    <td className="py-3.5 px-4">
+                      <p className="font-bold text-slate-900">{u.name}</p>
+                      <span className="text-[11px] text-slate-400">{u.email}</span>
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-brand-700">{u.role}</td>
+                    <td className="py-3.5 px-4 text-slate-600">{u.bagian}</td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant={u.tipe === "INTERNAL" ? "info" : "secondary"}>{u.tipe}</Badge>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {u.status === "AKTIF" ? (
+                        <Badge variant="success">Aktif</Badge>
+                      ) : (
+                        <Badge variant="danger">Diblokir (Banned)</Badge>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          size="sm"
+                          variant={u.status === "AKTIF" ? "danger" : "success"}
+                          onClick={() => handleToggleBan(u.id)}
+                          className="text-xs"
+                        >
+                          {u.status === "AKTIF" ? "Blokir" : "Aktifkan"}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 

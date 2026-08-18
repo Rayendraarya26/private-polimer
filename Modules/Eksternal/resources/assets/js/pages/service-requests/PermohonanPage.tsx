@@ -16,6 +16,7 @@ import {
   BadgeCheck,
   ArrowRight,
   Sparkles,
+  Info,
 } from "lucide-react"
 import { useProfileStatus } from "../../hooks/usePermohonan"
 import Head from "../../components/common/Head"
@@ -152,17 +153,12 @@ const PermohonanPage: React.FC = () => {
   const { checkAndRun, isLoading } = useProfileStatus()
 
   const handleNavigate = (service: ServiceItem) => {
-    if (isLoading) {
-      toast("Sedang memverifikasi profil akun...", { icon: "⏳" })
-      return
-    }
-
     checkAndRun(() => {
       if (service.route) {
         navigate(service.route)
       } else {
         toast(`Layanan formulir ${service.name} segera tersedia di portal!`, {
-          icon: "ℹ️",
+          icon: <Info className="w-4 h-4 text-brand-600 shrink-0" />,
         })
       }
     })

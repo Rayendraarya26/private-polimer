@@ -22,7 +22,25 @@ if (rootElement) {
         <Provider store={store}>
           <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY as string}>
             <AppRoutes/>
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                className: "!rounded-xl !shadow-lg !border !border-slate-200/80 !text-xs !font-medium !text-slate-800 !p-3.5 !bg-white",
+                duration: 4000,
+                success: {
+                  iconTheme: {
+                    primary: "#059669",
+                    secondary: "#ffffff",
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: "#E11D48",
+                    secondary: "#ffffff",
+                  },
+                },
+              }}
+            />
           </GoogleReCaptchaProvider>
         </Provider>
       </HashRouter>

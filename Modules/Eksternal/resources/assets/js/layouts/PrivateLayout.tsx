@@ -13,6 +13,9 @@ const FallbackLoader: React.FC = () => (
   </div>
 )
 
+import { checkProfileStatus } from "../services/permohonan"
+import { queryClient } from "../lib/queryClient"
+
 const PrivateLayout: React.FC = () => {
   const dispatch = useDispatch()
   const { getMyProfile } = useProfile()
@@ -22,6 +25,12 @@ const PrivateLayout: React.FC = () => {
     getMyProfile()
     getLayanan()
     getSliders()
+    // Prefetch status profil akun di background sehingga saat user klik layanan, verifikasi 0ms instan
+    queryClient.prefetchQuery({
+      queryKey: ["profileStatus"],
+      queryFn: checkProfileStatus,
+      staleTime: 1000 * 60 * 10,
+    })
     const resize = () => dispatch(setWindowWidth(window.innerWidth))
     window.addEventListener('resize', resize)
     return () => window.removeEventListener('resize', resize)

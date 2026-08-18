@@ -5,31 +5,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../..
 import { Button } from "../../components/ui/Button"
 import { GraduationCap, ArrowLeft, CheckCircle2, Sparkles, Loader2, Users } from "lucide-react"
 import FormPelatihanWizard from "../../components/input-service-requests/multiPelatihan/FormPelatihanWizard"
-import { getSkemaPelatihan } from "../../services/pelatihan"
+import { usePelatihanSkemaQuery } from "../../hooks/queries/useMasterQuery"
 
 const PelatihanPage: React.FC = () => {
   const navigate = useNavigate()
   const [selectedSkema, setSelectedSkema] = useState("")
-  const [skemaList, setSkemaList] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchSkema = async () => {
-      try {
-        setLoading(true)
-        const data = await getSkemaPelatihan()
-        setSkemaList(data || [])
-      } catch (error) {
-        console.error("Gagal mengambil skema pelatihan", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  const { data: skemaList = [], isLoading: loading } = usePelatihanSkemaQuery()
 
-    fetchSkema()
-  }, [])
-
-  const selectedSkemaData = skemaList.find((s) => s.id === selectedSkema)
+  const selectedSkemaData = skemaList.find((s: any) => s.id === selectedSkema)
   const kapabilitas = selectedSkemaData?.kapabilitas ?? 0
 
   return (

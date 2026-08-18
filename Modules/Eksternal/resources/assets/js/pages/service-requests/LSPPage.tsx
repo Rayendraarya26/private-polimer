@@ -5,31 +5,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../..
 import { Button } from "../../components/ui/Button"
 import { Award, ArrowLeft, CheckCircle2, Sparkles, AlertCircle, Loader2 } from "lucide-react"
 import FormLSPWizard from "../../components/input-service-requests/multiLSP/FormLSPWizard"
-import { getSkemalsp } from "../../services/lsp"
+import { useLspSkemaQuery } from "../../hooks/queries/useMasterQuery"
 
 const LSPPage: React.FC = () => {
   const navigate = useNavigate()
   const [selectedSkema, setSelectedSkema] = useState("")
-  const [skemaList, setSkemaList] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchSkema = async () => {
-      try {
-        setLoading(true)
-        const data = await getSkemalsp()
-        setSkemaList(data || [])
-      } catch (error) {
-        console.error("Gagal mengambil skema LSP", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  const { data: skemaList = [], isLoading: loading } = useLspSkemaQuery()
 
-    fetchSkema()
-  }, [])
-
-  const selectedSkemaData = skemaList.find((s) => s.id === selectedSkema)
+  const selectedSkemaData = skemaList.find((s: any) => s.id === selectedSkema)
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">

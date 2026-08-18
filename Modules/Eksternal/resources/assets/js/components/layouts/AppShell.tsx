@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 import {
   LayoutDashboard,
   FilePlus2,
-  Clock,
   Receipt,
   HelpCircle,
   MessageSquareQuote,
   User,
+  KeyRound,
   Menu,
   X,
   Bell,
   LogOut,
-  ChevronDown,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -32,7 +32,6 @@ export const AppShell: React.FC = () => {
   const { pathname } = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   const profile = useSelector(({ profile }: RootState) => profile?.profile);
 
@@ -44,17 +43,12 @@ export const AppShell: React.FC = () => {
     },
     {
       title: 'Pengajuan Layanan',
-      href: '/service-requests/input',
+      href: '/permohonan',
       icon: <FilePlus2 className="w-5 h-5" />,
     },
     {
-      title: 'Riwayat & Pelacakan',
-      href: '/service-requests',
-      icon: <Clock className="w-5 h-5" />,
-    },
-    {
       title: 'Riwayat Pembayaran',
-      href: '/payments/history',
+      href: '/pembayaran',
       icon: <Receipt className="w-5 h-5" />,
     },
     {
@@ -71,6 +65,11 @@ export const AppShell: React.FC = () => {
       title: 'Profil Akun',
       href: '/profile/update',
       icon: <User className="w-5 h-5" />,
+    },
+    {
+      title: 'Keamanan & Password',
+      href: '/profile/change-account-and-password',
+      icon: <KeyRound className="w-5 h-5" />,
     },
   ];
 
@@ -228,7 +227,16 @@ export const AppShell: React.FC = () => {
         {/* Content View Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <Suspense
+              fallback={
+                <div className="w-full h-96 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                  <span className="text-xs font-medium text-slate-500">Memuat halaman...</span>
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>

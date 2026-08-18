@@ -23,38 +23,45 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route element={<PrivateLayout/>}>
-        <Route path='/dashboard'>
-          <Route index element={<DashboardPage/>}/>
-        </Route>
-        <Route path='/notifications'>
-          <Route index element={<NotificationsPage/>}/>
-        </Route>
-        <Route path='/payment-history'>
-          <Route index element={<PaymentHistoryPage/>}/>
-        </Route>
+        <Route path='/dashboard' element={<DashboardPage/>}/>
+        <Route path='/notifications' element={<NotificationsPage/>}/>
+        
+        {/* Pembayaran & Tagihan */}
+        <Route path='/pembayaran' element={<PembayaranPage/>}/>
+        <Route path='/payment-history' element={<PembayaranPage/>}/>
+        <Route path='/payments/history' element={<PembayaranPage/>}/>
+
+        {/* Survey & Feedback */}
         <Route path='/feedbacks'>
           <Route index element={<FeedbacksPage/>}/>
           <Route path=':uuid' element={<FeedbackDetailPage/>}/>
         </Route>
-        <Route path="/permohonan/*">
-          {/* halaman pilih layanan */}
+
+        {/* Permohonan Layanan */}
+        <Route path="/permohonan">
           <Route index element={<PermohonanPage/>}/>
-          {/* CREATE */}
           <Route path="pelatihan" element={<PelatihanPage/>}/>
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
-          {/* EDIT DINAMIS */}
           <Route path="edit/:id" element={<EditFormRouter/>}/>
         </Route>
-        <Route path="/pembayaran">
-          <Route index element={<PembayaranPage/>}/>
+        <Route path="/service-requests">
+          <Route index element={<PermohonanPage/>}/>
+          <Route path="input" element={<PermohonanPage/>}/>
+          <Route path="pelatihan" element={<PelatihanPage/>}/>
+          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
+          <Route path=":id" element={<DashboardPage/>}/>
         </Route>
-        <Route path='/ask-questions'>
-          <Route index element={<AskQuestionsPage/>}/>
-        </Route>
+
+        {/* Tanya Jawab */}
+        <Route path='/ask-questions' element={<AskQuestionsPage/>}/>
+
+        {/* Profil & Keamanan */}
         <Route path='/profile'>
-          <Route path="change-account-and-password" element={<ChangeAccountAndPasswordPage/>}/>
+          <Route index element={<UpdateProfilePage/>}/>
           <Route path="update" element={<UpdateProfilePage/>}/>
+          <Route path="change-account-and-password" element={<ChangeAccountAndPasswordPage/>}/>
         </Route>
+
         <Route
           path="*"
           element={<Navigate to="/dashboard" replace />}

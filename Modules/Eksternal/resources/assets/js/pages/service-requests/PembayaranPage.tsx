@@ -1,21 +1,26 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import {
-  Card,
-  Table,
-  Badge,
-  Button,
-  Spinner
-} from "react-bootstrap"
-
+  Receipt,
+  FileCheck,
+  CreditCard,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Download,
+  ExternalLink,
+  Search,
+} from "lucide-react"
 import Head from "../../components/common/Head"
 import api from "../../utils/api"
 import Swal from "sweetalert2"
+import usePembayaran from "../../hooks/usePembayaran"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
+import { DataTable, Column } from "../../components/ui/DataTable"
+import { Badge } from "../../components/ui/Badge"
+import { Button } from "../../components/ui/Button"
+import { StatsCard } from "../../components/ui/StatsCard"
 
-// IMPORT HOOK-NYA DI SINI
-// Silakan sesuaikan path import-nya dengan struktur folder Mas Arif
-import usePembayaran from "../../hooks/usePembayaran" 
-
-type PembayaranItem = {
+export type PembayaranItem = {
   id: string
   nama_permohonan: string
   no_permohonan: string
@@ -30,13 +35,11 @@ const PembayaranPage: React.FC = () => {
   const [data, setData] = useState<PembayaranItem[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
-  // Panggil fungsi dari custom hook
   const { openInvoice } = usePembayaran()
 
   const fetchData = async () => {
     try {
       setLoading(true)
-
       const res = await api.get("/eksternal/pembayaran")
 
       const mapped = (res.data.data || []).map((item: any) => ({
@@ -47,11 +50,10 @@ const PembayaranPage: React.FC = () => {
         total_tagihan: Number(item.total_tagihan || 0),
         status_bayar: item.status_bayar || "BELUM",
         invoice_file: item.invoice_file || null,
-        kuitansi_file: item.kuitansi_file || null
+        kuitansi_file: item.kuitansi_file || null,
       }))
 
       setData(mapped)
-
     } catch (error) {
       console.error("Gagal mengambil data pembayaran:", error)
     } finally {
@@ -63,133 +65,195 @@ const PembayaranPage: React.FC = () => {
     fetchData()
   }, [])
 
-  const renderStatus = (status: string) => {
-    switch (status) {
-      case "BELUM":
-        return <Badge bg="warning">Belum Bayar</Badge>
-      case "LUNAS":
-        return <Badge bg="success">Lunas</Badge>
-      case "BATAL":
-        return <Badge bg="danger">Batal</Badge>
-      default:
-        return <Badge bg="secondary">-</Badge>
-    }
-  }
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
-      currency: "IDR"
+      currency: "IDR",
+      maximumFractionDigits: 0,
     }).format(value)
   }
 
   const formatDate = (date: string) => {
+    if (!date || date === "-") return "-"
     return new Date(date).toLocaleDateString("id-ID", {
       day: "2-digit",
-      month: "long",
+      month: "short",
       year: "numeric",
     })
   }
-    const showInfo = (title: string, message: string) => {
+
+  const showInfo = (title: string, message: string) => {
     Swal.fire({
       icon: "info",
       title,
-      text: message
+      text: message,
+      confirmButtonColor: "#0270c7",
     })
   }
 
+  // Summary Metrics
+  const summary = useMemo(() => {
+    const totalTagihan = data.reduce((acc, curr) => acc + curr.total_tagihan, 0)
+    const belumBayar = data.filter((d) => d.status_bayar === "BELUM").length
+    const lunas = data.filter((d) => d.status_bayar === "LUNAS").length
+
+    return { totalTagihan, belumBayar, lunas, totalCount: data.length }
+  }, [data])
+
+  const columns: Column<PembayaranItem>[] = [
+    {
+      key: "tgl_order",
+      header: "Tanggal Order",
+      sortable: true,
+      render: (row) => (
+        <span className="text-slate-600 font-medium">{formatDate(row.tgl_order)}</span>
+      ),
+    },
+    {
+      key: "no_permohonan",
+      header: "No. Permohonan",
+      sortable: true,
+      render: (row) => (
+        <span className="font-semibold text-slate-900">{row.no_permohonan}</span>
+      ),
+    },
+    {
+      key: "nama_permohonan",
+      header: "Layanan / Keterangan",
+      sortable: true,
+      render: (row) => (
+        <span className="font-medium text-slate-800">{row.nama_permohonan}</span>
+      ),
+    },
+    {
+      key: "total_tagihan",
+      header: "Total Tagihan",
+      sortable: true,
+      render: (row) => (
+        <span className="font-bold text-slate-900">
+          {formatCurrency(row.total_tagihan)}
+        </span>
+      ),
+    },
+    {
+      key: "status_bayar",
+      header: "Status Pembayaran",
+      sortable: true,
+      render: (row) => {
+        switch (row.status_bayar) {
+          case "LUNAS":
+            return <Badge variant="success" dot>Lunas</Badge>
+          case "BELUM":
+            return <Badge variant="warning" dot>Belum Bayar</Badge>
+          case "BATAL":
+            return <Badge variant="danger" dot>Batal</Badge>
+          default:
+            return <Badge variant="neutral">{row.status_bayar}</Badge>
+        }
+      },
+    },
+    {
+      key: "actions",
+      header: "Aksi / Dokumen",
+      className: "text-right",
+      headerClassName: "text-right",
+      render: (row) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<Receipt className="w-3.5 h-3.5" />}
+            onClick={() => openInvoice(row)}
+          >
+            Invoice
+          </Button>
+
+          <Button
+            size="sm"
+            variant={row.status_bayar === "LUNAS" ? "success" : "secondary"}
+            leftIcon={<FileCheck className="w-3.5 h-3.5" />}
+            onClick={() => {
+              if (!row.kuitansi_file) {
+                showInfo(
+                  "Kuitansi Belum Tersedia",
+                  "Kuitansi resmi bertanda tangan elektronik akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
+                )
+                return
+              }
+
+              window.open(
+                `${window.location.origin}/storage/${row.kuitansi_file}`,
+                "_blank"
+              )
+            }}
+          >
+            Kuitansi
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
-    <div className="w-100">
-      <Head title="Pembayaran" />
+    <div className="space-y-6">
+      <Head title="Manajemen Pembayaran & Invoice" />
 
+      {/* Header Page */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Riwayat Pembayaran & Invoice
+        </h1>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Pantau status tagihan PNBP, akses instruksi Virtual Account BNI, dan unduh kuitansi resmi ber-TTE.
+        </p>
+      </div>
+
+      {/* Stats Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatsCard
+          title="Menunggu Pembayaran"
+          value={summary.belumBayar}
+          subtitle="Tagihan aktif belum lunas"
+          icon={<Clock className="w-5 h-5" />}
+          variant="warning"
+        />
+        <StatsCard
+          title="Pembayaran Lunas"
+          value={summary.lunas}
+          subtitle="Kuitansi resmi tersedia"
+          icon={<CheckCircle2 className="w-5 h-5" />}
+          variant="success"
+        />
+        <StatsCard
+          title="Total Tagihan PNBP"
+          value={formatCurrency(summary.totalTagihan)}
+          subtitle={`Dari ${summary.totalCount} transaksi`}
+          icon={<CreditCard className="w-5 h-5" />}
+          variant="primary"
+        />
+      </div>
+
+      {/* DataTable Card */}
       <Card>
-        <Card.Header>
-          <div className="w-100 d-flex justify-content-center align-items-center py-2">
-            <Card.Title className="pt-2">
-              Pembayaran
-            </Card.Title>
+        <CardHeader>
+          <div>
+            <CardTitle>Daftar Tagihan & Invoice</CardTitle>
+            <CardDescription>
+              Klik tombol invoice untuk melihat rincian pembayaran atau kuitansi untuk bukti pembayaran sah.
+            </CardDescription>
           </div>
-        </Card.Header>
+        </CardHeader>
 
-        <Card.Body>
-
-          {loading ? (
-            <div className="text-center py-5">
-              <Spinner />
-            </div>
-          ) : (
-
-            <Table striped bordered hover responsive>
-              <thead>
-                <tr>
-                  <th>Tanggal Order</th>
-                  <th>Nama Permohonan</th>
-                  <th>No Permohonan</th>
-                  <th>Status Bayar</th>
-                  <th>Total Tagihan</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-
-              <tbody>
-
-                {data.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center">
-                      Tidak ada data
-                    </td>
-                  </tr>
-                ) : (
-
-                  data.map((item) => (
-                    <tr key={item.id}>
-
-                      <td>{formatDate(item.tgl_order)}</td>
-                      <td>{item.nama_permohonan}</td>
-                      <td>{item.no_permohonan}</td>
-                      <td>{renderStatus(item.status_bayar)}</td>
-                      <td>{formatCurrency(item.total_tagihan)}</td>
-
-                      <td className="d-flex gap-2">
-
-                        {/* Panggil openInvoice dari hook */}
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          onClick={() => openInvoice(item)}
-                        >
-                          Invoice
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="success"
-                          onClick={() => {
-                            if (!item.kuitansi_file) {
-                              showInfo(
-                                "Kuitansi belum tersedia",
-                                "Kuitansi akan muncul setelah pembayaran lunas"
-                              )
-                              return
-                            }
-
-
-                            window.open(
-                              `${window.location.origin}/storage/${item.kuitansi_file}`,
-                              "_blank"
-                            )
-                          }}
-                        >
-                          Kuitansi
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-          )}
-        </Card.Body>
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={loading}
+            searchable
+            searchPlaceholder="Cari nomor permohonan / layanan..."
+            emptyMessage="Belum ada catatan tagihan pembayaran."
+          />
+        </CardContent>
       </Card>
     </div>
   )

@@ -1,8 +1,8 @@
 services:
-    bbkkp_polimer:
-#        deploy:
-#            mode: replicated
-#            replicas: 4
+    private_polimer:
+        # deploy:
+        #     mode: replicated
+        #     replicas: 4
         build:
             context: .
             dockerfile: ./docker/dockerfile/app.Dockerfile
@@ -13,10 +13,28 @@ services:
         networks:
             - bbkkp_network
         ports:
-#            - "4700-4703:80"
-            - "4700:80"
+            # - "4700-4703:80"
+            - "4900:80"
 
-#Docker Networks
+    mysql:
+        image: mysql:8.0
+        container_name: private_mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: bbkkp_polimer
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: bbkkp
+            MYSQL_PASSWORD: bbkkp_password
+        ports:
+            - "3308:3306"
+        volumes:
+            - private_mysql_data:/var/lib/mysql
+        networks:
+            - bbkkp_network
+
 networks:
     bbkkp_network:
         external: true
+
+volumes:
+    private_mysql_data:

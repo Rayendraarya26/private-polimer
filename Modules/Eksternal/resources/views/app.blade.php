@@ -10,7 +10,7 @@
     <meta name="recaptcha-site-key" content="{{ config('google.recaptcha.site_key') }}" />
 
     @viteReactRefresh
-    @vite('Modules/Eksternal/resources/assets/js/app.tsx')
+    @vite(['Modules/Eksternal/resources/assets/js/styles/app.css', 'Modules/Eksternal/resources/assets/js/app.tsx'])
 
     <style>
         #app {

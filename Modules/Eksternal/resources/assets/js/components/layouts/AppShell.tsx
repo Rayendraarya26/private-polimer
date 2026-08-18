@@ -100,6 +100,7 @@ export const AppShell: React.FC = () => {
             <img
               src="/assets/media/logos/polimer-logo.svg"
               alt="BBKKP Polimer"
+              style={{ maxHeight: '32px', width: 'auto' }}
               className="h-8 w-auto transition-transform group-hover:scale-105"
             />
             <div className="hidden sm:block leading-tight">

@@ -69,7 +69,7 @@
                                 @if(!empty($data->picture))
                                     <div style="text-align: center; justify-content: center">
                                         <img
-                                            src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->temporaryUrl($data->picture, now()->addMinute()) }}"
+                                            src="{{ $data->picture_url ?? asset('assets/media/avatars/blank.png') }}"
                                             style="width: 200px" alt="foto">
                                     </div>
                                 @endif

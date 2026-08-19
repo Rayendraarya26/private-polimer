@@ -27,49 +27,109 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $cacheKey = 'user_' . $request->user()->id;
+        $user = $request->user();
+        $userGroups = $user->sys_user_groups;
 
-        return Cache::remember($cacheKey, 5 * 60, function () use ($request) {
-            // selected Group
-            $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first();
+        // Resolve active group: check session first, then default group, then first available group
+        $sessionGroupId = session('group_selected');
+        $groupData = null;
 
-            $isPelanggan = $groupData->group_id === SysGroup::PELANGGAN->value;
-            $detail = $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : $this->extractDetailPegawai($request->user()->pegawai ?? Pegawai::create(['user_id' => $request->user()->id]));
+        if ($sessionGroupId) {
+            $groupData = $userGroups->where('group_id', $sessionGroupId)->first();
+        }
 
-            return responseJSON("success", [
-                'id'                    => $request->user()->id,
-                'name'                  => $request->user()->name,
-                'email'                 => $request->user()->email,
-                'nip'                   => $request->user()->nip,
-                'force_update_password' => $request->user()->force_update_password,
-                'picture'               => Storage::disk('s3')->temporaryUrl($request->user()->picture, now()->addWeek()),
-                'last_login'            => $request->user()->last_login,
-                'group'                 => [
-                    'id'   => $groupData->group_id,
-                    'name' => $groupData->sys_group->name,
-                ],
-                'detail'                => $detail,
-            ]);
-        });
+        if (!$groupData) {
+            // Prioritize highest administrative group if exists
+            $adminGroup = $userGroups->first(function ($g) {
+                $name = strtolower($g->sys_group->name ?? '');
+                return in_array($g->group_id, [SysGroup::ROOT->value, SysGroup::ADMIN->value])
+                    || str_contains($name, 'super')
+                    || str_contains($name, 'admin')
+                    || str_contains($name, 'root');
+            });
+
+            $groupData = $adminGroup 
+                ?: ($userGroups->where('is_default', 'yes')->first() ?: $userGroups->first());
+        }
+
+        $activeGroupId = $groupData?->group_id ?? SysGroup::PELANGGAN->value;
+        $activeGroupName = $groupData?->sys_group->name ?? (session('group_selected_name') ?? 'Pelanggan');
+
+        $isPelanggan = $activeGroupId === SysGroup::PELANGGAN->value;
+        $detail = $isPelanggan 
+            ? $this->extractDetailPelanggan($user->pelanggan) 
+            : $this->extractDetailPegawai($user->pegawai);
+
+        $pictureUrl = null;
+        if (!empty($user->picture)) {
+            $pictureUrl = rescue(fn() => Storage::disk('s3')->temporaryUrl($user->picture, now()->addWeek()), null, false);
+        }
+
+        // Map all available groups for multi-role switching
+        $availableGroups = $userGroups->map(function ($g) use ($activeGroupId) {
+            return [
+                'group_id'   => $g->group_id,
+                'group_name' => $g->sys_group->name ?? 'Grup',
+                'is_default' => $g->group_id === $activeGroupId || $g->is_default === 'yes',
+            ];
+        })->values()->toArray();
+
+        return responseJSON("success", [
+            'id'                    => $user->id,
+            'name'                  => $user->name,
+            'email'                 => $user->email,
+            'nip'                   => $user->nip,
+            'force_update_password' => $user->force_update_password,
+            'picture'               => $pictureUrl,
+            'last_login'            => $user->last_login,
+            'group'                 => [
+                'id'   => $activeGroupId,
+                'name' => $activeGroupName,
+            ],
+            'available_groups'      => $availableGroups,
+            'permissions'           => session('permission', []),
+            'menu'                  => session('menu', []),
+            'detail'                => $detail,
+        ]);
     }
 
-    private function extractDetailPegawai(Pegawai $pegawai)
+    private function extractDetailPegawai(?Pegawai $pegawai)
     {
+        if (!$pegawai) {
+            return [
+                'nik'      => null,
+                'whatsapp' => null,
+            ];
+        }
+
         return [
             'nik'      => $pegawai->nik,
             'whatsapp' => $pegawai->whatsapp,
         ];
     }
 
-    private function extractDetailPelanggan(Pelanggan $pelanggan)
+    private function extractDetailPelanggan(?Pelanggan $pelanggan)
     {
+        if (!$pelanggan) {
+            return [
+                'type' => PelangganJenisPelanggan::PERORANGAN->value,
+            ];
+        }
+
+        $rawJenis = $pelanggan->jenis_pelanggan;
+        $jenisValue = $rawJenis instanceof PelangganJenisPelanggan 
+            ? $rawJenis->value 
+            : (string) ($rawJenis ?? PelangganJenisPelanggan::PERORANGAN->value);
+
         $detail = [
-            'type' => $pelanggan->jenis_pelanggan,
+            'type' => $jenisValue,
         ];
 
-        $d      = $pelanggan->detail->toArray();
-        $detail = array_merge($detail, $d);
-        Arr::forget($detail, ['id', 'pelanggan_id', 'created_at', 'updated_at']);
+        $d = rescue(fn() => $pelanggan->detail ? $pelanggan->detail->toArray() : [], [], false);
+        if (is_array($d)) {
+            $detail = array_merge($detail, $d);
+            Arr::forget($detail, ['id', 'pelanggan_id', 'created_at', 'updated_at']);
+        }
 
         $documents = [
             'dok_npwp',
@@ -77,8 +137,12 @@ class UserController extends Controller
             'dok_lainnya'
         ];
 
+        $jenisEnum = $rawJenis instanceof PelangganJenisPelanggan 
+            ? $rawJenis 
+            : PelangganJenisPelanggan::tryFrom($jenisValue);
+
         // Add document types based on pelanggan type
-        switch (PelangganJenisPelanggan::tryFrom($pelanggan->jenis_pelanggan)) {
+        switch ($jenisEnum) {
             case PelangganJenisPelanggan::PERORANGAN:
             case PelangganJenisPelanggan::INSTANSI_PEMERINTAH:
                 $documents = array_merge($documents, ['dok_sk_nomenklatur']);
@@ -88,10 +152,10 @@ class UserController extends Controller
                 break;
         }
 
-        // Generate temporary URLs for documents
+        // Generate temporary URLs for documents safely
         foreach ($documents as $document) {
             if (!empty($d[$document])) {
-                $detail[$document] = Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek());
+                $detail[$document] = rescue(fn() => Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek()), null, false);
             }
         }
 
@@ -154,7 +218,12 @@ class UserController extends Controller
         }
 
         try {
-            match ($request->user()->pelanggan->jenis_pelanggan) {
+            $pelanggan = $request->user()->pelanggan;
+            if (!$pelanggan) {
+                return responseJSON('error', 'Profil pelanggan tidak ditemukan.', 404);
+            }
+
+            match ($pelanggan->jenis_pelanggan) {
                 PelangganJenisPelanggan::PERORANGAN->value => $this->updateProfilePerorangan($request),
                 PelangganJenisPelanggan::INSTANSI_PEMERINTAH->value => $this->updateProfileInstansi($request),
                 PelangganJenisPelanggan::BADAN_USAHA->value => $this->updateProfileBadanUsaha($request),
@@ -167,7 +236,6 @@ class UserController extends Controller
             Log::withContext($request->except('recaptcha'))->error($e);
             return responseJSON($e->getMessage(), [], 500);
         }
-
     }
 
     /**

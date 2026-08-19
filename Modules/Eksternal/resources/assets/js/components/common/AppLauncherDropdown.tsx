@@ -119,8 +119,7 @@ export const AppLauncherDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const isAdmin = pathname.startsWith('/admin')
-  const directoryUrl = isAdmin ? '/admin/ekosistem-aplikasi' : '/ekosistem-aplikasi'
+  const directoryUrl = '/admin/ekosistem-aplikasi'
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

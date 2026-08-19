@@ -80,11 +80,22 @@ class LoginController
             $group_selected      = $group_id;
             $group_selected_name = $exist->sys_group->name;
             $this->setAccess($group_selected, $group_selected_name);
+
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return responseJSON("Berhasil berganti role", [
+                    'group_id'   => $group_selected,
+                    'group_name' => $group_selected_name,
+                ]);
+            }
+
             if ($group_id == SysGroup::PELANGGAN->value) {
                 return redirect(url('/app/#/dashboard'));
             }
             return redirect(url('/app/#/admin/dashboard'));
         } else {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return responseJSON("Anda tidak memiliki akses ke role yang dipilih.", null, 403);
+            }
             return redirect()->back()->withErrors(['message' => 'Anda tidak memiliki akses ke role yang dipilih.']);
         }
     }

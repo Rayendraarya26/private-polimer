@@ -164,9 +164,6 @@ const AppRoutes: React.FC = () => {
         {/* Tanya Jawab */}
         <Route path='/ask-questions' element={<AskQuestionsPage/>}/>
 
-        {/* Ekosistem Aplikasi BBKKP */}
-        <Route path='/ekosistem-aplikasi' element={<ExternalAppsPage/>}/>
-
         {/* Profil & Keamanan */}
         <Route path='/profile'>
           <Route index element={<UpdateProfilePage/>}/>

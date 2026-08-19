@@ -68,6 +68,12 @@ class SysUser extends Authenticatable implements MustVerifyEmail
         return $this->sys_user_groups()->where('group_id', '!=', \App\Enums\SysGroup::PELANGGAN->value)->exists();
     }
 
+    public function hasGroup(\App\Enums\SysGroup|string $group): bool
+    {
+        $groupId = $group instanceof \App\Enums\SysGroup ? $group->value : $group;
+        return $this->sys_user_groups()->where('group_id', $groupId)->exists();
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $url = url('/auth/new-password?token=' . $token . '&email=' . $this->email);

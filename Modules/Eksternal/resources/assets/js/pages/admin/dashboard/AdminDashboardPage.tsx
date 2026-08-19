@@ -26,39 +26,39 @@ import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { defaultSsoApps, renderSsoAppIcon } from "../../../components/common/AppLauncherDropdown"
 
+// Static Mock Data KPI (declared outside component to prevent garbage collection on re-render)
+const URGENT_PERMOHONAN = [
+  {
+    id: "REQ-2026-0819",
+    pelanggan: "PT Indorubber Global Tech",
+    layanan: "Uji Tarik & Vulkanisasi Karet",
+    jenis: "Pengujian Lab",
+    sla_hours: 4,
+    status: "Menunggu Verifikasi",
+    deadline: "Hari ini, 16:00",
+  },
+  {
+    id: "REQ-2026-0818",
+    pelanggan: "CV Polyplast Mandiri",
+    layanan: "Sertifikasi Kompetensi Ekstrusi",
+    jenis: "LSP BNSP",
+    sla_hours: 8,
+    status: "Verifikasi Berkas APL",
+    deadline: "Hari ini, 18:00",
+  },
+  {
+    id: "REQ-2026-0815",
+    pelanggan: "Dinas Perindustrian Jateng",
+    layanan: "Bimtek Formulasi Polimer Hijau",
+    jenis: "Pelatihan",
+    sla_hours: 24,
+    status: "Menunggu Approval Invoice",
+    deadline: "Besok, 12:00",
+  },
+]
+
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate()
-
-  // Mock Data KPI
-  const urgentPermohonan = [
-    {
-      id: "REQ-2026-0819",
-      pelanggan: "PT Indorubber Global Tech",
-      layanan: "Uji Tarik & Vulkanisasi Karet",
-      jenis: "Pengujian Lab",
-      sla_hours: 4,
-      status: "Menunggu Verifikasi",
-      deadline: "Hari ini, 16:00",
-    },
-    {
-      id: "REQ-2026-0818",
-      pelanggan: "CV Polyplast Mandiri",
-      layanan: "Sertifikasi Kompetensi Ekstrusi",
-      jenis: "LSP BNSP",
-      sla_hours: 8,
-      status: "Verifikasi Berkas APL",
-      deadline: "Hari ini, 18:00",
-    },
-    {
-      id: "REQ-2026-0815",
-      pelanggan: "Dinas Perindustrian Jateng",
-      layanan: "Bimtek Formulasi Polimer Hijau",
-      jenis: "Pelatihan",
-      sla_hours: 24,
-      status: "Menunggu Approval Invoice",
-      deadline: "Besok, 12:00",
-    },
-  ]
 
   return (
     <div className="space-y-8">
@@ -147,7 +147,7 @@ export const AdminDashboardPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {urgentPermohonan.map((item) => (
+                    {URGENT_PERMOHONAN.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4">
                           <p className="font-bold text-brand-700">{item.id}</p>
@@ -363,4 +363,4 @@ export const AdminDashboardPage: React.FC = () => {
   )
 }
 
-export default AdminDashboardPage
+export default React.memo(AdminDashboardPage)

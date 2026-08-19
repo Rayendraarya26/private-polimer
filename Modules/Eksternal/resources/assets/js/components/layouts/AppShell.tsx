@@ -22,8 +22,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { Badge } from '../ui/Badge';
 
-import AppLauncherDropdown from '../common/AppLauncherDropdown';
-
 export interface NavItem {
   title: string;
   href: string;
@@ -64,12 +62,6 @@ export const AppShell: React.FC = () => {
       title: 'Ulasan & Feedback',
       href: '/feedbacks',
       icon: <MessageSquareQuote className="w-5 h-5" />,
-    },
-    {
-      title: 'Ekosistem Aplikasi BBKKP',
-      href: '/ekosistem-aplikasi',
-      icon: <Boxes className="w-5 h-5" />,
-      badge: 'SSO',
     },
     {
       title: 'Profil Akun',
@@ -125,8 +117,6 @@ export const AppShell: React.FC = () => {
 
         {/* Right Action Icons & User Dropdown */}
         <div className="flex items-center gap-3">
-          <AppLauncherDropdown />
-
           <Link
             to="/notifications"
             className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"

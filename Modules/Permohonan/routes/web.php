@@ -13,6 +13,7 @@ use Modules\Permohonan\Http\Controllers\MasterLingkupLayananController;
 use Modules\Permohonan\Http\Controllers\InvoiceController;
 use Modules\Permohonan\Http\Controllers\AuditSertifikasiController;
 use Modules\Permohonan\Http\Controllers\KomiteSertifikasiController;
+use Modules\Permohonan\Http\Controllers\PenerbitanSertifikasiController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -139,6 +140,11 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::prefix('sertifikasi-komite')->name('permohonan.komite.')->group(function () {
         Route::post('{permohonanId}/jadwalkan', [KomiteSertifikasiController::class, 'jadwalkanSidang'])->name('jadwalkan');
         Route::post('{komiteId}/rekomendasi', [KomiteSertifikasiController::class, 'simpanRekomendasi'])->name('rekomendasi');
+    });
+
+    // Penerbitan Sertifikat Endpoints
+    Route::prefix('sertifikasi-terbit')->name('permohonan.sertifikat.')->group(function () {
+        Route::post('{permohonanId}/terbitkan', [PenerbitanSertifikasiController::class, 'terbitkanSertifikat'])->name('terbitkan');
     });
 
 });

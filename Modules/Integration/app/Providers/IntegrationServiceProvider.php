@@ -14,6 +14,7 @@ use Modules\Integration\Console\SyncUserApps;
 use Modules\Integration\Console\SyncUserPuk;
 use Modules\Integration\Console\SyncUserSil;
 use Modules\Integration\Console\SyncUserSis;
+use Modules\Integration\Console\SyncSertifikasiToSisCmd;
 
 class IntegrationServiceProvider extends ServiceProvider
 {
@@ -58,6 +59,7 @@ class IntegrationServiceProvider extends ServiceProvider
             SyncUserSil::class,
             SyncUserSis::class,
             MigrateSisHistory::class,
+            SyncSertifikasiToSisCmd::class,
         ]);
     }
 

@@ -158,6 +158,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
             Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
+            Route::get('/{id}/download-sertifikat', [SertifikasiController::class, 'downloadSertifikat']);
         });
 
         Route::prefix('sertifikasi-lks')->group(function () {

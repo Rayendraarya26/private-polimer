@@ -454,4 +454,40 @@ class SertifikasiController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Download / preview file fisik PDF sertifikat resmi TTE.
+     */
+    public function downloadSertifikat(string $id)
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->where('created_by', auth()->id())
+            ->first();
+
+        if (!$permohonan) {
+            return response()->json(['success' => false, 'message' => 'Permohonan tidak ditemukan'], 404);
+        }
+
+        $sertifikat = \App\Models\Db1\PelangganSertifikasi::where('permohonan_id', $id)->first();
+        if (!$sertifikat) {
+            return response()->json(['success' => false, 'message' => 'Sertifikat belum diterbitkan untuk permohonan ini'], 404);
+        }
+
+        $filePath = $sertifikat->url_pdf_sertifikat_tte ?: $sertifikat->url_pdf_sertifikat_lama;
+        if (!$filePath) {
+            return response()->json(['success' => false, 'message' => 'File sertifikat belum tersedia'], 404);
+        }
+
+        // If remote URL
+        if (str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://')) {
+            return redirect($filePath);
+        }
+
+        // If local storage file
+        if (Storage::disk('public')->exists($filePath)) {
+            return Storage::disk('public')->download($filePath, 'Sertifikat_' . $sertifikat->nomor_sertifikat . '.pdf');
+        }
+
+        return response()->json(['success' => false, 'message' => 'Berkas fisik sertifikat tidak ditemukan di storage'], 404);
+    }
 }

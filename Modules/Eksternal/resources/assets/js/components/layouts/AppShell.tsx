@@ -107,7 +107,7 @@ export const AppShell: React.FC = () => {
                 BBKKP POLIMER
               </span>
               <span className="text-[10px] text-slate-500 block uppercase tracking-wider">
-                Portal Layanan Industri
+                Portal Layanan dan Informasi Terintegrasi
               </span>
             </div>
           </Link>

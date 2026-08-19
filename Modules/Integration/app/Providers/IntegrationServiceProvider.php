@@ -5,6 +5,7 @@ namespace Modules\Integration\Providers;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Integration\Console\MigrateSisHistory;
 use Modules\Integration\Console\PatchUserPegawai;
 use Modules\Integration\Console\SyncNewPermohonanCmd;
 use Modules\Integration\Console\SyncStatusPermohonanCmd;
@@ -56,6 +57,7 @@ class IntegrationServiceProvider extends ServiceProvider
             SyncUserPuk::class,
             SyncUserSil::class,
             SyncUserSis::class,
+            MigrateSisHistory::class,
         ]);
     }
 

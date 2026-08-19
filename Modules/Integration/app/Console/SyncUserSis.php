@@ -158,5 +158,36 @@ class SyncUserSis extends Command
         );
 
         $pelanggan->detail()->associate($detail)->save();
+
+        // Sync Factories from SIS if cust_id exists
+        if (!empty($userSis->cust_id)) {
+            try {
+                $pabriks = DB::connection('sis')
+                    ->table('sis_pelanggan_pabrik')
+                    ->where('cust_id', $userSis->cust_id)
+                    ->get();
+
+                foreach ($pabriks as $pabrik) {
+                    \App\Models\Db1\PelangganPabrik::updateOrCreate(
+                        [
+                            'pelanggan_id'      => $pelanggan->id,
+                            'sis_perusahaan_id' => $pabrik->pabrik_id,
+                        ],
+                        [
+                            'nama_pabrik'     => $pabrik->pabrik_nama ?: $userSis->cust_nama . ' Factory',
+                            'alamat_pabrik'   => $pabrik->pabrik_alamat,
+                            'provinsi_id'     => $pabrik->prov_id,
+                            'kabupaten_id'    => $pabrik->kab_id,
+                            'kecamatan_id'    => $pabrik->kec_id,
+                            'kontak_pabrik'   => $pabrik->pabrik_nomor_telp ?: $pabrik->pabrik_nomor_hp,
+                            'jumlah_karyawan' => $pabrik->pabrik_jumlah_karyawan ?: 0,
+                            'luas_fasilitas'  => $pabrik->pabrik_luas_bangunan ?: $pabrik->pabrik_luas_tanah,
+                        ]
+                    );
+                }
+            } catch (Exception $e) {
+                $this->warn("Skipping factory sync for cust_id {$userSis->cust_id}: " . $e->getMessage());
+            }
+        }
     }
 }

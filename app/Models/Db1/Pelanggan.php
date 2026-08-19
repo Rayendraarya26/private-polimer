@@ -30,4 +30,13 @@ class Pelanggan extends Model
         return $this->belongsTo(SysUser::class, 'user_id');
     }
 
+    public function pabrik(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PelangganPabrik::class, 'pelanggan_id');
+    }
+
+    public function sertifikasi(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PelangganSertifikasi::class, 'pelanggan_id');
+    }
 }

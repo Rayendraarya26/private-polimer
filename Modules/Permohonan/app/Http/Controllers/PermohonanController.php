@@ -261,10 +261,11 @@ class PermohonanController extends Controller
 
 
         $itemBayar = match(true) {
-            str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
-            str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
-            str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
-            default                                             => 'Biaya Layanan',
+            str_starts_with($permohonan->no_permohonan, 'CERT') => 'Biaya Sertifikasi Produk & Sistem (SPPT SNI)',
+            str_starts_with($permohonan->no_permohonan, 'LSP')  => 'Biaya Sertifikasi Profesi (LSP)',
+            str_starts_with($permohonan->no_permohonan, 'REG')  => 'Biaya Pelatihan Reguler',
+            str_starts_with($permohonan->no_permohonan, 'UMK')  => 'Biaya Pelatihan UMK',
+            default                                              => 'Biaya Layanan',
         };
 
 
@@ -468,9 +469,10 @@ class PermohonanController extends Controller
 
 
                 $itemBayar = match(true) {
-                    str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
-                    str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
-                    str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
+                    str_starts_with($permohonan->no_permohonan, 'CERT') => 'Biaya Sertifikasi Produk & Sistem (SPPT SNI)',
+                    str_starts_with($permohonan->no_permohonan, 'LSP')  => 'Biaya Sertifikasi Profesi (LSP)',
+                    str_starts_with($permohonan->no_permohonan, 'REG')  => 'Biaya Pelatihan Reguler',
+                    str_starts_with($permohonan->no_permohonan, 'UMK')  => 'Biaya Pelatihan UMK',
                     default => 'Biaya Layanan',
                 };
 

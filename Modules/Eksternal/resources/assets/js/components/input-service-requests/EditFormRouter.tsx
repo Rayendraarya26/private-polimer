@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import api from "../../utils/api"
 import EditFormPelatihan from "./EditFormPelatihan"
 import EditFormLSP from "./EditFormLSP"
+import EditFormSertifikasi from "./EditFormSertifikasi"
 import Head from "../common/Head"
 import { Card, CardContent } from "../ui/Card"
 import { Button } from "../ui/Button"
@@ -54,6 +55,11 @@ const EditFormRouter: React.FC = () => {
   // FORM LSP
   if (normalizedType.includes("formlsp")) {
     return <EditFormLSP />
+  }
+
+  // FORM SERTIFIKASI
+  if (normalizedType.includes("formsertifikasi")) {
+    return <EditFormSertifikasi />
   }
 
   // FALLBACK

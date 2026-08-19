@@ -20,6 +20,7 @@ use Modules\Eksternal\Http\Controllers\Api\RegionController;
 use Modules\Eksternal\Http\Controllers\Api\PermohonanController;
 use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
+use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -147,6 +148,15 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}', [LSPController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [LSPController::class, 'ajukanUlang']);
             Route::delete('/{id}', [LSPController::class, 'destroy']);
+        });
+
+        Route::prefix('sertifikasi')->group(function () {
+            Route::get('/skema', [SertifikasiController::class, 'getSkemaSertifikasi']);
+            Route::post('/', [SertifikasiController::class, 'store']);
+            Route::get('/{id}', [SertifikasiController::class, 'show']);
+            Route::post('/{id}', [SertifikasiController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
+            Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
         });
     });
    

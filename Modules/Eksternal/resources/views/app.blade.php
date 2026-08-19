@@ -9,6 +9,7 @@
           rel="stylesheet">
     <meta name="recaptcha-site-key" content="{{ config('google.recaptcha.site_key') }}" />
 
+    <link rel="shortcut icon" href="{{ asset('assets/media/logos/favicon.ico') }}" />
     @viteReactRefresh
     @vite(['Modules/Eksternal/resources/assets/js/styles/app.css', 'Modules/Eksternal/resources/assets/js/app.tsx'])
 

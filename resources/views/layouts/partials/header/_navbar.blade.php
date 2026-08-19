@@ -16,6 +16,7 @@
              data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
              data-kt-menu-attach="parent"
              data-kt-menu-placement="bottom-end">
+             
             <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->temporaryUrl(auth()->user()->picture, now()->addMinute()) }}"
                  class="rounded-3" alt="user"/>
         </div>

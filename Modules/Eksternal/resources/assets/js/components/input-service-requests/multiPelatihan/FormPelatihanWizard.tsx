@@ -28,9 +28,7 @@ interface Props {
 const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
   const MAX_SIZE = 3 * 1024 * 1024
   const { profile } = useProfile()
-  const detail = profile?.detail
-  const jenisPelanggan = detail?.type
-  const isInstansi = jenisPelanggan !== ProfileClientType.PERORANGAN
+  const isInstansi = profile?.detail?.type !== ProfileClientType.PERORANGAN
 
   const { submitting, createPendaftaran } = usePelatihan()
   const { createPendaftaran: createPendaftaranLSP } = useLSP()
@@ -42,18 +40,22 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
   const [sharedData, setSharedData] = useState<SharedData>(initialSharedData)
 
   useEffect(() => {
+    if (!profile) return
+    const detail = profile.detail
     if (!detail) return
+    const jenisPelanggan = detail.type
+
     if (jenisPelanggan === ProfileClientType.PERORANGAN) {
       setParticipants([
         {
           ...emptyParticipant(0),
-          nama_lengkap: detail.nama || "",
+          nama_lengkap: detail.nama || profile.name || "",
           gender: detail.jenis_kelamin || "",
           tempat_lahir: detail.tempat_lahir || "",
           tanggal_lahir: detail.tanggal_lahir || "",
           pendidikan: detail.pendidikan_terakhir || "",
           whatsapp: detail.whatsapp || "",
-          email: detail.surel || "",
+          email: detail.surel || profile.email || "",
           nik_peserta: detail.nik ? String(detail.nik) : "",
           alamat_peserta: detail.alamat || "",
         },
@@ -64,8 +66,16 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
         nama_instansi: detail.nama || "",
         alamat_instansi: detail.alamat || "",
       }))
+      setParticipants([
+        {
+          ...emptyParticipant(0),
+          nama_lengkap: profile.name || detail.nama || "",
+          email: profile.email || detail.surel || "",
+          whatsapp: detail.whatsapp || "",
+        },
+      ])
     }
-  }, [detail, jenisPelanggan])
+  }, [profile])
 
   const validateFileSize = (
     file: File | null | undefined,
@@ -314,11 +324,12 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
           nextId={nextId}
           setNextId={setNextId}
           isInstansi={isInstansi}
-          detail={detail}
-          jenisPelanggan={jenisPelanggan}
+          detail={profile?.detail}
+          jenisPelanggan={profile?.detail?.type}
           activeId={activeId}
           setActiveId={setActiveId}
           onNext={goNext}
+          profile={profile}
         />
       )}
 
@@ -328,8 +339,8 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
           setSharedData={setSharedData}
           participants={participants}
           setParticipants={setParticipants}
-          jenisPelanggan={jenisPelanggan}
-          detail={detail}
+          jenisPelanggan={profile?.detail?.type}
+          detail={profile?.detail}
           participantCount={participants.length}
           submitting={submitting}
           kapabilitas={kapabilitas}

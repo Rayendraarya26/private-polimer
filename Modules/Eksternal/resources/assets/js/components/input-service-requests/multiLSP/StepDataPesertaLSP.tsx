@@ -16,6 +16,7 @@ interface Props {
   activeId: number
   setActiveId: React.Dispatch<React.SetStateAction<number>>
   onNext: () => void
+  profile?: any
 }
 
 const StepDataPesertaLSP: React.FC<Props> = ({
@@ -29,8 +30,9 @@ const StepDataPesertaLSP: React.FC<Props> = ({
   activeId,
   setActiveId,
   onNext,
+  profile,
 }) => {
-  const [pilihanProfil, setPilihanProfil] = useState<Record<number, string>>({})
+  const [pilihanProfil, setPilihanProfil] = useState<Record<number, string>>({ 0: "saya" })
 
   const addParticipant = () => {
     const newP = emptyParticipantLSP(nextId)
@@ -100,6 +102,20 @@ const StepDataPesertaLSP: React.FC<Props> = ({
         )
       )
       if (!pj_nama) toast.error("Nama Penanggung Jawab kosong di profil.")
+    } else if (val === "saya") {
+      const { whatsapp } = detail || {}
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id !== id
+            ? p
+            : {
+                ...p,
+                nama_lengkap: profile?.name || detail?.nama || "",
+                email: profile?.email || detail?.surel || "",
+                whatsapp: whatsapp || "",
+              }
+        )
+      )
     } else {
       setParticipants((prev) =>
         prev.map((p) =>

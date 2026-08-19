@@ -31,10 +31,26 @@ class UserController extends Controller
 
         return Cache::remember($cacheKey, 5 * 60, function () use ($request) {
             // selected Group
-            $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first();
+            $groupData = $request->user()->sys_user_groups->where('is_default', 'yes')->first()
+                ?? $request->user()->sys_user_groups->first();
 
-            $isPelanggan = $groupData->group_id === SysGroup::PELANGGAN->value;
-            $detail = $isPelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : $this->extractDetailPegawai($request->user()->pegawai ?? Pegawai::create(['user_id' => $request->user()->id]));
+            $isPelanggan = $groupData && $groupData->group_id === SysGroup::PELANGGAN->value;
+            $detail = null;
+
+            if ($isPelanggan) {
+                $detail = $request->user()->pelanggan ? $this->extractDetailPelanggan($request->user()->pelanggan) : [];
+            } else {
+                $detail = $this->extractDetailPegawai($request->user()->pegawai ?? Pegawai::create(['user_id' => $request->user()->id]));
+            }
+
+            $picture = null;
+            if (!empty($request->user()->picture)) {
+                try {
+                    $picture = Storage::disk('s3')->temporaryUrl($request->user()->picture, now()->addWeek());
+                } catch (\Throwable $e) {
+                    $picture = asset('storage/' . $request->user()->picture);
+                }
+            }
 
             return responseJSON("success", [
                 'id'                    => $request->user()->id,
@@ -42,32 +58,43 @@ class UserController extends Controller
                 'email'                 => $request->user()->email,
                 'nip'                   => $request->user()->nip,
                 'force_update_password' => $request->user()->force_update_password,
-                'picture'               => Storage::disk('s3')->temporaryUrl($request->user()->picture, now()->addWeek()),
+                'picture'               => $picture,
                 'last_login'            => $request->user()->last_login,
                 'group'                 => [
-                    'id'   => $groupData->group_id,
-                    'name' => $groupData->sys_group->name,
+                    'id'   => $groupData?->group_id,
+                    'name' => $groupData?->sys_group?->name,
                 ],
                 'detail'                => $detail,
             ]);
         });
     }
 
-    private function extractDetailPegawai(Pegawai $pegawai)
+    private function extractDetailPegawai(?Pegawai $pegawai)
     {
+        if (!$pegawai) {
+            return [
+                'nik'      => null,
+                'whatsapp' => null,
+            ];
+        }
+
         return [
             'nik'      => $pegawai->nik,
             'whatsapp' => $pegawai->whatsapp,
         ];
     }
 
-    private function extractDetailPelanggan(Pelanggan $pelanggan)
+    private function extractDetailPelanggan(?Pelanggan $pelanggan)
     {
+        if (!$pelanggan) {
+            return [];
+        }
+
         $detail = [
             'type' => $pelanggan->jenis_pelanggan,
         ];
 
-        $d      = $pelanggan->detail->toArray();
+        $d      = $pelanggan->detail ? $pelanggan->detail->toArray() : [];
         $detail = array_merge($detail, $d);
         Arr::forget($detail, ['id', 'pelanggan_id', 'created_at', 'updated_at']);
 
@@ -91,7 +118,11 @@ class UserController extends Controller
         // Generate temporary URLs for documents
         foreach ($documents as $document) {
             if (!empty($d[$document])) {
-                $detail[$document] = Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek());
+                try {
+                    $detail[$document] = Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek());
+                } catch (\Throwable $e) {
+                    $detail[$document] = asset('storage/' . $d[$document]);
+                }
             }
         }
 

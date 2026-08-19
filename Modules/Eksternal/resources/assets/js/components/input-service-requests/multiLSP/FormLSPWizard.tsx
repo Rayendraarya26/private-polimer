@@ -24,9 +24,7 @@ interface Props {
 
 const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
   const { profile } = useProfile()
-  const detail = profile?.detail
-  const jenisPelanggan = detail?.type
-  const isInstansi = jenisPelanggan !== ProfileClientType.PERORANGAN
+  const isInstansi = profile?.detail?.type !== ProfileClientType.PERORANGAN
   const { submitting, createPendaftaran } = useLSP()
 
   const [step, setStep] = useState(0)
@@ -36,12 +34,16 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
   const [sharedData, setSharedData] = useState<SharedDataLSP>(initialSharedDataLSP)
 
   useEffect(() => {
+    if (!profile) return
+    const detail = profile.detail
     if (!detail) return
+    const jenisPelanggan = detail.type
+
     if (jenisPelanggan === ProfileClientType.PERORANGAN) {
       setParticipants([
         {
           ...emptyParticipantLSP(0),
-          nama_lengkap: detail.nama || "",
+          nama_lengkap: detail.nama || profile.name || "",
           gender: detail.jenis_kelamin || "",
           tempat_lahir: detail.tempat_lahir || "",
           tanggal_lahir: detail.tanggal_lahir || "",
@@ -49,7 +51,7 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
           nik_peserta: detail.nik ? String(detail.nik) : "",
           kewarganegaraan: detail.kewarganegaraan || "",
           whatsapp: detail.whatsapp || "",
-          email: detail.surel || "",
+          email: detail.surel || profile.email || "",
           alamat_peserta: detail.alamat || "",
         },
       ])
@@ -59,8 +61,16 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
         nama_instansi: detail.nama || "",
         alamat_instansi: detail.alamat || "",
       }))
+      setParticipants([
+        {
+          ...emptyParticipantLSP(0),
+          nama_lengkap: profile.name || detail.nama || "",
+          email: profile.email || detail.surel || "",
+          whatsapp: detail.whatsapp || "",
+        },
+      ])
     }
-  }, [detail, jenisPelanggan])
+  }, [profile])
 
   // ───────────────────────── STEP 1 VALIDATION ─────────────────────────
   const goNext = () => {
@@ -313,11 +323,12 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
           nextId={nextId}
           setNextId={setNextId}
           isInstansi={isInstansi}
-          detail={detail}
-          jenisPelanggan={jenisPelanggan}
+          detail={profile?.detail}
+          jenisPelanggan={profile?.detail?.type}
           activeId={activeId}
           setActiveId={setActiveId}
           onNext={goNext}
+          profile={profile}
         />
       )}
 
@@ -325,7 +336,7 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
         <StepDataBersamaLSP
           sharedData={sharedData}
           setSharedData={setSharedData}
-          jenisPelanggan={jenisPelanggan}
+          jenisPelanggan={profile?.detail?.type}
           participantCount={participants.length}
           submitting={submitting}
           onBack={goBack}

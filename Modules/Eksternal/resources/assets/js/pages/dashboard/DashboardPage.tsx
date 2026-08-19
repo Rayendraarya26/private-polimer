@@ -395,7 +395,7 @@ const DashboardPage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-5 py-4 text-slate-500">
-                        {getDateDisplay(item.created_at || item.tanggal_permohonan)}
+                        {getDateDisplay(item.tanggal_order || item.created_at || item.tanggal_permohonan)}
                       </td>
                       <td className="px-5 py-4">
                         {getStatusBadge(item.status_order || item.status)}

@@ -21,6 +21,7 @@ use Modules\Eksternal\Http\Controllers\Api\PermohonanController;
 use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
 use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
+use Modules\Eksternal\Http\Controllers\Api\LksClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,6 +158,11 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
             Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
+        });
+
+        Route::prefix('sertifikasi-lks')->group(function () {
+            Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
+            Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
         });
     });
    

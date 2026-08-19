@@ -11,6 +11,8 @@ use Modules\Permohonan\Http\Controllers\MasterLokasiController;
 use Modules\Permohonan\Http\Controllers\MasterJenisLayananController;
 use Modules\Permohonan\Http\Controllers\MasterLingkupLayananController;
 use Modules\Permohonan\Http\Controllers\InvoiceController;
+use Modules\Permohonan\Http\Controllers\AuditSertifikasiController;
+use Modules\Permohonan\Http\Controllers\KomiteSertifikasiController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -124,5 +126,19 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     ->name('permohonan.bulk.revisi');
     Route::post('/permohonan/bulk-reject', [PermohonanController::class, 'bulkReject'])
     ->name('permohonan.bulk.reject');
+
+    // Sertifikasi Audit & LKS Endpoints
+    Route::prefix('sertifikasi-audit')->name('permohonan.audit.')->group(function () {
+        Route::post('{permohonanId}/jadwalkan', [AuditSertifikasiController::class, 'jadwalkanAudit'])->name('jadwalkan');
+        Route::post('{auditId}/hasil', [AuditSertifikasiController::class, 'updateHasilAudit'])->name('hasil');
+        Route::post('{auditId}/lks', [AuditSertifikasiController::class, 'storeLks'])->name('lks.store');
+        Route::post('lks/{lksId}/verifikasi', [AuditSertifikasiController::class, 'verifikasiLks'])->name('lks.verifikasi');
+    });
+
+    // Sertifikasi Komite Endpoints
+    Route::prefix('sertifikasi-komite')->name('permohonan.komite.')->group(function () {
+        Route::post('{permohonanId}/jadwalkan', [KomiteSertifikasiController::class, 'jadwalkanSidang'])->name('jadwalkan');
+        Route::post('{komiteId}/rekomendasi', [KomiteSertifikasiController::class, 'simpanRekomendasi'])->name('rekomendasi');
+    });
 
 });

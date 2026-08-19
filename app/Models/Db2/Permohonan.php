@@ -79,6 +79,16 @@ class Permohonan extends Model
         return $this->hasMany(\App\Models\Db1\PelangganSertifikasi::class, 'permohonan_id');
     }
 
+    public function audit()
+    {
+        return $this->hasMany(SertifikasiAudit::class, 'permohonan_id');
+    }
+
+    public function komite()
+    {
+        return $this->hasMany(SertifikasiKomite::class, 'permohonan_id');
+    }
+
     // Asumsi model untuk sys_user adalah User
     public function creator()
     {

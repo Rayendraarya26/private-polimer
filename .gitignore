@@ -26,3 +26,5 @@ yarn-error.log
 *.log
 config/credential.json
 supervisord.*
+
+/dokumentasi

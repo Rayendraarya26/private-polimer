@@ -72,6 +72,7 @@ const FormDataPesertaLSP: React.FC<Props> = ({
             required
           >
             <option value="Manual">Input Manual (Pegawai / Calon Asesi Delegasi)</option>
+            <option value="saya">Profil Saya (Akun Login)</option>
             <option value="pimpinan">Pimpinan ({detail?.pimpinan || "Data Kosong"})</option>
             <option value="penanggung_jawab">Penanggung Jawab / PIC ({detail?.pj_nama || "Data Kosong"})</option>
           </select>

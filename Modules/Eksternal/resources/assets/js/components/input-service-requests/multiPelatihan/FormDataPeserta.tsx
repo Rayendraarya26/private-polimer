@@ -75,7 +75,8 @@ const FormDataPeserta: React.FC<Props> = ({
             className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
             required
           >
-            <option value="Manual">Input Manual (Pegawai / Perwakilan Peserta)</option>
+            <option value="Manual">Input Manual (Pegawai / Calon Asesi Delegasi)</option>
+            <option value="saya">Profil Saya (Akun Login)</option>
             <option value="pimpinan">Pimpinan ({detail?.pimpinan || "Data Kosong"})</option>
             <option value="penanggung_jawab">Penanggung Jawab / PIC ({detail?.pj_nama || "Data Kosong"})</option>
           </select>

@@ -21,23 +21,31 @@ class TteService
      */
     public function __construct()
     {
-        if (empty(config('services.tte.base_url'))) {
-            throw new Exception('TTE base url is not set');
+        // -------------------------------------------------------------------
+        // DUMMY MODE BYPASS
+        // Jika TTE_DUMMY=true di .env, inisialisasi API & pengecekan dilewati.
+        // Untuk MENGEMBALIKAN KE SEMULA (menggunakan API sungguhan), 
+        // cukup set TTE_DUMMY=false di .env atau hapus variabel tersebut.
+        // -------------------------------------------------------------------
+        if (!config('services.tte.dummy')) {
+            if (empty(config('services.tte.base_url'))) {
+                throw new Exception('TTE base url is not set');
+            }
+
+            if (empty(config('services.tte.api_key'))) {
+                throw new Exception('TTE api key is not set');
+            }
+
+            $config = Configuration::getDefaultConfiguration()
+                ->setHost(config('services.tte.base_url'))
+                ->setApiKey('X-API-KEY', config('services.tte.api_key'));
+
+            $client = new Client([
+                'timeout' => config('services.tte.timeout'),
+            ]);
+
+            $this->http = new EsignApi($client, $config);
         }
-
-        if (empty(config('services.tte.api_key'))) {
-            throw new Exception('TTE api key is not set');
-        }
-
-        $config = Configuration::getDefaultConfiguration()
-            ->setHost(config('services.tte.base_url'))
-            ->setApiKey('X-API-KEY', config('services.tte.api_key'));
-
-        $client = new Client([
-            'timeout' => config('services.tte.timeout'),
-        ]);
-
-        $this->http = new EsignApi($client, $config);
     }
 
 public function signPDF(
@@ -54,6 +62,16 @@ public function signPDF(
             'fileName' => $fileName,
             'fileSize' => strlen($fileContent),
         ]);
+
+        if (config('services.tte.dummy')) {
+            Log::info('TteService::signPDF - DUMMY MODE');
+            $path = 'dummy_tte/' . time() . '_' . $fileName;
+            \Illuminate\Support\Facades\Storage::disk('public')->put($path, $fileContent);
+            return [
+                'id' => 'dummy-esign|' . $path,
+                'file_link' => asset('storage/' . $path),
+            ];
+        }
 
         // ref_metadata dikirim sebagai base64(json) — internal service akan base64_decode
         $encodedMetadata = base64_encode(json_encode($refMetadata));
@@ -150,6 +168,15 @@ public function signPDF(
         Log::info('TteService::verifyById - Start', [
             'esign_id' => $esignId,
         ]);
+
+        if (config('services.tte.dummy') && str_starts_with($esignId, 'dummy-esign|')) {
+            Log::info('TteService::verifyById - DUMMY MODE');
+            $path = explode('|', $esignId)[1] ?? '';
+            return [
+                'id' => $esignId,
+                'file_link' => asset('storage/' . $path),
+            ];
+        }
 
         $httpClient = new Client([
             'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',

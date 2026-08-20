@@ -32,5 +32,16 @@ class AppServiceProvider extends ServiceProvider
         Passport::useClientModel(Client::class);
 
         Paginator::useBootstrapFive();
+
+        // Support temporaryUrl saat driver S3 dialihkan ke local
+        try {
+            if (config('filesystems.disks.s3.driver') === 'local') {
+                \Illuminate\Support\Facades\Storage::disk('s3')->buildTemporaryUrlsUsing(function ($path, $expiration, $options) {
+                    return asset('storage/' . $path);
+                });
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
     }
 }

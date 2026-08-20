@@ -24,11 +24,20 @@ class DashboardController extends Controller
             ->get();
 
         return responseJSON('Data Found', $slider->map(function ($item) {
+            $imageUrl = null;
+            if (!empty($item->image_path)) {
+                try {
+                    $imageUrl = Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour());
+                } catch (\Throwable $e) {
+                    $imageUrl = asset('storage/' . $item->image_path);
+                }
+            }
+
             return [
                 'description' => $item->description,
                 'order'       => $item->order,
                 'url'         => $item->link,
-                'image'       => Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour()),
+                'image'       => $imageUrl,
             ];
         }));
     }

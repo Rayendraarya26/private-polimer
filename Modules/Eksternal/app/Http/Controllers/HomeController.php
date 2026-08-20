@@ -35,7 +35,8 @@ class HomeController extends Controller
 
         foreach ($bannersObj->data as $item) {
             $banners[] = [
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                // "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url"   => asset('storage/' . $item['image_path']),
                 "title"       => $item['title'],
                 "description" => $item['description'],
                 "cta_text"    => Arr::get($item, 'cta_text', null),
@@ -54,7 +55,8 @@ class HomeController extends Controller
         foreach ($servicesObj->data as $item) {
             $services[] = [
                 "id"          => $item['id'],
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                // "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url"   => asset('storage/' . $item['image_path']),
                 "name"        => Arr::get($item, 'title'),
                 "description" => Arr::get($item, 'description'),
                 'order'       => Arr::get($item, 'order'),
@@ -68,7 +70,8 @@ class HomeController extends Controller
         $partners    = [];
         foreach ($partnersObj->data as $item) {
             $partners[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                // "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url" => asset('storage/' . $item['image_path']),
                 'order'     => $item['order']
             ];
         }

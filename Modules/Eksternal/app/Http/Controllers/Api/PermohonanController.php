@@ -104,6 +104,8 @@ class PermohonanController extends Controller
                 'status_bayar' => strtolower($item->status_bayar ?? 'belum'),
 
                 'tanggal_order' => $item->tgl_order,
+                'created_at' => $item->created_at?->toISOString() ?? (string) $item->created_at,
+                'tanggal_permohonan' => $item->created_at?->toISOString() ?? (string) $item->created_at,
                 'catatan_admin' => $item->catatan_admin,
 
                 'persentase_order' => match ($item->status_workflow) {
@@ -141,12 +143,17 @@ class PermohonanController extends Controller
 
     public function statistik(Request $request)
     {
-        $userId = Auth::id(); // WAJIB ditambahkan
+        $userId = Auth::id();
 
         $tahun = $request->get('tahun', now()->year);
 
         $query = Permohonan::where('created_by', $userId)
-            ->whereYear('tgl_order', $tahun);
+            ->where(function ($q) use ($tahun) {
+                $q->whereYear('tgl_order', $tahun)
+                  ->orWhere(function ($sub) use ($tahun) {
+                      $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
+                  });
+            });
 
         $totalAll = (clone $query)->count();
 

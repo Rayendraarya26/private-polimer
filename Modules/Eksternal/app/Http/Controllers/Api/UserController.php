@@ -62,7 +62,11 @@ class UserController extends Controller
 
         $pictureUrl = null;
         if (!empty($user->picture)) {
-            $pictureUrl = rescue(fn() => Storage::disk('s3')->temporaryUrl($user->picture, now()->addWeek()), null, false);
+            try {
+                $pictureUrl = Storage::disk('s3')->temporaryUrl($user->picture, now()->addWeek());
+            } catch (\Throwable $e) {
+                $pictureUrl = asset('storage/' . $user->picture);
+            }
         }
 
         // Map all available groups for multi-role switching
@@ -152,10 +156,14 @@ class UserController extends Controller
                 break;
         }
 
-        // Generate temporary URLs for documents safely
+        // Generate temporary URLs for documents safely with local asset fallback
         foreach ($documents as $document) {
             if (!empty($d[$document])) {
-                $detail[$document] = rescue(fn() => Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek()), null, false);
+                try {
+                    $detail[$document] = Storage::disk('s3')->temporaryUrl($d[$document], now()->addWeek());
+                } catch (\Throwable $e) {
+                    $detail[$document] = asset('storage/' . $d[$document]);
+                }
             }
         }
 

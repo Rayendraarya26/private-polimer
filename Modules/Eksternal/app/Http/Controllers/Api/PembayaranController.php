@@ -133,8 +133,17 @@ class PembayaranController extends Controller
     }
 
     try {
+        // CEK 0: Dummy Mode TTE Bypass
+        if (str_starts_with($permohonan->invoice_file, 'dummy-esign|')) {
+            $pathStr = explode('|', $permohonan->invoice_file)[1];
+            $path = storage_path('app/public/' . $pathStr);
+            if (!file_exists($path)) {
+                abort(404, 'File Invoice Dummy tidak ditemukan');
+            }
+            $pdfContent = file_get_contents($path);
+        }
         // CEK 1: Apakah file ini berupa path storage lokal (misal berakhiran .pdf)?
-        if (str_ends_with(strtolower($permohonan->invoice_file), '.pdf')) {
+        elseif (str_ends_with(strtolower($permohonan->invoice_file), '.pdf')) {
             $path = storage_path('app/public/' . $permohonan->invoice_file);
             if (!file_exists($path)) {
                 abort(404, 'File Invoice tidak ditemukan di storage lokal');
@@ -187,15 +196,24 @@ class PembayaranController extends Controller
         }
 
         try {
-            $tteService = new TteService();
-            // Asumsi kuitansi_file menyimpan esign_id dari TTE
-            $result     = $tteService->verifyById($permohonan->kuitansi_file);
+            if (str_starts_with($permohonan->kuitansi_file, 'dummy-esign|')) {
+                $pathStr = explode('|', $permohonan->kuitansi_file)[1];
+                $path = storage_path('app/public/' . $pathStr);
+                if (!file_exists($path)) {
+                    abort(404, 'File Kuitansi Dummy tidak ditemukan');
+                }
+                $pdfContent = file_get_contents($path);
+            } else {
+                $tteService = new TteService();
+                // Asumsi kuitansi_file menyimpan esign_id dari TTE
+                $result     = $tteService->verifyById($permohonan->kuitansi_file);
 
-            if (empty($result['file_link'])) {
-                abort(404, 'File Kuitansi tidak ditemukan di server');
+                if (empty($result['file_link'])) {
+                    abort(404, 'File Kuitansi tidak ditemukan di server');
+                }
+
+                $pdfContent = file_get_contents($result['file_link']);
             }
-
-            $pdfContent = file_get_contents($result['file_link']);
 
             if ($pdfContent === false || empty($pdfContent)) {
                 abort(500, 'Gagal mengambil konten PDF dari server');

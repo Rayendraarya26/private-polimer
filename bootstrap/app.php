@@ -36,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'sentry'      => SentryContext::class,
         ]);
 
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocaleMiddleware::class,
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'api/eksternal/*',
             'api/v1/payment/*',

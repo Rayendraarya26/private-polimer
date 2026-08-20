@@ -42,8 +42,14 @@ Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware([CustomAuthMiddleware::class, SentryContext::class]);
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/', [HomeController::class, 'contactUs']);
+Route::get('lang/{locale}', function ($locale) {
+    if (in_array($locale, ['id', 'en'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
 
 Route::prefix('faq')->group(function () {
     Route::get('/', [FaqController::class, 'index'])->name('faq');

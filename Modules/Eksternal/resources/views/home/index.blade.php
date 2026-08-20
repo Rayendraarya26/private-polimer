@@ -39,11 +39,33 @@
         }
 
         main {
-            gap: rem;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
         }
 
         .section-wrapper {
-            max-width: 1440px
+            max-width: 1440px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .section-wrapper {
+                padding-left: 2.5rem;
+                padding-right: 2.5rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .section-wrapper {
+                padding-left: 3.5rem;
+                padding-right: 3.5rem;
+            }
         }
 
         .navbar-nav {
@@ -150,7 +172,7 @@
             margin: 0;
             width: 100%;
             visibility: hidden;
-            overflow: visible !important;
+            overflow: hidden !important;
         }
 
         .slick-carousel-testimonials.slick-initialized {
@@ -160,6 +182,7 @@
         .slick-carousel-testimonials .slick-list {
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
 
         .slick-carousel-testimonials .slick-slide {
@@ -174,12 +197,12 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 20 !important;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             padding: 0 !important;
             border-radius: 50% !important;
-            background: rgba(20, 184, 166, 0.1) !important;
-            border: 2px solid rgba(20, 184, 166, 0.3) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid rgba(20, 184, 166, 0.5) !important;
             transition: all 0.3s ease;
             display: flex !important;
             align-items: center;
@@ -187,23 +210,23 @@
             cursor: pointer !important;
             pointer-events: auto !important;
             outline: none !important;
-            box-shadow: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
         }
 
         .slick-carousel-testimonials .slick-prev {
-            left: -70px;
+            left: 5px;
         }
 
         .slick-carousel-testimonials .slick-next {
-            right: -70px;
+            right: 5px;
         }
 
         .slick-carousel-testimonials .slick-prev:hover,
         .slick-carousel-testimonials .slick-next:hover,
         .slick-carousel-testimonials .slick-prev:focus,
         .slick-carousel-testimonials .slick-next:focus {
-            background: rgba(20, 184, 166, 0.2) !important;
-            border-color: rgba(20, 184, 166, 0.6) !important;
+            background: #14b8a6 !important;
+            border-color: #14b8a6 !important;
         }
 
         .slick-carousel-testimonials .slick-prev:before,
@@ -213,9 +236,9 @@
 
         .slick-carousel-testimonials .slick-prev svg,
         .slick-carousel-testimonials .slick-next svg {
-            width: 24px;
-            height: 24px;
-            opacity: 0.8;
+            width: 20px;
+            height: 20px;
+            opacity: 0.9;
             transition: opacity 0.3s ease;
             pointer-events: none;
         }
@@ -226,40 +249,22 @@
             pointer-events: none;
         }
 
-        .slick-carousel-testimonials .slick-prev:hover svg,
-        .slick-carousel-testimonials .slick-next:hover svg {
-            opacity: 1;
-        }
-
-        @media (max-width: 1024px) {
-            .slick-carousel-testimonials .slick-prev {
-                left: -60px;
-            }
-
-            .slick-carousel-testimonials .slick-next {
-                right: -60px;
-            }
+        .slick-carousel-testimonials .slick-prev:hover svg path,
+        .slick-carousel-testimonials .slick-next:hover svg path {
+            stroke: #ffffff !important;
         }
 
         @media (max-width: 768px) {
             .slick-carousel-testimonials .slick-prev,
             .slick-carousel-testimonials .slick-next {
-                width: 40px;
-                height: 40px;
-            }
-
-            .slick-carousel-testimonials .slick-prev {
-                left: -55px;
-            }
-
-            .slick-carousel-testimonials .slick-next {
-                right: -55px;
+                width: 36px;
+                height: 36px;
             }
 
             .slick-carousel-testimonials .slick-prev svg,
             .slick-carousel-testimonials .slick-next svg {
-                width: 20px;
-                height: 20px;
+                width: 16px;
+                height: 16px;
             }
         }
 
@@ -1211,7 +1216,7 @@
 
 @section('content')
     <nav class="navbar shadow fixed-top navbar-expand-lg navbar-light d-flex justify-content-center">
-        <div class="container-fluid w-100 section-wrapper m-0 p-0">
+        <div class="container-fluid w-100 section-wrapper">
             <a
                 class="navbar-brand logo-bg"
                 href="https://bbkkp.kemenperin.go.id"
@@ -1311,7 +1316,7 @@
         </section>
 
         <!-- Company Overview Section -->
-        <section class="company-overview-section w-100 d-flex justify-content-center">
+        <section class="company-overview-section w-100 d-flex justify-content-center overflow-hidden">
             <div class="w-100 section-wrapper d-flex flex-column">
                 <div class="company-overview-container">
                     <!-- Left Column: Logo & Description -->
@@ -1335,7 +1340,7 @@
 
         <section
             id='our-services'
-            class="w-100 d-flex justify-content-center py-5"
+            class="w-100 d-flex justify-content-center py-5 overflow-hidden"
         >
             <div class="w-100 section-wrapper">
                 <div class="services-section-wrapper">
@@ -1383,7 +1388,7 @@
 
         <!-- Registration Section -->
         <section
-            class="w-100 d-flex justify-content-center registration-section"
+            class="w-100 d-flex justify-content-center registration-section overflow-hidden"
         >
             <div class="w-100 d-flex justify-content-center">
                 <div class="section-wrapper d-flex justify-content-center">
@@ -1412,10 +1417,10 @@
         </section>
 
         <section
-            class="w-100 d-flex justify-content-center"
-            style="padding: 5rem;"
+            class="w-100 d-flex justify-content-center overflow-hidden"
+            style="padding: 4rem 0;"
         >
-            <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
+            <div class="w-100 section-wrapper d-flex flex-column gap-5 py-3">
                 <div class="fs-1 fw-bold text-center">Mitra Kami</div>
                 <div class="slick-carousel-partners">
                     @foreach($partners as $item)
@@ -1433,11 +1438,11 @@
         
         <section
             id="about-us"
-            class="w-100 d-flex justify-content-center"
+            class="w-100 d-flex justify-content-center overflow-hidden"
             style="padding: 4rem 0;"
         >
             <div class="w-100 section-wrapper">
-                <div class="w-100 row">
+                <div class="w-100 row mx-0 g-4">
                     <div class="col-12 d-flex flex-column align-items-center gap-5 pb-5">
                         <div class="fs-1 fw-bold text-center">Tentang Kami</div>
                         <img
@@ -1491,9 +1496,9 @@
         </section>
 
         <section
-            class="w-100 d-flex justify-content-center testimonials-section"
+            class="w-100 d-flex justify-content-center testimonials-section overflow-hidden"
         >
-            <div class="w-100 section-wrapper d-flex flex-column gap-5">
+            <div class="w-100 section-wrapper d-flex flex-column gap-5 position-relative">
                 <div class="testimonials-header text-center">
                     <h3 class="services-title">Ulasan dan Komentar</h3>
                     <p class="mb-0">Kepercayaan klien adalah prioritas kami. </br>Berikut pengalaman mereka bekerja dengan Jogja Industial Services</p>
@@ -1538,11 +1543,11 @@
 
         <section
             id="contact-us"
-            class="w-100 d-flex justify-content-center text-white"
-            style="padding: 2rem; background: linear-gradient(to right, #14b8a6, #0891b2);"
+            class="w-100 d-flex justify-content-center text-white overflow-hidden"
+            style="padding: 4rem 0; background: linear-gradient(to right, #14b8a6, #0891b2);"
         >
             <div class="w-100 section-wrapper">
-                <div class="w-100 row py-5">
+                <div class="w-100 row mx-0 py-3">
                     <div class="col-12 col-lg-7 d-flex flex-column gap-4">
                         <div class="fs-4 fw-bold py-4">Waspadalah terhadap penipuan yang mengatasnamakan kami</div>
                         <div class="fs-1 fw-bold">Hubungi Kami</div>

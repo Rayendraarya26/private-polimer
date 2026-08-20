@@ -31,6 +31,9 @@ class Permohonan extends Model
         'ip_address',
         'pdf_tte',
         'va',
+        'va_trx_id',
+        'va_expired_at',
+        'va_status',
         'invoice_number',
         'invoice_file',
         'kuitansi_number',
@@ -40,8 +43,9 @@ class Permohonan extends Model
     ];
 
     protected $casts = [
-        'tgl_order' => 'datetime',
-        'total_harga' => 'decimal:2'
+        'tgl_order'     => 'datetime',
+        'va_expired_at' => 'datetime',
+        'total_harga'   => 'decimal:2'
     ];
 
     public function detailPembayaran()

@@ -18,48 +18,50 @@ const PembayaranPage = lazy(() => import('./pages/service-requests/PembayaranPag
 const PelatihanPage = lazy(() => import('./pages/service-requests/PelatihanPage'))
 const EditFormRouter = lazy(() => import('./components/input-service-requests/EditFormRouter'))
 const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
+const SertifikasiPage = lazy(() => import('./pages/service-requests/SertifikasiPage'))
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route element={<PrivateLayout/>}>
-        <Route path='/dashboard' element={<DashboardPage/>}/>
-        <Route path='/notifications' element={<NotificationsPage/>}/>
-        
+      <Route element={<PrivateLayout />}>
+        <Route path='/dashboard' element={<DashboardPage />} />
+        <Route path='/notifications' element={<NotificationsPage />} />
+
         {/* Pembayaran & Tagihan */}
-        <Route path='/pembayaran' element={<PembayaranPage/>}/>
-        <Route path='/payment-history' element={<PembayaranPage/>}/>
-        <Route path='/payments/history' element={<PembayaranPage/>}/>
+        <Route path='/pembayaran' element={<PembayaranPage />} />
+        <Route path='/payment-history' element={<PembayaranPage />} />
+        <Route path='/payments/history' element={<PembayaranPage />} />
 
         {/* Survey & Feedback */}
         <Route path='/feedbacks'>
-          <Route index element={<FeedbacksPage/>}/>
-          <Route path=':uuid' element={<FeedbackDetailPage/>}/>
+          <Route index element={<FeedbacksPage />} />
+          <Route path=':uuid' element={<FeedbackDetailPage />} />
         </Route>
 
         {/* Permohonan Layanan */}
         <Route path="/permohonan">
-          <Route index element={<PermohonanPage/>}/>
-          <Route path="pelatihan" element={<PelatihanPage/>}/>
-          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
-          <Route path="edit/:id" element={<EditFormRouter/>}/>
+          <Route index element={<PermohonanPage />} />
+          <Route path="pelatihan" element={<PelatihanPage />} />
+          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
+          <Route path="edit/:id" element={<EditFormRouter />} />
+          <Route path="sertifikasi" element={<SertifikasiPage />} />
         </Route>
         <Route path="/service-requests">
-          <Route index element={<PermohonanPage/>}/>
-          <Route path="input" element={<PermohonanPage/>}/>
-          <Route path="pelatihan" element={<PelatihanPage/>}/>
-          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
-          <Route path=":id" element={<DashboardPage/>}/>
+          <Route index element={<PermohonanPage />} />
+          <Route path="input" element={<PermohonanPage />} />
+          <Route path="pelatihan" element={<PelatihanPage />} />
+          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
+          <Route path=":id" element={<DashboardPage />} />
         </Route>
 
         {/* Tanya Jawab */}
-        <Route path='/ask-questions' element={<AskQuestionsPage/>}/>
+        <Route path='/ask-questions' element={<AskQuestionsPage />} />
 
         {/* Profil & Keamanan */}
         <Route path='/profile'>
-          <Route index element={<UpdateProfilePage/>}/>
-          <Route path="update" element={<UpdateProfilePage/>}/>
-          <Route path="change-account-and-password" element={<ChangeAccountAndPasswordPage/>}/>
+          <Route index element={<UpdateProfilePage />} />
+          <Route path="update" element={<UpdateProfilePage />} />
+          <Route path="change-account-and-password" element={<ChangeAccountAndPasswordPage />} />
         </Route>
 
         <Route

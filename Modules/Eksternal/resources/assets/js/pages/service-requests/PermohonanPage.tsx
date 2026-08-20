@@ -78,10 +78,10 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     items: [
       {
         id: "sertifikasi",
-        name: "Sertifikasi Produk (LSPro)",
-        desc: "Sertifikasi tanda SNI untuk produk kulit, karet, plastik, dan helm keselamatan.",
+        name: "Sertifikasi",
+        desc: "Lembaga Sertifikasi BBSPJIKKP",
         icon: <Award className="w-6 h-6 text-indigo-600" />,
-        badge: "SNI / ISO",
+        route: "/permohonan/sertifikasi",
         isAvailable: true,
       },
       {
@@ -202,9 +202,8 @@ const PermohonanPage: React.FC = () => {
                 <div
                   key={service.id}
                   onClick={() => handleNavigate(service)}
-                  className={`group relative bg-white p-5 rounded-xl border border-slate-200/80 shadow-card transition-all duration-200 flex flex-col justify-between cursor-pointer hover:shadow-elevated hover:border-brand-300 hover:-translate-y-1 ${
-                    !service.isAvailable ? "opacity-75 hover:opacity-100" : ""
-                  }`}
+                  className={`group relative bg-white p-5 rounded-xl border border-slate-200/80 shadow-card transition-all duration-200 flex flex-col justify-between cursor-pointer hover:shadow-elevated hover:border-brand-300 hover:-translate-y-1 ${!service.isAvailable ? "opacity-75 hover:opacity-100" : ""
+                    }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2">

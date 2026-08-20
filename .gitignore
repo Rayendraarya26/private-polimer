@@ -28,3 +28,4 @@ config/credential.json
 supervisord.*
 
 /dokumentasi
+/perencanaan

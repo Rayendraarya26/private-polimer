@@ -14,7 +14,7 @@ use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\TrackingPermohonanController;
 use Modules\Eksternal\Http\Controllers\TteController;
-use Modules\Eksternal\Http\Controllers\Api\BimtekController;
+use Modules\Permohonan\Http\Controllers\BimtekController;
 use Modules\Eksternal\Http\Controllers\Api\LSPController;
 use Modules\Eksternal\Http\Controllers\Api\RegionController;
 use Modules\Eksternal\Http\Controllers\Api\PermohonanController;

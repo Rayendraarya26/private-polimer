@@ -2,20 +2,12 @@
 
 namespace App\Libraries;
 
-use BBSPJIKKP\Sdk\Esign\Api\EsignApi;
-use BBSPJIKKP\Sdk\Esign\ApiException;
-use BBSPJIKKP\Sdk\Esign\Configuration;
-use BBSPJIKKP\Sdk\Esign\Model\EsignResultResults;
-use BBSPJIKKP\Sdk\Esign\Model\SignResponseResults;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
-use SplFileObject;
 
 class TteService
 {
-    private EsignApi $http;
-
     /**
      * @throws Exception
      */
@@ -35,20 +27,45 @@ class TteService
             if (empty(config('services.tte.api_key'))) {
                 throw new Exception('TTE api key is not set');
             }
-
-            $config = Configuration::getDefaultConfiguration()
-                ->setHost(config('services.tte.base_url'))
-                ->setApiKey('X-API-KEY', config('services.tte.api_key'));
-
-            $client = new Client([
-                'timeout' => config('services.tte.timeout'),
-            ]);
-
-            $this->http = new EsignApi($client, $config);
         }
     }
 
-public function signPDF(
+    /**
+     * Cek status pendaftaran NIK pada server otoritas BSrE.
+     */
+    public function checkNIK(string $nik): bool
+    {
+        Log::info('TteService::checkNIK - Start', [
+            'nik' => substr($nik, 0, 4) . '****' . substr($nik, -4),
+        ]);
+
+        if (config('services.tte.dummy')) {
+            Log::info('TteService::checkNIK - DUMMY MODE: Always true');
+            return true;
+        }
+
+        $httpClient = $this->createHttpClient();
+
+        try {
+            $response = $httpClient->get("api/esign/nik/{$nik}");
+            $body = json_decode($response->getBody()->getContents(), true);
+
+            Log::info('TteService::checkNIK - Success', [
+                'nik'       => substr($nik, 0, 4) . '****' . substr($nik, -4),
+                'available' => (bool) ($body['results'] ?? false),
+            ]);
+
+            return (bool) ($body['results'] ?? false);
+        } catch (\Exception $e) {
+            Log::warning('TteService::checkNIK - Failed', [
+                'nik'   => substr($nik, 0, 4) . '****' . substr($nik, -4),
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    public function signPDF(
         string $nik,
         string $passphrase,
         string $refCode,
@@ -68,25 +85,14 @@ public function signPDF(
             $path = 'dummy_tte/' . time() . '_' . $fileName;
             \Illuminate\Support\Facades\Storage::disk('public')->put($path, $fileContent);
             return [
-                'id' => 'dummy-esign|' . $path,
+                'id'        => 'dummy-esign|' . $path,
                 'file_link' => asset('storage/' . $path),
             ];
         }
 
         // ref_metadata dikirim sebagai base64(json) — internal service akan base64_decode
         $encodedMetadata = base64_encode(json_encode($refMetadata));
-
-        // Buat Guzzle client khusus untuk endpoint internal esign service.
-        // $this->http adalah EsignApi (SDK), tidak punya ->post(),
-        // sehingga HTTP call dilakukan lewat client terpisah di sini.
-        $httpClient = new Client([
-            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
-            'timeout'  => config('services.tte.timeout', 60),
-            'headers'  => [
-                'X-API-KEY' => config('services.tte.api_key'),
-                'Accept'    => 'application/json',
-            ],
-        ]);
+        $httpClient = $this->createHttpClient();
 
         try {
             $response = $httpClient->post('api/esign/sign', [
@@ -120,28 +126,28 @@ public function signPDF(
                 ],
             ]);
 
-                $rawBody = $response->getBody()->getContents();
+            $rawBody = $response->getBody()->getContents();
 
-                Log::info('TteService::signPDF - Raw response', [
-                    'ref_code'    => $refCode,
-                    'status_code' => $response->getStatusCode(),
-                    'body'        => $rawBody,  // tambah ini
-                ]);
+            Log::info('TteService::signPDF - Raw response', [
+                'ref_code'    => $refCode,
+                'status_code' => $response->getStatusCode(),
+                'body'        => $rawBody,
+            ]);
 
-                $body = json_decode($rawBody, true);
+            $body = json_decode($rawBody, true);
 
-                            Log::info('TteService::signPDF - Success', [
-                    'ref_code'      => $refCode,
-                    'data_keys'     => array_keys($body['results'] ?? []),  // ← ganti 'data' → 'results'
-                    'esign_id'      => $body['results']['id']        ?? null,
-                    'has_file_link' => !empty($body['results']['file_link']),
-                ]);
+            Log::info('TteService::signPDF - Success', [
+                'ref_code'      => $refCode,
+                'data_keys'     => array_keys($body['results'] ?? []),
+                'esign_id'      => $body['results']['id'] ?? null,
+                'has_file_link' => !empty($body['results']['file_link']),
+            ]);
 
-                if (empty($body['results']['file_link'])) {  // ← ganti 'data' → 'results'
-                    throw new Exception('Internal service tidak mengembalikan file_link');
-                }
+            if (empty($body['results']['file_link'])) {
+                throw new Exception('Internal service tidak mengembalikan file_link');
+            }
 
-                return $body['results'];  // ← ganti 'data' → 'results'
+            return $body['results'];
 
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             $responseBody = $e->hasResponse()
@@ -161,7 +167,7 @@ public function signPDF(
     }
 
     /**
-     * @throws ApiException
+     * Verifikasi TTE berdasarkan ID / Reference Code.
      */
     public function verifyById(string $esignId): array
     {
@@ -173,19 +179,20 @@ public function signPDF(
             Log::info('TteService::verifyById - DUMMY MODE');
             $path = explode('|', $esignId)[1] ?? '';
             return [
-                'id' => $esignId,
-                'file_link' => asset('storage/' . $path),
+                'id'            => $esignId,
+                'layanan'       => 'POLIMER',
+                'ref_code'      => 'DUMMY-REF',
+                'file_name'     => basename($path),
+                'file_link'     => asset('storage/' . $path),
+                'date_signed'   => now()->toISOString(),
+                'esign_details' => [
+                    'summary' => 'VALID (DUMMY MODE)',
+                    'notes'   => 'Dokumen terverifikasi dalam mode simulasi pengujian lokal.',
+                ],
             ];
         }
 
-        $httpClient = new Client([
-            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
-            'timeout'  => config('services.tte.timeout', 60),
-            'headers'  => [
-                'X-API-KEY' => config('services.tte.api_key'),
-                'Accept'    => 'application/json',
-            ],
-        ]);
+        $httpClient = $this->createHttpClient();
 
         try {
             $response = $httpClient->get('api/esign/verify/id', [
@@ -219,12 +226,88 @@ public function signPDF(
     }
 
     /**
-     * @throws ApiException
+     * Verifikasi TTE berdasarkan Berkas Fisik PDF (Document Checksum).
      */
-    public function verifyByDoc($document): EsignResultResults
+    public function verifyByDoc($document): array
     {
-        $response = $this->http->verifyDocumentByDoc($document);
+        Log::info('TteService::verifyByDoc - Start');
 
-        return $response->getResults();
+        $fileName = method_exists($document, 'getClientOriginalName') 
+            ? $document->getClientOriginalName() 
+            : (is_string($document) ? basename($document) : 'dokumen.pdf');
+
+        $fileContent = is_string($document) 
+            ? file_get_contents($document) 
+            : file_get_contents($document->getRealPath());
+
+        if (config('services.tte.dummy')) {
+            Log::info('TteService::verifyByDoc - DUMMY MODE');
+            return [
+                'id'            => 'dummy-doc-verify',
+                'layanan'       => 'POLIMER',
+                'ref_code'      => 'DUMMY-DOC-REF',
+                'file_name'     => $fileName,
+                'file_link'     => asset('storage/dummy_tte/sample.pdf'),
+                'date_signed'   => now()->toISOString(),
+                'esign_details' => [
+                    'summary' => 'VALID (DUMMY MODE)',
+                    'notes'   => 'Dokumen terverifikasi dalam mode simulasi pengujian lokal.',
+                ],
+            ];
+        }
+
+        $httpClient = $this->createHttpClient();
+
+        try {
+            $response = $httpClient->post('api/esign/verify/doc', [
+                'multipart' => [
+                    [
+                        'name'     => 'signed_file',
+                        'contents' => $fileContent,
+                        'filename' => $fileName,
+                        'headers'  => ['Content-Type' => 'application/pdf'],
+                    ],
+                ],
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+
+            Log::info('TteService::verifyByDoc - Success', [
+                'file_name'     => $fileName,
+                'has_file_link' => !empty($body['results']['file_link']),
+            ]);
+
+            return $body['results'] ?? [];
+
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $responseBody = $e->hasResponse()
+                ? $e->getResponse()->getBody()->getContents()
+                : null;
+
+            $err = $responseBody ? json_decode($responseBody, true) : null;
+
+            Log::error('TteService::verifyByDoc - Failed', [
+                'file_name'  => $fileName,
+                'http_code'  => $e->getCode(),
+                'error_body' => $responseBody,
+            ]);
+
+            throw new Exception($err['message'] ?? 'Data TTE tidak ditemukan atau dokumen tidak valid');
+        }
+    }
+
+    /**
+     * Helper factory untuk Guzzle HTTP client.
+     */
+    private function createHttpClient(): Client
+    {
+        return new Client([
+            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
+            'timeout'  => config('services.tte.timeout', 60),
+            'headers'  => [
+                'X-API-KEY' => config('services.tte.api_key'),
+                'Accept'    => 'application/json',
+            ],
+        ]);
     }
 }

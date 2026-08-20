@@ -264,28 +264,18 @@ class InvoiceController extends Controller
         }
 
         try {
-            if (str_starts_with($permohonan->pdf_tte, 'dummy-esign|')) {
-                $pathStr = explode('|', $permohonan->pdf_tte)[1];
-                $path = storage_path('app/public/' . $pathStr);
-                if (!file_exists($path)) {
-                    abort(404, 'File TTE Dummy tidak ditemukan');
-                }
-                $pdfContent = file_get_contents($path);
-                $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
-            } else {
-                $tteService = new TteService();
-                $result     = $tteService->verifyById($permohonan->pdf_tte);
+            $tteService = new TteService();
+            $result     = $tteService->verifyById($permohonan->pdf_tte);
 
-                if (empty($result['file_link'])) {
-                    abort(404, 'File TTE tidak ditemukan di server');
-                }
-
-                // Download konten PDF dari S3 presigned URL
-                $pdfContent = file_get_contents($result['file_link']);
-                
-                $fileName = $result['file_name']
-                    ?? ('invoice-' . $permohonan->no_permohonan . '.pdf');
+            if (empty($result['file_link'])) {
+                abort(404, 'File TTE tidak ditemukan di server');
             }
+
+            // Download konten PDF dari S3 presigned URL
+            $pdfContent = file_get_contents($result['file_link']);
+            
+            $fileName = $result['file_name']
+                ?? ('invoice-' . $permohonan->no_permohonan . '.pdf');
 
             Log::info('InvoiceController::streamTte - Streaming PDF', [
                 'permohonan_id' => $id,

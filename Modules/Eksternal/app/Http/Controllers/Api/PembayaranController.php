@@ -49,7 +49,11 @@ class PembayaranController extends Controller
 
                     'total_tagihan' => (float) $totalTagihan,
 
-                    'status_bayar' => $item->status_bayar,
+                    'status_bayar'   => $item->status_bayar,
+                    'va'             => $item->va,
+                    'va_trx_id'      => $item->va_trx_id,
+                    'va_expired_at'  => $item->va_expired_at?->format('Y-m-d H:i:s'),
+                    'va_status'      => $item->va_status ?? 'PENDING',
 
                     // tambahan untuk kebutuhan preview invoice user
                     'invoice_number' => $item->invoice_number,
@@ -96,11 +100,16 @@ class PembayaranController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'id' => $permohonan->id,
-                    'invoice_number' => $permohonan->invoice_number,
-                    'invoice_file' => $permohonan->invoice_file,
-                    'kuitansi_number' => $permohonan->kuitansi_number,
-                    'kuitansi_file' => $permohonan->kuitansi_file,
+                    'id'                    => $permohonan->id,
+                    'va'                    => $permohonan->va,
+                    'va_trx_id'             => $permohonan->va_trx_id,
+                    'va_expired_at'         => $permohonan->va_expired_at?->format('Y-m-d H:i:s'),
+                    'va_status'             => $permohonan->va_status ?? 'PENDING',
+                    'invoice_number'        => $permohonan->invoice_number,
+                    'invoice_file'          => $permohonan->invoice_file,
+                    'kuitansi_number'       => $permohonan->kuitansi_number,
+                    'kuitansi_file'         => $permohonan->kuitansi_file,
+                    'kuitansi_generated_at' => $permohonan->kuitansi_generated_at?->format('Y-m-d H:i:s'),
                 ]
             ]);
 

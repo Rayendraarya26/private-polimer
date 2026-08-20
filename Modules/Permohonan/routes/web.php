@@ -62,6 +62,9 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
 
     Route::get('{id}/stream-tte', [InvoiceController::class, 'streamTte'])
         ->name('permohonan.invoice.stream-tte');
+
+    Route::get('layanan/{id}/inquiry-bni', [InvoiceController::class, 'inquiryBniVa'])
+        ->name('permohonan.invoice.inquiry-bni');
     
     //     Route::post(
     //     'layanan/{id}/approval-kuitansi',

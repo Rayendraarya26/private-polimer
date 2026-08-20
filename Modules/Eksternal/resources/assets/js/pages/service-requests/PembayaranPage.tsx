@@ -27,7 +27,13 @@ export type PembayaranItem = {
   tgl_order: string
   total_tagihan: number
   status_bayar: string
+  va?: string | null
+  va_trx_id?: string | null
+  va_expired_at?: string | null
+  va_status?: string | null
+  invoice_number?: string | null
   invoice_file?: string | null
+  kuitansi_number?: string | null
   kuitansi_file?: string | null
 }
 
@@ -49,7 +55,13 @@ const PembayaranPage: React.FC = () => {
         tgl_order: item.tgl_order || "-",
         total_tagihan: Number(item.total_tagihan || 0),
         status_bayar: item.status_bayar || "BELUM",
+        va: item.va || null,
+        va_trx_id: item.va_trx_id || null,
+        va_expired_at: item.va_expired_at || null,
+        va_status: item.va_status || "PENDING",
+        invoice_number: item.invoice_number || null,
         invoice_file: item.invoice_file || null,
+        kuitansi_number: item.kuitansi_number || null,
         kuitansi_file: item.kuitansi_file || null,
       }))
 
@@ -111,10 +123,19 @@ const PembayaranPage: React.FC = () => {
     },
     {
       key: "no_permohonan",
-      header: "No. Permohonan",
+      header: "No. Permohonan & BNI VA",
       sortable: true,
       render: (row) => (
-        <span className="font-semibold text-slate-900">{row.no_permohonan}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-slate-900">{row.no_permohonan}</span>
+          {row.va ? (
+            <div className="inline-flex items-center gap-1 text-xs text-primary-700 font-mono font-medium">
+              <span>VA: {row.va}</span>
+            </div>
+          ) : (
+            <span className="text-xs text-slate-400">VA: Belum terbit</span>
+          )}
+        </div>
       ),
     },
     {

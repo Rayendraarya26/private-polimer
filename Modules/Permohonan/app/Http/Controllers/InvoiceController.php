@@ -7,6 +7,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use App\Libraries\BniVaService;
 use App\Libraries\TteService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Db1\SysUser;
@@ -45,22 +46,24 @@ class InvoiceController extends Controller
                                     ?? '-';
         }
 
+        $telepon = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? '';
+        $surel   = $pelatihan?->email    ?? $lsp?->email    ?? '';
+
         return [
             'nama'     => $invoiceTargetName,
             'alamat'   => $invoiceTargetAddress,
-            'email'    => $pelatihan?->email    ?? $lsp?->email    ?? '-',
-            'whatsapp' => $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? '-',
+            'telepon'  => $telepon,
+            'surel'    => $surel,
         ];
     }
 
     private function buildDetailPembayaran(Permohonan $permohonan)
     {
-        if ($permohonan->is_split_bill) {
+        if (!$permohonan->id_pt_ins) {
             return $permohonan->detailPembayaran;
         }
 
         return \App\Models\Db2\DetailPembayaran::where('id_pt_ins', $permohonan->id_pt_ins)
-            ->whereNotNull('item_bayar')
             ->get();
     }
 
@@ -70,9 +73,12 @@ class InvoiceController extends Controller
      */
     private function buildGrupPermohonan(Permohonan $permohonan)
     {
+        if (!$permohonan->id_pt_ins) {
+            return collect([$permohonan]);
+        }
+
         return Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
             ->with(['detailPermohonan.formable', 'detailPembayaran'])
-            ->orderBy('created_at')
             ->get();
     }
 
@@ -146,9 +152,41 @@ class InvoiceController extends Controller
         $bendahara        = $this->getBendahara();
 
         $invoiceNumber = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
-        $va            = $permohonan->va ?: '-';
         $total         = $detailPembayaran->sum('subtotal');
 
+        // -------------------------------------------------------------------
+        // 1. OTOMATISASI PENERBITAN VIRTUAL ACCOUNT BANK BNI (e-Collection)
+        // -------------------------------------------------------------------
+        $va          = $permohonan->va;
+        $vaExpiredAt = $permohonan->va_expired_at;
+        $vaTrxId     = $permohonan->va_trx_id ?: $permohonan->no_permohonan;
+
+        if (empty($va) || $va === '-') {
+            try {
+                $bniService = new BniVaService();
+                $vaResult = $bniService->createBilling([
+                    'trx_id'           => $vaTrxId,
+                    'trx_amount'       => $total,
+                    'customer_name'    => $pemohon['nama'] ?? 'Pelanggan BBKKP',
+                    'customer_email'   => $pemohon['surel'] ?? '',
+                    'customer_phone'   => $pemohon['telepon'] ?? '',
+                    'datetime_expired' => now()->addDays(14),
+                    'description'      => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
+                ]);
+
+                if (!empty($vaResult['virtual_account'])) {
+                    $va          = $vaResult['virtual_account'];
+                    $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
+                }
+            } catch (\Exception $e) {
+                Log::warning('InvoiceController::approvalInvoice - Gagal create billing BNI: ' . $e->getMessage());
+                $va = $va ?: '-';
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // 2. GENERATE PDF INVOICE & PENANDATANGANAN TTE BSrE
+        // -------------------------------------------------------------------
         $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va, $total, $pemohon, $bendahara);
         $pdfContent = $pdf->output();
         $fileName   = 'invoice-' . $permohonan->no_permohonan . '.pdf';
@@ -168,7 +206,9 @@ class InvoiceController extends Controller
                 fileContent: $pdfContent,
                 fileName:    $fileName,
                 refMetadata: [
-                    'invoice_number' => $invoiceNumber,
+                    'invoice_number'  => $invoiceNumber,
+                    'virtual_account' => $va,
+                    'total_amount'    => $total,
                 ],
             );
 
@@ -178,6 +218,7 @@ class InvoiceController extends Controller
             Log::info('InvoiceController::approvalInvoice - TTE berhasil', [
                 'permohonan_id' => $id,
                 'esign_id'      => $esignId,
+                'va'            => $va,
             ]);
 
             $permohonan->update([
@@ -185,15 +226,19 @@ class InvoiceController extends Controller
                 'invoice_file'         => $esignId,   
                 'invoice_generated_at' => now(),
                 'va'                   => $va,
+                'va_trx_id'            => $vaTrxId,
+                'va_expired_at'        => $vaExpiredAt ?: now()->addDays(14),
+                'va_status'            => 'ACTIVE',
                 'pdf_tte'              => $esignId,   
             ]);
 
             $verifyUrl = route('permohonan.invoice.download-tte', ['id' => $permohonan->id]);
 
             return response()->json([
-                'success'    => true,
-                'message'    => 'Invoice berhasil ditandatangani secara elektronik',
-                'verify_url' => $verifyUrl,  // digunakan JS untuk tombol "Lihat Invoice TTE"
+                'success'         => true,
+                'message'         => 'Invoice & BNI Virtual Account berhasil diterbitkan secara elektronik',
+                'virtual_account' => $va,
+                'verify_url'      => $verifyUrl,
             ]);
 
         } catch (\Exception $e) {
@@ -203,6 +248,31 @@ class InvoiceController extends Controller
             ]);
 
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Endpoint Inquiry Status BNI VA untuk pengecekan manual oleh Bendahara/Admin.
+     */
+    public function inquiryBniVa($id)
+    {
+        $permohonan = Permohonan::findOrFail($id);
+        $trxId = $permohonan->va_trx_id ?: $permohonan->no_permohonan;
+
+        try {
+            $bniService = new BniVaService();
+            $result = $bniService->inquiryBilling($trxId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status BNI VA berhasil diambil',
+                'data'    => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 

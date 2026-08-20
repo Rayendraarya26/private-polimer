@@ -155,15 +155,15 @@ class BniWebhookController extends Controller
             ], 500);
         }
 
-        // 6. Auto-Generate Kuitansi Lunas & Penandatanganan TTE BSrE
-        $this->generateKwitansiDigital($permohonan, $paymentAmount);
+        // 6. Asynchronous Auto-Generate Kuitansi Lunas & SIS Sync via Queue Job
+        \App\Jobs\GenerateKwitansiDigitalJob::dispatch($permohonan->id, $paymentAmount);
 
         // 7. Kirim Notifikasi Sistem ke Pelanggan
         try {
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Pembayaran Berhasil Diterima',
-                'content' => 'Pembayaran Virtual Account BNI untuk no. permohonan ' . $permohonan->no_permohonan . ' telah lunas. Kuitansi resmi telah diterbitkan.',
+                'content' => 'Pembayaran Virtual Account BNI untuk no. permohonan ' . $permohonan->no_permohonan . ' telah lunas. Kuitansi resmi sedang diproses dan diterbitkan.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);
@@ -175,73 +175,5 @@ class BniWebhookController extends Controller
             'status'  => '000',
             'message' => 'Payment processed successfully',
         ]);
-    }
-
-    /**
-     * Otomatisasi pembuatan dan penandatanganan dokumen Kuitansi Lunas Digital.
-     */
-    private function generateKwitansiDigital(Permohonan $permohonan, float $totalBayar): void
-    {
-        try {
-            $permohonan->load(['detailPembayaran', 'formPelatihan', 'formLsp']);
-
-            $detailPembayaran = $permohonan->detailPembayaran;
-            $grupPermohonan   = $permohonan->id_pt_ins 
-                ? Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)->with('detailPembayaran')->get()
-                : collect([$permohonan]);
-
-            $total = $totalBayar > 0 ? $totalBayar : (float) $detailPembayaran->sum('subtotal');
-            $kuitansiNumber = $permohonan->kuitansi_number ?: ($permohonan->no_permohonan . '/KWT');
-
-            $bendahara = SysUser::whereIn('id', function ($query) {
-                $query->select('user_id')
-                    ->from('sys_user_group')
-                    ->where('group_id', \App\Enums\SysGroup::BENDAHARA->value);
-            })->first();
-
-            $pemohon = [
-                'nama'   => $permohonan->formPelatihan?->first()?->nama_lengkap ?? $permohonan->formLsp?->first()?->nama_lengkap ?? 'Pelanggan BBKKP',
-                'alamat' => $permohonan->formPelatihan?->first()?->alamat_peserta ?? $permohonan->formLsp?->first()?->alamat_peserta ?? '-',
-            ];
-
-            // Render PDF Kuitansi
-            $pdf = Pdf::loadView('permohonan::layanan.kuitansi', [
-                'permohonan'       => $permohonan,
-                'detailPembayaran' => $detailPembayaran,
-                'grupPermohonan'   => $grupPermohonan,
-                'kuitansiNumber'   => $kuitansiNumber,
-                'total'            => $total,
-                'pemohon'          => $pemohon,
-                'bendahara'        => $bendahara,
-            ])
-            ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'defaultFont'          => 'sans-serif',
-                'isRemoteEnabled'      => true,
-                'isHtml5ParserEnabled' => true,
-            ]);
-
-            $pdfContent = $pdf->output();
-            $fileName   = 'kuitansi-' . $permohonan->no_permohonan . '.pdf';
-            $filePath   = 'kuitansi/' . $fileName;
-
-            // Simpan berkas lokal
-            Storage::disk('public')->put($filePath, $pdfContent);
-
-            $permohonan->update([
-                'kuitansi_number'       => $kuitansiNumber,
-                'kuitansi_file'         => $filePath,
-                'kuitansi_generated_at' => now(),
-            ]);
-
-            Log::info('BniWebhookController::generateKwitansiDigital - Kwitansi created', [
-                'permohonan_id'   => $permohonan->id,
-                'kuitansi_number' => $kuitansiNumber,
-                'file_path'       => $filePath,
-            ]);
-
-        } catch (\Throwable $e) {
-            Log::error('BniWebhookController::generateKwitansiDigital - Error: ' . $e->getMessage());
-        }
     }
 }

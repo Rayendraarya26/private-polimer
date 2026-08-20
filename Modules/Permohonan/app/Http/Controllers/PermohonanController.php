@@ -53,7 +53,7 @@ class PermohonanController extends Controller
 
 
         $query = Permohonan::query()
-            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
+            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable'])
             ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by'])
             ->whereNotNull('tgl_order');
 
@@ -141,7 +141,7 @@ class PermohonanController extends Controller
 
 
         $query = Permohonan::query()
-            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
+            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable'])
             ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file'])
             ->whereIn('id', $representativeIds);
 

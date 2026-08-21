@@ -23,18 +23,20 @@ class GroupSeeder extends Seeder
         ];
 
         foreach ($data_group as $group) {
-            SysGroup::query()->create([
-                'id' => $group['id'],
-                'name' => $group['name'],
-                'desc' => $group['desc'],
-                'is_active' => $group['is_active'],
-            ]);
+            SysGroup::query()->firstOrCreate(
+                ['id' => $group['id']],
+                [
+                    'name' => $group['name'],
+                    'desc' => $group['desc'],
+                    'is_active' => $group['is_active'],
+                ]
+            );
         }
 
         // Insert All Permission to root user
         $data = SysMenuAction::all();
         foreach ($data as $d) {
-            SysGroupPermission::query()->create([
+            SysGroupPermission::query()->firstOrCreate([
                 'group_id' => \App\Enums\SysGroup::ROOT,
                 'action_id' => $d->id,
             ]);
@@ -47,7 +49,7 @@ class GroupSeeder extends Seeder
         ])->get();
 
         foreach ($invoiceActions as $action) {
-            SysGroupPermission::query()->create([
+            SysGroupPermission::query()->firstOrCreate([
                 'group_id'  => \App\Enums\SysGroup::BENDAHARA,
                 'action_id' => $action->id,
             ]);

@@ -27,11 +27,12 @@ class SertifikasiController extends Controller
     public function getSkemaSertifikasi(): JsonResponse
     {
         $jenis = MasterJenisLayanan::where('slug', 'sertifikasi')
-            ->orWhere('jenis_layanan', 'LIKE', '%Sertifikasi%')
+            ->orWhere('slug', 'sertifikasi-produk-sistem')
+            ->orWhere('jenis_layanan', 'Sertifikasi Produk & Sistem')
             ->first();
 
         if (!$jenis) {
-            return response()->json(['success' => false, 'message' => 'Jenis layanan sertifikasi tidak ditemukan'], 404);
+            return response()->json(['success' => false, 'message' => 'Jenis layanan sertifikasi produk & sistem tidak ditemukan'], 404);
         }
 
         $skema = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
@@ -53,48 +54,61 @@ class SertifikasiController extends Controller
         DB::beginTransaction();
 
         try {
-            $validated = $request->validate([
-                'aksi'                    => 'required|in:draft,ajukan',
-                'skema_id'                => 'required|uuid',
-                'tipe_pengajuan'          => 'required|in:BARU,PERPANJANG,PERUBAHAN,SURVEILANS',
-                'referensi_sertifikasi_id'=> 'nullable|uuid',
-                'nama_perusahaan'         => 'required|string|max:255',
-                'alamat_kantor'           => 'required|string',
-                'kontak_person'           => 'nullable|string|max:255',
-                'no_telp'                 => 'nullable|string|max:50',
-                'no_whatsapp'             => 'required|string|max:50',
-                'email'                   => 'required|email|max:255',
-                'setuju_syarat'           => 'required',
+            $isMulti = $request->has('pengajuan') && is_array($request->input('pengajuan'));
 
-                // Multi-Factory
-                'pabrik'                  => 'required|array|min:1',
-                'pabrik.*.nama_pabrik'    => 'required|string|max:255',
-                'pabrik.*.alamat_pabrik'  => 'required|string',
-                'pabrik.*.provinsi_id'    => 'nullable|string',
-                'pabrik.*.kabupaten_id'   => 'nullable|string',
-                'pabrik.*.kecamatan_id'   => 'nullable|string',
-                'pabrik.*.kontak_pabrik'  => 'nullable|string|max:100',
-                'pabrik.*.email_pabrik'   => 'nullable|email|max:255',
-                'pabrik.*.jumlah_karyawan'=> 'nullable|integer',
-                'pabrik.*.luas_fasilitas' => 'nullable|string|max:100',
+            if ($isMulti) {
+                $validated = $request->validate([
+                    'aksi'                    => 'required|in:draft,ajukan',
+                    'nama_perusahaan'         => 'required|string|max:255',
+                    'nomor_akta_pendirian'    => 'nullable|string|max:255',
+                    'nama_pemilik'            => 'nullable|string|max:255',
+                    'nama_pimpinan'           => 'nullable|string|max:255',
+                    'nama_wakil_manajemen'    => 'nullable|string|max:255',
+                    'alamat_kantor'           => 'required|string',
+                    'kontak_person'           => 'nullable|string|max:255',
+                    'no_telp'                 => 'nullable|string|max:50',
+                    'no_whatsapp'             => 'required|string|max:50',
+                    'email'                   => 'required|email|max:255',
+                    'setuju_syarat'           => 'required',
 
-                // Multi-Item Commodities / Products
-                'items'                   => 'required|array|min:1',
-                'items.*.komoditi_id'     => 'nullable|integer',
-                'items.*.nama_produk'     => 'required|string|max:255',
-                'items.*.merk_dagang'     => 'nullable|string|max:255',
-                'items.*.tipe_jenis'      => 'nullable|string|max:255',
-                'items.*.standar_sni_iso' => 'nullable|string|max:255',
-                'items.*.ruang_lingkup'   => 'nullable|string',
-                'items.*.estimasi_tarif'  => 'nullable|numeric',
+                    // Multi-Pengajuan
+                    'pengajuan'               => 'required|array|min:1',
+                    'pengajuan.*.jenis_pengajuan'      => 'required|string',
+                    'pengajuan.*.sertifikat_lama_id'   => 'nullable|string',
+                    'pengajuan.*.sertifikat_lama_text' => 'nullable|string',
+                    'pengajuan.*.skema_id'             => 'required|uuid',
+                    'pengajuan.*.items'                => 'required|array|min:1',
+                    'pengajuan.*.items.*.nama_produk'  => 'required|string|max:255',
 
-                // Document uploads
-                'dok_legalitas'           => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-                'dok_manual_mutu'         => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-                'dok_diagram_alir'        => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-                'dok_lainnya'             => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-                'kuesioner_kelayakan'     => 'nullable|array',
-            ]);
+                    // Multi-Factory
+                    'pabrik'                  => 'required|array|min:1',
+                    'pabrik.*.nama_pabrik'    => 'required|string|max:255',
+                    'pabrik.*.alamat_pabrik'  => 'required|string',
+                ]);
+            } else {
+                $validated = $request->validate([
+                    'aksi'                    => 'required|in:draft,ajukan',
+                    'skema_id'                => 'required|uuid',
+                    'tipe_pengajuan'          => 'required|string',
+                    'referensi_sertifikasi_id'=> 'nullable|uuid',
+                    'nama_perusahaan'         => 'required|string|max:255',
+                    'alamat_kantor'           => 'required|string',
+                    'kontak_person'           => 'nullable|string|max:255',
+                    'no_telp'                 => 'nullable|string|max:50',
+                    'no_whatsapp'             => 'required|string|max:50',
+                    'email'                   => 'required|email|max:255',
+                    'setuju_syarat'           => 'required',
+
+                    // Multi-Factory
+                    'pabrik'                  => 'required|array|min:1',
+                    'pabrik.*.nama_pabrik'    => 'required|string|max:255',
+                    'pabrik.*.alamat_pabrik'  => 'required|string',
+
+                    // Multi-Item Commodities
+                    'items'                   => 'required|array|min:1',
+                    'items.*.nama_produk'     => 'required|string|max:255',
+                ]);
+            }
 
             $setuju = filter_var($request->setuju_syarat, FILTER_VALIDATE_BOOLEAN);
             $isAjukan = $validated['aksi'] === 'ajukan';
@@ -104,11 +118,6 @@ class SertifikasiController extends Controller
                     'success' => false,
                     'message' => 'Anda harus menyetujui syarat & ketentuan sertifikasi untuk mengajukan permohonan.',
                 ], 400);
-            }
-
-            $skema = MasterLingkupLayanan::find($validated['skema_id']);
-            if (!$skema) {
-                return response()->json(['success' => false, 'message' => 'Skema lingkup layanan tidak valid'], 404);
             }
 
             // Generate unique Order Number
@@ -128,88 +137,179 @@ class SertifikasiController extends Controller
                 'ip_address'      => $request->ip(),
             ]);
 
-            // 2. Handle File Uploads
-            $uploadedDocs = [];
-            if ($request->hasFile('dok_legalitas')) {
-                $uploadedDocs['dok_legalitas'] = $request->file('dok_legalitas')->store('sertifikasi/legalitas', 'public');
-            }
-            if ($request->hasFile('dok_manual_mutu')) {
-                $uploadedDocs['dok_manual_mutu'] = $request->file('dok_manual_mutu')->store('sertifikasi/mutu', 'public');
-            }
-            if ($request->hasFile('dok_diagram_alir')) {
-                $uploadedDocs['dok_diagram_alir'] = $request->file('dok_diagram_alir')->store('sertifikasi/diagram', 'public');
-            }
-            if ($request->hasFile('dok_lainnya')) {
-                $uploadedDocs['dok_lainnya'] = $request->file('dok_lainnya')->store('sertifikasi/lainnya', 'public');
-            }
-
-            // 3. Create FormSertifikasi Header
-            $form = FormSertifikasi::create([
-                'id'                      => (string) Str::uuid(),
-                'permohonan_id'           => $permohonan->id,
-                'tipe_pengajuan'          => $validated['tipe_pengajuan'],
-                'referensi_sertifikasi_id'=> $validated['referensi_sertifikasi_id'] ?? null,
-                'nama_perusahaan'         => $validated['nama_perusahaan'],
-                'alamat_kantor'           => $validated['alamat_kantor'],
-                'kontak_person'           => $validated['kontak_person'] ?? null,
-                'no_telp'                 => $validated['no_telp'] ?? null,
-                'no_whatsapp'             => $validated['no_whatsapp'],
-                'email'                   => $validated['email'],
-                'kuesioner_kelayakan'     => $request->input('kuesioner_kelayakan', []),
-                'dokumen_persyaratan'     => $uploadedDocs,
-            ]);
-
-            // 4. Create Multi-Factory Records
-            foreach ($validated['pabrik'] as $pabrikData) {
-                FormSertifikasiPabrik::create([
-                    'id'                  => (string) Str::uuid(),
-                    'form_sertifikasi_id' => $form->id,
-                    'nama_pabrik'         => $pabrikData['nama_pabrik'],
-                    'alamat_pabrik'       => $pabrikData['alamat_pabrik'],
-                    'provinsi_id'         => $pabrikData['provinsi_id'] ?? null,
-                    'kabupaten_id'        => $pabrikData['kabupaten_id'] ?? null,
-                    'kecamatan_id'        => $pabrikData['kecamatan_id'] ?? null,
-                    'kontak_pabrik'       => $pabrikData['kontak_pabrik'] ?? null,
-                    'email_pabrik'        => $pabrikData['email_pabrik'] ?? null,
-                    'jumlah_karyawan'     => $pabrikData['jumlah_karyawan'] ?? 0,
-                    'luas_fasilitas'      => $pabrikData['luas_fasilitas'] ?? null,
-                ]);
-            }
-
-            // 5. Create Multi-Item Records & calculate total estimate
+            $totalItemsCount = 0;
             $totalEstimasi = 0;
-            foreach ($validated['items'] as $itemData) {
-                $estimasi = isset($itemData['estimasi_tarif']) ? (float)$itemData['estimasi_tarif'] : 0;
-                $totalEstimasi += $estimasi;
 
-                FormSertifikasiItem::create([
-                    'id'                  => (string) Str::uuid(),
-                    'form_sertifikasi_id' => $form->id,
-                    'komoditi_id'         => $itemData['komoditi_id'] ?? null,
-                    'nama_produk'         => $itemData['nama_produk'],
-                    'merk_dagang'         => $itemData['merk_dagang'] ?? null,
-                    'tipe_jenis'          => $itemData['tipe_jenis'] ?? null,
-                    'standar_sni_iso'     => $itemData['standar_sni_iso'] ?? null,
-                    'ruang_lingkup'       => $itemData['ruang_lingkup'] ?? null,
-                    'estimasi_tarif'      => $estimasi,
+            if ($isMulti) {
+                // Process each pengajuan in array
+                foreach ($request->input('pengajuan') as $idx => $pData) {
+                    $skemaId = $pData['skema_id'];
+                    $tipePengajuan = strtoupper($pData['jenis_pengajuan'] ?? 'BARU');
+                    $refSertifikat = $pData['sertifikat_lama_text'] ?? $pData['sertifikat_lama_id'] ?? null;
+
+                    // Handle files for this pengajuan
+                    $uploadedDocs = [];
+                    if ($request->hasFile("pengajuan.{$idx}.dok_legalitas")) {
+                        $uploadedDocs['dok_legalitas'] = $request->file("pengajuan.{$idx}.dok_legalitas")->store('sertifikasi/legalitas', 'public');
+                    }
+                    if ($request->hasFile("pengajuan.{$idx}.dok_manual_mutu")) {
+                        $uploadedDocs['dok_manual_mutu'] = $request->file("pengajuan.{$idx}.dok_manual_mutu")->store('sertifikasi/mutu', 'public');
+                    }
+                    if ($request->hasFile("pengajuan.{$idx}.dok_diagram_alir")) {
+                        $uploadedDocs['dok_diagram_alir'] = $request->file("pengajuan.{$idx}.dok_diagram_alir")->store('sertifikasi/diagram', 'public');
+                    }
+                    if ($request->hasFile("pengajuan.{$idx}.dok_lainnya")) {
+                        $uploadedDocs['dok_lainnya'] = $request->file("pengajuan.{$idx}.dok_lainnya")->store('sertifikasi/lainnya', 'public');
+                    }
+
+                    // Create FormSertifikasi
+                    $form = FormSertifikasi::create([
+                        'id'                      => (string) Str::uuid(),
+                        'permohonan_id'           => $permohonan->id,
+                        'tipe_pengajuan'          => $tipePengajuan,
+                        'referensi_sertifikasi_id'=> Str::isUuid($refSertifikat) ? $refSertifikat : null,
+                        'nama_perusahaan'         => $validated['nama_perusahaan'],
+                        'alamat_kantor'           => $validated['alamat_kantor'],
+                        'kontak_person'           => $validated['kontak_person'] ?? null,
+                        'no_telp'                 => $validated['no_telp'] ?? null,
+                        'no_whatsapp'             => $validated['no_whatsapp'],
+                        'email'                   => $validated['email'],
+                        'kuesioner_kelayakan'     => [
+                            'nomor_akta_pendirian' => $validated['nomor_akta_pendirian'] ?? null,
+                            'nama_pemilik'         => $validated['nama_pemilik'] ?? null,
+                            'nama_pimpinan'        => $validated['nama_pimpinan'] ?? null,
+                            'nama_wakil_manajemen' => $validated['nama_wakil_manajemen'] ?? null,
+                            'sertifikat_lama_text' => $refSertifikat,
+                        ],
+                        'dokumen_persyaratan'     => $uploadedDocs,
+                    ]);
+
+                    // Link DetailPermohonan
+                    DetailPermohonan::create([
+                        'id'                 => (string) Str::uuid(),
+                        'permohonan_id'      => $permohonan->id,
+                        'lingkup_layanan_id' => $skemaId,
+                        'formable_id'        => $form->id,
+                        'formable_type'      => FormSertifikasi::class,
+                    ]);
+
+                    // Factory records
+                    foreach ($validated['pabrik'] as $pabrikData) {
+                        FormSertifikasiPabrik::create([
+                            'id'                  => (string) Str::uuid(),
+                            'form_sertifikasi_id' => $form->id,
+                            'nama_pabrik'         => $pabrikData['nama_pabrik'],
+                            'alamat_pabrik'       => $pabrikData['alamat_pabrik'],
+                            'provinsi_id'         => $pabrikData['provinsi_id'] ?? null,
+                            'kabupaten_id'        => $pabrikData['kabupaten_id'] ?? null,
+                            'kecamatan_id'        => $pabrikData['kecamatan_id'] ?? null,
+                            'kontak_pabrik'       => $pabrikData['kontak_pabrik'] ?? null,
+                            'email_pabrik'        => $pabrikData['email_pabrik'] ?? null,
+                            'jumlah_karyawan'     => $pabrikData['jumlah_karyawan'] ?? 0,
+                            'luas_fasilitas'      => $pabrikData['luas_fasilitas'] ?? null,
+                        ]);
+                    }
+
+                    // Product items
+                    $items = $pData['items'] ?? [];
+                    foreach ($items as $itemData) {
+                        $estimasi = isset($itemData['estimasi_tarif']) ? (float)$itemData['estimasi_tarif'] : 0;
+                        $totalEstimasi += $estimasi;
+                        $totalItemsCount++;
+
+                        FormSertifikasiItem::create([
+                            'id'                  => (string) Str::uuid(),
+                            'form_sertifikasi_id' => $form->id,
+                            'komoditi_id'         => $itemData['komoditi_id'] ?? null,
+                            'nama_produk'         => $itemData['nama_produk'],
+                            'merk_dagang'         => $itemData['merk_dagang'] ?? null,
+                            'tipe_jenis'          => $itemData['tipe_jenis'] ?? null,
+                            'standar_sni_iso'     => $itemData['standar_sni_iso'] ?? null,
+                            'ruang_lingkup'       => $itemData['ruang_lingkup'] ?? null,
+                            'estimasi_tarif'      => $estimasi,
+                        ]);
+                    }
+                }
+            } else {
+                // Fallback single mode
+                $uploadedDocs = [];
+                if ($request->hasFile('dok_legalitas')) {
+                    $uploadedDocs['dok_legalitas'] = $request->file('dok_legalitas')->store('sertifikasi/legalitas', 'public');
+                }
+                if ($request->hasFile('dok_manual_mutu')) {
+                    $uploadedDocs['dok_manual_mutu'] = $request->file('dok_manual_mutu')->store('sertifikasi/mutu', 'public');
+                }
+                if ($request->hasFile('dok_diagram_alir')) {
+                    $uploadedDocs['dok_diagram_alir'] = $request->file('dok_diagram_alir')->store('sertifikasi/diagram', 'public');
+                }
+                if ($request->hasFile('dok_lainnya')) {
+                    $uploadedDocs['dok_lainnya'] = $request->file('dok_lainnya')->store('sertifikasi/lainnya', 'public');
+                }
+
+                $form = FormSertifikasi::create([
+                    'id'                      => (string) Str::uuid(),
+                    'permohonan_id'           => $permohonan->id,
+                    'tipe_pengajuan'          => strtoupper($validated['tipe_pengajuan']),
+                    'referensi_sertifikasi_id'=> $validated['referensi_sertifikasi_id'] ?? null,
+                    'nama_perusahaan'         => $validated['nama_perusahaan'],
+                    'alamat_kantor'           => $validated['alamat_kantor'],
+                    'kontak_person'           => $validated['kontak_person'] ?? null,
+                    'no_telp'                 => $validated['no_telp'] ?? null,
+                    'no_whatsapp'             => $validated['no_whatsapp'],
+                    'email'                   => $validated['email'],
+                    'kuesioner_kelayakan'     => $request->input('kuesioner_kelayakan', []),
+                    'dokumen_persyaratan'     => $uploadedDocs,
                 ]);
+
+                DetailPermohonan::create([
+                    'id'                 => (string) Str::uuid(),
+                    'permohonan_id'      => $permohonan->id,
+                    'lingkup_layanan_id' => $validated['skema_id'],
+                    'formable_id'        => $form->id,
+                    'formable_type'      => FormSertifikasi::class,
+                ]);
+
+                foreach ($validated['pabrik'] as $pabrikData) {
+                    FormSertifikasiPabrik::create([
+                        'id'                  => (string) Str::uuid(),
+                        'form_sertifikasi_id' => $form->id,
+                        'nama_pabrik'         => $pabrikData['nama_pabrik'],
+                        'alamat_pabrik'       => $pabrikData['alamat_pabrik'],
+                        'provinsi_id'         => $pabrikData['provinsi_id'] ?? null,
+                        'kabupaten_id'        => $pabrikData['kabupaten_id'] ?? null,
+                        'kecamatan_id'        => $pabrikData['kecamatan_id'] ?? null,
+                        'kontak_pabrik'       => $pabrikData['kontak_pabrik'] ?? null,
+                        'email_pabrik'        => $pabrikData['email_pabrik'] ?? null,
+                        'jumlah_karyawan'     => $pabrikData['jumlah_karyawan'] ?? 0,
+                        'luas_fasilitas'      => $pabrikData['luas_fasilitas'] ?? null,
+                    ]);
+                }
+
+                foreach ($validated['items'] as $itemData) {
+                    $estimasi = isset($itemData['estimasi_tarif']) ? (float)$itemData['estimasi_tarif'] : 0;
+                    $totalEstimasi += $estimasi;
+                    $totalItemsCount++;
+
+                    FormSertifikasiItem::create([
+                        'id'                  => (string) Str::uuid(),
+                        'form_sertifikasi_id' => $form->id,
+                        'komoditi_id'         => $itemData['komoditi_id'] ?? null,
+                        'nama_produk'         => $itemData['nama_produk'],
+                        'merk_dagang'         => $itemData['merk_dagang'] ?? null,
+                        'tipe_jenis'          => $itemData['tipe_jenis'] ?? null,
+                        'standar_sni_iso'     => $itemData['standar_sni_iso'] ?? null,
+                        'ruang_lingkup'       => $itemData['ruang_lingkup'] ?? null,
+                        'estimasi_tarif'      => $estimasi,
+                    ]);
+                }
             }
 
-            // 6. Create DetailPermohonan (Polymorphic Link)
-            DetailPermohonan::create([
-                'id'                 => (string) Str::uuid(),
-                'permohonan_id'      => $permohonan->id,
-                'lingkup_layanan_id' => $validated['skema_id'],
-                'formable_id'        => $form->id,
-                'formable_type'      => FormSertifikasi::class,
-            ]);
-
-            // 7. Initialize DetailPembayaran placeholder
+            // DetailPembayaran
             DetailPembayaran::create([
                 'id'            => (string) Str::uuid(),
                 'id_pt_ins'     => $groupId,
                 'permohonan_id' => $permohonan->id,
-                'item_bayar'    => 'Biaya Sertifikasi Produk & Sistem (' . count($validated['items']) . ' item)',
+                'item_bayar'    => 'Biaya Sertifikasi Produk & Sistem (' . $totalItemsCount . ' item)',
                 'kode_tarif'    => null,
                 'harga_satuan'  => $totalEstimasi,
                 'kuantitas'     => 1,
@@ -218,14 +318,14 @@ class SertifikasiController extends Controller
 
             DB::commit();
 
-            // 8. Notification to Marketing & Admins
+            // Notification to Marketing
             if ($isAjukan) {
                 try {
                     $adminIds = \App\Helpers\NotifHelper::getAdminUserIds();
                     \App\Helpers\NotifHelper::notifyMany(
                         $adminIds,
                         'Permohonan Sertifikasi Baru',
-                        'Permohonan sertifikasi baru #' . $permohonan->no_permohonan . ' (' . count($validated['items']) . ' item) dari ' . $validated['nama_perusahaan'],
+                        'Permohonan sertifikasi baru #' . $permohonan->no_permohonan . ' (' . $totalItemsCount . ' item) dari ' . $validated['nama_perusahaan'],
                         route('permohonan.layanan.detail', $permohonan->id)
                     );
                 } catch (Exception $e) {
@@ -236,13 +336,13 @@ class SertifikasiController extends Controller
             return response()->json([
                 'success'       => true,
                 'message'       => $isAjukan
-                    ? 'Permohonan sertifikasi (' . count($validated['items']) . ' item) berhasil diajukan dan masuk antrean verifikasi Marketing.'
+                    ? 'Permohonan sertifikasi (' . $totalItemsCount . ' item) berhasil diajukan dan masuk antrean verifikasi Marketing.'
                     : 'Draf permohonan sertifikasi berhasil disimpan.',
                 'data'          => [
                     'permohonan_id'    => $permohonan->id,
                     'no_permohonan'    => $permohonan->no_permohonan,
                     'status_workflow'  => $permohonan->status_workflow,
-                    'total_items'      => count($validated['items']),
+                    'total_items'      => $totalItemsCount,
                     'total_pabrik'     => count($validated['pabrik']),
                 ],
             ], 201);

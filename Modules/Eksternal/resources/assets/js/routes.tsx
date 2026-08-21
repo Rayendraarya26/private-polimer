@@ -18,6 +18,7 @@ const NotificationsPage = lazy(() => import('./pages/notifications/Notifications
 const PermohonanPage = lazy(() => import('./pages/service-requests/PermohonanPage'))
 const PembayaranPage = lazy(() => import('./pages/service-requests/PembayaranPage'))
 const PelatihanPage = lazy(() => import('./pages/service-requests/PelatihanPage'))
+const SertifikasiPage = lazy(() => import('./pages/service-requests/SertifikasiPage'))
 const EditFormRouter = lazy(() => import('./components/input-service-requests/EditFormRouter'))
 const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
 const ExternalAppsPage = lazy(() => import('./pages/sso-hub/ExternalAppsPage'))
@@ -150,6 +151,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/permohonan">
           <Route index element={<PermohonanPage/>}/>
           <Route path="pelatihan" element={<PelatihanPage/>}/>
+          <Route path="sertifikasi" element={<SertifikasiPage/>}/>
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
           <Route path="edit/:id" element={<EditFormRouter/>}/>
         </Route>
@@ -157,6 +159,7 @@ const AppRoutes: React.FC = () => {
           <Route index element={<PermohonanPage/>}/>
           <Route path="input" element={<PermohonanPage/>}/>
           <Route path="pelatihan" element={<PelatihanPage/>}/>
+          <Route path="sertifikasi" element={<SertifikasiPage/>}/>
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
           <Route path=":id" element={<DashboardPage/>}/>
         </Route>

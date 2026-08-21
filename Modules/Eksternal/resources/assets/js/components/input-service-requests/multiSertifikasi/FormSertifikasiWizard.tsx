@@ -8,23 +8,22 @@ import {
   SertifikasiFormData,
   initialSertifikasiFormData,
 } from "../../../types/sertifikasi"
-import StepDataPerusahaan from "./StepDataPerusahaan"
-import StepDataPabrik from "./StepDataPabrik"
-import StepDataProduk from "./StepDataProduk"
-import StepUploadBerkas from "./StepUploadBerkas"
-import StepKonfirmasi from "./StepKonfirmasi"
-import { Check, Building2, Factory, Package, FileUp, CheckSquare } from "lucide-react"
+import { useSertifikasiSkemaQuery, useProvincesQuery } from "../../../hooks/queries/useMasterQuery"
+import Step1JenisPermohonan from "./Step1JenisPermohonan"
+import Step2KategoriDanKomoditi from "./Step2KategoriDanKomoditi"
+import Step3PerusahaanDanPabrik from "./Step3PerusahaanDanPabrik"
+import Step4PernyataanKonfirmasi from "./Step4PernyataanKonfirmasi"
+import { Layers, Package, Building2, CheckSquare, Check } from "lucide-react"
 
 const STEPS = [
-  { id: 0, title: "Data Pemohon", icon: Building2, desc: "Profil perusahaan & tipe pengajuan" },
-  { id: 1, title: "Lokasi Pabrik", icon: Factory, desc: "Fasilitas & lokasi audit sertifikasi" },
-  { id: 2, title: "Komoditi / Produk", icon: Package, desc: "Daftar produk & nomor standar SNI" },
-  { id: 3, title: "Unggah Berkas", icon: FileUp, desc: "Legalitas, manual mutu & alur proses" },
-  { id: 4, title: "Konfirmasi", icon: CheckSquare, desc: "Review rincian & kirim pengajuan" },
+  { id: 0, title: "Jenis Permohonan", icon: Layers, desc: "Baru vs perpanjangan sertifikat" },
+  { id: 1, title: "Kategori & Komoditi", icon: Package, desc: "Ruang lingkup, produk & dokumen" },
+  { id: 2, title: "Kondisi Perusahaan", icon: Building2, desc: "Legalitas PT & fasilitas pabrik" },
+  { id: 3, title: "Pernyataan & Kirim", icon: CheckSquare, desc: "Pakta integritas & konfirmasi" },
 ]
 
 interface Props {
-  skemaId: string
+  skemaId?: string
 }
 
 export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
@@ -32,12 +31,18 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
   const { profile } = useProfile()
   const detail = profile?.detail
 
+  const { data: skemaList = [] } = useSertifikasiSkemaQuery()
+  const { data: provinces = [] } = useProvincesQuery()
+
   const { submitting, createPermohonanSertifikasi } = useSertifikasi()
 
   const [step, setStep] = useState(0)
-  const [formData, setFormData] = useState<SertifikasiFormData>({
-    ...initialSertifikasiFormData,
-    skema_id: skemaId,
+  const [formData, setFormData] = useState<SertifikasiFormData>(() => {
+    const init = { ...initialSertifikasiFormData }
+    if (skemaId && init.pengajuan.length > 0) {
+      init.pengajuan[0].skema_id = skemaId
+    }
+    return init
   })
 
   // Prefill from user profile if available
@@ -45,18 +50,59 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
     if (!detail) return
     setFormData((prev) => ({
       ...prev,
-      skema_id: skemaId,
       nama_perusahaan: prev.nama_perusahaan || detail.nama || "",
+      nomor_akta_pendirian: prev.nomor_akta_pendirian || detail.no_akta_pendirian || detail.nib || "",
+      nama_pemilik: prev.nama_pemilik || detail.pemilik || "",
+      nama_pimpinan: prev.nama_pimpinan || detail.pimpinan || "",
+      nama_wakil_manajemen: prev.nama_wakil_manajemen || detail.pj_nama || "",
       alamat_kantor: prev.alamat_kantor || detail.alamat || "",
-      kontak_person: prev.kontak_person || detail.pimpinan || detail.pemilik || "",
+      kontak_person: prev.kontak_person || detail.pimpinan || detail.pemilik || detail.pj_nama || "",
       no_telp: prev.no_telp || detail.telepon || "",
-      no_whatsapp: prev.no_whatsapp || detail.whatsapp || "",
-      email: prev.email || detail.surel || profile?.user?.email || "",
+      no_whatsapp: prev.no_whatsapp || detail.whatsapp || detail.pj_whatsapp || "",
+      email: prev.email || detail.surel || profile?.email || "",
     }))
-  }, [detail, profile, skemaId])
+  }, [detail, profile])
 
-  // Step 1 Validation
+  // Step 1 Validation (Jenis Permohonan)
   const validateStep0 = () => {
+    for (let i = 0; i < formData.pengajuan.length; i++) {
+      const p = formData.pengajuan[i]
+      if (!p.jenis_pengajuan) {
+        toast.error(`Pengajuan #${i + 1}: Pilih jenis permohonan (Baru / Perpanjangan).`)
+        return false
+      }
+      if (p.jenis_pengajuan === "lama" && !p.sertifikat_lama_text?.trim()) {
+        toast.error(`Pengajuan #${i + 1}: Masukkan nomor / referensi sertifikat lama untuk perpanjangan.`)
+        return false
+      }
+    }
+    return true
+  }
+
+  // Step 2 Validation (Kategori, Komoditi & Dokumen)
+  const validateStep1 = () => {
+    for (let i = 0; i < formData.pengajuan.length; i++) {
+      const p = formData.pengajuan[i]
+      if (!p.skema_id) {
+        toast.error(`Pengajuan #${i + 1}: Pilih ruang lingkup sertifikasi.`)
+        return false
+      }
+      if (!p.items || p.items.length === 0) {
+        toast.error(`Pengajuan #${i + 1}: Minimal harus mengisi 1 item komoditi/produk.`)
+        return false
+      }
+      for (let j = 0; j < p.items.length; j++) {
+        if (!p.items[j].nama_produk?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Nama produk/komoditi wajib diisi.`)
+          return false
+        }
+      }
+    }
+    return true
+  }
+
+  // Step 3 Validation (Perusahaan & Pabrik)
+  const validateStep2 = () => {
     if (!formData.nama_perusahaan.trim()) {
       toast.error("Nama Perusahaan / Badan Usaha wajib diisi.")
       return false
@@ -65,162 +111,134 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
       toast.error("Alamat Kantor Pusat wajib diisi.")
       return false
     }
-    if (!formData.email.trim()) {
-      toast.error("Email resmi perusahaan wajib diisi.")
-      return false
-    }
     if (!formData.no_whatsapp.trim()) {
       toast.error("Nomor WhatsApp PIC wajib diisi.")
       return false
     }
-    return true
-  }
+    if (!formData.email.trim()) {
+      toast.error("Email resmi perusahaan wajib diisi.")
+      return false
+    }
 
-  // Step 2 Validation (Pabrik)
-  const validateStep1 = () => {
-    if (!formData.pabrik.length) {
-      toast.error("Minimal harus menambahkan 1 lokasi pabrik / fasilitas produksi.")
+    if (!formData.pabrik || formData.pabrik.length === 0) {
+      toast.error("Minimal harus mendaftarkan 1 lokasi fasilitas pabrik.")
       return false
     }
     for (let i = 0; i < formData.pabrik.length; i++) {
-      const p = formData.pabrik[i]
-      if (!p.nama_pabrik.trim()) {
-        toast.error(`Pabrik #${i + 1}: Nama pabrik wajib diisi.`)
+      const f = formData.pabrik[i]
+      if (!f.nama_pabrik?.trim()) {
+        toast.error(`Fasilitas Pabrik #${i + 1}: Nama pabrik wajib diisi.`)
         return false
       }
-      if (!p.alamat_pabrik.trim()) {
-        toast.error(`Pabrik #${i + 1}: Alamat pabrik wajib diisi.`)
-        return false
-      }
-    }
-    return true
-  }
-
-  // Step 3 Validation (Produk)
-  const validateStep2 = () => {
-    if (!formData.items.length) {
-      toast.error("Minimal harus mendaftarkan 1 komoditi / produk.")
-      return false
-    }
-    for (let i = 0; i < formData.items.length; i++) {
-      const it = formData.items[i]
-      if (!it.nama_produk.trim()) {
-        toast.error(`Produk #${i + 1}: Nama produk / komoditi wajib diisi.`)
-        return false
-      }
-      if (!it.standar_sni_iso?.trim()) {
-        toast.error(`Produk #${i + 1}: Standar acuan SNI/ISO wajib diisi.`)
+      if (!f.alamat_pabrik?.trim()) {
+        toast.error(`Fasilitas Pabrik #${i + 1}: Alamat pabrik wajib diisi.`)
         return false
       }
     }
     return true
   }
 
-  // Step 4 Validation (Berkas)
-  const validateStep3 = () => {
-    if (!formData.dok_legalitas) {
-      toast.error("Dokumen legalitas perusahaan (NIB / Akta) wajib diunggah.")
-      return false
-    }
-    return true
-  }
-
-  const goNext = () => {
+  const handleNext = () => {
     if (step === 0 && !validateStep0()) return
     if (step === 1 && !validateStep1()) return
     if (step === 2 && !validateStep2()) return
-    if (step === 3 && !validateStep3()) return
 
     setStep((prev) => Math.min(prev + 1, STEPS.length - 1))
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const goBack = () => {
+  const handleBack = () => {
     setStep((prev) => Math.max(prev - 1, 0))
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleSubmit = useCallback(
     async (aksi: "draft" | "ajukan") => {
-      if (aksi === "ajukan" && !formData.setuju_syarat) {
-        toast.error("Anda harus menyetujui pernyataan & ketentuan sertifikasi.")
-        return
+      if (aksi === "ajukan") {
+        if (!validateStep0() || !validateStep1() || !validateStep2()) return
+        if (!formData.setuju_syarat) {
+          toast.error("Anda harus menyetujui pakta integritas dan ketentuan layanan.")
+          return
+        }
+
+        const confirm = await Swal.fire({
+          title: "Kirim Permohonan Sertifikasi?",
+          text: `Total ${formData.pengajuan.length} pengajuan sertifikasi akan dikirim ke Tim Marketing Balai Besar untuk diverifikasi.`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#0284c7",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Ya, Kirim Sekarang!",
+          cancelButtonText: "Periksa Kembali",
+        })
+
+        if (!confirm.isConfirmed) return
       }
 
-      const confirm = await Swal.fire({
-        title: aksi === "draft" ? "Simpan Draf Permohonan?" : "Konfirmasi Pengajuan Sertifikasi",
-        text:
-          aksi === "draft"
-            ? "Draf permohonan sertifikasi akan disimpan dan dapat dilengkapi kembali nanti."
-            : `Apakah Anda yakin ingin mengajukan sertifikasi untuk ${formData.items.length} item produk ke Balai Besar Standardisasi (BBKKP)?`,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#0284c7",
-        cancelButtonColor: "#94a3b8",
-        confirmButtonText: aksi === "draft" ? "Ya, Simpan Draf" : "Ya, Ajukan Sekarang",
-        cancelButtonText: "Periksa Lagi",
-        reverseButtons: true,
-      })
-
-      if (!confirm.isConfirmed) return
-
       await createPermohonanSertifikasi(
-        {
-          ...formData,
-          skema_id: skemaId,
-          aksi,
-        },
+        { ...formData, aksi },
         () => {
-          navigate("/dashboard")
+          Swal.fire({
+            title: aksi === "ajukan" ? "Permohonan Berhasil Dikirim!" : "Draft Berhasil Disimpan!",
+            text:
+              aksi === "ajukan"
+                ? "Permohonan sertifikasi produk & sistem Anda sedang diproses dalam antrean verifikasi."
+                : "Permohonan berhasil disimpan sebagai draft di dashboard akun Anda.",
+            icon: "success",
+            confirmButtonColor: "#0284c7",
+          }).then(() => {
+            navigate("/dashboard")
+          })
         }
       )
     },
-    [formData, skemaId, createPermohonanSertifikasi, navigate]
+    [formData, createPermohonanSertifikasi, navigate]
   )
 
   return (
     <div className="space-y-6">
-      {/* Progress Stepper */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+      {/* Stepper Navigation Bar */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-soft">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
-            const isActive = step === idx
-            const isDone = step > idx
+            const isCompleted = step > idx
+            const isCurrent = step === idx
 
             return (
               <div
                 key={s.id}
                 onClick={() => {
-                  if (isDone) setStep(idx)
+                  if (idx < step) {
+                    setStep(idx)
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                  }
                 }}
-                className={`flex items-center gap-2.5 p-2.5 rounded-xl transition-all ${
-                  isDone ? "cursor-pointer" : ""
-                } ${
-                  isActive
-                    ? "bg-brand-50/80 border border-brand-200 ring-2 ring-brand-500/20"
-                    : isDone
-                    ? "bg-emerald-50/60 border border-emerald-200"
-                    : "bg-slate-50 border border-slate-200/60 opacity-60"
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                  isCurrent
+                    ? "bg-brand-50/80 border-2 border-brand-600 shadow-sm"
+                    : isCompleted
+                    ? "bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70"
+                    : "bg-transparent border border-transparent opacity-60"
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    isCompleted
+                      ? "bg-emerald-600 text-white"
+                      : isCurrent
+                      ? "bg-brand-600 text-white"
+                      : "bg-slate-200 text-slate-500"
                   }`}
                 >
-                  {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                  {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                 </div>
 
                 <div className="min-w-0">
-                  <span className="text-[9px] font-bold tracking-wider uppercase block text-slate-500">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 block uppercase">
                     Langkah {idx + 1}
                   </span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
+                  <p className="text-xs font-bold text-slate-900 truncate">{s.title}</p>
                 </div>
               </div>
             )
@@ -228,51 +246,48 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
         </div>
       </div>
 
-      {/* Step Components */}
-      {step === 0 && (
-        <StepDataPerusahaan
-          formData={formData}
-          setFormData={setFormData}
-          onNext={goNext}
-        />
-      )}
+      {/* Wizard Steps Content */}
+      <div className="transition-all duration-300">
+        {step === 0 && (
+          <Step1JenisPermohonan
+            formData={formData}
+            setFormData={setFormData}
+            onNext={handleNext}
+          />
+        )}
 
-      {step === 1 && (
-        <StepDataPabrik
-          formData={formData}
-          setFormData={setFormData}
-          onNext={goNext}
-          onBack={goBack}
-        />
-      )}
+        {step === 1 && (
+          <Step2KategoriDanKomoditi
+            formData={formData}
+            setFormData={setFormData}
+            skemaList={skemaList}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
 
-      {step === 2 && (
-        <StepDataProduk
-          formData={formData}
-          setFormData={setFormData}
-          onNext={goNext}
-          onBack={goBack}
-        />
-      )}
+        {step === 2 && (
+          <Step3PerusahaanDanPabrik
+            formData={formData}
+            setFormData={setFormData}
+            provinces={provinces}
+            regencies={[]}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
 
-      {step === 3 && (
-        <StepUploadBerkas
-          formData={formData}
-          setFormData={setFormData}
-          onNext={goNext}
-          onBack={goBack}
-        />
-      )}
-
-      {step === 4 && (
-        <StepKonfirmasi
-          formData={formData}
-          setFormData={setFormData}
-          submitting={submitting}
-          onBack={goBack}
-          onSubmit={handleSubmit}
-        />
-      )}
+        {step === 3 && (
+          <Step4PernyataanKonfirmasi
+            formData={formData}
+            setFormData={setFormData}
+            skemaList={skemaList}
+            submitting={submitting}
+            onBack={handleBack}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </div>
     </div>
   )
 }

@@ -84,4 +84,42 @@ class DashboardController extends Controller
 
         return responseJSON('Data Found', $apps);
     }
+
+    public function layanan()
+    {
+        $cacheKey = 'dashboard_layanan_list';
+
+        $result = Cache::remember($cacheKey, 3600, function () {
+            $layanan = \App\Models\Db2\MasterJenisLayanan::query()
+                ->where('is_active', 1)
+                ->orderBy('jenis_layanan')
+                ->get();
+
+            if ($layanan->isEmpty()) {
+                return [
+                    ['nama_layanan' => 'Pengujian & Kalibrasi Laboratorium', 'url' => '/permohonan'],
+                    ['nama_layanan' => 'Sertifikasi Produk & Sistem (LSPro)', 'url' => '/permohonan/sertifikasi'],
+                    ['nama_layanan' => 'Sertifikasi Profesi (LSP)', 'url' => '/permohonan/sertifikasi-profesi'],
+                    ['nama_layanan' => 'Bimbingan Teknis & Pelatihan Industri', 'url' => '/permohonan/pelatihan'],
+                ];
+            }
+
+            return $layanan->map(function ($item) {
+                $url = match ($item->slug) {
+                    'sertifikasi', 'sertifikasi-produk-sistem' => '/permohonan/sertifikasi',
+                    'sertifikasi-profesi-lsp', 'lsp'           => '/permohonan/sertifikasi-profesi',
+                    'pelatihan', 'bimtek'                     => '/permohonan/pelatihan',
+                    default                                   => '/permohonan',
+                };
+
+                return [
+                    'id'           => $item->id,
+                    'nama_layanan' => $item->jenis_layanan,
+                    'url'          => $url,
+                ];
+            })->toArray();
+        });
+
+        return responseJSON('Data Found', $result);
+    }
 }

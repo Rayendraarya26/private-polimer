@@ -15,16 +15,20 @@ class MasterJenisLayananSeeder extends Seeder
     public function run(): void
     {
         
-        $lsp = MasterJenisLayanan::create([
-            'jenis_layanan' => 'Sertifikasi Profesi (LSP)',
-            'slug'          => Str::slug('Sertifikasi Profesi (LSP)'),
-            'is_active'     => true,
-        ]);
-        $pelatihan = MasterJenisLayanan::create([
-            'jenis_layanan' => 'Pelatihan',
-            'slug'          => Str::slug('Pelatihan'),
-            'is_active'     => true,
-        ]);
+        $lsp = MasterJenisLayanan::firstOrCreate(
+            ['slug' => Str::slug('Sertifikasi Profesi (LSP)')],
+            [
+                'jenis_layanan' => 'Sertifikasi Profesi (LSP)',
+                'is_active'     => true,
+            ]
+        );
+        $pelatihan = MasterJenisLayanan::firstOrCreate(
+            ['slug' => Str::slug('Pelatihan')],
+            [
+                'jenis_layanan' => 'Pelatihan',
+                'is_active'     => true,
+            ]
+        );
         $lingkupLsp = [
             [
                 'jenis_layanan_id' => $lsp->id,
@@ -36,7 +40,10 @@ class MasterJenisLayananSeeder extends Seeder
         ];
 
         foreach ($lingkupLsp as $item) {
-            MasterLingkupLayanan::create($item);
+            MasterLingkupLayanan::firstOrCreate(
+                ['jenis_layanan_id' => $item['jenis_layanan_id'], 'slug' => $item['slug']],
+                $item
+            );
         }
         $lingkupPelatihan = [
             [
@@ -55,7 +62,10 @@ class MasterJenisLayananSeeder extends Seeder
             ],
         ];
         foreach ($lingkupPelatihan as $item) {
-            MasterLingkupLayanan::create($item);
+            MasterLingkupLayanan::firstOrCreate(
+                ['jenis_layanan_id' => $item['jenis_layanan_id'], 'slug' => $item['slug']],
+                $item
+            );
         }
     }
 }

@@ -73,24 +73,16 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "2. Sertifikasi Produk & Profesi",
-    desc: "Lembaga Sertifikasi Produk (LSPro) dan Lembaga Sertifikasi Profesi (LSP) berlisensi BNSP.",
+    title: "2. Lembaga Sertifikasi Produk & Sistem (LSPro BBKKP)",
+    desc: "Sertifikasi kesesuaian tanda SNI produk, sistem manajemen mutu ISO, dan industri hijau untuk badan usaha/pabrik.",
     items: [
       {
         id: "sertifikasi",
-        name: "Sertifikasi Produk (LSPro)",
-        desc: "Sertifikasi tanda SNI untuk produk kulit, karet, plastik, dan helm keselamatan.",
+        name: "Sertifikasi Produk & Sistem (LSPro)",
+        desc: "Sertifikasi tanda SNI untuk produk kulit, karet, plastik, ISO 9001, ISO 14001, dan Industri Hijau.",
         icon: <Award className="w-6 h-6 text-indigo-600" />,
         badge: "SNI / ISO",
-        isAvailable: true,
-      },
-      {
-        id: "sertifikasi_profesi",
-        name: "Sertifikasi Profesi (LSP)",
-        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
-        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
-        badge: "Lisensi BNSP",
-        route: "/permohonan/sertifikasi-profesi",
+        route: "/permohonan/sertifikasi",
         isAvailable: true,
       },
       {
@@ -111,7 +103,22 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "3. Pelatihan, Konsultasi & Rekayasa",
+    title: "3. Lembaga Sertifikasi Profesi (LSP BBKKP)",
+    desc: "Uji sertifikasi kompetensi profesi SDM industri terlisensi BNSP untuk perorangan dan delegasi perusahaan.",
+    items: [
+      {
+        id: "sertifikasi_profesi",
+        name: "Sertifikasi Profesi (LSP)",
+        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
+        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
+        badge: "Lisensi BNSP",
+        route: "/permohonan/sertifikasi-profesi",
+        isAvailable: true,
+      },
+    ],
+  },
+  {
+    title: "4. Pelatihan, Konsultasi & Rekayasa",
     desc: "Program peningkatan SDM industri dan asistensi teknologi manufaktur.",
     items: [
       {

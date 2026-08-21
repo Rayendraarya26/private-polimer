@@ -2,6 +2,20 @@ import { useQuery } from "@tanstack/react-query"
 import api from "../../utils/api"
 import { getSkemalsp } from "../../services/lsp"
 import { getSkemaPelatihan } from "../../services/pelatihan"
+import { getSkemaSertifikasi } from "../../services/sertifikasi"
+
+/**
+ * Hook TanStack Query untuk Daftar Skema Sertifikasi Produk & Sistem (LSPro)
+ */
+export function useSertifikasiSkemaQuery() {
+  return useQuery({
+    queryKey: ["master", "skemaSertifikasi"],
+    queryFn: async () => {
+      return await getSkemaSertifikasi()
+    },
+    staleTime: 1000 * 60 * 30,
+  })
+}
 
 /**
  * Hook TanStack Query untuk Daftar Skema Sertifikasi LSP

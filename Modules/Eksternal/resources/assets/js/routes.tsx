@@ -153,6 +153,7 @@ const AppRoutes: React.FC = () => {
           <Route path="pelatihan" element={<PelatihanPage/>}/>
           <Route path="sertifikasi" element={<SertifikasiPage/>}/>
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
+          <Route path="detail/:id" element={<EditFormRouter/>}/>
           <Route path="edit/:id" element={<EditFormRouter/>}/>
         </Route>
         <Route path="/service-requests">
@@ -161,7 +162,7 @@ const AppRoutes: React.FC = () => {
           <Route path="pelatihan" element={<PelatihanPage/>}/>
           <Route path="sertifikasi" element={<SertifikasiPage/>}/>
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage/>}/>
-          <Route path=":id" element={<DashboardPage/>}/>
+          <Route path=":id" element={<EditFormRouter/>}/>
         </Route>
 
         {/* Tanya Jawab */}

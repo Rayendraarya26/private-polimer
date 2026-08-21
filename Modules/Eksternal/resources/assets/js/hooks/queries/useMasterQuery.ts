@@ -3,6 +3,7 @@ import api from "../../utils/api"
 import { getSkemalsp } from "../../services/lsp"
 import { getSkemaPelatihan } from "../../services/pelatihan"
 import { getSkemaSertifikasi } from "../../services/sertifikasi"
+import { regionService } from "../../services/region-service"
 
 /**
  * Hook TanStack Query untuk Daftar Skema Sertifikasi Produk & Sistem (LSPro)
@@ -50,8 +51,8 @@ export function useProvincesQuery() {
   return useQuery({
     queryKey: ["master", "provinces"],
     queryFn: async () => {
-      const response = await api.get("/eksternal/regions/provinces")
-      return response.data?.data || []
+      const data = await regionService.getProvinces()
+      return Array.isArray(data) ? data : []
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 jam untuk provinsi
   })
@@ -62,8 +63,8 @@ export function useRegenciesQuery(provinceId?: string) {
     queryKey: ["master", "regencies", provinceId],
     queryFn: async () => {
       if (!provinceId) return []
-      const response = await api.get(`/eksternal/regions/regencies/${provinceId}`)
-      return response.data?.data || []
+      const data = await regionService.getRegencies(provinceId)
+      return Array.isArray(data) ? data : []
     },
     enabled: Boolean(provinceId),
     staleTime: 1000 * 60 * 60 * 24,
@@ -75,8 +76,8 @@ export function useDistrictsQuery(regencyId?: string) {
     queryKey: ["master", "districts", regencyId],
     queryFn: async () => {
       if (!regencyId) return []
-      const response = await api.get(`/eksternal/regions/districts/${regencyId}`)
-      return response.data?.data || []
+      const data = await regionService.getDistricts(regencyId)
+      return Array.isArray(data) ? data : []
     },
     enabled: Boolean(regencyId),
     staleTime: 1000 * 60 * 60 * 24,

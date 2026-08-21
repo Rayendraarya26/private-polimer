@@ -40,12 +40,18 @@ class Permohonan extends Model
         'kuitansi_file',
         'kuitansi_generated_at',
         'invoice_generated_at',
+        'is_given_feedback',
+        'feedback_json',
+        'feedback_at',
+        'file_attachment',
     ];
 
     protected $casts = [
-        'tgl_order'     => 'datetime',
-        'va_expired_at' => 'datetime',
-        'total_harga'   => 'decimal:2'
+        'tgl_order'        => 'datetime',
+        'va_expired_at'    => 'datetime',
+        'total_harga'      => 'decimal:2',
+        'feedback_json'    => 'array',
+        'file_attachment'  => 'array',
     ];
 
     public function detailPembayaran()

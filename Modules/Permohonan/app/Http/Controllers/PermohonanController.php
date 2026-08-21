@@ -75,11 +75,16 @@ class PermohonanController extends Controller
             ->editColumn('tgl_order',     fn($row) => $row->tgl_order)
             ->addColumn('user', function ($row) {
                 $detail = $row->detailPermohonan->first();
-                return $detail?->formable->nama_lengkap ?? '-';
+                return $detail?->formable->nama_perusahaan 
+                    ?? $detail?->formable->nama_lengkap 
+                    ?? $detail?->formable->nama_peserta 
+                    ?? $row->creator?->name 
+                    ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP')) return 'Sertifikasi Profesi (LSP)';
-                if (str_starts_with($row->no_permohonan, 'REG')) return 'Pelatihan';
+                if (str_starts_with($row->no_permohonan, 'REG') || str_starts_with($row->no_permohonan, 'UMK')) return 'Pelatihan';
+                if (str_starts_with($row->no_permohonan, 'CERT')) return 'Sertifikasi Produk & Sistem (LSPro)';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;

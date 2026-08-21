@@ -307,4 +307,103 @@ class PertanyaanController extends Controller
                 ->send();
         }
     }
+
+    public function adminList(Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $search = trim($request->get('search', ''));
+
+        $query = PertanyaanPelanggan::with(['pelanggan.user', 'pelanggan.detail', 'pesans.user', 'user_closed'])
+            ->orderByDesc('created_at');
+
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('topik', 'LIKE', "%{$search}%")
+                    ->orWhere('layanan', 'LIKE', "%{$search}%")
+                    ->orWhereHas('pesans', function ($sq) use ($search) {
+                        $sq->where('pesan', 'LIKE', "%{$search}%");
+                    })
+                    ->orWhereHas('pelanggan.user', function ($uq) use ($search) {
+                        $uq->where('name', 'LIKE', "%{$search}%")
+                            ->orWhere('email', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        $items = $query->get()->map(function ($item) {
+            $lastPesan = $item->pesans->last();
+            $pelangganNama = $item->pelanggan?->user?->name ?? $item->pelanggan?->detail?->nama ?? 'Pelanggan';
+            $instansi = $item->pelanggan?->detail?->nama ?? '-';
+
+            return [
+                'id'             => $item->id,
+                'no_tiket'       => 'TCK-' . strtoupper(substr($item->id, 0, 8)),
+                'pelanggan'      => $pelangganNama,
+                'instansi'       => $instansi,
+                'topik'          => $item->topik,
+                'judul'          => $item->layanan ? "Pertanyaan Layanan: {$item->layanan}" : "Topik: {$item->topik}",
+                'status'         => strtoupper($item->status),
+                'tgl_dibuat'     => $item->created_at ? $item->created_at->format('d M Y, H:i') . ' WIB' : '-',
+                'pesan_terakhir' => $lastPesan ? $lastPesan->pesan : '-',
+                'messages'       => $item->pesans->map(function ($p) {
+                    $isPelanggan = $p->pertanyaan_pelanggan && $p->pertanyaan_pelanggan->pelanggan && $p->pertanyaan_pelanggan->pelanggan->user_id === $p->created_by;
+                    return [
+                        'id'     => $p->id,
+                        'sender' => $isPelanggan ? 'PELANGGAN' : 'PETUGAS',
+                        'nama'   => $p->user?->name ?? 'Petugas Helpdesk',
+                        'waktu'  => $p->created_at ? $p->created_at->format('d M Y, H:i') . ' WIB' : '-',
+                        'isi'    => $p->pesan,
+                    ];
+                })->values()->toArray(),
+            ];
+        });
+
+        return responseJSON('Tickets Found', $items);
+    }
+
+    public function adminReply($id, Request $request)
+    {
+        $request->validate([
+            'pesan' => 'required|string',
+        ]);
+
+        $pertanyaan = PertanyaanPelanggan::findOrFail($id);
+
+        $pesan = new PertanyaanPelangganPesan();
+        $pesan->created_by    = auth()->id();
+        $pesan->pertanyaan_id = $pertanyaan->id;
+        $pesan->pesan         = $request->pesan;
+        $pesan->is_replied    = 'no';
+        $pesan->save();
+
+        PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan->id)
+            ->where('id', '!=', $pesan->id)
+            ->update(['is_replied' => 'yes']);
+
+        return responseJSON('Balasan berhasil dikirim', [
+            'id'     => $pesan->id,
+            'sender' => 'PETUGAS',
+            'nama'   => auth()->user()->name,
+            'waktu'  => $pesan->created_at->format('d M Y, H:i') . ' WIB',
+            'isi'    => $pesan->pesan,
+        ]);
+    }
+
+    public function adminClose($id, Request $request)
+    {
+        $pertanyaan = PertanyaanPelanggan::findOrFail($id);
+        $pertanyaan->status = 'closed';
+        $pertanyaan->closed_by = auth()->id();
+        $pertanyaan->save();
+
+        PertanyaanPelangganPesan::where('pertanyaan_id', $pertanyaan->id)
+            ->update(['is_replied' => 'yes']);
+
+        return responseJSON('Tiket berhasil ditutup');
+    }
 }
+

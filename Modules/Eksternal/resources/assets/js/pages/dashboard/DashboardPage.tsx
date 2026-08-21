@@ -406,7 +406,7 @@ const DashboardPage: React.FC = () => {
                           variant="outline"
                           size="sm"
                           leftIcon={<Eye className="w-3.5 h-3.5" />}
-                          onClick={() => navigate(`/service-requests/${item.id}`)}
+                          onClick={() => navigate(`/permohonan/detail/${item.id}`)}
                         >
                           Detail
                         </Button>

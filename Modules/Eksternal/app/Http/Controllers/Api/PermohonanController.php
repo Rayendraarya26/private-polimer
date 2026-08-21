@@ -34,14 +34,20 @@ class PermohonanController extends Controller
 
     public function index(Request $request)
     {
-        $userId = Auth::id();
-        $rows = min($request->get('rows', 10), 50);
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+        $rows = min($request->get('rows', 10), 100);
 
         $query = Permohonan::with([
+            'creator',
             'detailPermohonan.formable',
             'detailPermohonan.lingkupLayanan',
             'detailPembayaran'
-        ])->where('created_by', $userId);
+        ]);
+
+        if (!$isPegawai) {
+            $query->where('created_by', $user?->id);
+        }
 
         if ($request->filled('status')) {
             $query->where('status_workflow', strtoupper($request->status));
@@ -92,15 +98,32 @@ class PermohonanController extends Controller
                 ];
             })->values()->toArray();
 
+            $namaPemohon = $form?->nama_perusahaan 
+                ?? $form?->nama_lengkap 
+                ?? $form?->nama_peserta 
+                ?? $item->creator?->name 
+                ?? '-';
+
+            $layananNama = $lingkup?->lingkup;
+            if (!$layananNama) {
+                if (str_starts_with($item->no_permohonan, 'CERT')) $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
+                elseif (str_starts_with($item->no_permohonan, 'LSP')) $layananNama = 'Sertifikasi Profesi (LSP)';
+                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK')) $layananNama = 'Bimtek / Pelatihan';
+                else $layananNama = 'Layanan BBKKP';
+            }
+
+            $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
+
             return [
                 'id' => $item->id,
                 'kode_order' => $item->no_permohonan ?? '-',
+                'no_order' => $item->no_permohonan ?? '-',
 
-                // PERBAIKAN DISINI
-                'layanan' => $lingkup?->lingkup ?? '-',
+                'layanan' => $layananNama,
                 'layanan_slug' => $lingkup?->slug ?? null,
 
                 'status_order' => $statusMap,
+                'status_workflow' => $item->status_workflow,
                 'status_bayar' => strtolower($item->status_bayar ?? 'belum'),
 
                 'tanggal_order' => $item->tgl_order,
@@ -120,9 +143,11 @@ class PermohonanController extends Controller
                     default => 0
                 },
 
-                'nama' => $form?->nama_lengkap ?? '-',
-                'email' => $form?->email ?? '-',
-                'instansi' => $form?->nama_instansi ?? '-',
+                'nama' => $namaPemohon,
+                'pelanggan' => $namaPemohon,
+                'email' => $form?->email ?? $item->creator?->email ?? '-',
+                'instansi' => $form?->nama_perusahaan ?? $form?->nama_instansi ?? '-',
+                'total_tagihan' => (float)$totalNominal,
 
                 'is_given_feedback' => (bool) ($item->is_given_feedback ?? false),
 

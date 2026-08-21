@@ -87,6 +87,15 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/banner', [DashboardController::class, 'slider']);
             Route::get('/sso-hub', [DashboardController::class, 'ssoHub']);
             Route::get('/layanan', [DashboardController::class, 'layanan']);
+            Route::get('/sidebar-counts', [DashboardController::class, 'sidebarCounts']);
+        });
+
+        Route::prefix('admin')->group(function () {
+            Route::prefix('pertanyaan')->group(function () {
+                Route::get('/', [PertanyaanController::class, 'adminList']);
+                Route::post('/{id}/reply', [PertanyaanController::class, 'adminReply']);
+                Route::post('/{id}/close', [PertanyaanController::class, 'adminClose']);
+            });
         });
 
         Route::prefix('bimtek-halal')->group(function () {

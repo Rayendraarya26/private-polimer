@@ -122,4 +122,21 @@ class DashboardController extends Controller
 
         return responseJSON('Data Found', $result);
     }
+
+    public function sidebarCounts()
+    {
+        $permohonanCount = \App\Models\Db2\Permohonan::query()
+            ->whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW', 'PEMBAYARAN', 'PROCESS', 'REVISI'])
+            ->count();
+
+        $pertanyaanCount = \App\Models\Db1\PertanyaanPelanggan::query()
+            ->where('status', 'opened')
+            ->count();
+
+        return responseJSON('Counts Found', [
+            'permohonan' => $permohonanCount,
+            'pertanyaan' => $pertanyaanCount,
+        ]);
+    }
 }
+

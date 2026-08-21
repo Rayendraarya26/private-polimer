@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   ClipboardList,
@@ -97,11 +97,16 @@ const mockPermohonanList: PermohonanAdminItem[] = [
   },
 ]
 
+import api from "../../../utils/api"
+import { Loader2 } from "lucide-react"
+
 export const AdminPermohonanListPage: React.FC = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<string>("ALL")
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [permohonanList, setPermohonanList] = useState<PermohonanAdminItem[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   // Modal State
   const [modalState, setModalState] = useState<{
@@ -110,7 +115,53 @@ export const AdminPermohonanListPage: React.FC = () => {
     item?: PermohonanAdminItem
   }>({ show: false, action: null })
 
-  const filteredData = mockPermohonanList.filter((item) => {
+  useEffect(() => {
+    const fetchPermohonan = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get("/eksternal/permohonan", {
+          params: { rows: 50 },
+        })
+        const rows = res?.data?.results?.data || res?.data?.data || []
+        if (rows.length > 0) {
+          const mapped: PermohonanAdminItem[] = rows.map((r: any) => {
+            const statusStr = (r.status_workflow || r.status_order || "").toUpperCase()
+            let statusBadge: PermohonanAdminItem["status"] = "MENUNGGU_VERIFIKASI"
+            if (statusStr === "PERMOHONAN" || statusStr === "IN_REVIEW" || statusStr === "REVIEW") statusBadge = "MENUNGGU_VERIFIKASI"
+            else if (statusStr === "PEMBAYARAN") statusBadge = "MENUNGGU_PEMBAYARAN"
+            else if (statusStr === "PROCESS" || statusStr === "PROSES") statusBadge = "SEDANG_PROSES"
+            else if (statusStr === "DONE" || statusStr === "SELESAI") statusBadge = "SELESAI"
+            else if (statusStr === "REVISI") statusBadge = "REVISI"
+            else if (statusStr === "DITOLAK") statusBadge = "DITOLAK"
+
+            return {
+              id: r.id,
+              no_order: r.kode_order || r.no_order || r.no_permohonan || "-",
+              pelanggan: r.nama || r.pelanggan || r.instansi || "-",
+              tipe_pelanggan: r.instansi || "Badan Usaha / Pelanggan",
+              layanan: r.layanan || "Sertifikasi",
+              kategori: "LSPro / Balai",
+              tgl_order: r.tanggal_order || r.tgl_order || r.created_at || "-",
+              status: statusBadge,
+              jumlah_peserta_sampel: 1,
+              total_tagihan: r.total_tagihan || 0,
+            }
+          })
+          setPermohonanList(mapped)
+        } else {
+          setPermohonanList([])
+        }
+      } catch (err) {
+        console.error("Error fetching live permohonan:", err)
+        setPermohonanList([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPermohonan()
+  }, [])
+
+  const filteredData = permohonanList.filter((item) => {
     const matchTab = activeTab === "ALL" || item.status === activeTab
     const matchSearch =
       item.no_order.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -34,6 +34,7 @@ import {
 import { Badge } from '../ui/Badge';
 import AppLauncherDropdown from '../common/AppLauncherDropdown';
 import { usePermissions } from '../../context/PermissionContext';
+import api from '../../utils/api';
 
 export interface AdminSubItem {
   title: string;
@@ -59,6 +60,21 @@ export const AdminShell: React.FC = () => {
   const [isSubpanelOpen, setIsSubpanelOpen] = useState(true);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [sidebarCounts, setSidebarCounts] = useState<{ permohonan?: number; pertanyaan?: number }>({});
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const { data } = await api.get('/eksternal/dashboard/sidebar-counts');
+        if (data && data.results) {
+          setSidebarCounts(data.results);
+        }
+      } catch (err) {
+        console.error('Failed to fetch sidebar counts', err);
+      }
+    };
+    fetchCounts();
+  }, [pathname]);
 
   const {
     currentGroupId,
@@ -69,7 +85,7 @@ export const AdminShell: React.FC = () => {
     canAccessRoute,
   } = usePermissions();
 
-  const allModules: AdminPrimaryModule[] = [
+  const allModules: AdminPrimaryModule[] = useMemo(() => [
     {
       id: 'home',
       label: 'Home Dashboard',
@@ -104,7 +120,7 @@ export const AdminShell: React.FC = () => {
           title: 'Antrean Permohonan',
           href: '/admin/permohonan',
           icon: <ClipboardList className="w-4 h-4" />,
-          badge: '12',
+          badge: sidebarCounts.permohonan ? String(sidebarCounts.permohonan) : undefined,
           desc: 'Daftar permohonan masuk butuh tindakan',
         },
         {
@@ -129,7 +145,7 @@ export const AdminShell: React.FC = () => {
           title: 'Tiket Tanya Jawab',
           href: '/admin/helpdesk/pertanyaan',
           icon: <MessageSquare className="w-4 h-4" />,
-          badge: '3',
+          badge: sidebarCounts.pertanyaan ? String(sidebarCounts.pertanyaan) : undefined,
           desc: 'Helpdesk & tiket pertanyaan pemohon',
         },
         {
@@ -208,7 +224,7 @@ export const AdminShell: React.FC = () => {
         },
       ],
     },
-  ];
+  ], [sidebarCounts]);
 
   // Dynamically filter modules and items based on active RBAC permissions
   const modules = useMemo(() => {

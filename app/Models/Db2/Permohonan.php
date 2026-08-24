@@ -86,6 +86,14 @@ class Permohonan extends Model
         // SELECT * FROM detail_pembayaran WHERE id_pt_ins = ?
     }
 
+    /**
+     * Relasi ke Form Sertifikasi
+     */
+    public function formSertifikasi(): HasMany
+    {
+        return $this->hasMany(FormSertifikasi::class, 'permohonan_id');
+    }
+
     public function pelanggan()
     {
         return $this->hasOneThrough(

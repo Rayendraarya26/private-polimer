@@ -371,18 +371,33 @@ class PermohonanController extends Controller
 }
 public function show($id)
 {
-    $userId = Auth::id();
+    $user = Auth::user();
+    $isPegawai = $user ? $user->isPegawai() : false;
 
-    $permohonan = Permohonan::with([
+    $query = Permohonan::with([
         'detailPermohonan.formable',
         'detailPermohonan.lingkupLayanan',
-        'detailPembayaran'
-    ])
-    ->where('created_by', $userId)
-    ->where('id', $id) 
-    ->firstOrFail();
+        'detailPembayaran',
+        'creator'
+    ])->where('id', $id);
+
+    if (!$isPegawai) {
+        $query->where('created_by', $user?->id);
+    }
+
+    $permohonan = $query->firstOrFail();
 
     $detail = $permohonan->detailPermohonan?->first();
+    $formData = $detail?->formable;
+
+    // Load nested relations if formable is FormSertifikasi, FormPelatihan, or FormLsp
+    if ($formData instanceof \App\Models\Db2\FormSertifikasi) {
+        $formData->load(['items', 'pabrik']);
+    } elseif ($formData instanceof \App\Models\Db2\FormPelatihan) {
+        $formData->load(['peserta']);
+    } elseif ($formData instanceof \App\Models\Db2\FormLsp) {
+        $formData->load(['peserta']);
+    }
 
     return response()->json([
         'success' => true,
@@ -390,10 +405,16 @@ public function show($id)
             'detail' => [
                 'id' => $permohonan->id,
                 'no_permohonan' => $permohonan->no_permohonan,
+                'status_workflow' => $permohonan->status_workflow,
+                'status_bayar' => $permohonan->status_bayar,
+                'tgl_order' => $permohonan->tgl_order,
+                'created_at' => $permohonan->created_at?->format('d M Y, H:i'),
                 'formable_type' => $detail?->formable_type,
                 'formable_id' => $detail?->formable_id,
-                'form_data' => $detail?->formable,
+                'form_data' => $formData,
                 'lingkup_layanan' => $detail?->lingkupLayanan,
+                'pembayaran' => $permohonan->detailPembayaran,
+                'creator' => $permohonan->creator,
             ]
         ]
     ]);

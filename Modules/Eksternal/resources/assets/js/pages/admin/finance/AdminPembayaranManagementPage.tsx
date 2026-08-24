@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   CreditCard,
   Search,
@@ -7,6 +7,7 @@ import {
   Download,
   FileSpreadsheet,
   AlertCircle,
+  Loader2,
 } from "lucide-react"
 import Head from "../../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
@@ -14,6 +15,8 @@ import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { Modal } from "../../../components/ui/Modal"
 import toast from "react-hot-toast"
+import api from "../../../utils/api"
+import usePembayaran from "../../../hooks/usePembayaran"
 
 interface PembayaranAdminItem {
   id: string
@@ -29,30 +32,41 @@ interface PembayaranAdminItem {
 }
 
 export const AdminPembayaranManagementPage: React.FC = () => {
-  const [payments, setPayments] = useState<PembayaranAdminItem[]>([
-    {
-      id: "1",
-      no_transaksi: "PAY-2026-08001",
-      nomor_invoice: "INV/2026/08/0038",
-      pelanggan: "PT Surya Kulit Nusantara",
-      metode: "VA_BNI",
-      va_number: "9881234567890001",
-      nominal: 4800000,
-      tgl_bayar: "11 Agu 2026, 14:20 WIB",
-      status: "TERKONFIRMASI",
-    },
-    {
-      id: "2",
-      no_transaksi: "PAY-2026-08002",
-      nomor_invoice: "INV/2026/08/0039",
-      pelanggan: "Bambang Sudiro, S.T.",
-      metode: "TRANSFER_MANUAL",
-      nominal: 2500000,
-      tgl_bayar: "16 Agu 2026, 10:15 WIB",
-      status: "MENUNGGU_VERIFIKASI",
-      bukti_bayar_url: "#",
-    },
-  ])
+  const [payments, setPayments] = useState<PembayaranAdminItem[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const { openKuitansi, PdfPreviewModal } = usePembayaran()
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get("/eksternal/permohonan", {
+          params: { rows: 50 },
+        })
+        const rows = res?.data?.results?.data || res?.data?.data || []
+        if (rows.length > 0) {
+          const mapped: PembayaranAdminItem[] = rows.map((r: any) => ({
+            id: r.id,
+            no_transaksi: r.va_trx_id || `TRX-${r.id}`,
+            nomor_invoice: r.invoice_number || `${r.kode_order || r.no_order || r.id}/INV`,
+            pelanggan: r.nama || r.pelanggan || r.instansi || "Pelanggan BBKKP",
+            metode: r.va ? "VA_BNI" : "TRANSFER_MANUAL",
+            va_number: r.va || "9881234567890001",
+            nominal: Number(r.total_tagihan || r.total_pnbp || 2500000),
+            tgl_bayar: r.tgl_order || "Agu 2026",
+            status: r.status_bayar === "LUNAS" ? "TERKONFIRMASI" : "MENUNGGU_VERIFIKASI",
+            bukti_bayar_url: "#",
+          }))
+          setPayments(mapped)
+        }
+      } catch (err) {
+        console.error("Gagal memuat pembayaran admin", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPayments()
+  }, [])
 
   const [selectedProof, setSelectedProof] = useState<PembayaranAdminItem | null>(null)
 
@@ -99,63 +113,81 @@ export const AdminPembayaranManagementPage: React.FC = () => {
                   <th className="py-3 px-4 font-bold">Metode Pembayaran</th>
                   <th className="py-3 px-4 font-bold text-right">Nominal</th>
                   <th className="py-3 px-4 font-bold">Waktu Bayar</th>
-                  <th className="py-3 px-4 font-bold">Status</th>
+                  <th className="py-3 px-4 font-bold text-center">Status</th>
                   <th className="py-3 px-4 font-bold text-center">Aksi / Kuitansi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {payments.map((pay) => (
-                  <tr key={pay.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <p className="font-bold text-brand-700">{pay.no_transaksi}</p>
-                      <span className="text-[11px] text-slate-400">{pay.nomor_invoice}</span>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{pay.pelanggan}</td>
-                    <td className="py-3.5 px-4">
-                      {pay.metode === "VA_BNI" ? (
-                        <div>
-                          <Badge variant="info">VA BNI Otomatis</Badge>
-                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{pay.va_number}</p>
-                        </div>
-                      ) : (
-                        <Badge variant="secondary">Transfer Manual</Badge>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                      Rp {pay.nominal.toLocaleString("id-ID")}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600">{pay.tgl_bayar}</td>
-                    <td className="py-3.5 px-4">
-                      {pay.status === "TERKONFIRMASI" ? (
-                        <Badge variant="success">Terkonfirmasi</Badge>
-                      ) : (
-                        <Badge variant="warning">Perlu Verifikasi</Badge>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {pay.status === "MENUNGGU_VERIFIKASI" ? (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => setSelectedProof(pay)}
-                          >
-                            Verifikasi Bukti
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            title="Unduh Kuitansi Resmi TTE"
-                            leftIcon={<Download className="w-3.5 h-3.5" />}
-                          >
-                            Download Kuitansi
-                          </Button>
-                        )}
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                        <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+                        <span className="text-xs">Memuat daftar transaksi pembayaran...</span>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : payments.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                      Belum ada catatan transaksi pembayaran.
+                    </td>
+                  </tr>
+                ) : (
+                  payments.map((pay) => (
+                    <tr key={pay.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <p className="font-bold text-brand-700">{pay.no_transaksi}</p>
+                        <span className="text-[11px] text-slate-400">{pay.nomor_invoice}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-slate-800">{pay.pelanggan}</td>
+                      <td className="py-3.5 px-4">
+                        {pay.metode === "VA_BNI" ? (
+                          <div>
+                            <Badge variant="info">VA BNI Otomatis</Badge>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{pay.va_number}</p>
+                          </div>
+                        ) : (
+                          <Badge variant="secondary">Transfer Manual</Badge>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-slate-900">
+                        Rp {pay.nominal.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600">{pay.tgl_bayar}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        {pay.status === "TERKONFIRMASI" ? (
+                          <Badge variant="success">Terkonfirmasi</Badge>
+                        ) : (
+                          <Badge variant="warning">Perlu Verifikasi</Badge>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {pay.status === "MENUNGGU_VERIFIKASI" ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => setSelectedProof(pay)}
+                            >
+                              Verifikasi Bukti
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title="Unduh Kuitansi Resmi TTE"
+                              leftIcon={<Download className="w-3.5 h-3.5" />}
+                              onClick={() => openKuitansi({ id: pay.id, no_permohonan: pay.no_transaksi })}
+                            >
+                              Download Kuitansi
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -211,6 +243,9 @@ export const AdminPembayaranManagementPage: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* PDF Preview Modal */}
+      {PdfPreviewModal}
     </div>
   )
 }

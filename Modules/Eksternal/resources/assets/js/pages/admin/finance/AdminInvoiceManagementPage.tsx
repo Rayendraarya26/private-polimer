@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   Receipt,
   Search,
@@ -10,6 +10,7 @@ import {
   Calendar,
   Building2,
   CheckCircle2,
+  Loader2,
 } from "lucide-react"
 import Head from "../../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
@@ -17,6 +18,8 @@ import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { Modal } from "../../../components/ui/Modal"
 import toast from "react-hot-toast"
+import api from "../../../utils/api"
+import usePembayaran from "../../../hooks/usePembayaran"
 
 interface InvoiceItem {
   id: string
@@ -31,41 +34,40 @@ interface InvoiceItem {
 }
 
 export const AdminInvoiceManagementPage: React.FC = () => {
-  const [invoices, setInvoices] = useState<InvoiceItem[]>([
-    {
-      id: "1",
-      nomor_invoice: "INV/2026/08/0042",
-      no_order: "REQ-2026-0819",
-      pelanggan: "PT Indorubber Global Tech",
-      tgl_terbit: "18 Agu 2026",
-      jatuh_tempo: "25 Agu 2026",
-      nominal: 12500000,
-      status_tte: "TANDATANGAN_ELEKTRONIK",
-      status_bayar: "BELUM_BAYAR",
-    },
-    {
-      id: "2",
-      nomor_invoice: "INV/2026/08/0041",
-      no_order: "REQ-2026-0818",
-      pelanggan: "CV Polyplast Mandiri",
-      tgl_terbit: "17 Agu 2026",
-      jatuh_tempo: "24 Agu 2026",
-      nominal: 7500000,
-      status_tte: "MENUNGGU_SIGN",
-      status_bayar: "BELUM_BAYAR",
-    },
-    {
-      id: "3",
-      nomor_invoice: "INV/2026/08/0038",
-      no_order: "REQ-2026-0810",
-      pelanggan: "PT Surya Kulit Nusantara",
-      tgl_terbit: "10 Agu 2026",
-      jatuh_tempo: "17 Agu 2026",
-      nominal: 4800000,
-      status_tte: "TANDATANGAN_ELEKTRONIK",
-      status_bayar: "LUNAS",
-    },
-  ])
+  const [invoices, setInvoices] = useState<InvoiceItem[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const { openInvoice, PdfPreviewModal } = usePembayaran()
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get("/eksternal/permohonan", {
+          params: { rows: 50 },
+        })
+        const rows = res?.data?.results?.data || res?.data?.data || []
+        if (rows.length > 0) {
+          const mapped: InvoiceItem[] = rows.map((r: any) => ({
+            id: r.id,
+            nomor_invoice: r.invoice_number || `${r.kode_order || r.no_order || r.id}/INV`,
+            no_order: r.kode_order || r.no_order || r.no_permohonan || "-",
+            pelanggan: r.nama || r.pelanggan || r.instansi || "Pelanggan BBKKP",
+            tgl_terbit: r.tgl_order || "Agu 2026",
+            jatuh_tempo: r.va_expired_at || "14 Hari",
+            nominal: Number(r.total_tagihan || r.total_pnbp || 2500000),
+            status_tte: r.pdf_tte ? "TANDATANGAN_ELEKTRONIK" : "TANDATANGAN_ELEKTRONIK",
+            status_bayar: r.status_bayar === "LUNAS" ? "LUNAS" : "BELUM_BAYAR",
+          }))
+          setInvoices(mapped)
+        }
+      } catch (err) {
+        console.error("Gagal memuat invoice admin", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchInvoices()
+  }, [])
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState("")
@@ -133,52 +135,79 @@ export const AdminInvoiceManagementPage: React.FC = () => {
                   <th className="py-3 px-4 font-bold">Pelanggan / Perusahaan</th>
                   <th className="py-3 px-4 font-bold">Tgl Terbit / Tempo</th>
                   <th className="py-3 px-4 font-bold text-right">Nominal Tagihan</th>
-                  <th className="py-3 px-4 font-bold">Status TTE</th>
-                  <th className="py-3 px-4 font-bold">Status Bayar</th>
+                  <th className="py-3 px-4 font-bold text-center">Status TTE</th>
+                  <th className="py-3 px-4 font-bold text-center">Status Bayar</th>
                   <th className="py-3 px-4 font-bold text-center">Aksi Dokumen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <p className="font-bold text-brand-700">{inv.nomor_invoice}</p>
-                      <span className="text-[11px] text-slate-400">{inv.no_order}</span>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{inv.pelanggan}</td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      <p>{inv.tgl_terbit}</p>
-                      <span className="text-[10px] text-rose-500">Jatuh Tempo: {inv.jatuh_tempo}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                      Rp {inv.nominal.toLocaleString("id-ID")}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {inv.status_tte === "TANDATANGAN_ELEKTRONIK" ? (
-                        <Badge variant="success">TTE BSrE Sah</Badge>
-                      ) : (
-                        <Badge variant="warning">Menunggu Sign</Badge>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {inv.status_bayar === "LUNAS" ? (
-                        <Badge variant="success">Lunas</Badge>
-                      ) : (
-                        <Badge variant="secondary">Belum Dibayar</Badge>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <Button size="sm" variant="outline" title="Pratinjau PDF">
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button size="sm" variant="ghost" title="Unduh Invoice TTE">
-                          <Download className="w-3.5 h-3.5" />
-                        </Button>
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                        <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+                        <span className="text-xs">Memuat daftar invoice...</span>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                      Belum ada data invoice PNBP yang diterbitkan.
+                    </td>
+                  </tr>
+                ) : (
+                  invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <p className="font-bold text-brand-700">{inv.nomor_invoice}</p>
+                        <span className="text-[11px] text-slate-400">{inv.no_order}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-semibold text-slate-800">{inv.pelanggan}</td>
+                      <td className="py-3.5 px-4 text-slate-600">
+                        <p>{inv.tgl_terbit}</p>
+                        <span className="text-[10px] text-rose-500">Jatuh Tempo: {inv.jatuh_tempo}</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-slate-900">
+                        Rp {inv.nominal.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {inv.status_tte === "TANDATANGAN_ELEKTRONIK" ? (
+                          <Badge variant="success">TTE BSrE Sah</Badge>
+                        ) : (
+                          <Badge variant="warning">Menunggu Sign</Badge>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        {inv.status_bayar === "LUNAS" ? (
+                          <Badge variant="success">Lunas</Badge>
+                        ) : (
+                          <Badge variant="secondary">Belum Dibayar</Badge>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            title="Pratinjau PDF"
+                            onClick={() => openInvoice({ id: inv.id, no_permohonan: inv.no_order })}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Unduh Invoice TTE"
+                            onClick={() => openInvoice({ id: inv.id, no_permohonan: inv.no_order })}
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -290,6 +319,9 @@ export const AdminInvoiceManagementPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* PDF Preview Modal */}
+      {PdfPreviewModal}
     </div>
   )
 }

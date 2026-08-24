@@ -134,16 +134,53 @@ class DashboardController extends Controller
 
     public function sidebarCounts()
     {
+        $user = auth()->user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        if ($isPegawai) {
+            $permohonanCount = \App\Models\Db2\Permohonan::query()
+                ->whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW', 'PEMBAYARAN', 'PROCESS', 'REVISI'])
+                ->count();
+
+            $pertanyaanCount = \App\Models\Db1\PertanyaanPelanggan::query()
+                ->where('status', 'opened')
+                ->count();
+
+            $pembayaranCount = \App\Models\Db2\Permohonan::query()
+                ->where('status_workflow', 'PEMBAYARAN')
+                ->where(function ($q) {
+                    $q->whereNull('status_bayar')->orWhere('status_bayar', '!=', 'LUNAS');
+                })
+                ->count();
+
+            return responseJSON('Counts Found', [
+                'permohonan' => $permohonanCount,
+                'pertanyaan' => $pertanyaanCount,
+                'pembayaran' => $pembayaranCount,
+            ]);
+        }
+
+        // Customer Counts
+        $userId = $user?->id;
         $permohonanCount = \App\Models\Db2\Permohonan::query()
-            ->whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW', 'PEMBAYARAN', 'PROCESS', 'REVISI'])
+            ->where('created_by', $userId)
+            ->whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW', 'PROCESS', 'REVISI'])
+            ->count();
+
+        $pembayaranCount = \App\Models\Db2\Permohonan::query()
+            ->where('created_by', $userId)
+            ->where('status_workflow', 'PEMBAYARAN')
+            ->where('status_bayar', '!=', 'LUNAS')
             ->count();
 
         $pertanyaanCount = \App\Models\Db1\PertanyaanPelanggan::query()
+            ->where('created_by', $userId)
             ->where('status', 'opened')
             ->count();
 
         return responseJSON('Counts Found', [
             'permohonan' => $permohonanCount,
+            'pembayaran' => $pembayaranCount,
             'pertanyaan' => $pertanyaanCount,
         ]);
     }

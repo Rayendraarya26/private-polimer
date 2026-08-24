@@ -1,5 +1,6 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import api from '../../utils/api';
 import { cn } from '../../utils/cn';
 import {
   LayoutDashboard,
@@ -34,6 +35,21 @@ export const AppShell: React.FC = () => {
   const { pathname } = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [sidebarCounts, setSidebarCounts] = useState<{ permohonan?: number; pembayaran?: number; pertanyaan?: number }>({});
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const { data } = await api.get('/eksternal/dashboard/sidebar-counts');
+        if (data && data.results) {
+          setSidebarCounts(data.results);
+        }
+      } catch (err) {
+        console.error('Failed to fetch sidebar counts', err);
+      }
+    };
+    fetchCounts();
+  }, [pathname]);
 
   const profile = useSelector(({ profile }: RootState) => profile?.profile);
 
@@ -47,16 +63,19 @@ export const AppShell: React.FC = () => {
       title: 'Pengajuan Layanan',
       href: '/permohonan',
       icon: <FilePlus2 className="w-5 h-5" />,
+      badge: sidebarCounts.permohonan ? String(sidebarCounts.permohonan) : undefined,
     },
     {
       title: 'Riwayat Pembayaran',
       href: '/pembayaran',
       icon: <Receipt className="w-5 h-5" />,
+      badge: sidebarCounts.pembayaran ? String(sidebarCounts.pembayaran) : undefined,
     },
     {
       title: 'Tanya Jawab (Tiket)',
       href: '/ask-questions',
       icon: <HelpCircle className="w-5 h-5" />,
+      badge: sidebarCounts.pertanyaan ? String(sidebarCounts.pertanyaan) : undefined,
     },
     {
       title: 'Ulasan & Feedback',

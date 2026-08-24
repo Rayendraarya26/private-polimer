@@ -437,8 +437,13 @@ export const AdminShell: React.FC = () => {
                   )}
                   title={m.label}
                 >
-                  <span className={cn('transition-transform duration-200 group-hover:scale-110', isSelected ? 'text-white' : 'text-slate-600 group-hover:text-brand-600')}>
+                  <span className={cn('transition-transform duration-200 group-hover:scale-110 relative', isSelected ? 'text-white' : 'text-slate-600 group-hover:text-brand-600')}>
                     {m.icon}
+                    {m.id === 'permohonan' && Boolean(sidebarCounts.permohonan) && (
+                      <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-extrabold rounded-full px-1 py-0.2 min-w-[16px] text-center shadow-xs">
+                        {sidebarCounts.permohonan}
+                      </span>
+                    )}
                   </span>
                   <span className={cn('text-[10px] tracking-tight text-center leading-tight truncate w-full px-0.5', isSelected ? 'text-white font-bold' : 'text-slate-500')}>
                     {m.shortLabel}

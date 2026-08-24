@@ -15,6 +15,7 @@ import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { Modal } from "../../../components/ui/Modal"
 import toast from "react-hot-toast"
+import usePembayaran from "../../../hooks/usePembayaran"
 
 interface ParameterHasilUji {
   parameter: string
@@ -28,6 +29,7 @@ interface ParameterHasilUji {
 export const AdminHasilUjiPage: React.FC = () => {
   const [showInputModal, setShowInputModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState("REQ-2026-0819")
+  const { openLhu, PdfPreviewModal } = usePembayaran()
   const [paramsList, setParamsList] = useState<ParameterHasilUji[]>([
     {
       parameter: "Kekuatan Tarik (Tensile Strength)",
@@ -120,7 +122,7 @@ export const AdminHasilUjiPage: React.FC = () => {
                   <th className="py-3 px-4 font-bold">Pelanggan</th>
                   <th className="py-3 px-4 font-bold">Laboratorium Penguji</th>
                   <th className="py-3 px-4 font-bold">Jumlah Parameter</th>
-                  <th className="py-3 px-4 font-bold">Status Sertifikat</th>
+                  <th className="py-3 px-4 font-bold text-center">Status Sertifikat</th>
                   <th className="py-3 px-4 font-bold text-center">Aksi Dokumen</th>
                 </tr>
               </thead>
@@ -135,7 +137,7 @@ export const AdminHasilUjiPage: React.FC = () => {
                   </td>
                   <td className="py-3.5 px-4 text-slate-600">Lab Uji Fisika Karet BBKKP</td>
                   <td className="py-3.5 px-4 font-semibold text-slate-800">3 Parameter (Lolos)</td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 text-center">
                     <Badge variant="success">Siap Sign TTE BSrE</Badge>
                   </td>
                   <td className="py-3.5 px-4">
@@ -143,10 +145,11 @@ export const AdminHasilUjiPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        title="Pratinjau Draf Sertifikat"
+                        title="Pratinjau Laporan Hasil Pengujian (LHU)"
                         leftIcon={<Eye className="w-3.5 h-3.5" />}
+                        onClick={() => openLhu({ id: 'default', no_permohonan: 'REQ-2026-0819' })}
                       >
-                        Pratinjau PDF
+                        Pratinjau LHU
                       </Button>
                       <Button
                         size="sm"
@@ -339,6 +342,9 @@ export const AdminHasilUjiPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* PDF Preview Modal */}
+      {PdfPreviewModal}
     </div>
   )
 }

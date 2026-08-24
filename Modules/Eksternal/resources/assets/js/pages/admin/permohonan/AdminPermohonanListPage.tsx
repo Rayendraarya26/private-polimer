@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   ClipboardList,
@@ -161,6 +161,14 @@ export const AdminPermohonanListPage: React.FC = () => {
     fetchPermohonan()
   }, [])
 
+  const tabCounts = useMemo(() => ({
+    ALL: permohonanList.length,
+    MENUNGGU_VERIFIKASI: permohonanList.filter((d) => d.status === "MENUNGGU_VERIFIKASI").length,
+    SEDANG_PROSES: permohonanList.filter((d) => d.status === "SEDANG_PROSES").length,
+    MENUNGGU_PEMBAYARAN: permohonanList.filter((d) => d.status === "MENUNGGU_PEMBAYARAN").length,
+    SELESAI: permohonanList.filter((d) => d.status === "SELESAI").length,
+  }), [permohonanList])
+
   const filteredData = permohonanList.filter((item) => {
     const matchTab = activeTab === "ALL" || item.status === activeTab
     const matchSearch =
@@ -248,25 +256,34 @@ export const AdminPermohonanListPage: React.FC = () => {
       {/* Tabs & Search Filter */}
       <Card>
         <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/60">
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1">
+          {/* Status Tabs with Dynamic Counts */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
             {[
-              { id: "ALL", label: "Semua Permohonan" },
-              { id: "MENUNGGU_VERIFIKASI", label: "Menunggu Verifikasi (2)" },
-              { id: "SEDANG_PROSES", label: "Sedang Uji/Proses" },
-              { id: "MENUNGGU_PEMBAYARAN", label: "Menunggu Bayar" },
-              { id: "SELESAI", label: "Selesai" },
+              { id: "ALL", label: "Semua Permohonan", count: tabCounts.ALL },
+              { id: "MENUNGGU_VERIFIKASI", label: "Menunggu Verifikasi", count: tabCounts.MENUNGGU_VERIFIKASI },
+              { id: "SEDANG_PROSES", label: "Sedang Uji/Proses", count: tabCounts.SEDANG_PROSES },
+              { id: "MENUNGGU_PEMBAYARAN", label: "Menunggu Bayar", count: tabCounts.MENUNGGU_PEMBAYARAN },
+              { id: "SELESAI", label: "Selesai", count: tabCounts.SELESAI },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   activeTab === tab.id
                     ? "bg-brand-600 text-white shadow-xs"
                     : "text-slate-600 hover:bg-slate-200/60"
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                    activeTab === tab.id
+                      ? "bg-brand-700/80 text-white"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {tab.count}
+                </span>
               </button>
             ))}
           </div>
@@ -301,13 +318,27 @@ export const AdminPermohonanListPage: React.FC = () => {
                   <th className="py-3 px-4 font-bold">No. Order & Tanggal</th>
                   <th className="py-3 px-4 font-bold">Pemohon / Instansi</th>
                   <th className="py-3 px-4 font-bold">Layanan Permohonan</th>
-                  <th className="py-3 px-4 font-bold">Status</th>
+                  <th className="py-3 px-4 font-bold text-center">Status</th>
                   <th className="py-3 px-4 font-bold text-right">Tarif PNBP</th>
                   <th className="py-3 px-4 font-bold text-center">Aksi Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredData.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="py-16 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2 text-slate-500">
+                        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                        <span className="text-xs font-semibold text-slate-700">
+                          Memuat data antrean permohonan...
+                        </span>
+                        <span className="text-[11px] text-slate-400">
+                          Menghubungkan ke database operasional balai
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredData.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-slate-400">
                       Tidak ada permohonan yang sesuai dengan filter pencarian.
@@ -345,7 +376,7 @@ export const AdminPermohonanListPage: React.FC = () => {
                             {item.kategori} • {item.jumlah_peserta_sampel} Item
                           </span>
                         </td>
-                        <td className="py-3.5 px-4">{getStatusBadge(item.status)}</td>
+                        <td className="py-3.5 px-4 text-center">{getStatusBadge(item.status)}</td>
                         <td className="py-3.5 px-4 text-right font-bold text-slate-800">
                           Rp {item.total_tagihan.toLocaleString("id-ID")}
                         </td>

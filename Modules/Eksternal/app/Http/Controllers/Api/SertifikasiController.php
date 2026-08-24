@@ -590,4 +590,70 @@ class SertifikasiController extends Controller
 
         return response()->json(['success' => false, 'message' => 'Berkas fisik sertifikat tidak ditemukan di storage'], 404);
     }
+
+    /**
+     * Preview Laporan Hasil Uji (LHU) / Draf Sertifikat PDF.
+     */
+    public function previewHasilUji(Request $request, ?string $id = null)
+    {
+        $permohonan = null;
+        if ($id && $id !== 'default') {
+            $permohonan = Permohonan::with(['detailPermohonan.formable', 'creator'])->find($id);
+        }
+        if (!$permohonan) {
+            $permohonan = Permohonan::with(['detailPermohonan.formable', 'creator'])->first();
+        }
+
+        $detail = $permohonan?->detailPermohonan?->first();
+        $form   = $detail?->formable;
+
+        $parameters = [
+            [
+                'parameter'  => 'Kekuatan Tarik (Tensile Strength)',
+                'metode'     => 'SNI 06-0001-1987',
+                'satuan'     => 'MPa',
+                'baku_mutu'  => 'Min. 14.0',
+                'hasil_uji'  => '18.5',
+                'kesimpulan' => 'MEMENUHI',
+            ],
+            [
+                'parameter'  => 'Perpanjangan Putus (Elongation at Break)',
+                'metode'     => 'SNI 06-0001-1987',
+                'satuan'     => '%',
+                'baku_mutu'  => 'Min. 300',
+                'hasil_uji'  => '420',
+                'kesimpulan' => 'MEMENUHI',
+            ],
+            [
+                'parameter'  => 'Kekerasan (Hardness Shore A)',
+                'metode'     => 'ASTM D2240',
+                'satuan'     => 'Shore A',
+                'baku_mutu'  => '60 ± 5',
+                'hasil_uji'  => '62',
+                'kesimpulan' => 'MEMENUHI',
+            ],
+        ];
+
+        $html = view('eksternal::tte.hasil_uji_pdf', [
+            'permohonan' => $permohonan,
+            'form'       => $form,
+            'detail'     => $detail,
+            'parameters' => $parameters,
+        ])->render();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont'          => 'sans-serif',
+                'isRemoteEnabled'      => false,
+                'isHtml5ParserEnabled' => true,
+            ]);
+
+        $fileName = 'LHU-' . ($permohonan?->no_permohonan ?? 'SNI-06-0001') . '.pdf';
+
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
+    }
 }

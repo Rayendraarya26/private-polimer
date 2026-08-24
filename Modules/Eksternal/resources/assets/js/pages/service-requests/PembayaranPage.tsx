@@ -41,7 +41,7 @@ const PembayaranPage: React.FC = () => {
   const [data, setData] = useState<PembayaranItem[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { openInvoice } = usePembayaran()
+  const { openInvoice, openKuitansi, PdfPreviewModal } = usePembayaran()
 
   const fetchData = async () => {
     try {
@@ -140,15 +140,17 @@ const PembayaranPage: React.FC = () => {
     },
     {
       key: "nama_permohonan",
-      header: "Layanan / Keterangan",
+      header: "Layanan / Komoditas",
       sortable: true,
       render: (row) => (
-        <span className="font-medium text-slate-800">{row.nama_permohonan}</span>
+        <div className="font-medium text-slate-800 line-clamp-1 max-w-xs">
+          {row.nama_permohonan}
+        </div>
       ),
     },
     {
       key: "total_tagihan",
-      header: "Total Tagihan",
+      header: "Total Tagihan PNBP",
       sortable: true,
       render: (row) => (
         <span className="font-bold text-slate-900">
@@ -160,12 +162,16 @@ const PembayaranPage: React.FC = () => {
       key: "status_bayar",
       header: "Status Pembayaran",
       sortable: true,
+      className: "text-center",
+      headerClassName: "text-center",
       render: (row) => {
         switch (row.status_bayar) {
           case "LUNAS":
             return <Badge variant="success" dot>Lunas</Badge>
           case "BELUM":
-            return <Badge variant="warning" dot>Belum Bayar</Badge>
+            return <Badge variant="warning" dot>Menunggu Pembayaran</Badge>
+          case "EXPIRED":
+            return <Badge variant="danger" dot>Kadaluarsa</Badge>
           case "BATAL":
             return <Badge variant="danger" dot>Batal</Badge>
           default:
@@ -194,21 +200,17 @@ const PembayaranPage: React.FC = () => {
             variant={row.status_bayar === "LUNAS" ? "success" : "secondary"}
             leftIcon={<FileCheck className="w-3.5 h-3.5" />}
             onClick={() => {
-              if (!row.kuitansi_file) {
+              if (row.status_bayar !== "LUNAS" && !row.kuitansi_file) {
                 showInfo(
                   "Kuitansi Belum Tersedia",
                   "Kuitansi resmi bertanda tangan elektronik akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
                 )
                 return
               }
-
-              window.open(
-                `${window.location.origin}/storage/${row.kuitansi_file}`,
-                "_blank"
-              )
+              openKuitansi(row)
             }}
           >
-            Download Kuitansi
+            Kuitansi
           </Button>
         </div>
       ),
@@ -225,7 +227,7 @@ const PembayaranPage: React.FC = () => {
           Riwayat Pembayaran & Invoice
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Pantau status tagihan PNBP, akses instruksi Virtual Account BNI, dan unduh kuitansi resmi ber-TTE.
+          Pantau status tagihan PNBP, akses instruksi Virtual Account BNI, dan pratinjau kuitansi resmi ber-TTE.
         </p>
       </div>
 
@@ -276,6 +278,9 @@ const PembayaranPage: React.FC = () => {
           />
         </CardContent>
       </Card>
+
+      {/* PDF Preview Modal */}
+      {PdfPreviewModal}
     </div>
   )
 }

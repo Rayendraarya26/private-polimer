@@ -17,6 +17,7 @@ import {
   Search,
   ExternalLink,
   ChevronRight,
+  FileCheck2,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { AxiosError } from "axios"
@@ -28,6 +29,7 @@ import useDashboard from "../../hooks/useDashboard"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
 import usePelatihan from "../../hooks/service-requests/usePelatihan"
 import { useLSP } from "../../hooks/service-requests/useLSP"
+import { usePembayaran } from "../../hooks/usePembayaran"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
 import { StatsCard } from "../../components/ui/StatsCard"
@@ -39,6 +41,7 @@ const currentYear = new Date().getFullYear()
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
+  const { openLhu, openInvoice, openKuitansi, fetchAndOpenPdf, PdfPreviewModal } = usePembayaran()
   const {
     loading,
     statisticData,
@@ -109,35 +112,11 @@ const DashboardPage: React.FC = () => {
     }
   }
 
-  const onDownloadCertificate = useCallback(async (data: SertifikatItem) => {
+  const onDownloadCertificate = useCallback((data: SertifikatItem) => {
     if (!data) return
-    const toastId = toast.loading("Mengunduh sertifikat...")
-    try {
-      const res = await api.get(data.download_link, { responseType: "blob" })
-      const blob = new Blob([res.data], { type: res?.headers?.["content-type"] })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = url
-      const filename = getFilenameFromContentDisposition(res?.headers?.["content-disposition"] || "")
-      if (filename) link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      URL.revokeObjectURL(url)
-      link.parentNode?.removeChild(link)
-    } catch (error) {
-      const err = error as AxiosError
-      if (err?.response?.headers["content-type"] === "application/json") {
-        const reader = new FileReader()
-        reader.readAsText(err?.response?.data as Blob)
-        reader.onload = () => {
-          const errorData = JSON.parse(reader.result as string)
-          toast.error(errorData?.message || "Gagal mengunduh berkas")
-        }
-      }
-    } finally {
-      toast.remove(toastId)
-    }
-  }, [])
+    const filename = data.file_name || `Sertifikat-${data.nomor_sertifikat || 'BBSPJIKKP'}.pdf`
+    fetchAndOpenPdf(data.download_link, "Sertifikat / Laporan Hasil Pengujian (LHU)", filename)
+  }, [fetchAndOpenPdf])
 
   const onReapply = async (item: any) => {
     const confirmAjukan = confirm(`Yakin ingin mengajukan ulang permohonan ${item.kode_order}?`)
@@ -368,7 +347,7 @@ const DashboardPage: React.FC = () => {
                   <th className="px-5 py-3">Kode Order</th>
                   <th className="px-5 py-3">Jenis Layanan</th>
                   <th className="px-5 py-3">Tanggal Pengajuan</th>
-                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3 text-center">Status</th>
                   <th className="px-5 py-3 text-right">Aksi</th>
                 </tr>
               </thead>
@@ -402,7 +381,7 @@ const DashboardPage: React.FC = () => {
                       <td className="px-5 py-4 text-slate-500">
                         {getDateDisplay(item.tanggal_order || item.created_at || item.tanggal_permohonan)}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 text-center">
                         {getStatusBadge(item.status_order || item.status)}
                       </td>
                       <td className="px-5 py-4 text-right space-x-1.5 whitespace-nowrap">
@@ -414,6 +393,26 @@ const DashboardPage: React.FC = () => {
                           onClick={() => navigate(`/permohonan/detail/${item.id}`)}
                         >
                           Detail
+                        </Button>
+
+                        {/* Pratinjau Invoice */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<FileText className="w-3.5 h-3.5" />}
+                          onClick={() => openInvoice({ id: item.id, no_permohonan: item.kode_order || item.nomor_order })}
+                        >
+                          Invoice
+                        </Button>
+
+                        {/* Pratinjau LHU jika status pengujian/sertifikasi selesai */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+                          onClick={() => openLhu({ id: item.id, no_permohonan: item.kode_order || item.nomor_order })}
+                        >
+                          LHU
                         </Button>
 
                         {/* Download Certificate if Done */}
@@ -454,10 +453,10 @@ const DashboardPage: React.FC = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title="Pratinjau Berkas"
-        size="lg"
+        size="xl"
       >
         {modalFile && (
-          <div className="w-full h-96 flex items-center justify-center bg-slate-100 rounded-xl overflow-hidden">
+          <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-xl overflow-hidden">
             {modalFile.endsWith(".pdf") ? (
               <iframe
                 src={getFileUrl(modalFile)}
@@ -474,6 +473,9 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* Modal Standar Pratinjau PDF BBKKP (Invoice, Kuitansi, LHU) */}
+      {PdfPreviewModal}
     </div>
   )
 }

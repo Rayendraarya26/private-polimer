@@ -25,12 +25,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../..
 import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { AdminApprovalModal } from "../../../components/admin/AdminApprovalModal"
+import { usePembayaran } from "../../../hooks/usePembayaran"
 import api from "../../../utils/api"
 import toast from "react-hot-toast"
 
 export const AdminPermohonanDetailPage: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { openInvoice, openLhu, PdfPreviewModal } = usePembayaran()
 
   const [loading, setLoading] = useState<boolean>(true)
   const [permohonan, setPermohonan] = useState<any>(null)
@@ -120,6 +122,22 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
         {/* Action Bar */}
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<FileText className="w-3.5 h-3.5" />}
+            onClick={() => openInvoice({ id, no_permohonan: noOrder })}
+          >
+            Pratinjau Invoice
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+            onClick={() => openLhu({ id, no_permohonan: noOrder })}
+          >
+            Pratinjau LHU
+          </Button>
           <Button
             size="sm"
             variant="outline"
@@ -277,6 +295,8 @@ export const AdminPermohonanDetailPage: React.FC = () => {
           onSuccess={() => navigate("/admin/permohonan")}
         />
       )}
+      {/* Modal Standar Pratinjau PDF BBKKP (Invoice, Kuitansi, LHU) */}
+      {PdfPreviewModal}
     </div>
   )
 }

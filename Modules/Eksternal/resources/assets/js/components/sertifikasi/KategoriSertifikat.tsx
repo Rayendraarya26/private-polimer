@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react"
 import { useKategoriSertifikatQuery, useKomoditiSertifikatQuery } from "../../hooks/queries/useMasterQuery"
+import { useProfileQuery } from "../../hooks/queries/useProfileQuery"
 
 export interface DokumenPersyaratan {
   id: string
@@ -26,6 +27,7 @@ export interface DokumenPersyaratan {
   fileName?: string
   fileSize?: string
   fileUrl?: string
+  isFromProfile?: boolean
 }
 
 export interface KomoditiData {
@@ -152,6 +154,38 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
       setKomoditiItems(komoditiListValue)
     }
   }, [komoditiListValue])
+
+  const { profile } = useProfileQuery()
+  const detailPerusahaan = profile?.detail
+
+  // Inisialisasi otomatis dokumen legalitas yang sudah ada di profil perusahaan
+  useEffect(() => {
+    if (detailPerusahaan) {
+      setDokumenList((prev) =>
+        prev.map((doc) => {
+          // 1. Akta Pendirian & SK Kemenkumham
+          if (doc.id === "legalitas_perusahaan" && detailPerusahaan.dok_akta_pendirian && !doc.file) {
+            return {
+              ...doc,
+              isFromProfile: true,
+              fileName: "Akta Pendirian (Tersedia dari Profil)",
+              fileUrl: detailPerusahaan.dok_akta_pendirian,
+            }
+          }
+          // 2. Nomor Induk Berusaha (NIB)
+          if (doc.id === "nib_iui" && detailPerusahaan.dok_nib && !doc.file) {
+            return {
+              ...doc,
+              isFromProfile: true,
+              fileName: "NIB (Tersedia dari Profil)",
+              fileUrl: detailPerusahaan.dok_nib,
+            }
+          }
+          return doc
+        })
+      )
+    }
+  }, [detailPerusahaan])
 
   // State tabel kelengkapan dokumen
   const [dokumenList, setDokumenList] = useState<DokumenPersyaratan[]>(defaultDokumenList)

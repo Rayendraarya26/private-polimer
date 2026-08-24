@@ -137,6 +137,10 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
         Route::post('/pelatihan', [PelatihanController::class, 'store']);
         Route::get('/skema-lsp', [LSPController::class, 'getSkemalsp']);
+        Route::get('/sertifikasi/jenis', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getJenisSertifikasi']);
+        Route::get('/sertifikasi/komoditi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getKomoditiSertifikasi']);
+        Route::post('/sertifikasi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'store']);
+        Route::post('/sertifikasi/upload-dokumen', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'uploadDokumen']);
         Route::get('/pelatihan/{id}', [PelatihanController::class, 'show']);
         Route::put('/pelatihan/{id}', [PelatihanController::class, 'update']);
         Route::delete('/pelatihan/{id}', [PelatihanController::class, 'destroy']);

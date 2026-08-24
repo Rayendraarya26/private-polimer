@@ -226,7 +226,7 @@ export const AppShell: React.FC = () => {
 
         {/* Content View Area */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
+          <div className="w-full mx-auto">
             <Suspense
               fallback={
                 <div className="w-full h-96 flex flex-col items-center justify-center gap-3 text-slate-400">

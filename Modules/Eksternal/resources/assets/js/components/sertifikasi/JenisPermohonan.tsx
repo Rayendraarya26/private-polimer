@@ -3,15 +3,40 @@ import { Button } from "../ui/Button"
 import { Building2, RefreshCw } from "lucide-react"
 
 interface Step1JenisPermohonanProps {
-    onNext: () => void
+    onNext?: () => void
+    hideButtons?: boolean
+    valueJenis?: string
+    onChangeJenis?: (val: string) => void
+    valueSertifikat?: string
+    onChangeSertifikat?: (val: string) => void
 }
 
-const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ onNext }) => {
+const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ 
+    onNext, 
+    hideButtons,
+    valueJenis = "",
+    onChangeJenis,
+    valueSertifikat = "",
+    onChangeSertifikat
+}) => {
 
-    // State untuk menyimpan jenis permohonan yang dipilih
-    const [selectedJenis, setSelectedJenis] = useState<string>("")
-    // State untuk menyimpan pilihan sertifikat lama (jika perpanjangan)
-    const [selectedSertifikat, setSelectedSertifikat] = useState<string>("")
+    // State internal
+    const [internalJenis, setInternalJenis] = useState<string>(valueJenis)
+    const [internalSertifikat, setInternalSertifikat] = useState<string>(valueSertifikat)
+    const uniqueId = React.useId()
+
+    const selectedJenis = onChangeJenis ? valueJenis : internalJenis;
+    const selectedSertifikat = onChangeSertifikat ? valueSertifikat : internalSertifikat;
+
+    const handleJenisChange = (val: string) => {
+        setInternalJenis(val)
+        if (onChangeJenis) onChangeJenis(val)
+    }
+
+    const handleSertifikatChange = (val: string) => {
+        setInternalSertifikat(val)
+        if (onChangeSertifikat) onChangeSertifikat(val)
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-300">
@@ -23,54 +48,47 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ onNext }) =
             </div>
 
             {/* Area Form Input */}
-            <div className="py-6 flex justify-center gap-12">
+            <div className="py-6 flex flex-col md:flex-row justify-center items-center md:items-stretch gap-6 md:gap-8 lg:gap-12">
 
                 {/* Radio Button 1 (Pengajuan Sertifikat Baru) */}
-                <label className="relative cursor-pointer group">
+                <label className="relative cursor-pointer group w-full md:w-1/2 max-w-[450px]">
                     <input
                         type="radio"
-                        name="jenis_permohonan"
+                        name={`jenis_permohonan_${uniqueId}`}
                         value="baru"
                         className="peer sr-only"
                         checked={selectedJenis === "baru"}
-                        onChange={(e) => setSelectedJenis(e.target.value)}
+                        onChange={(e) => handleJenisChange(e.target.value)}
                     />
 
-
-                    <div className="w-[450px] h-[450px] rounded-2xl border-2 border-slate-200 bg-white p-4 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:border-brand-300 hover:shadow-md peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:shadow-brand-100 peer-checked:shadow-lg">
-
-                        <div className="w-[390px] h-[350px] rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center">
+                    <div className="w-full h-full rounded-2xl border-2 border-slate-200 bg-white p-4 flex flex-col items-center gap-4 transition-all duration-300 hover:border-brand-300 hover:shadow-md peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:shadow-brand-100 peer-checked:shadow-lg">
+                        <div className="w-full aspect-[5/4] rounded-xl overflow-hidden bg-slate-50 shrink-0">
                             <img src="/images/sertifikasi-asset/pengajuan_baru.jpg" alt="Sertifikat Baru" className="w-full h-full object-cover" />
                         </div>
-
-                        <div className="text-center">
-                            <p className="text-sm font-semibold ">Pengajuan Sertifikat Baru</p>
+                        <div className="text-center flex-1 flex items-center justify-center">
+                            <p className="text-sm sm:text-base font-semibold text-slate-800">Pengajuan Sertifikat Baru</p>
                         </div>
-
                     </div>
                 </label>
 
                 {/* Radio Button 2 (Perpanjangan Sertifikat) */}
-                <label className="relative cursor-pointer group">
+                <label className="relative cursor-pointer group w-full md:w-1/2 max-w-[450px]">
                     <input
                         type="radio"
-                        name="jenis_permohonan"
+                        name={`jenis_permohonan_${uniqueId}`}
                         value="perpanjangan"
                         className="peer sr-only"
                         checked={selectedJenis === "perpanjangan"}
-                        onChange={(e) => setSelectedJenis(e.target.value)}
+                        onChange={(e) => handleJenisChange(e.target.value)}
                     />
 
-                    <div className="w-[450px] h-[450px] rounded-2xl border-2 border-slate-200 bg-white p-4 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:border-brand-300 hover:shadow-md peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:shadow-brand-100 peer-checked:shadow-lg">
-
-                        <div className="w-[390px] h-[350px] rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center">
+                    <div className="w-full h-full rounded-2xl border-2 border-slate-200 bg-white p-4 flex flex-col items-center gap-4 transition-all duration-300 hover:border-brand-300 hover:shadow-md peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:shadow-brand-100 peer-checked:shadow-lg">
+                        <div className="w-full aspect-[5/4] rounded-xl overflow-hidden bg-slate-50 shrink-0">
                             <img src="/images/sertifikasi-asset/pengajuan_lama.jpg" alt="Sertifikat lama" className="w-full h-full object-cover" />
                         </div>
-
-                        <div className="text-center">
-                            <p className="text-sm font-semibold ">Perpanjangan Sertifikat</p>
+                        <div className="text-center flex-1 flex items-center justify-center">
+                            <p className="text-sm sm:text-base font-semibold text-slate-800">Perpanjangan Sertifikat</p>
                         </div>
-
                     </div>
                 </label>
 
@@ -86,7 +104,7 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ onNext }) =
                         id="sertifikatLama"
                         name="sertifikatLama"
                         value={selectedSertifikat}
-                        onChange={(e) => setSelectedSertifikat(e.target.value)}
+                        onChange={(e) => handleSertifikatChange(e.target.value)}
                         className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-brand-500 focus:ring-brand-500 focus:outline-none transition-colors bg-white shadow-sm cursor-pointer"
                     >
                         <option value="">-- Pilih Sertifikat --</option>
@@ -99,16 +117,18 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ onNext }) =
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end items-center pt-4 border-t border-slate-100">
-                <Button
-                    type="button"
-                    onClick={onNext}
-                    disabled={!selectedJenis || (selectedJenis === "perpanjangan" && !selectedSertifikat)}
-                    className="px-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    Selanjutnya
-                </Button>
-            </div>
+            {!hideButtons && (
+                <div className="flex justify-end items-center pt-4 border-t border-slate-100">
+                    <Button
+                        type="button"
+                        onClick={onNext}
+                        disabled={!selectedJenis || (selectedJenis === "perpanjangan" && !selectedSertifikat)}
+                        className="px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Selanjutnya
+                    </Button>
+                </div>
+            )}
         </div>
     )
 }

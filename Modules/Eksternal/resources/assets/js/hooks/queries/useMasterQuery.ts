@@ -17,6 +17,38 @@ export function useLspSkemaQuery() {
 }
 
 /**
+ * Hook TanStack Query untuk Daftar Kategori Sertifikasi
+ */
+export function useKategoriSertifikatQuery() {
+  return useQuery({
+    queryKey: ["master", "kategoriSertifikat"],
+    queryFn: async () => {
+      const response = await api.get("/eksternal/sertifikasi/jenis")
+      return response.data?.results || []
+    },
+    staleTime: 1000 * 60 * 30, // 30 menit master data
+  })
+}
+
+/**
+ * Hook TanStack Query untuk Daftar Komoditi berdasarkan Kategori Sertifikat
+ */
+export function useKomoditiSertifikatQuery(kategoriId?: string) {
+  return useQuery({
+    queryKey: ["master", "komoditiSertifikat", kategoriId],
+    queryFn: async () => {
+      if (!kategoriId) return []
+      const response = await api.get("/eksternal/sertifikasi/komoditi", {
+        params: { kategori_id: kategoriId },
+      })
+      return response.data?.results || []
+    },
+    enabled: Boolean(kategoriId),
+    staleTime: 1000 * 60 * 30,
+  })
+}
+
+/**
  * Hook TanStack Query untuk Daftar Skema Pelatihan
  */
 export function usePelatihanSkemaQuery() {

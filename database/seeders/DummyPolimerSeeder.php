@@ -11,6 +11,7 @@ use App\Models\Db1\PelangganPerusahaan;
 use App\Models\Db1\PelangganInstansi;
 use App\Models\Db1\PertanyaanPelanggan;
 use App\Models\Db1\PertanyaanPelangganPesan;
+use App\Models\Db1\SettingBanner;
 use App\Models\Db1\SysUser;
 use App\Models\Db1\SysUserGroup;
 use App\Models\Db2\DetailPembayaran;
@@ -32,6 +33,52 @@ class DummyPolimerSeeder extends Seeder
     public function run(): void
     {
         $this->command->info('=== Seeding Diverse Mock Data for Permohonan & Tanya Jawab ===');
+
+        // 0. Seed Setting Banner
+        $banners = [
+            [
+                'order' => 1,
+                'description' => 'Layanan Pengujian & Kalibrasi Laboratorium Mutu Polimer, Karet, Kulit, dan Plastik Terakreditasi KAN (ISO/IEC 17025).',
+                'link' => '/service-requests/input',
+                'image_path' => 'https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&w=1200&q=80',
+                'is_active' => true,
+            ],
+            [
+                'order' => 2,
+                'description' => 'Sertifikasi Produk Penggunaan Tanda SNI (SPPT-SNI) & Sertifikasi Sistem Manajemen Mutu ISO 9001:2015 oleh Lembaga Sertifikasi Produk BBKKP.',
+                'link' => '/service-requests/input',
+                'image_path' => 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80',
+                'is_active' => true,
+            ],
+            [
+                'order' => 3,
+                'description' => 'Bimbingan Teknis & Pelatihan Industri 4.0: Formulasi Kompon Karet, Polimer Hijau, serta Sistem Jaminan Halal Industri.',
+                'link' => '/service-requests/input',
+                'image_path' => 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=1200&q=80',
+                'is_active' => true,
+            ],
+            [
+                'order' => 4,
+                'description' => 'Uji Kompetensi & Asesmen Sertifikasi Profesi Lembaga Sertifikasi Profesi (LSP) Pihak Kedua Terlisensi BNSP.',
+                'link' => '/service-requests/input',
+                'image_path' => 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($banners as $b) {
+            SettingBanner::firstOrCreate(
+                ['description' => $b['description']],
+                [
+                    'order' => $b['order'],
+                    'link' => $b['link'],
+                    'image_path' => $b['image_path'],
+                    'is_active' => $b['is_active'],
+                    'start_at' => Carbon::now()->subMonths(1),
+                    'end_at' => Carbon::now()->addMonths(12),
+                ]
+            );
+        }
 
         // 1. Dapatkan atau siapkan Users
         $adminUser = SysUser::where('email', 'dolkode@mailinator.com')->first() 
@@ -320,6 +367,33 @@ class DummyPolimerSeeder extends Seeder
                 'invoice' => 'INV/TRN/2026/07/021',
                 'kuitansi' => 'KWT/TRN/2026/07/021',
                 'is_feedback' => true,
+            ],
+            // Additional permohonan for Admin / Developer User (testing portal)
+            [
+                'no' => 'CERT-202608-008',
+                'user' => $adminUser,
+                'status' => 'PROCESS',
+                'status_bayar' => 'LUNAS',
+                'tgl_order' => Carbon::now()->subDays(3),
+                'type' => 'LSPro',
+                'lingkup' => $lingkupSni,
+                'produk' => 'SNI 06-0101-2002 Uji Kompon Polimer Elastomer',
+                'item_bayar' => 'Sertifikasi Mutu Laboratorium Terpadu',
+                'harga' => 8500000,
+                'invoice' => 'INV/DEV/2026/08/001',
+                'kuitansi' => 'KWT/DEV/2026/08/001',
+            ],
+            [
+                'no' => 'LSP-202608-004',
+                'user' => $adminUser,
+                'status' => 'IN_REVIEW',
+                'status_bayar' => 'BELUM',
+                'tgl_order' => Carbon::now()->subDays(1),
+                'type' => 'LSP',
+                'lingkup' => $lingkupLsp,
+                'produk' => 'Skema Asesor Kompetensi Bidang Material Polimer',
+                'item_bayar' => 'Asesmen Sertifikasi Profesi Level 7',
+                'harga' => 3000000,
             ],
         ];
 

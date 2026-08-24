@@ -108,8 +108,17 @@ class PermohonanController extends Controller
             if (!$layananNama) {
                 if (str_starts_with($item->no_permohonan, 'CERT')) $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
                 elseif (str_starts_with($item->no_permohonan, 'LSP')) $layananNama = 'Sertifikasi Profesi (LSP)';
-                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK')) $layananNama = 'Bimtek / Pelatihan';
+                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN')) $layananNama = 'Bimtek / Pelatihan';
                 else $layananNama = 'Layanan BBKKP';
+            }
+
+            $komoditi = null;
+            if ($form instanceof \App\Models\Db2\FormSertifikasi) {
+                $komoditi = $form->items?->first()?->nama_produk ?? $form->nama_perusahaan;
+            } elseif ($form instanceof \App\Models\Db2\FormPelatihan) {
+                $komoditi = $form->masalah_materi ?? $form->hal_dipelajari ?? 'Bimbingan Teknis & Pelatihan';
+            } elseif ($form instanceof \App\Models\Db2\FormLsp) {
+                $komoditi = $form->jenis_produk ?? $form->jabatan ?? 'Sertifikasi Kompetensi BNSP';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -121,6 +130,7 @@ class PermohonanController extends Controller
 
                 'layanan' => $layananNama,
                 'layanan_slug' => $lingkup?->slug ?? null,
+                'komoditi' => $komoditi,
 
                 'status_order' => $statusMap,
                 'status_workflow' => $item->status_workflow,
@@ -168,17 +178,22 @@ class PermohonanController extends Controller
 
     public function statistik(Request $request)
     {
-        $userId = Auth::id();
-
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
         $tahun = $request->get('tahun', now()->year);
 
-        $query = Permohonan::where('created_by', $userId)
-            ->where(function ($q) use ($tahun) {
-                $q->whereYear('tgl_order', $tahun)
-                  ->orWhere(function ($sub) use ($tahun) {
-                      $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
-                  });
-            });
+        $query = Permohonan::query();
+
+        if (!$isPegawai) {
+            $query->where('created_by', $user?->id);
+        }
+
+        $query->where(function ($q) use ($tahun) {
+            $q->whereYear('tgl_order', $tahun)
+              ->orWhere(function ($sub) use ($tahun) {
+                  $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
+              });
+        });
 
         $totalAll = (clone $query)->count();
 

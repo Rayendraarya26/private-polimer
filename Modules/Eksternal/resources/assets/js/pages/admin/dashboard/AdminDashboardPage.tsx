@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   ClipboardList,
@@ -18,6 +18,7 @@ import {
   Boxes,
   Layers,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react"
 import Head from "../../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
@@ -25,40 +26,41 @@ import { StatsCard } from "../../../components/ui/StatsCard"
 import { Badge } from "../../../components/ui/Badge"
 import { Button } from "../../../components/ui/Button"
 import { defaultSsoApps, renderSsoAppIcon } from "../../../components/common/AppLauncherDropdown"
-
-// Static Mock Data KPI (declared outside component to prevent garbage collection on re-render)
-const URGENT_PERMOHONAN = [
-  {
-    id: "REQ-2026-0819",
-    pelanggan: "PT Indorubber Global Tech",
-    layanan: "Uji Tarik & Vulkanisasi Karet",
-    jenis: "Pengujian Lab",
-    sla_hours: 4,
-    status: "Menunggu Verifikasi",
-    deadline: "Hari ini, 16:00",
-  },
-  {
-    id: "REQ-2026-0818",
-    pelanggan: "CV Polyplast Mandiri",
-    layanan: "Sertifikasi Kompetensi Ekstrusi",
-    jenis: "LSP BNSP",
-    sla_hours: 8,
-    status: "Verifikasi Berkas APL",
-    deadline: "Hari ini, 18:00",
-  },
-  {
-    id: "REQ-2026-0815",
-    pelanggan: "Dinas Perindustrian Jateng",
-    layanan: "Bimtek Formulasi Polimer Hijau",
-    jenis: "Pelatihan",
-    sla_hours: 24,
-    status: "Menunggu Approval Invoice",
-    deadline: "Besok, 12:00",
-  },
-]
+import { getAdminDashboardSummary } from "../../../services/dashboard"
+import { AdminDashboardSummaryResponse } from "../../../types/dashboard"
 
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState<AdminDashboardSummaryResponse | null>(null)
+
+  const fetchSummary = async () => {
+    try {
+      setLoading(true)
+      const data = await getAdminDashboardSummary()
+      setSummary(data)
+    } catch (error) {
+      console.error("Failed to load admin summary", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSummary()
+  }, [])
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(val || 0)
+  }
+
+  const kpi = summary?.kpi
+  const urgentList = summary?.urgent_permohonan || []
+  const pnbp = summary?.pnbp
 
   return (
     <div className="space-y-8">
@@ -68,15 +70,22 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 text-brand-200 border border-brand-400/30 text-xs font-semibold">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Workspace Operasional BBKKP</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 text-brand-200 border border-brand-400/30 text-xs font-semibold">
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Workspace Operasional BBKKP</span>
+            </span>
+            {loading && (
+              <span className="inline-flex items-center gap-1 text-xs text-brand-300">
+                <RefreshCw className="w-3 h-3 animate-spin" /> Memuat data...
+              </span>
+            )}
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Selamat Datang di Command Center Admin
           </h1>
           <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-            Pantau antrean permohonan layanan, disposisi tim verifikator, validasi pengujian laboratorium, dan penagihan invoice PNBP dalam satu dasbor terpadu.
+            Pantau antrean permohonan layanan, disposisi tim verifikator, validasi pengujian laboratorium, dan penagihan invoice PNBP secara real-time dari database.
           </p>
         </div>
       </div>
@@ -85,27 +94,27 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Permohonan Masuk"
-          value={48}
+          value={kpi ? kpi.permohonan_masuk : 0}
           subtitle="Total antrean bulan ini"
           icon={<ClipboardList className="w-5 h-5 text-brand-600" />}
-          trend={{ value: "+14%", isPositive: true }}
+          trend={{ value: kpi?.permohonan_growth || "+0%", isPositive: true }}
         />
         <StatsCard
           title="Menunggu Verifikasi"
-          value={12}
+          value={kpi ? kpi.menunggu_verifikasi : 0}
           subtitle="Perlu tindakan segera"
           icon={<Clock className="w-5 h-5 text-amber-600" />}
         />
         <StatsCard
           title="Sedang Uji Lab / Asesmen"
-          value={19}
+          value={kpi ? kpi.sedang_uji : 0}
           subtitle="Proses pengerjaan teknis"
           icon={<FlaskConical className="w-5 h-5 text-sky-600" />}
         />
         <StatsCard
           title="Siap Terbit Sertifikat TTE"
-          value={8}
-          subtitle="Menunggu sign BSrE"
+          value={kpi ? kpi.siap_terbit : 0}
+          subtitle="Selesai & menunggu sign"
           icon={<FileCheck2 className="w-5 h-5 text-emerald-600" />}
         />
       </div>
@@ -147,35 +156,51 @@ export const AdminDashboardPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {URGENT_PERMOHONAN.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <p className="font-bold text-brand-700">{item.id}</p>
-                          <p className="text-[11px] text-slate-500 truncate max-w-[180px]">
-                            {item.pelanggan}
-                          </p>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <p className="font-medium text-slate-800">{item.layanan}</p>
-                          <span className="text-[10px] text-slate-400 font-semibold">{item.jenis}</span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <Badge variant="warning">{item.status}</Badge>
-                        </td>
-                        <td className="py-3.5 px-4 font-medium text-rose-600">
-                          {item.deadline} ({item.sla_hours} jam)
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() => navigate(`/admin/permohonan/detail/${item.id}`)}
-                          >
-                            Proses
-                          </Button>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                          Memuat antrean mendesak...
                         </td>
                       </tr>
-                    ))}
+                    ) : urgentList.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                          Tidak ada antrean mendesak saat ini.
+                        </td>
+                      </tr>
+                    ) : (
+                      urgentList.map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-brand-700">{item.id}</p>
+                            <p className="text-[11px] text-slate-500 truncate max-w-[180px]">
+                              {item.pelanggan}
+                            </p>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <p className="font-medium text-slate-800">{item.layanan}</p>
+                            <span className="text-[10px] text-slate-400 font-semibold">{item.jenis}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <Badge variant={item.status_workflow === 'REVISI' ? 'danger' : item.status_workflow === 'PEMBAYARAN' ? 'info' : 'warning'}>
+                              {item.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-rose-600">
+                            {item.deadline} ({item.sla_hours} jam)
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => navigate(`/admin/permohonan/detail/${item.raw_id || item.id}`)}
+                            >
+                              Proses
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -195,31 +220,42 @@ export const AdminDashboardPage: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">Rp 148.650.000</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">
+                  {formatCurrency(pnbp?.realisasi_bulan_ini || 0)}
+                </p>
                 <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-semibold mt-1">
                   <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Mencapai 82% dari target bulanan</span>
+                  <span>Mencapai {pnbp?.persentase_capaian || 0}% dari target bulanan</span>
                 </div>
               </div>
 
               {/* Progress Bar */}
               <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-600 to-sky-500 rounded-full w-[82%]" />
+                <div
+                  className="h-full bg-gradient-to-r from-brand-600 to-sky-500 rounded-full transition-all duration-700"
+                  style={{ width: `${Math.min(100, pnbp?.persentase_capaian || 0)}%` }}
+                />
               </div>
 
               {/* Mini Breakdown */}
               <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Pengujian Kulit & Karet:</span>
-                  <span className="font-semibold text-slate-800">Rp 64.200.000</span>
+                  <span>Pengujian & Sertifikasi:</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatCurrency(pnbp?.breakdown?.pengujian_dan_sertifikasi || 0)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Sertifikasi Profesi LSP:</span>
-                  <span className="font-semibold text-slate-800">Rp 48.000.000</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatCurrency(pnbp?.breakdown?.sertifikasi_lsp || 0)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Bimtek & Pelatihan:</span>
-                  <span className="font-semibold text-slate-800">Rp 36.450.000</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatCurrency(pnbp?.breakdown?.bimtek_pelatihan || 0)}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -364,3 +400,4 @@ export const AdminDashboardPage: React.FC = () => {
 }
 
 export default React.memo(AdminDashboardPage)
+

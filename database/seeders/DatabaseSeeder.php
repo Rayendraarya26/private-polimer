@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             $this->call(NotificationSeeder::class);
             $this->call(PermintaanSeeder::class);
 			$this->call(TopikPertanyaanSeeder::class);
+            $this->call(DummyPolimerSeeder::class);
         }
     }
 }

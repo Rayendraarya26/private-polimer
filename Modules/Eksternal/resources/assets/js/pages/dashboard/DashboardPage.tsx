@@ -44,6 +44,7 @@ const DashboardPage: React.FC = () => {
     statisticData,
     sliders,
     getStatisticData,
+    getSliders,
     ajukanPermohonan,
     submittedIds,
   } = useDashboard()
@@ -67,6 +68,10 @@ const DashboardPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
+
+  useEffect(() => {
+    getSliders()
+  }, [])
 
   useEffect(() => {
     getFeedbacks()

@@ -45,7 +45,7 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 font-medium rounded-full border tracking-wide transition-colors',
+        'inline-flex items-center justify-center text-center leading-snug gap-1.5 font-medium rounded-full border tracking-wide transition-colors text-center',
         variants[variant],
         sizes[size],
         className
@@ -57,7 +57,7 @@ export const Badge: React.FC<BadgeProps> = ({
           className={cn('w-1.5 h-1.5 rounded-full shrink-0 animate-pulse', dotColors[variant])}
         />
       )}
-      {children}
+      <span className="inline-block text-center">{children}</span>
     </span>
   );
 };

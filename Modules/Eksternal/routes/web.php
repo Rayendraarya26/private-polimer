@@ -91,6 +91,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         });
 
         Route::prefix('admin')->group(function () {
+            Route::get('/dashboard/summary', [DashboardController::class, 'adminSummary']);
+
             Route::prefix('pertanyaan')->group(function () {
                 Route::get('/', [PertanyaanController::class, 'adminList']);
                 Route::post('/{id}/reply', [PertanyaanController::class, 'adminReply']);

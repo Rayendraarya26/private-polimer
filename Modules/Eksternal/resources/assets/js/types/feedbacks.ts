@@ -17,10 +17,12 @@ export enum FeedbackItemStatusOrder {
 }
 
 export type SertifikatItem = {
-  kode: string
-  nama: string
-  ref_code: string | null
+  kode?: string
+  nama?: string
+  ref_code?: string | null
   download_link: string
+  file_name?: string
+  nomor_sertifikat?: string
 }
 
 export type FeedbackItem = {

@@ -8,22 +8,16 @@ import {
   XCircle,
   Plus,
   Eye,
-  Edit,
   Trash2,
   RotateCcw,
   Download,
   Calendar,
   Sparkles,
-  Search,
-  ExternalLink,
-  ChevronRight,
   FileCheck2,
 } from "lucide-react"
 import toast from "react-hot-toast"
-import { AxiosError } from "axios"
 import api from "../../utils/api"
 import { getDateDisplay } from "../../utils/date"
-import { getFilenameFromContentDisposition } from "../../utils/common"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import useDashboard from "../../hooks/useDashboard"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -41,15 +35,13 @@ const currentYear = new Date().getFullYear()
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
-  const { openLhu, openInvoice, openKuitansi, fetchAndOpenPdf, PdfPreviewModal } = usePembayaran()
+  const { openLhu, openInvoice, fetchAndOpenPdf, PdfPreviewModal } = usePembayaran()
   const {
     loading,
     statisticData,
     sliders,
     getStatisticData,
     getSliders,
-    ajukanPermohonan,
-    submittedIds,
   } = useDashboard()
 
   const { deletePelatihan } = usePelatihan()
@@ -113,8 +105,8 @@ const DashboardPage: React.FC = () => {
   }
 
   const onDownloadCertificate = useCallback((data: SertifikatItem) => {
-    if (!data) return
-    const filename = data.file_name || `Sertifikat-${data.nomor_sertifikat || 'BBSPJIKKP'}.pdf`
+    if (!data || !data.download_link) return
+    const filename = data.file_name || data.nama || `Sertifikat-${data.nomor_sertifikat || data.kode || 'BBSPJIKKP'}.pdf`
     fetchAndOpenPdf(data.download_link, "Sertifikat / Laporan Hasil Pengujian (LHU)", filename)
   }, [fetchAndOpenPdf])
 
@@ -192,9 +184,8 @@ const DashboardPage: React.FC = () => {
           {sliders.map((r, i) => (
             <div
               key={i}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                i === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${i === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                }`}
             >
               <img
                 src={r.image}
@@ -220,9 +211,8 @@ const DashboardPage: React.FC = () => {
                 <button
                   key={i}
                   onClick={() => setActiveSlide(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === activeSlide ? "w-6 bg-white" : "w-1.5 bg-white/50 hover:bg-white/80"
-                  }`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === activeSlide ? "w-6 bg-white" : "w-1.5 bg-white/50 hover:bg-white/80"
+                    }`}
                 />
               ))}
             </div>

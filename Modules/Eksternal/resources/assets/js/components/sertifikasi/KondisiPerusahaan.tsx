@@ -1,6 +1,9 @@
 import React, { useState } from "react"
 import { Button } from "../ui/Button"
 import { User, Plus, Trash2, Building2, Download } from "lucide-react"
+import { useProfileQuery } from "@/hooks/queries/useProfileQuery"
+
+
 
 export interface PabrikItem {
   id: number
@@ -17,12 +20,48 @@ export interface PabrikItem {
   luasBangunan: string
 }
 
+export interface KondisiPerusahaanData {
+  namaPerusahaan: string,
+  nomorAktaPendirian: string,
+  namaPemilik: string,
+  namaPimpinan: string,
+  namaWakilManajemen: string,
+  noTelp: string,
+  fax?: string,
+  noHp: string,
+  badanHukum: string,
+
+  negara: string,
+  provinsiId?: string,
+  kabupatenId?: string,
+  kecamatanId?: string,
+  kodePos?: string,
+  alamatLengkap: string,
+  luasTanah: string,
+  luasBangunan: string,
+
+  jumlahShift?: number | string,
+  jumlahBagian?: number | string,
+  jumlahKaryawanTotal?: number | string,
+  jumlahManajemen?: number | string,
+  jumlahAdministrasi?: number | string,
+  jumlahOperasional?: number | string,
+  jumlahShift1?: number | string,
+  jumlahShift2?: number | string,
+  jumlahShift3?: number | string,
+  jumlahNonPermanen?: number | string,
+  jumlahPartTime?: number | string,
+
+  pabrikList: PabrikItem[],
+}
+
 interface Step3KondisiPerusahaanProps {
   onNext?: () => void
   onBack?: () => void
   hideButtons?: boolean
+  value?: KondisiPerusahaanData | any
+  onChange?: (val: KondisiPerusahaanData | any) => void
 }
-
 const emptyPabrik = (id: number): PabrikItem => ({
   id,
   namaPabrik: "",
@@ -70,7 +109,12 @@ const daftarNegaraPabrik = [
   "Lainnya",
 ]
 
-const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({ onNext, onBack, hideButtons }) => {
+const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
+  onNext,
+  onBack,
+  hideButtons,
+}) => {
+  // const { profile } = useProfileQuery()
   const [pabrikList, setPabrikList] = useState<PabrikItem[]>([emptyPabrik(Date.now())])
 
   const addPabrik = () => {

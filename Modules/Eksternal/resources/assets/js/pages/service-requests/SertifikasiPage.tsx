@@ -1,13 +1,16 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardContent } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
 import { ArrowLeft, Plus, Trash2, Send } from "lucide-react"
 import Step1JenisPermohonan from "../../components/sertifikasi/JenisPermohonan"
-import Step2KategoriSertifikat, { KomoditiData } from "../../components/sertifikasi/KategoriSertifikat"
+import Step2KategoriSertifikat, { KomoditiData, DokumenPersyaratan } from "../../components/sertifikasi/KategoriSertifikat"
 import Step3KondisiPerusahaan from "../../components/sertifikasi/KondisiPerusahaan"
 import Step4Pernyataan from "../../components/sertifikasi/Pernyataan"
+import { useSertifikasiDraft } from "../../hooks/useSertifikasiDraft"
+import { useProfileQuery } from "../../hooks/queries/useProfileQuery"
+import { Clock, RefreshCw } from "lucide-react"
 
 interface PengajuanItem {
   id: number
@@ -16,12 +19,16 @@ interface PengajuanItem {
   kategoriSertifikat: string
   komoditis?: KomoditiData[]
   komoditi?: KomoditiData
+  dokumens?: DokumenPersyaratan[]
   kondisiPerusahaan: string
 }
 
 const SertifikasiPage: React.FC = () => {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
+
+  const { profile } = useProfileQuery()
+  const userId = profile?.user_id || "guest"
 
   // State array untuk menampung maksimal 2 pengajuan
   const [pengajuans, setPengajuans] = useState<PengajuanItem[]>([
@@ -40,6 +47,7 @@ const SertifikasiPage: React.FC = () => {
         satuanProduksi: "",
         keterangan: "",
       },
+      dokumens: [],
       kondisiPerusahaan: "",
     }
   ])
@@ -65,6 +73,7 @@ const SertifikasiPage: React.FC = () => {
             satuanProduksi: "",
             keterangan: "",
           },
+          dokumens: [],
           kondisiPerusahaan: "",
         }
       ])
@@ -86,6 +95,27 @@ const SertifikasiPage: React.FC = () => {
 
   const handleNext = () => setCurrentStep(prev => prev + 1)
   const handleBack = () => setCurrentStep(prev => prev - 1)
+
+  const {
+    existingDraft,
+    setExistingDraft,
+    isSaving,
+    error,
+    lastSaved,
+    autoSave,
+    clearDraft
+  } = useSertifikasiDraft(userId)
+
+  useEffect(() => {
+    // Jangan autosave jika banner draft yang belum dipulihkan/dibuang masih aktif
+    if (existingDraft) return
+
+    autoSave({
+      currentStep,
+      pengajuans,
+      isAgreed
+    })
+  }, [currentStep, pengajuans, isAgreed, autoSave, existingDraft])
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -113,6 +143,54 @@ const SertifikasiPage: React.FC = () => {
           Kembali ke Katalog
         </Button>
       </div>
+
+      {existingDraft && (
+        <div className="p-4 bg-gradient-to-r from-amber-50 via-amber-50/80 to-orange-50/50 border border-amber-200/90 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-1 duration-300">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl shadow-xs shrink-0 flex items-center justify-center">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-amber-950">Draf Formulir Ditemukan</p>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-200/70 text-amber-900 border border-amber-300/60">
+                  Tersimpan Otomatis
+                </span>
+              </div>
+              <p className="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
+                Terakhir disimpan pada <span className="font-semibold text-amber-950">{new Date(existingDraft.updatedAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</span>. Ingin melanjutkan pengisian sebelumnya?
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full md:w-auto justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-amber-200/70">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => clearDraft()}
+              leftIcon={<Trash2 className="w-3.5 h-3.5 text-rose-500" />}
+              className="text-slate-700 bg-white hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 shadow-none"
+            >
+              Buang Draf
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                if (existingDraft.currentStep) setCurrentStep(existingDraft.currentStep)
+                if (existingDraft.pengajuans) setPengajuans(existingDraft.pengajuans)
+                if (existingDraft.isAgreed !== undefined) setIsAgreed(existingDraft.isAgreed)
+                setExistingDraft(null) // Tutup banner setelah dipulihkan
+              }}
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+              className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm font-medium"
+            >
+              Lanjutkan Draf
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Progress Stepper Card */}
       <Card className="border-brand-100 shadow-sm">
@@ -186,6 +264,8 @@ const SertifikasiPage: React.FC = () => {
                         onChange={(val) => updateFormData(pengajuan.id, 'kategoriSertifikat', val)}
                         komoditiListValue={pengajuan.komoditis || []}
                         onChangeKomoditiList={(data) => updateFormData(pengajuan.id, 'komoditis', data)}
+                        dokumenListValue={pengajuan.dokumens || []}
+                        onChangeDokumenList={(data) => updateFormData(pengajuan.id, 'dokumens', data)}
                       />
                     )}
                     {currentStep === 3 && (

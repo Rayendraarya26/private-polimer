@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../utils/api"
 import { Button } from "../ui/Button"
 import {
   Award,
@@ -51,6 +51,9 @@ interface Step2KategoriSertifikatProps {
   // Dukungan multi-komoditi (Array)
   komoditiListValue?: KomoditiData[]
   onChangeKomoditiList?: (data: KomoditiData[]) => void
+  // Dukungan kelengkapan dokumen persyaratan
+  dokumenListValue?: DokumenPersyaratan[]
+  onChangeDokumenList?: (data: DokumenPersyaratan[]) => void
   // Backward compatibility untuk single object
   komoditiValue?: KomoditiData
   onChangeKomoditi?: (data: KomoditiData) => void
@@ -130,6 +133,8 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
   onChange,
   komoditiListValue,
   onChangeKomoditiList,
+  dokumenListValue,
+  onChangeDokumenList,
   komoditiValue,
   onChangeKomoditi,
 }) => {
@@ -155,16 +160,42 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
     }
   }, [komoditiListValue])
 
+  // State tabel kelengkapan dokumen (diinisialisasi dari draft parent jika ada)
+  const [dokumenList, setDokumenList] = useState<DokumenPersyaratan[]>(() => {
+    if (dokumenListValue && Array.isArray(dokumenListValue) && dokumenListValue.length > 0) {
+      return defaultDokumenList.map((defDoc) => {
+        const found = dokumenListValue.find((d) => d.id === defDoc.id)
+        return found ? { ...defDoc, ...found } : defDoc
+      })
+    }
+    return defaultDokumenList
+  })
+
+  // Sinkronisasi jika prop dokumenListValue berubah dari parent (misal saat draft dipulihkan)
+  useEffect(() => {
+    if (dokumenListValue && Array.isArray(dokumenListValue) && dokumenListValue.length > 0) {
+      setDokumenList((prev) => {
+        return defaultDokumenList.map((defDoc) => {
+          const found = dokumenListValue.find((d) => d.id === defDoc.id)
+          const current = prev.find((d) => d.id === defDoc.id)
+          return found ? { ...defDoc, ...current, ...found } : (current || defDoc)
+        })
+      })
+    }
+  }, [dokumenListValue])
+
   const { profile } = useProfileQuery()
   const detailPerusahaan = profile?.detail
 
   // Inisialisasi otomatis dokumen legalitas yang sudah ada di profil perusahaan
   useEffect(() => {
     if (detailPerusahaan) {
-      setDokumenList((prev) =>
-        prev.map((doc) => {
+      setDokumenList((prev) => {
+        let changed = false
+        const updated = prev.map((doc) => {
           // 1. Akta Pendirian & SK Kemenkumham
-          if (doc.id === "legalitas_perusahaan" && detailPerusahaan.dok_akta_pendirian && !doc.file) {
+          if (doc.id === "legalitas_perusahaan" && detailPerusahaan.dok_akta_pendirian && !doc.fileUrl) {
+            changed = true
             return {
               ...doc,
               isFromProfile: true,
@@ -173,7 +204,8 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
             }
           }
           // 2. Nomor Induk Berusaha (NIB)
-          if (doc.id === "nib_iui" && detailPerusahaan.dok_nib && !doc.file) {
+          if (doc.id === "nib_iui" && detailPerusahaan.dok_nib && !doc.fileUrl) {
+            changed = true
             return {
               ...doc,
               isFromProfile: true,
@@ -183,12 +215,15 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
           }
           return doc
         })
-      )
+        if (changed) {
+          const serializableDocs = updated.map(({ file, ...rest }) => rest)
+          onChangeDokumenList?.(serializableDocs)
+        }
+        return updated
+      })
     }
-  }, [detailPerusahaan])
+  }, [detailPerusahaan, onChangeDokumenList])
 
-  // State tabel kelengkapan dokumen
-  const [dokumenList, setDokumenList] = useState<DokumenPersyaratan[]>(defaultDokumenList)
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null)
 
   const handleUploadDokumen = async (id: string, file: File | null) => {
@@ -196,7 +231,7 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
     const sizeMB = (file.size / (1024 * 1024)).toFixed(2) + " MB"
     const tempUrl = URL.createObjectURL(file)
 
-    // Set tampilan lokal
+    // Set tampilan lokal sementara
     setDokumenList((prev) =>
       prev.map((doc) =>
         doc.id === id
@@ -211,31 +246,36 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
       )
     )
 
-    // Unggah ke backend (tersimpan di public/files/customers/{cust_id}/)
+    // Unggah ke backend
     setUploadingDocId(id)
     try {
       const formData = new FormData()
       formData.append("file", file)
       formData.append("dokumen_id", id)
 
-      const response = await axios.post("/api/eksternal/sertifikasi/upload-dokumen", formData, {
+      const response = await api.post("/eksternal/sertifikasi/upload-dokumen", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       })
 
       if (response.data?.success && response.data?.results?.file_url) {
-        setDokumenList((prev) =>
-          prev.map((doc) =>
+        setDokumenList((prev) => {
+          const updated = prev.map((doc) =>
             doc.id === id
               ? {
                   ...doc,
                   fileUrl: response.data.results.file_url,
                   fileName: response.data.results.file_name || file.name,
+                  fileSize: sizeMB,
                 }
               : doc
           )
-        )
+          // Simpan hanya data serializable (tanpa objek File binary) ke parent/IndexedDB
+          const serializableDocs = updated.map(({ file, ...rest }) => rest)
+          onChangeDokumenList?.(serializableDocs)
+          return updated
+        })
       }
     } catch (err) {
       console.error("Gagal mengunggah file:", err)
@@ -245,8 +285,8 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
   }
 
   const handleRemoveDokumen = (id: string) => {
-    setDokumenList((prev) =>
-      prev.map((doc) =>
+    setDokumenList((prev) => {
+      const updated = prev.map((doc) =>
         doc.id === id
           ? {
               ...doc,
@@ -254,10 +294,14 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
               fileName: undefined,
               fileSize: undefined,
               fileUrl: undefined,
+              isFromProfile: false,
             }
           : doc
       )
-    )
+      const serializableDocs = updated.map(({ file, ...rest }) => rest)
+      onChangeDokumenList?.(serializableDocs)
+      return updated
+    })
   }
 
   // State input form komoditi
@@ -703,7 +747,6 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                   <input
                     disabled
                     type="text"
-                    placeholder="Contoh: SNI 7079:2009"
                     value={formInput.noSni || ""}
                     onChange={(e) => setFormInput((prev) => ({ ...prev, noSni: e.target.value }))}
                     className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800

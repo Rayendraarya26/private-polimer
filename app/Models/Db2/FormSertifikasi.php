@@ -21,6 +21,7 @@ class FormSertifikasi extends Model
         'permohonan_id', 
         'jenis_pengajuan', 
         'sertifikat_lama_id',
+        'sertifikat_lama_nomor',
         'komoditas_json', 
         'jumlah_karyawan_total',
         'jumlah_manajemen',

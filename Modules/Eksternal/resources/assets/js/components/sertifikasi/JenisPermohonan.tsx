@@ -1,6 +1,17 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "../ui/Button"
 import { Building2, RefreshCw } from "lucide-react"
+import api from "../../utils/api"
+
+export interface SertifikatRiwayat {
+    id: string
+    no_permohonan: string
+    nomor_sertifikat: string
+    lingkup_id?: string | null
+    skema_sertifikasi: string
+    tanggal_terbit: string
+    status: string
+}
 
 interface Step1JenisPermohonanProps {
     onNext?: () => void
@@ -8,7 +19,7 @@ interface Step1JenisPermohonanProps {
     valueJenis?: string
     onChangeJenis?: (val: string) => void
     valueSertifikat?: string
-    onChangeSertifikat?: (val: string) => void
+    onChangeSertifikat?: (val: string, item?: SertifikatRiwayat) => void
 }
 
 const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({ 
@@ -25,8 +36,33 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({
     const [internalSertifikat, setInternalSertifikat] = useState<string>(valueSertifikat)
     const uniqueId = React.useId()
 
+    // State untuk menampung riwayat sertifikat & status loading
+    const [listSertifikat, setListSertifikat] = useState<SertifikatRiwayat[]>([])
+    const [isLoadingSertifikat, setIsLoadingSertifikat] = useState<boolean>(false)
+
     const selectedJenis = onChangeJenis ? valueJenis : internalJenis;
     const selectedSertifikat = onChangeSertifikat ? valueSertifikat : internalSertifikat;
+
+    // Ambil data sertifikat saat opsi "perpanjangan" dipilih
+    useEffect(() => {
+        if (selectedJenis === "perpanjangan" && listSertifikat.length === 0) {
+            fetchRiwayatSertifikasi()
+        }
+    }, [selectedJenis])
+
+    const fetchRiwayatSertifikasi = async () => {
+        setIsLoadingSertifikat(true)
+        try {
+            const { data } = await api.get('/eksternal/sertifikasi/riwayat-aktif')
+            if (data?.results) {
+                setListSertifikat(data.results)
+            }
+        } catch (error) {
+            console.error("Gagal memuat riwayat sertifikat:", error)
+        } finally {
+            setIsLoadingSertifikat(false)
+        }
+    }
 
     const handleJenisChange = (val: string) => {
         setInternalJenis(val)
@@ -35,7 +71,8 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({
 
     const handleSertifikatChange = (val: string) => {
         setInternalSertifikat(val)
-        if (onChangeSertifikat) onChangeSertifikat(val)
+        const selectedItem = listSertifikat.find(item => item.id === val)
+        if (onChangeSertifikat) onChangeSertifikat(val, selectedItem)
     }
 
     return (
@@ -94,7 +131,6 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({
 
             </div>
 
-            {/* Pilihan Sertifikat Lama (Muncul hanya jika perpanjangan dipilih) */}
             {selectedJenis === "perpanjangan" && (
                 <div className="animate-in slide-in-from-top-4 fade-in duration-300 max-w-xl mx-auto w-full pt-2 pb-6">
                     <label htmlFor="sertifikatLama" className="block text-sm font-semibold text-slate-700 mb-2 text-center">
@@ -105,13 +141,20 @@ const Step1JenisPermohonan: React.FC<Step1JenisPermohonanProps> = ({
                         name="sertifikatLama"
                         value={selectedSertifikat}
                         onChange={(e) => handleSertifikatChange(e.target.value)}
-                        className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-brand-500 focus:ring-brand-500 focus:outline-none transition-colors bg-white shadow-sm cursor-pointer"
+                        disabled={isLoadingSertifikat}
+                        className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm text-slate-700 focus:border-brand-500 focus:ring-brand-500 focus:outline-none transition-colors bg-white shadow-sm cursor-pointer disabled:bg-slate-50 disabled:cursor-not-allowed"
                     >
-                        <option value="">-- Pilih Sertifikat --</option>
-                        <option value="sert-1">Sistem Manajemen Mutu (SNI ISO 9001)</option>
-                        <option value="sert-2">Sistem Manajemen Lingkungan (SNI ISO 14001)</option>
-                        <option value="sert-3">Sertifikasi Produk (SPPT SNI)</option>
-                        <option value="sert-4">Industri Hijau</option>
+                        <option value="">
+                            {isLoadingSertifikat 
+                                ? "-- Sedang memuat riwayat sertifikat... --" 
+                                : "-- Pilih Sertifikat --"
+                            }
+                        </option>
+                        {listSertifikat.map((item) => (
+                            <option key={item.id} value={item.id}>
+                                {item.nomor_sertifikat} - {item.skema_sertifikasi} ({item.tanggal_terbit})
+                            </option>
+                        ))}
                     </select>
                 </div>
             )}

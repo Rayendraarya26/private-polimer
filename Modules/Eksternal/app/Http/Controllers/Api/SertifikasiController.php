@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Db2\MasterJenisLayanan;
 use App\Models\Db2\MasterLingkupLayanan;
@@ -151,6 +152,85 @@ class SertifikasiController extends Controller
             'results' => $dataKomoditi
         ]);
     }
+
+
+    /**
+     * Mengambil riwayat sertifikasi aktif yang dimiliki pemohon
+     */
+    public function getRiwayatSertifikasi(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user() ?? Auth::user() ?? auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User belum terautentikasi',
+                    'results' => []
+                ]);
+            }
+
+            // Ambil permohonan sertifikasi yang selesai
+            $permohonanSelesai = Permohonan::where('created_by', $user->id)
+                ->where('status_workflow', 'DONE')
+                ->where('no_permohonan', 'like', 'SRT%')
+                ->with(['detailPermohonan.lingkupLayanan', 'formSertifikasi'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            $sertifikats = $permohonanSelesai->map(function ($p) {
+                $form = $p->formSertifikasi?->first();
+                $lingkup = $p->detailPermohonan?->first()?->lingkupLayanan;
+
+                return [
+                    'id' => $p->id,
+                    'no_permohonan' => $p->no_permohonan,
+                    'nomor_sertifikat' => $form?->sertifikat_lama_nomor ?? ('SRT/'.substr($p->id, 0, 8)),
+                    'lingkup_id' => $lingkup?->id,
+                    'skema_sertifikasi' => $lingkup?->lingkup ?? 'Sertifikasi Sistem / Produk',
+                    'tanggal_terbit' => $p->tgl_order ? $p->tgl_order->format('d-m-Y') : '-',
+                    'status' => 'Aktif'
+                ];
+            });
+
+            // Fallback Data Dummy jika belum ada permohonan sertifikasi yang selesai
+            if ($sertifikats->isEmpty()) {
+                $sertifikats = collect([
+                    [
+                        'id' => 'sert-default-1',
+                        'no_permohonan' => 'LEGACY-001',
+                        'nomor_sertifikat' => 'SNI-ISO-9001-BBSPJIKKP',
+                        'lingkup_id' => null,
+                        'skema_sertifikasi' => 'Sistem Manajemen Mutu (SNI ISO 9001)',
+                        'tanggal_terbit' => '10/01/2023',
+                        'status' => 'Aktif'
+                    ],
+                    [
+                        'id' => 'sert-default-2',
+                        'no_permohonan' => 'LEGACY-002',
+                        'nomor_sertifikat' => 'SNI-ISO-14001-BBSPJIKKP',
+                        'lingkup_id' => null,
+                        'skema_sertifikasi' => 'Sistem Manajemen Lingkungan (SNI ISO 14001)',
+                        'tanggal_terbit' => '10/01/2025',
+                        'status' => 'Aktif'
+                    ]
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data riwayat sertifikasi berhasil diambil',
+                'results' => $sertifikats
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Error getRiwayatSertifikasi: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat riwayat sertifikat: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    
 
     /**
      * Menyimpan permohonan sertifikasi baru (Draft maupun Langsung Diajukan)

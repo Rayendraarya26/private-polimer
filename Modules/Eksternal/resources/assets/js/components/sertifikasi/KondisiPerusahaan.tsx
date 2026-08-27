@@ -1,9 +1,7 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "../ui/Button"
 import { User, Plus, Trash2, Building2, Download } from "lucide-react"
-import { useProfileQuery } from "@/hooks/queries/useProfileQuery"
-
-
+import { useProfileQuery } from "../../hooks/queries/useProfileQuery"
 
 export interface PabrikItem {
   id: number
@@ -16,53 +14,56 @@ export interface PabrikItem {
   alamatPabrik: string
   jumlahKaryawan: number | string
   kegiatanUtama: string
-  luasTanah: string
-  luasBangunan: string
+  luasTanah: string | number
+  luasBangunan: string | number
 }
 
 export interface KondisiPerusahaanData {
-  namaPerusahaan: string,
-  nomorAktaPendirian: string,
-  namaPemilik: string,
-  namaPimpinan: string,
-  namaWakilManajemen: string,
-  noTelp: string,
-  fax?: string,
-  noHp: string,
-  badanHukum: string,
+  namaPerusahaan: string
+  nomorAktaPendirian: string
+  namaPemilik: string
+  namaPimpinan: string
+  namaWakilManajemen: string
+  noTelp: string
+  fax?: string
+  noHp: string
+  badanHukum?: string
+  jenisPerusahaan?: string
 
-  negara: string,
-  provinsiId?: string,
-  kabupatenId?: string,
-  kecamatanId?: string,
-  kodePos?: string,
-  alamatLengkap: string,
-  luasTanah: string,
-  luasBangunan: string,
+  negara?: string
+  provinsi?: string
+  kabupaten?: string
+  kecamatan?: string
+  kodePos?: string
+  alamatLengkap: string
+  luasTanah: string | number
+  luasBangunan: string | number
 
-  jumlahShift?: number | string,
-  jumlahBagian?: number | string,
-  jumlahKaryawanTotal?: number | string,
-  jumlahManajemen?: number | string,
-  jumlahAdministrasi?: number | string,
-  jumlahOperasional?: number | string,
-  jumlahShift1?: number | string,
-  jumlahShift2?: number | string,
-  jumlahShift3?: number | string,
-  jumlahNonPermanen?: number | string,
-  jumlahPartTime?: number | string,
+  jumlahShift?: number | string
+  jumlahBagian?: number | string
+  jumlahKaryawanTotal?: number | string
+  jumlahManajemen?: number | string
+  jumlahAdministrasi?: number | string
+  jumlahPartTime?: number | string
+  jumlahOperasional?: number | string
+  jumlahShift1?: number | string
+  jumlahShift2?: number | string
+  jumlahShift3?: number | string
+  jumlahNonPermanen?: number | string
 
-  pabrikList: PabrikItem[],
+  pabrikList: PabrikItem[]
+  fileBerkasGabungan?: File | null
 }
 
 interface Step3KondisiPerusahaanProps {
   onNext?: () => void
   onBack?: () => void
   hideButtons?: boolean
-  value?: KondisiPerusahaanData | any
-  onChange?: (val: KondisiPerusahaanData | any) => void
+  value?: KondisiPerusahaanData
+  onChange?: (val: KondisiPerusahaanData) => void
 }
-const emptyPabrik = (id: number): PabrikItem => ({
+
+export const emptyPabrik = (id: number): PabrikItem => ({
   id,
   namaPabrik: "",
   noTelp: "",
@@ -76,6 +77,40 @@ const emptyPabrik = (id: number): PabrikItem => ({
   luasTanah: "",
   luasBangunan: "",
 })
+
+export const defaultKondisiPerusahaan: KondisiPerusahaanData = {
+  namaPerusahaan: "",
+  nomorAktaPendirian: "",
+  namaPemilik: "",
+  namaPimpinan: "",
+  namaWakilManajemen: "",
+  noTelp: "",
+  fax: "",
+  noHp: "",
+  badanHukum: "PT",
+  jenisPerusahaan: "Swasta",
+  negara: "Indonesia",
+  provinsi: "",
+  kabupaten: "",
+  kecamatan: "",
+  kodePos: "",
+  alamatLengkap: "",
+  luasTanah: "",
+  luasBangunan: "",
+  jumlahShift: 1,
+  jumlahBagian: 0,
+  jumlahKaryawanTotal: 0,
+  jumlahManajemen: 0,
+  jumlahAdministrasi: 0,
+  jumlahPartTime: 0,
+  jumlahOperasional: 0,
+  jumlahShift1: 0,
+  jumlahShift2: 0,
+  jumlahShift3: 0,
+  jumlahNonPermanen: 0,
+  pabrikList: [emptyPabrik(Date.now())],
+  fileBerkasGabungan: null,
+}
 
 const daftarNegaraPabrik = [
   "Indonesia",
@@ -113,25 +148,107 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
   onNext,
   onBack,
   hideButtons,
+  value = defaultKondisiPerusahaan,
+  onChange,
 }) => {
-  // const { profile } = useProfileQuery()
-  const [pabrikList, setPabrikList] = useState<PabrikItem[]>([emptyPabrik(Date.now())])
+  const { profile } = useProfileQuery()
+  const [formData, setFormData] = useState<KondisiPerusahaanData>(value)
+
+  // Sync saat prop value berubah
+  useEffect(() => {
+    if (value) {
+      setFormData(value)
+    }
+  }, [value])
+
+  // Autofill data profil SSO tanpa menimpa yang sudah diisi pengguna
+  useEffect(() => {
+    if (profile?.detail) {
+      const p = profile.detail as any
+      setFormData((prev) => {
+        const updated: KondisiPerusahaanData = {
+          ...prev,
+          namaPerusahaan: prev.namaPerusahaan || p.nama || "",
+          nomorAktaPendirian: prev.nomorAktaPendirian || p.no_akta_pendirian || "",
+          namaPemilik: prev.namaPemilik || p.pemilik || "",
+          namaPimpinan: prev.namaPimpinan || p.pimpinan || "",
+          namaWakilManajemen: prev.namaWakilManajemen || p.pj_nama || "",
+          noTelp: prev.noTelp || p.telepon || "",
+          noHp: prev.noHp || p.whatsapp || p.pj_whatsapp || "",
+          fax: prev.fax || p.fax || "",
+          badanHukum: prev.badanHukum || p.badan_hukum || "PT",
+          jenisPerusahaan: prev.jenisPerusahaan || p.jenis || "Swasta",
+          alamatLengkap: prev.alamatLengkap || p.alamat || "",
+        }
+
+        // Jika pabrik pertama masih kosong, isi dengan alamat default perusahaan
+        if (updated.pabrikList && updated.pabrikList.length > 0 && !updated.pabrikList[0].alamatPabrik) {
+          updated.pabrikList[0] = {
+            ...updated.pabrikList[0],
+            namaPabrik: updated.pabrikList[0].namaPabrik || updated.namaPerusahaan,
+            alamatPabrik: updated.pabrikList[0].alamatPabrik || updated.alamatLengkap,
+            noTelp: updated.pabrikList[0].noTelp || updated.noTelp,
+          }
+        }
+
+        if (onChange) onChange(updated)
+        return updated
+      })
+    }
+  }, [profile])
+
+  const updateField = (field: keyof KondisiPerusahaanData, val: any) => {
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: val }
+
+      // Hitung otomatis total karyawan jika bagian/shift diperbarui
+      if (
+        [
+          "jumlahManajemen",
+          "jumlahAdministrasi",
+          "jumlahPartTime",
+          "jumlahShift1",
+          "jumlahShift2",
+          "jumlahShift3",
+          "jumlahNonPermanen",
+        ].includes(field)
+      ) {
+        const man = parseInt(String(field === "jumlahManajemen" ? val : updated.jumlahManajemen)) || 0
+        const adm = parseInt(String(field === "jumlahAdministrasi" ? val : updated.jumlahAdministrasi)) || 0
+        const pt = parseInt(String(field === "jumlahPartTime" ? val : updated.jumlahPartTime)) || 0
+        const s1 = parseInt(String(field === "jumlahShift1" ? val : updated.jumlahShift1)) || 0
+        const s2 = parseInt(String(field === "jumlahShift2" ? val : updated.jumlahShift2)) || 0
+        const s3 = parseInt(String(field === "jumlahShift3" ? val : updated.jumlahShift3)) || 0
+        const np = parseInt(String(field === "jumlahNonPermanen" ? val : updated.jumlahNonPermanen)) || 0
+        
+        updated.jumlahOperasional = s1 + s2 + s3
+        updated.jumlahKaryawanTotal = man + adm + pt + s1 + s2 + s3 + np
+      }
+
+      if (onChange) onChange(updated)
+      return updated
+    })
+  }
 
   const addPabrik = () => {
-    setPabrikList((prev) => [...prev, emptyPabrik(Date.now())])
+    const updatedPabrik = [...(formData.pabrikList || []), emptyPabrik(Date.now())]
+    updateField("pabrikList", updatedPabrik)
   }
 
   const removePabrik = (idToRemove: number) => {
-    if (pabrikList.length > 1) {
-      setPabrikList((prev) => prev.filter((p) => p.id !== idToRemove))
+    if (formData.pabrikList && formData.pabrikList.length > 1) {
+      const updatedPabrik = formData.pabrikList.filter((p) => p.id !== idToRemove)
+      updateField("pabrikList", updatedPabrik)
     }
   }
 
   const updatePabrik = (idToUpdate: number, field: keyof PabrikItem, value: any) => {
-    setPabrikList((prev) =>
-      prev.map((p) => (p.id === idToUpdate ? { ...p, [field]: value } : p))
+    const updatedPabrik = (formData.pabrikList || []).map((p) =>
+      p.id === idToUpdate ? { ...p, [field]: value } : p
     )
+    updateField("pabrikList", updatedPabrik)
   }
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-300">
       <div>
@@ -158,7 +275,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.namaPerusahaan}
+              onChange={(e) => updateField("namaPerusahaan", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="PT Contoh Manufaktur Indonesia"
             />
           </div>
 
@@ -169,7 +289,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.nomorAktaPendirian}
+              onChange={(e) => updateField("nomorAktaPendirian", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="No. AHU-xxxx.AH.xx.xx"
             />
           </div>
 
@@ -180,7 +303,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.namaPemilik}
+              onChange={(e) => updateField("namaPemilik", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Nama Pemilik"
             />
           </div>
 
@@ -191,7 +317,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.namaPimpinan}
+              onChange={(e) => updateField("namaPimpinan", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Nama Direktur / Pimpinan"
             />
           </div>
 
@@ -202,7 +331,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.namaWakilManajemen}
+              onChange={(e) => updateField("namaWakilManajemen", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Penanggung Jawab / MR"
             />
           </div>
 
@@ -213,18 +345,24 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.noTelp}
+              onChange={(e) => updateField("noTelp", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Nomor Telepon Kantor"
             />
           </div>
 
           {/* Fax */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-2">
-              Fax <span className="text-rose-500">*</span>
+              Fax
             </label>
             <input
               type="text"
+              value={formData.fax || ""}
+              onChange={(e) => updateField("fax", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Nomor Fax"
             />
           </div>
 
@@ -235,7 +373,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.noHp}
+              onChange={(e) => updateField("noHp", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="08xxxxxxxxxx"
             />
           </div>
 
@@ -246,7 +387,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.badanHukum || "PT"}
+              onChange={(e) => updateField("badanHukum", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="PT / CV / Koperasi"
             />
           </div>
 
@@ -257,7 +401,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.jenisPerusahaan || "Swasta"}
+              onChange={(e) => updateField("jenisPerusahaan", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
+              placeholder="Swasta / BUMN / PMA"
             />
           </div>
         </div>
@@ -279,41 +426,12 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
               Negara <span className="text-rose-500">*</span>
             </label>
             <select
-              defaultValue="Indonesia"
+              value={formData.negara || "Indonesia"}
+              onChange={(e) => updateField("negara", e.target.value)}
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             >
               <option value="">-- Pilih Negara --</option>
-              {[
-                "Indonesia",
-                "Malaysia",
-                "Singapura",
-                "Thailand",
-                "Vietnam",
-                "Filipina",
-                "Brunei Darussalam",
-                "Kamboja",
-                "Laos",
-                "Myanmar",
-                "Jepang",
-                "Korea Selatan",
-                "Tiongkok",
-                "Taiwan",
-                "Hong Kong",
-                "India",
-                "Australia",
-                "Selandia Baru",
-                "Amerika Serikat",
-                "Kanada",
-                "Inggris",
-                "Jerman",
-                "Belanda",
-                "Prancis",
-                "Italia",
-                "Swiss",
-                "Arab Saudi",
-                "Uni Emirat Arab",
-                "Lainnya",
-              ].map((negara) => (
+              {daftarNegaraPabrik.map((negara) => (
                 <option key={negara} value={negara}>
                   {negara}
                 </option>
@@ -328,6 +446,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.provinsi || ""}
+              onChange={(e) => updateField("provinsi", e.target.value)}
               placeholder="Contoh: Jawa Timur / D.I. Yogyakarta"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -340,6 +460,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.kabupaten || ""}
+              onChange={(e) => updateField("kabupaten", e.target.value)}
               placeholder="Contoh: Kota Yogyakarta / Kab. Sleman"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -352,6 +474,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="text"
+              value={formData.kecamatan || ""}
+              onChange={(e) => updateField("kecamatan", e.target.value)}
               placeholder="Contoh: Umbulharjo"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -364,6 +488,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <textarea
               rows={3}
+              value={formData.alamatLengkap}
+              onChange={(e) => updateField("alamatLengkap", e.target.value)}
               placeholder="Contoh: Jl. Sokonandi No. 9, Semaki"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -376,6 +502,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="number"
+              value={formData.luasTanah}
+              onChange={(e) => updateField("luasTanah", e.target.value)}
               placeholder="Contoh: 1500"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -388,6 +516,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="number"
+              value={formData.luasBangunan}
+              onChange={(e) => updateField("luasBangunan", e.target.value)}
               placeholder="Contoh: 800"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -407,11 +537,14 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
           {/* 18. Jumlah Shift */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-2">
-              umlah Shift (dalam sehari) <span className="text-rose-500">*</span>
+              Jumlah Shift (dalam sehari) <span className="text-rose-500">*</span>
             </label>
             <input
-              type="text"
-              placeholder=""
+              type="number"
+              min="1"
+              value={formData.jumlahShift || 1}
+              onChange={(e) => updateField("jumlahShift", parseInt(e.target.value) || 1)}
+              placeholder="1"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
           </div>
@@ -423,7 +556,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             </label>
             <input
               type="number"
-              defaultValue={0}
+              min="0"
+              value={formData.jumlahBagian || 0}
+              onChange={(e) => updateField("jumlahBagian", parseInt(e.target.value) || 0)}
               placeholder="0"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -446,6 +581,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
+                    value={formData.jumlahManajemen}
+                    onChange={(e) => updateField("jumlahManajemen", parseInt(e.target.value) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -466,6 +603,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
+                    value={formData.jumlahAdministrasi}
+                    onChange={(e) => updateField("jumlahAdministrasi", parseInt(e.target.value) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -486,6 +625,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
+                    value={formData.jumlahPartTime}
+                    onChange={(e) => updateField("jumlahPartTime", parseInt(e.target.value) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -516,6 +657,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
+                        value={formData.jumlahShift1}
+                        onChange={(e) => updateField("jumlahShift1", parseInt(e.target.value) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -536,6 +679,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
+                        value={formData.jumlahShift2}
+                        onChange={(e) => updateField("jumlahShift2", parseInt(e.target.value) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -556,6 +701,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
+                        value={formData.jumlahShift3}
+                        onChange={(e) => updateField("jumlahShift3", parseInt(e.target.value) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -578,6 +725,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
+                    value={formData.jumlahNonPermanen}
+                    onChange={(e) => updateField("jumlahNonPermanen", parseInt(e.target.value) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -606,13 +755,13 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 text-brand-700 font-semibold text-xs rounded-full self-start sm:self-center border border-brand-200">
             <Building2 className="w-3.5 h-3.5" />
-            {pabrikList.length} Pabrik Terdaftar
+            {(formData.pabrikList || []).length} Pabrik Terdaftar
           </span>
         </div>
 
         {/* Daftar Kartu Pabrik */}
         <div className="space-y-6">
-          {pabrikList.map((pabrik, index) => (
+          {(formData.pabrikList || []).map((pabrik, index) => (
             <div
               key={pabrik.id}
               className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4"
@@ -627,7 +776,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   </h5>
                 </div>
 
-                {pabrikList.length > 1 && (
+                {(formData.pabrikList || []).length > 1 && (
                   <Button
                     type="button"
                     variant="danger"
@@ -641,7 +790,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                 )}
               </div>
 
-              {/* Form Input Baris-per-Baris Sesuai Desain */}
+              {/* Form Input Baris-per-Baris Sesuai Desain Asli */}
               <div className="space-y-3">
                 {/* Nama Pabrik */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 items-center">
@@ -714,7 +863,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   </label>
                   <div className="sm:col-span-3">
                     <select
-                      value={pabrik.negara}
+                      value={pabrik.negara || "Indonesia"}
                       onChange={(e) => updatePabrik(pabrik.id, "negara", e.target.value)}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
                     >
@@ -771,7 +920,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       min="0"
                       placeholder="0"
                       value={pabrik.jumlahKaryawan}
-                      onChange={(e) => updatePabrik(pabrik.id, "jumlahKaryawan", e.target.value)}
+                      onChange={(e) => updatePabrik(pabrik.id, "jumlahKaryawan", parseInt(e.target.value) || 0)}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
                     />
                   </div>
@@ -826,7 +975,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                 </div>
 
                 {/* Tombol Delete di bawah kanan */}
-                {pabrikList.length > 1 && (
+                {(formData.pabrikList || []).length > 1 && (
                   <div className="flex justify-end pt-2">
                     <Button
                       type="button"
@@ -914,6 +1063,10 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             <input
               type="file"
               accept=".pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null
+                updateField("fileBerkasGabungan", file)
+              }}
               className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer bg-white p-2 border border-slate-300 rounded-lg"
             />
 

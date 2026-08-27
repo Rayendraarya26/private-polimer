@@ -20,6 +20,7 @@ use Modules\Eksternal\Http\Controllers\Api\RegionController;
 use Modules\Eksternal\Http\Controllers\Api\PermohonanController;
 use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
+use Modules\Eksternal\Http\Controllers\Api\SertifikasiController as ApiSertifikasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -137,10 +138,10 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
         Route::post('/pelatihan', [PelatihanController::class, 'store']);
         Route::get('/skema-lsp', [LSPController::class, 'getSkemalsp']);
-        Route::get('/sertifikasi/jenis', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getJenisSertifikasi']);
-        Route::get('/sertifikasi/komoditi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getKomoditiSertifikasi']);
-        Route::post('/sertifikasi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'store']);
-        Route::post('/sertifikasi/upload-dokumen', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'uploadDokumen']);
+        // Route::get('/sertifikasi/jenis', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getJenisSertifikasi']);
+        // Route::get('/sertifikasi/komoditi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getKomoditiSertifikasi']);
+        // Route::post('/sertifikasi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'store']);
+        // Route::post('/sertifikasi/upload-dokumen', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'uploadDokumen']);
         Route::get('/pelatihan/{id}', [PelatihanController::class, 'show']);
         Route::put('/pelatihan/{id}', [PelatihanController::class, 'update']);
         Route::delete('/pelatihan/{id}', [PelatihanController::class, 'destroy']);
@@ -151,6 +152,18 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}', [LSPController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [LSPController::class, 'ajukanUlang']);
             Route::delete('/{id}', [LSPController::class, 'destroy']);
+        });
+        Route::prefix('sertifikasi')->group(function () {
+            Route::get('/jenis', [ApiSertifikasiController::class, 'getJenisSertifikasi']);
+            Route::get('/komoditi', [ApiSertifikasiController::class, 'getKomoditiSertifikasi']);
+            Route::get('/riwayat-aktif', [ApiSertifikasiController::class, 'getRiwayatSertifikasi']);
+            Route::post('/', [ApiSertifikasiController::class, 'store']);
+            Route::post('/upload-dokumen', [ApiSertifikasiController::class, 'uploadDokumen']);
+            Route::get('/{id}', [ApiSertifikasiController::class, 'show']);
+            Route::put('/{id}', [ApiSertifikasiController::class, 'update']);
+            Route::post('/{id}', [ApiSertifikasiController::class, 'update']);
+            Route::delete('/{id}', [ApiSertifikasiController::class, 'destroy']);
+            Route::post('/{id}/ajukan-ulang', [ApiSertifikasiController::class, 'ajukanUlang']);
         });
     });
    

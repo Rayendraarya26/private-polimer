@@ -24,155 +24,31 @@ class HomeController extends Controller
 
     public function index()
     {
-        $dbData = Cache::remember('homepage_static_db_data', 3600, function () {
-            // 1. Banners
-            $bannersObj = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
-            $banners    = [];
-            if ($bannersObj && is_array($bannersObj->data)) {
-                foreach ($bannersObj->data as $item) {
-                    $banners[] = [
-                        "image_url"   => asset('storage/' . $item['image_path']),
-                        "title"       => $item['title'] ?? null,
-                        "description" => $item['description'] ?? null,
-                        "cta_text"    => Arr::get($item, 'cta_text', null),
-                        "cta_url"     => Arr::get($item, 'cta_url', null),
-                        "cta_target"  => Arr::get($item, 'cta_target', null),
-                        'order'       => $item['order'] ?? 0,
-                    ];
-                }
-                usort($banners, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
-            }
+        $parser = Cache::remember('home_parser', now()->addMinutes(60), function () {
+            $cacheDuration = now()->addMinutes(60);
 
-            // 2. Services
-            $servicesObj = SiteManajemen::query()->where('key', HomepageKey::SERVICES)->first();
-            $services    = [];
-            if ($servicesObj && is_array($servicesObj->data)) {
-                foreach ($servicesObj->data as $item) {
-                    $services[] = [
-                        "id"          => $item['id'] ?? null,
-                        "image_url"   => asset('storage/' . ($item['image_path'] ?? '')),
-                        "name"        => Arr::get($item, 'title'),
-                        "description" => Arr::get($item, 'description'),
-                        'order'       => Arr::get($item, 'order', 0),
-                    ];
-                }
-                usort($services, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
-            }
+            // 1 query instead of 5
+            $siteData = SiteManajemen::whereIn('key', [
+                HomepageKey::SLIDER->value,
+                HomepageKey::SERVICES->value,
+                HomepageKey::PARTNERS->value,
+                HomepageKey::ABOUT->value,
+                HomepageKey::SOCIAL_MEDIA->value,
+            ])->get()->keyBy('key');
 
-            // 3. Partners
-            $partnersObj = SiteManajemen::query()->where('key', HomepageKey::PARTNERS)->first();
-            $partners    = [];
-            if ($partnersObj && is_array($partnersObj->data)) {
-                foreach ($partnersObj->data as $item) {
-                    $partners[] = [
-                        "image_url" => asset('storage/' . ($item['image_path'] ?? '')),
-                        'order'     => $item['order'] ?? 0,
-                    ];
-                }
-                usort($partners, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
-            }
-
-            // 4. About Us
-            $aboutUsObj = SiteManajemen::query()->where('key', HomepageKey::ABOUT)->first();
-            $aboutUs    = $aboutUsObj?->data['data'] ?? '';
-
-            // 5. Social Medias
-            $social_medias = SiteManajemen::query()->where('key', HomepageKey::SOCIAL_MEDIA)->first()?->data ?? [];
-
-            return compact('banners', 'services', 'partners', 'aboutUs', 'social_medias');
+            return [
+                'banners'         => $this->parseBanners($siteData->get(HomepageKey::SLIDER->value), $cacheDuration),
+                'services'        => $this->parseServices($siteData->get(HomepageKey::SERVICES->value), $cacheDuration),
+                'partners'        => $this->parsePartners($siteData->get(HomepageKey::PARTNERS->value), $cacheDuration),
+                'testimonials'    => $this->getTestimonials(),
+                'aboutUs'         => $siteData->get(HomepageKey::ABOUT->value)?->data['data'] ?? '',
+                'companyOverview' => $this->getCompanyOverview(),
+                'social_medias'   => $siteData->get(HomepageKey::SOCIAL_MEDIA->value)?->data ?? [],
+                'collapsible'     => $this->getCollapsible(),
+            ];
         });
 
-        $testimonials = [
-            [
-                "avatar"   => null,
-                "title"    => "Sutrisno Aji",
-                "subtitle" => "MKJ Home Jogja",
-                "content"  => "Terima kasih kepada LPH BBSPJIKKP untuk diskon 50% dalam rangka HUT RI. Semoga sukses dan bagi yang ingin mendapatkan produk halal semoga bermanfaat bagi kita semua."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Sofyan",
-                "subtitle" => "UMKM Kulit",
-                "content"  => "Semoga pelayanan tambah maju dan sukses terus."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Retno",
-                "subtitle" => "PT. Adi Satria Abadi",
-                "content"  => "Terima kasih untuk BBSPJIKKP dan semua kru. Krunya ramah, cepat, teliti, pokoknya semuanya deh. The best untuk balai."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Mojtaba Ashjaei",
-                "subtitle" => "Qom Industrial Parks Co. (Islamic Republic of Iran)",
-                "content"  => "I would like to appreciate this meeting actually today was really effective. I was so glad to see here, before the session I didn’t have this feeling that we this happens here but it was really glad, great, and excellent and I would like to appreciate everything was perfect. Thank you very much,  everything was great."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Mr. Puzhen",
-                "subtitle" => "PT. Kayahan Berseri, layanan sertifikasi",
-                "content"  => "Atas nama seluruh pegawai PT Kahayan Berseri, saya mengucapkan terima kasih kepada tim audit BBKKP. Saya sangat beruntung. Tim audit sabar, teliti, detail dan akurat dalam mengaudit SMK3L & SNI. Sebagai saksi penataran SMK3L & SNI. sistem manajemen kami, sepanjang jalan, tim saya telah memperoleh banyak hal, terima kasih banyak atas bimbingan Anda dan semoga pekerjaan Anda lancar dan keluarga bahagia."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Naomika Manurung",
-                "subtitle" => "PT Hok Tong Jambi, layanan Sertifikasi",
-                "content"  => "Dalam proses sertifikasi industri hijau semua berjalan dengan baik dan lancar dan sangat membantu perusahaan kami untuk lebih baik kedepannya."
-            ],
-            [
-                "avatar"   => null,
-                "title"    => "Sari Indah",
-                "subtitle" => "CV Kulit Berkualitas, layanan Pengujian",
-                "content"  => "Laboratorium testing mereka sangat lengkap dan akurat. Hasil analisis yang diberikan sangat membantu dalam pengembangan produk kami. Terima kasih atas pelayanan yang excellent."
-            ],
-        ];
-
-        $companyOverview = [
-            "title"       => __('home.overview.title'),
-            "description" => __('home.overview.description'),
-            "statistics"  => [
-                [
-                    "value" => "10+",
-                    "label" => __('home.overview.stats.country_reach')
-                ],
-                [
-                    "value" => "1000+",
-                    "label" => __('home.overview.stats.industry_partners')
-                ],
-                [
-                    "value" => "13",
-                    "label" => __('home.overview.stats.service_types')
-                ],
-                [
-                    "value" => "99,47%",
-                    "label" => __('home.overview.stats.punctuality')
-                ]
-            ]
-        ];
-
-        $collapsible = [
-            [
-                "title"           => __('home.faq.why_jis_title'),
-                "is_default_open" => true,
-                "description"     => __('home.faq.why_jis_desc')
-            ],
-            [
-                "title"           => __('home.faq.services_title'),
-                "is_default_open" => false,
-                "description"     => __('home.faq.services_desc')
-            ],
-            [
-                "title"           => __('home.faq.quality_title'),
-                "is_default_open" => false,
-                "description"     => __('home.faq.quality_desc')
-            ],
-        ];
-
-        return view("$this->view.index", array_merge($dbData, [
-            'testimonials'    => $testimonials,
-            'companyOverview' => $companyOverview,
-            'collapsible'     => $collapsible,
-        ]));
+        return view("$this->view.index", $parser);
     }
 
     public function contactUs(Request $request)
@@ -240,5 +116,172 @@ class HomeController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    // ──────────────────────────────────────────────
+    // Private Helper Methods
+    // ──────────────────────────────────────────────
+
+    private function parseBanners(?SiteManajemen $bannersObj, $cacheDuration): array
+    {
+        $banners = [];
+        if (!$bannersObj || !is_array($bannersObj->data)) {
+            return $banners;
+        }
+
+        foreach ($bannersObj->data as $item) {
+            $banners[] = [
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "title"       => $item['title'] ?? null,
+                "description" => $item['description'] ?? null,
+                "cta_text"    => Arr::get($item, 'cta_text', null),
+                "cta_url"     => Arr::get($item, 'cta_url', null),
+                "cta_target"  => Arr::get($item, 'cta_target', null),
+                'order'       => $item['order'] ?? 0,
+            ];
+        }
+
+        usort($banners, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        return $banners;
+    }
+
+    private function parseServices(?SiteManajemen $servicesObj, $cacheDuration): array
+    {
+        $services = [];
+        if (!$servicesObj || !is_array($servicesObj->data)) {
+            return $services;
+        }
+
+        foreach ($servicesObj->data as $item) {
+            $services[] = [
+                "id"          => $item['id'] ?? null,
+                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "name"        => Arr::get($item, 'title'),
+                "description" => Arr::get($item, 'description'),
+                'order'       => Arr::get($item, 'order', 0),
+            ];
+        }
+
+        usort($services, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        return $services;
+    }
+
+    private function parsePartners(?SiteManajemen $partnersObj, $cacheDuration): array
+    {
+        $partners = [];
+        if (!$partnersObj || !is_array($partnersObj->data)) {
+            return $partners;
+        }
+
+        foreach ($partnersObj->data as $item) {
+            $partners[] = [
+                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                'order'     => $item['order'] ?? 0,
+            ];
+        }
+
+        usort($partners, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        return $partners;
+    }
+
+    private function getTestimonials(): array
+    {
+        return [
+            [
+                "avatar"   => null,
+                "title"    => "Sutrisno Aji",
+                "subtitle" => "MKJ Home Jogja",
+                "content"  => "Terima kasih kepada LPH BBSPJIKKP untuk diskon 50% dalam rangka HUT RI. Semoga sukses dan bagi yang ingin mendapatkan produk halal semoga bermanfaat bagi kita semua."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Sofyan",
+                "subtitle" => "UMKM Kulit",
+                "content"  => "Semoga pelayanan tambah maju dan sukses terus."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Retno",
+                "subtitle" => "PT. Adi Satria Abadi",
+                "content"  => "Terima kasih untuk BBSPJIKKP dan semua kru. Krunya ramah, cepat, teliti, pokoknya semuanya deh. The best untuk balai."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Mojtaba Ashjaei",
+                "subtitle" => "Qom Industrial Parks Co. (Islamic Republic of Iran)",
+                "content"  => "I would like to appreciate this meeting actually today was really effective. I was so glad to see here, before the session I didn't have this feeling that we this happens here but it was really glad, great, and excellent and I would like to appreciate everything was perfect. Thank you very much,  everything was great."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Mr. Puzhen",
+                "subtitle" => "PT. Kayahan Berseri, layanan sertifikasi",
+                "content"  => "Atas nama seluruh pegawai PT Kahayan Berseri, saya mengucapkan terima kasih kepada tim audit BBKKP. Saya sangat beruntung. Tim audit sabar, teliti, detail dan akurat dalam mengaudit SMK3L & SNI. Sebagai saksi penataran SMK3L & SNI. sistem manajemen kami, sepanjang jalan, tim saya telah memperoleh banyak hal, terima kasih banyak atas bimbingan Anda dan semoga pekerjaan Anda lancar dan keluarga bahagia."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Naomika Manurung",
+                "subtitle" => "PT Hok Tong Jambi, layanan Sertifikasi",
+                "content"  => "Dalam proses sertifikasi industri hijau semua berjalan dengan baik dan lancar dan sangat membantu perusahaan kami untuk lebih baik kedepannya."
+            ],
+            [
+                "avatar"   => null,
+                "title"    => "Sari Indah",
+                "subtitle" => "CV Kulit Berkualitas, layanan Pengujian",
+                "content"  => "Laboratorium testing mereka sangat lengkap dan akurat. Hasil analisis yang diberikan sangat membantu dalam pengembangan produk kami. Terima kasih atas pelayanan yang excellent."
+            ],
+        ];
+    }
+
+    private function getCompanyOverview(): array
+    {
+        return [
+            "title"       => "JIS",
+            "description" => "<strong>Jogja Industrial Services (JIS)</strong> diartikan sebagai Jaminan Integritas dan Solusi. Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan.",
+            "statistics"  => [
+                ["value" => "10+",    "label" => "Jangkauan Negara"],
+                ["value" => "1000+",  "label" => "Mitra Industri"],
+                ["value" => "13",     "label" => "Jenis Layanan Jasa"],
+                ["value" => "99,47%", "label" => "Ketepatan Waktu"],
+            ]
+        ];
+    }
+
+    private function getCollapsible(): array
+    {
+        return [
+            [
+                "title"           => "Kenapa Harus JIS ?",
+                "is_default_open" => true,
+                "description"     => "Bagaikan JOGJA, keistimewaan JIS terletak pada keramahan dan tradisinya dalam menjaga kualitas dan nilai luhur yang dimilikinya. Nilai luhur tersebut tertuang dalam komitmennya untuk selalu menjalankan proses bisnis dengan standar kualitas tertinggi, menjaga integritas, reliabilitas, responsifitas, empati, jaminan kualitas, dan kepuasan pelanggan.
+<br><br>Dalam memberikan pelayanan, JIS mampu menyesuaikan dengan kebutuhan pelanggan, mendengar dan memenuhi keinginan pelanggan, sehingga dapat memberikan pengalaman berharga di benak pelanggan. JIS staff SIAP melayani dengan Semangat, Ikhlas, Amanah, dan Profesional.
+<br><br>JIS kini memiliki tiga belas layanan jasa industri dalam satu genggaman."
+            ],
+            [
+                "title"           => "Layanan",
+                "is_default_open" => false,
+                "description"     => "Saat ini, JIS bergerak di bidang layanan jasa
+                <ol><li>Pendampingan</li>
+  <li>Pengujian</li>
+  <li>Kalibrasi</li>
+  <li>Sertifikasi</li>
+  <li>Inspeksi</li>
+  <li>Verifikasi dan Validasi GRK</li>
+  <li>Verifikasi TKDN</li>
+  <li>Pemeriksa Halal</li>
+  <li>Audit Teknologi</li>
+  <li>Penyelenggara Uji Profisiensi</li>
+  <li>Produsen Bahan Acuan</li>
+  <li>Miniplant Kulit, Karet, dan Plastik</li>
+  <li>Layanan jasa lain</li></ol>"
+            ],
+            [
+                "title"           => "Quality is Quality",
+                "is_default_open" => false,
+                "description"     => 'Industri mana yang tidak ingin dikenal? Industri mana yang tidak ingin menjaga kualitas? <br><br>
+"You\'re known because of Quality" adalah sebuah inspirasi kami dalam memberikan pelayanan kepada pelanggan. Kami memahami bahwa pelaku industri selalu ingin dikenal dengan kualitasnya. Untuk itu kami ingin menjadi bagian dari seluruh pelaku industri dalam memberikan nilai tambah sehingga tercapai produktivitas dan profitabilitas yang berkelanjutan.<br><br>
+JIS menjalankan proses bisnis dengan standar kualitas tertinggi. Rasakan pengalaman kualitas yang kami tawarkan..<br><br>
+Quality is QUALITY.'
+            ],
+        ];
     }
 }

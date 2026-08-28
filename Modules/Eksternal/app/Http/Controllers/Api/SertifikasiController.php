@@ -47,6 +47,62 @@ class SertifikasiController extends Controller
     }
 
     /**
+     * Mengambil riwayat sertifikasi aktif yang dimiliki pemohon.
+     */
+    public function getRiwayatSertifikasi(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user() ?? auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'User belum terautentikasi',
+                    'results' => [],
+                    'data'    => [],
+                ]);
+            }
+
+            // Ambil permohonan sertifikasi yang selesai (status_workflow = DONE)
+            $permohonanSelesai = Permohonan::where('created_by', $user->id)
+                ->where('status_workflow', 'DONE')
+                ->with(['detailPermohonan.lingkupLayanan', 'formSertifikasi.items'])
+                ->orderByDesc('created_at')
+                ->get();
+
+            $sertifikats = $permohonanSelesai->map(function ($p) {
+                $form = $p->formSertifikasi;
+                $lingkup = $p->detailPermohonan?->first()?->lingkupLayanan;
+                $firstItem = $form?->items?->first();
+
+                return [
+                    'id'                => $p->id,
+                    'no_permohonan'     => $p->no_permohonan,
+                    'nomor_sertifikat'  => $form?->sertifikat_lama_nomor ?? ($form?->dokumen_persyaratan['nomor_sertifikat'] ?? ('SRT/' . substr($p->id, 0, 8))),
+                    'lingkup_id'        => $lingkup?->id,
+                    'skema_sertifikasi' => $lingkup?->lingkup ?? 'Sertifikasi Produk & Sistem',
+                    'komoditi'          => $firstItem?->nama_produk ?? 'Komoditi Terdaftar',
+                    'sni'               => $firstItem?->standar_sni_iso ?? '-',
+                    'tgl_terbit'        => $p->tgl_order ? $p->tgl_order->format('Y-m-d') : ($p->created_at ? $p->created_at->format('Y-m-d') : null),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data riwayat sertifikasi berhasil diambil',
+                'results' => $sertifikats,
+                'data'    => $sertifikats,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error getRiwayatSertifikasi: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat riwayat sertifikat: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Store new multi-item certification application.
      */
     public function store(Request $request): JsonResponse

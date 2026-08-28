@@ -1,8 +1,9 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { SertifikasiFormData, emptyPengajuan } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
-import { Sparkles, Plus, Trash2, Award, History, ArrowRight, ShieldCheck } from "lucide-react"
+import { Sparkles, Plus, Trash2, Award, History, ArrowRight, ShieldCheck, Loader2 } from "lucide-react"
+import axios from "axios"
 
 interface Props {
   formData: SertifikasiFormData
@@ -10,7 +11,40 @@ interface Props {
   onNext: () => void
 }
 
+export interface SertifikatRiwayatOption {
+  id: string
+  no_permohonan: string
+  nomor_sertifikat: string
+  lingkup_id?: string
+  skema_sertifikasi?: string
+  komoditi?: string
+  sni?: string
+  tgl_terbit?: string
+}
+
 export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, onNext }) => {
+  const [riwayatSertifikat, setRiwayatSertifikat] = useState<SertifikatRiwayatOption[]>([])
+  const [isLoadingRiwayat, setIsLoadingRiwayat] = useState(false)
+
+  useEffect(() => {
+    const fetchRiwayat = async () => {
+      setIsLoadingRiwayat(true)
+      try {
+        const res = await axios.get("/api/eksternal/sertifikasi/riwayat-aktif")
+        if (res.data && res.data.success) {
+          const list = res.data.results || res.data.data || []
+          setRiwayatSertifikat(list)
+        }
+      } catch (err) {
+        console.error("Gagal mengambil riwayat sertifikat:", err)
+      } finally {
+        setIsLoadingRiwayat(false)
+      }
+    }
+
+    fetchRiwayat()
+  }, [])
+
   const addPengajuan = () => {
     setFormData((prev) => ({
       ...prev,
@@ -34,6 +68,28 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
         jenis_pengajuan: jenis,
         sertifikat_lama_id: jenis === "baru" ? "" : updated[index].sertifikat_lama_id,
         sertifikat_lama_text: jenis === "baru" ? "" : updated[index].sertifikat_lama_text,
+      }
+      return { ...prev, pengajuan: updated }
+    })
+  }
+
+  const selectSertifikatLama = (index: number, certId: string) => {
+    const selected = riwayatSertifikat.find((c) => c.id === certId || c.nomor_sertifikat === certId)
+    setFormData((prev) => {
+      const updated = [...prev.pengajuan]
+      if (selected) {
+        updated[index] = {
+          ...updated[index],
+          sertifikat_lama_id: selected.id,
+          sertifikat_lama_text: selected.nomor_sertifikat,
+          skema_id: selected.lingkup_id || updated[index].skema_id,
+        }
+      } else {
+        updated[index] = {
+          ...updated[index],
+          sertifikat_lama_id: "",
+          sertifikat_lama_text: certId,
+        }
       }
       return { ...prev, pengajuan: updated }
     })
@@ -182,19 +238,56 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
             {/* Input Referensi Sertifikat Lama jika perpanjangan */}
             {p.jenis_pengajuan === "lama" && (
               <div className="pt-2 animate-in fade-in-50 duration-200">
-                <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 space-y-2">
-                  <label className="block text-xs font-bold text-amber-900">
-                    Nomor Sertifikat / Referensi Sertifikat Lama <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={p.sertifikat_lama_text || ""}
-                    onChange={(e) => setSertifikatLamaText(idx, e.target.value)}
-                    placeholder="Contoh: 12/BBKKP/SNI/2022 atau Masukkan Nomor Sertifikat Aktif"
-                    className="w-full rounded-lg border border-amber-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                  />
+                <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-amber-900">
+                      Pilih Sertifikat Aktif / Masukkan Nomor Sertifikat <span className="text-rose-500">*</span>
+                    </label>
+                    {isLoadingRiwayat && (
+                      <span className="text-[11px] text-amber-700 flex items-center gap-1 font-medium">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Memuat data sertifikat...
+                      </span>
+                    )}
+                  </div>
+
+                  {riwayatSertifikat.length > 0 ? (
+                    <div className="space-y-2">
+                      <select
+                        value={p.sertifikat_lama_id || (riwayatSertifikat.some(c => c.nomor_sertifikat === p.sertifikat_lama_text) ? p.sertifikat_lama_text : "")}
+                        onChange={(e) => selectSertifikatLama(idx, e.target.value)}
+                        className="w-full rounded-lg border border-amber-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      >
+                        <option value="">-- Pilih dari Sertifikat Aktif Perusahaan --</option>
+                        {riwayatSertifikat.map((cert) => (
+                          <option key={cert.id} value={cert.id}>
+                            {cert.nomor_sertifikat} - {cert.skema_sertifikasi || cert.komoditi} {cert.tgl_terbit ? `(Terbit: ${cert.tgl_terbit})` : ""}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="text-[11px] text-slate-500 font-medium">Atau masukkan manual jika tidak ada di daftar:</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={p.sertifikat_lama_text || ""}
+                        onChange={(e) => setSertifikatLamaText(idx, e.target.value)}
+                        placeholder="Contoh: 081/BBKKP/ISO-9001/XI/2023"
+                        className="w-full rounded-lg border border-amber-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={p.sertifikat_lama_text || ""}
+                      onChange={(e) => setSertifikatLamaText(idx, e.target.value)}
+                      placeholder="Contoh: 081/BBKKP/ISO-9001/XI/2023 atau Nomor Sertifikat Aktif"
+                      className="w-full rounded-lg border border-amber-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    />
+                  )}
+
                   <p className="text-[11px] text-amber-700">
-                    Sistem akan memvalidasi data historis masa berlaku sertifikat di database SIS.
+                    Sistem akan memvalidasi data historis masa berlaku sertifikat di database SIS BBSPJIKKP.
                   </p>
                 </div>
               </div>

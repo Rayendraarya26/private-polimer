@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast"
 import Swal from "sweetalert2"
 import useProfile from "../../../hooks/useProfile"
 import { useSertifikasi } from "../../../hooks/service-requests/useSertifikasi"
+import { useSertifikasiDraft } from "../../../hooks/useSertifikasiDraft"
 import {
   SertifikasiFormData,
   initialSertifikasiFormData,
@@ -13,7 +14,7 @@ import Step1JenisPermohonan from "./Step1JenisPermohonan"
 import Step2KategoriDanKomoditi from "./Step2KategoriDanKomoditi"
 import Step3PerusahaanDanPabrik from "./Step3PerusahaanDanPabrik"
 import Step4PernyataanKonfirmasi from "./Step4PernyataanKonfirmasi"
-import { Layers, Package, Building2, CheckSquare, Check } from "lucide-react"
+import { Layers, Package, Building2, CheckSquare, Check, Sparkles, RefreshCw, Trash2, FileEdit } from "lucide-react"
 
 const STEPS = [
   { id: 0, title: "Jenis Permohonan", icon: Layers, desc: "Baru vs perpanjangan sertifikat" },
@@ -30,11 +31,13 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
   const navigate = useNavigate()
   const { profile } = useProfile()
   const detail = profile?.detail
+  const userId = profile?.id || profile?.detail?.id || "guest"
 
   const { data: skemaList = [] } = useSertifikasiSkemaQuery()
   const { data: provinces = [] } = useProvincesQuery()
 
   const { submitting, createPermohonanSertifikasi } = useSertifikasi()
+  const { existingDraft, autoSave, clearDraft, isSaving } = useSertifikasiDraft(String(userId))
 
   const [step, setStep] = useState(0)
   const [formData, setFormData] = useState<SertifikasiFormData>(() => {
@@ -44,6 +47,32 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
     }
     return init
   })
+  const [draftDismissed, setDraftDismissed] = useState(false)
+
+  // Auto-save form data changes to IndexedDB
+  useEffect(() => {
+    // Only auto-save if user has filled at least some basic field
+    if (formData.nama_perusahaan || formData.pengajuan.some(p => p.skema_id || p.items.some(i => i.nama_produk))) {
+      autoSave(formData)
+    }
+  }, [formData, autoSave])
+
+  // Restore Draft Action
+  const handleRestoreDraft = () => {
+    if (existingDraft) {
+      const { draftId, updatedAt, ...rest } = existingDraft
+      setFormData(rest)
+      toast.success("Draf permohonan berhasil dipulihkan.")
+      setDraftDismissed(true)
+    }
+  }
+
+  // Discard Draft Action
+  const handleDiscardDraft = async () => {
+    await clearDraft()
+    setDraftDismissed(true)
+    toast.success("Draf lama telah dihapus.")
+  }
 
   // Prefill from user profile if available
   useEffect(() => {
@@ -177,7 +206,8 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
 
       await createPermohonanSertifikasi(
         { ...formData, aksi },
-        () => {
+        async () => {
+          await clearDraft()
           Swal.fire({
             title: aksi === "ajukan" ? "Permohonan Berhasil Dikirim!" : "Draft Berhasil Disimpan!",
             text:
@@ -192,11 +222,49 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
         }
       )
     },
-    [formData, createPermohonanSertifikasi, navigate]
+    [formData, createPermohonanSertifikasi, clearDraft, navigate]
   )
 
   return (
     <div className="space-y-6">
+      {/* Banner Pemulihan Draf Offline (IndexedDB) */}
+      {existingDraft && !draftDismissed && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-brand-50 via-sky-50 to-indigo-50 border border-brand-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <FileEdit className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-900">
+                Draf Permohonan Tersimpan Ditemukan
+              </h4>
+              <p className="text-[11px] text-slate-600">
+                Anda memiliki draf pengisian formulir sertifikasi di peramban ini ({existingDraft.updatedAt ? new Date(existingDraft.updatedAt).toLocaleString("id-ID") : "Sebelumnya"}).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+              Buang Draf
+            </button>
+            <button
+              type="button"
+              onClick={handleRestoreDraft}
+              className="px-3.5 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Lanjutkan Draf
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Stepper Navigation Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-soft">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

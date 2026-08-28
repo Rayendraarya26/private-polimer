@@ -1,7 +1,9 @@
-import React from "react"
+import React, { useEffect } from "react"
 import {
   SertifikasiFormData,
   SertifikasiProductItem,
+  DokumenPersyaratanItem,
+  defaultDokumenList,
   emptyProductItem,
 } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
@@ -19,7 +21,12 @@ import {
   Tag,
   Award,
   Layers,
+  Download,
+  Building,
+  AlertCircle,
+  FileCheck,
 } from "lucide-react"
+import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 
 interface Props {
   formData: SertifikasiFormData
@@ -36,6 +43,46 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
   onNext,
   onBack,
 }) => {
+  const { profile } = useProfileQuery()
+  const detailPerusahaan = profile?.detail
+
+  // Auto-populate dokumen legalitas dari profil perusahaan (Akta & NIB)
+  useEffect(() => {
+    if (!detailPerusahaan) return
+
+    setFormData((prev) => {
+      let changed = false
+      const updatedPengajuan = prev.pengajuan.map((p) => {
+        const docList = p.dokumen_list && p.dokumen_list.length > 0 
+          ? [...p.dokumen_list] 
+          : defaultDokumenList.map((d) => ({ ...d }))
+
+        const updatedDocs = docList.map((doc) => {
+          if (doc.id === "legalitas_perusahaan" && detailPerusahaan.dok_akta_pendirian && !doc.file && !doc.isFromProfile) {
+            changed = true
+            return {
+              ...doc,
+              isFromProfile: true,
+            }
+          }
+          if (doc.id === "nib_iui" && detailPerusahaan.dok_nib && !doc.file && !doc.isFromProfile) {
+            changed = true
+            return {
+              ...doc,
+              isFromProfile: true,
+            }
+          }
+          return doc
+        })
+
+        return { ...p, dokumen_list: updatedDocs }
+      })
+
+      if (!changed) return prev
+      return { ...prev, pengajuan: updatedPengajuan }
+    })
+  }, [detailPerusahaan, setFormData])
+
   const setSkemaId = (pIdx: number, skemaId: string) => {
     setFormData((prev) => {
       const updated = [...prev.pengajuan]
@@ -85,15 +132,38 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
     })
   }
 
-  // File upload per pengajuan
-  const handleFileUpload = (
+  // Structured Document upload handler
+  const handleDocumentFileUpload = (
     pIdx: number,
-    field: "dok_legalitas" | "dok_manual_mutu" | "dok_diagram_alir" | "dok_lainnya",
+    docId: string,
     file: File | null
   ) => {
     setFormData((prev) => {
       const updated = [...prev.pengajuan]
-      updated[pIdx] = { ...updated[pIdx], [field]: file }
+      const docList = updated[pIdx].dokumen_list || defaultDokumenList.map((d) => ({ ...d }))
+      const updatedDocs = docList.map((doc) => {
+        if (doc.id === docId) {
+          return {
+            ...doc,
+            file: file,
+            isFromProfile: file ? false : doc.isFromProfile,
+          }
+        }
+        return doc
+      })
+      updated[pIdx] = { ...updated[pIdx], dokumen_list: updatedDocs }
+
+      // Map to legacy fields if applicable
+      if (docId === "legalitas_perusahaan" || docId === "nib_iui") {
+        updated[pIdx].dok_legalitas = file
+      } else if (docId === "sistem_mutu") {
+        updated[pIdx].dok_manual_mutu = file
+      } else if (docId === "alur_produksi") {
+        updated[pIdx].dok_diagram_alir = file
+      } else if (docId === "dok_lainnya") {
+        updated[pIdx].dok_lainnya = file
+      }
+
       return { ...prev, pengajuan: updated }
     })
   }
@@ -102,6 +172,9 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
     <div className="space-y-8">
       {formData.pengajuan.map((p, pIdx) => {
         const selectedSkema = skemaList.find((s) => s.id === p.skema_id)
+        const docList = p.dokumen_list && p.dokumen_list.length > 0 
+          ? p.dokumen_list 
+          : defaultDokumenList
 
         return (
           <Card key={p.id || pIdx} className="border-slate-200 shadow-soft overflow-hidden">
@@ -116,7 +189,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                     Pengajuan #{pIdx + 1} ({p.jenis_pengajuan === "baru" ? "Sertifikat Baru" : `Perpanjangan: ${p.sertifikat_lama_text || "-"}`})
                   </h3>
                   <p className="text-[11px] text-slate-300">
-                    Tentukan ruang lingkup sertifikasi, komoditi produk SNI/ISO, dan unggah berkas kelengkapan.
+                    Tentukan ruang lingkup sertifikasi, rincian produk SNI/ISO, dan unggah dokumen persyaratan.
                   </p>
                 </div>
               </div>
@@ -190,7 +263,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                         <div>
                           <label className="block font-semibold text-slate-700 mb-1">
                             Nama Produk / Komoditi <span className="text-rose-500">*</span>
@@ -201,14 +274,14 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                             onChange={(e) =>
                               updateProductItem(pIdx, itemIdx, "nama_produk", e.target.value)
                             }
-                            placeholder="Contoh: Sepatu Pengaman Kulit / Ban Kendaraan"
+                            placeholder="Contoh: Sepatu Pengaman Kulit"
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                           />
                         </div>
 
                         <div>
                           <label className="block font-semibold text-slate-700 mb-1">
-                            Merk Dagang
+                            Merk Dagang <span className="text-rose-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -216,7 +289,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                             onChange={(e) =>
                               updateProductItem(pIdx, itemIdx, "merk_dagang", e.target.value)
                             }
-                            placeholder="Contoh: Brand X / SafetyMax"
+                            placeholder="Contoh: SafetyMax"
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                           />
                         </div>
@@ -231,14 +304,29 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                             onChange={(e) =>
                               updateProductItem(pIdx, itemIdx, "tipe_jenis", e.target.value)
                             }
-                            placeholder="Contoh: High-Cut Heavy Duty Seri 808"
+                            placeholder="Contoh: High-Cut Seri 808"
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                           />
                         </div>
 
                         <div>
                           <label className="block font-semibold text-slate-700 mb-1">
-                            Nomor Standar SNI / ISO
+                            Ukuran / Spesifikasi
+                          </label>
+                          <input
+                            type="text"
+                            value={item.ukuran || ""}
+                            onChange={(e) =>
+                              updateProductItem(pIdx, itemIdx, "ukuran", e.target.value)
+                            }
+                            placeholder="Contoh: 38 - 45 / Diameter 15 mm"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-semibold text-slate-700 mb-1">
+                            Nomor Standar SNI / ISO <span className="text-rose-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -246,22 +334,58 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                             onChange={(e) =>
                               updateProductItem(pIdx, itemIdx, "standar_sni_iso", e.target.value)
                             }
-                            placeholder="Contoh: SNI 7079:2009 / SNI 0111:2020"
+                            placeholder="Contoh: SNI 7079:2009"
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-semibold text-slate-700 mb-1">
+                            Satuan Produksi
+                          </label>
+                          <select
+                            value={item.satuan_produksi || "Unit/Tahun"}
+                            onChange={(e) =>
+                              updateProductItem(pIdx, itemIdx, "satuan_produksi", e.target.value)
+                            }
+                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                          >
+                            <option value="Unit/Tahun">Unit/Tahun</option>
+                            <option value="Pasang/Tahun">Pasang/Tahun</option>
+                            <option value="Pcs/Tahun">Pcs/Tahun</option>
+                            <option value="Ton/Tahun">Ton/Tahun</option>
+                            <option value="Kg/Tahun">Kg/Tahun</option>
+                            <option value="Liter/Tahun">Liter/Tahun</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block font-semibold text-slate-700 mb-1">
+                            Kapasitas Produksi / Tahun
+                          </label>
+                          <input
+                            type="text"
+                            value={item.kapasitas_produksi || ""}
+                            onChange={(e) =>
+                              updateProductItem(pIdx, itemIdx, "kapasitas_produksi", e.target.value)
+                            }
+                            placeholder="Contoh: 50.000"
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                           />
                         </div>
 
                         <div className="md:col-span-2">
                           <label className="block font-semibold text-slate-700 mb-1">
-                            Ruang Lingkup / Kapasitas Produksi
+                            Keterangan Tambahan / Ruang Lingkup
                           </label>
                           <input
                             type="text"
-                            value={item.ruang_lingkup || ""}
-                            onChange={(e) =>
+                            value={item.keterangan || item.ruang_lingkup || ""}
+                            onChange={(e) => {
+                              updateProductItem(pIdx, itemIdx, "keterangan", e.target.value)
                               updateProductItem(pIdx, itemIdx, "ruang_lingkup", e.target.value)
-                            }
-                            placeholder="Contoh: Kapasitas 50.000 pasang/tahun, cakupan ukuran 38-45"
+                            }}
+                            placeholder="Keterangan spesifikasi khusus atau cakupan audit"
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"
                           />
                         </div>
@@ -271,119 +395,94 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* 3. Kelengkapan Berkas Dokumen */}
+              {/* 3. Kelengkapan Berkas Dokumen Persyaratan BBSPJIKKP */}
               <div className="space-y-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center gap-2">
-                  <FileUp className="w-4 h-4 text-brand-600" />
-                  <h4 className="text-xs font-bold text-slate-900">
-                    Unggah Dokumen Persyaratan Sertifikasi
-                  </h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileUp className="w-4 h-4 text-brand-600" />
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">
+                        Unggah Dokumen Persyaratan Sertifikasi
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Format berkas yang didukung: PDF, JPG, PNG (Maks. 10MB per file)
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Dokumen Legalitas */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 block">
-                          1. Dokumen Legalitas Usaha
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          NIB / Izin Usaha Industri / NPWP / Akta Pendirian
-                        </span>
-                      </div>
-                      {p.dok_legalitas && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileUpload(pIdx, "dok_legalitas", e.target.files?.[0] || null)}
-                      className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-                    />
-                    {p.dok_legalitas && (
-                      <p className="text-[10px] text-brand-600 font-medium truncate">
-                        File: {p.dok_legalitas.name}
-                      </p>
-                    )}
-                  </div>
+                  {docList.map((doc) => {
+                    const isUploaded = !!doc.file
+                    const isFromProfile = !!doc.isFromProfile && !doc.file
 
-                  {/* Dokumen Manual Mutu */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 block">
-                          2. Manual Mutu / Prosedur Mutu
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          Dokumen manual ISO 9001 / pedoman mutu pabrik
-                        </span>
-                      </div>
-                      {p.dok_manual_mutu && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileUpload(pIdx, "dok_manual_mutu", e.target.files?.[0] || null)}
-                      className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-                    />
-                    {p.dok_manual_mutu && (
-                      <p className="text-[10px] text-brand-600 font-medium truncate">
-                        File: {p.dok_manual_mutu.name}
-                      </p>
-                    )}
-                  </div>
+                    return (
+                      <div
+                        key={doc.id}
+                        className={`p-4 rounded-xl border transition-all ${
+                          isUploaded || isFromProfile
+                            ? "border-emerald-200 bg-emerald-50/30 ring-1 ring-emerald-500/10"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        } space-y-2`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-800">
+                                {doc.nama}
+                              </span>
+                              {doc.wajib && (
+                                <span className="text-rose-500 text-xs font-bold">*</span>
+                              )}
+                              {isFromProfile && (
+                                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center gap-1">
+                                  <FileCheck className="w-3 h-3" /> Tersedia dari Profil
+                                </span>
+                              )}
+                              {isUploaded && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" /> Terunggah
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              {doc.keterangan}
+                            </p>
+                          </div>
+                        </div>
 
-                  {/* Dokumen Diagram Alir */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 block">
-                          3. Diagram Alir Proses Produksi
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          Flowchart proses pembuatan produk & titik kendali kritis
-                        </span>
-                      </div>
-                      {p.dok_diagram_alir && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileUpload(pIdx, "dok_diagram_alir", e.target.files?.[0] || null)}
-                      className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-                    />
-                    {p.dok_diagram_alir && (
-                      <p className="text-[10px] text-brand-600 font-medium truncate">
-                        File: {p.dok_diagram_alir.name}
-                      </p>
-                    )}
-                  </div>
+                        {doc.templateUrl && (
+                          <div className="pt-1">
+                            <a
+                              href={doc.templateUrl}
+                              download
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700 hover:underline"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Unduh Template Resmi (.docx)
+                            </a>
+                          </div>
+                        )}
 
-                  {/* Dokumen Tambahan */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-slate-800 block">
-                          4. Dokumen Tambahan / Sertifikat Terkait
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          Daftar mesin, alat uji laboratorium, atau sertifikat lama
-                        </span>
+                        <div className="pt-1">
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
+                            onChange={(e) =>
+                              handleDocumentFileUpload(pIdx, doc.id, e.target.files?.[0] || null)
+                            }
+                            className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 cursor-pointer"
+                          />
+                          {doc.file && (
+                            <p className="text-[10px] text-brand-600 font-medium truncate mt-1">
+                              File dipilih: {doc.file.name} ({(doc.file.size / 1024).toFixed(1)} KB)
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      {p.dok_lainnya && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </div>
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileUpload(pIdx, "dok_lainnya", e.target.files?.[0] || null)}
-                      className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-                    />
-                    {p.dok_lainnya && (
-                      <p className="text-[10px] text-brand-600 font-medium truncate">
-                        File: {p.dok_lainnya.name}
-                      </p>
-                    )}
-                  </div>
+                    )
+                  })}
                 </div>
               </div>
             </CardContent>

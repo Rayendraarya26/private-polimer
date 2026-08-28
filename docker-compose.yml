@@ -30,9 +30,26 @@ services:
         networks:
             - bbkkp_network
 
+    minio:
+        image: minio/minio:latest
+        container_name: private-minio
+        restart: unless-stopped
+        environment:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: miniopassword123
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - private_minio_data:/data
+        command: server /data --console-address ":9001"
+        networks:
+            - bbkkp_network
+
 networks:
     bbkkp_network:
         external: true
 
 volumes:
     private_mysql_data:
+    private_minio_data:

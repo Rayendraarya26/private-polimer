@@ -28,6 +28,7 @@ class FormSertifikasi extends Model
         'no_telp',
         'no_whatsapp',
         'email',
+        'sertifikat_lama_nomor',
         'kuesioner_kelayakan',
         'dokumen_persyaratan',
     ];

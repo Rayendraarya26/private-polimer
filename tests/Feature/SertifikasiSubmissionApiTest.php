@@ -28,10 +28,24 @@ class SertifikasiSubmissionApiTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\GroupSeeder::class);
+
         $this->user = SysUser::create([
-            'email'    => 'pemohon_cert@example.com',
-            'password' => bcrypt('secret123'),
-            'name'     => 'PT Bintang Plastik',
+            'email'             => 'pemohon_cert@example.com',
+            'password'          => bcrypt('secret123'),
+            'name'              => 'PT Bintang Plastik',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->user->id,
+            'group_id'   => \App\Enums\SysGroup::PELANGGAN->value,
+            'is_default' => 'yes',
+        ]);
+
+        \App\Models\Db1\Pelanggan::create([
+            'user_id'         => $this->user->id,
+            'jenis_pelanggan' => \App\Enums\PelangganJenisPelanggan::BADAN_USAHA->value,
         ]);
 
         $jenis = MasterJenisLayanan::create([

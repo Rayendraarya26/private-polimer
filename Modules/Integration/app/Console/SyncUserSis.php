@@ -153,7 +153,7 @@ class SyncUserSis extends Command
                 'pimpinan'    => $userSis->cust_nama_pimpinan,
                 'telepon'     => $userSis->cust_nomor_telp,
                 'fax'         => $userSis->cust_nomor_fax,
-                'npwp'        => $userSis->cust_npwp,
+                'npwp'        => $userSis->cust_npwp ?? null,
             ]
         );
 

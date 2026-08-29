@@ -94,7 +94,7 @@ class SertifikasiDatabaseAndModelsTest extends TestCase
 
         $pelanggan = Pelanggan::create([
             'user_id'         => $user->id,
-            'jenis_pelanggan' => 'badan_usaha',
+            'jenis_pelanggan' => \App\Enums\PelangganJenisPelanggan::BADAN_USAHA->value,
         ]);
 
         $pabrik = PelangganPabrik::create([

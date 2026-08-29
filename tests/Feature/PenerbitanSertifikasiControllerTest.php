@@ -28,21 +28,37 @@ class PenerbitanSertifikasiControllerTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\GroupSeeder::class);
+
         $this->adminUser = SysUser::create([
-            'email'    => 'kepala_balai@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'Kepala BBSPJIKKP',
+            'email'             => 'kepala_balai@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'Kepala BBSPJIKKP',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->adminUser->id,
+            'group_id'   => \App\Enums\SysGroup::PEGAWAI->value,
+            'is_default' => 'yes',
         ]);
 
         $this->clientUser = SysUser::create([
-            'email'    => 'client_terbit@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'PT Terbit Jaya',
+            'email'             => 'client_terbit@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'PT Terbit Jaya',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->clientUser->id,
+            'group_id'   => \App\Enums\SysGroup::PELANGGAN->value,
+            'is_default' => 'yes',
         ]);
 
         $this->pelanggan = Pelanggan::create([
             'user_id'         => $this->clientUser->id,
-            'jenis_pelanggan' => 'badan_usaha',
+            'jenis_pelanggan' => \App\Enums\PelangganJenisPelanggan::BADAN_USAHA->value,
         ]);
 
         $this->permohonan = Permohonan::create([
@@ -107,8 +123,10 @@ class PenerbitanSertifikasiControllerTest extends TestCase
 
         // Test Download by Client
         $this->actingAs($this->clientUser);
-        $downloadResponse = $this->get("/api/eksternal/sertifikasi/{$this->permohonan->id}/download-sertifikat");
+        $downloadResponse = $this->get("/api/eksternal/sertifikasi/{$this->permohonan->id}/download-sertifikat", [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
 
-        $this->assertContains($downloadResponse->status(), [200, 302]);
+        $this->assertContains($downloadResponse->getStatusCode(), [200, 302]);
     }
 }

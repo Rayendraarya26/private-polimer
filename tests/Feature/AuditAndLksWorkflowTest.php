@@ -23,16 +23,37 @@ class AuditAndLksWorkflowTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\GroupSeeder::class);
+
         $this->clientUser = SysUser::create([
-            'email'    => 'client_audit@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'PT Karet Gemilang',
+            'email'             => 'client_audit@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'PT Karet Gemilang',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->clientUser->id,
+            'group_id'   => \App\Enums\SysGroup::PELANGGAN->value,
+            'is_default' => 'yes',
+        ]);
+
+        \App\Models\Db1\Pelanggan::create([
+            'user_id'         => $this->clientUser->id,
+            'jenis_pelanggan' => \App\Enums\PelangganJenisPelanggan::BADAN_USAHA,
         ]);
 
         $this->adminUser = SysUser::create([
-            'email'    => 'auditor_lead@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'Dr. Ir. Budi Lead Auditor',
+            'email'             => 'auditor_lead@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'Dr. Ir. Budi Lead Auditor',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->adminUser->id,
+            'group_id'   => \App\Enums\SysGroup::PEGAWAI->value,
+            'is_default' => 'yes',
         ]);
 
         $this->permohonan = Permohonan::create([

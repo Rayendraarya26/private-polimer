@@ -24,69 +24,116 @@ class SisSyncBridgingService
         try {
             $sis = DB::connection('sis');
 
-            // 1. Resolve SIS cust_id by Creator Email
-            $creator = SysUser::find($permohonan->created_by);
-            $sisUser = $creator ? $sis->table('sys_user')->where('user_email', $creator->email)->first() : null;
-            $sisPelanggan = $sisUser ? $sis->table('sis_pelanggan')->where('user_id', $sisUser->user_id)->first() : null;
-            $custId = $sisPelanggan?->cust_id;
-
-            // 2. Fetch Form Data
+            // 1. Fetch Form Data
             $form = FormSertifikasi::with(['items', 'pabrik'])->where('permohonan_id', $permohonan->id)->first();
             if (!$form) {
                 return ['success' => false, 'message' => 'Data formulir sertifikasi tidak ditemukan'];
             }
 
+            // 2. Resolve or create SIS user & cust_id by Creator
+            $creator = SysUser::find($permohonan->created_by);
+            $creatorEmail = $creator?->email ?: ($form->email ?: 'pelanggan@bbkkp.go.id');
+            $creatorName = $form->nama_perusahaan ?: ($creator?->name ?: 'Perusahaan Pemohon');
+
+            $sisUser = $sis->table('sys_user')->where('user_email', $creatorEmail)->first();
+            if (!$sisUser) {
+                $userId = $sis->table('sys_user')->insertGetId([
+                    'user_fullname'   => $creatorName,
+                    'user_email'      => $creatorEmail,
+                    'user_password'   => $creator?->password ?: bcrypt('secret'),
+                    'user_is_active'  => 'yes',
+                    'user_is_banned'  => 'no',
+                    'user_created_at' => now(),
+                ]);
+            } else {
+                $userId = $sisUser->user_id;
+            }
+
+            $sisPelanggan = $sis->table('sis_pelanggan')->where('user_id', $userId)->first();
+            if (!$sisPelanggan) {
+                $custId = $sis->table('sis_pelanggan')->insertGetId([
+                    'user_id'         => $userId,
+                    'cust_nama'       => $creatorName,
+                    'cust_email'      => $creatorEmail,
+                    'cust_nomor_telp' => $form->no_whatsapp ?: $form->no_telepon,
+                    'cust_alamat'     => $form->alamat_kantor,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+            } else {
+                $custId = $sisPelanggan->cust_id;
+            }
+
             // 3. Map status workflow Polimer ke status SIS
-            $statusSis = match ($permohonan->status_workflow) {
-                'DRAFT'                  => 'draft',
-                'PERMOHONAN'             => 'diajukan',
-                'PEMBAYARAN'             => 'pembayaran',
-                'PROSES_AUDIT'           => 'audit',
-                'SIDANG_KOMITE'          => 'sidang_komite',
-                'PENERBITAN_SERTIFIKAT',
-                'SELESAI'                => 'selesai',
-                'DITOLAK'                => 'ditolak',
-                default                  => 'diajukan',
+            $statusApprovedSis = match ($permohonan->status_workflow) {
+                'DRAFT', 'PERMOHONAN', 'PEMBAYARAN', 'PROSES_AUDIT', 'SIDANG_KOMITE' => 'on-progress',
+                'PENERBITAN_SERTIFIKAT', 'SELESAI' => 'accepted',
+                'DITOLAK' => 'rejected',
+                default => 'on-progress',
             };
+
+            $statusBayarSis = ($permohonan->status_bayar === 'LUNAS') ? 'lunas' : 'proses';
+            $jenisStatus = (strtoupper($form->tipe_pengajuan ?? 'BARU') === 'BARU') ? 'baru' : 'lama';
 
             // 4. Upsert into sis_permohonan
             $existingPermohonan = $sis->table('sis_permohonan')
-                ->where('permohonan_nomor', $permohonan->no_permohonan)
+                ->where('cust_id', $custId)
+                ->where('mohon_cust_nama', $form->nama_perusahaan ?: ($creator?->name ?: 'Perusahaan Pemohon'))
                 ->first();
 
             $permohonanData = [
-                'cust_id'           => $custId,
-                'permohonan_nomor'  => $permohonan->no_permohonan,
-                'permohonan_tipe'   => $form->tipe_pengajuan,
-                'permohonan_tgl'    => $permohonan->tgl_order ?: now(),
-                'permohonan_status' => $statusSis,
-                'created_at'        => $permohonan->created_at ?: now(),
-                'updated_at'        => now(),
+                'cust_id'                          => $custId,
+                'user_id'                          => $userId,
+                'sert_id'                          => 1, // Default SPPT SNI
+                'mohon_approved_status'            => $statusApprovedSis,
+                'mohon_jenis_status'               => $jenisStatus,
+                'mohon_pembayaran_status'          => $statusBayarSis,
+                'mohon_cust_nama'                  => $form->nama_perusahaan ?: ($creator?->name ?: 'Perusahaan Pemohon'),
+                'mohon_cust_email'                 => $form->email ?: $creator?->email,
+                'mohon_cust_nomor_telp'            => $form->no_whatsapp ?: $form->no_telepon,
+                'mohon_cust_alamat'                => $form->alamat_kantor,
+                'mohon_cust_nomor_akta_pendirian'  => $form->nomor_akta_pendirian ?? null,
+                'mohon_cust_nama_pemilik'          => $form->nama_pemilik ?? null,
+                'mohon_cust_nama_pimpinan'         => $form->nama_pimpinan ?? null,
+                'mohon_cust_nama_wakil_manajemen'  => $form->nama_wakil_manajemen ?? null,
+                'mohon_cust_jumlah_bagian'         => $form->jumlah_bagian ?? null,
+                'mohon_cust_jumlah_manajemen'      => $form->jumlah_manajemen ?? null,
+                'mohon_cust_jumlah_administrasi'   => $form->jumlah_administrasi ?? null,
+                'mohon_cust_jumlah_part_time'      => $form->jumlah_part_time ?? null,
+                'mohon_cust_jumlah_operasional'    => $form->jumlah_operasional ?? null,
+                'mohon_cust_jumlah_shift_1'        => $form->jumlah_shift_1 ?? null,
+                'mohon_cust_jumlah_shift_2'        => $form->jumlah_shift_2 ?? null,
+                'mohon_cust_jumlah_shift_3'        => $form->jumlah_shift_3 ?? null,
+                'mohon_cust_jumlah_non_permanen'   => $form->jumlah_non_permanen ?? null,
+                'mohon_cust_luas_tanah'            => $form->luas_tanah ?? null,
+                'mohon_cust_luas_bangunan'         => $form->luas_bangunan ?? null,
+                'updated_at'                       => now(),
             ];
 
             if ($existingPermohonan) {
                 $sis->table('sis_permohonan')
-                    ->where('permohonan_id', $existingPermohonan->permohonan_id)
+                    ->where('mohon_id', $existingPermohonan->mohon_id)
                     ->update($permohonanData);
-                $permohonanId = $existingPermohonan->permohonan_id;
+                $permohonanId = $existingPermohonan->mohon_id;
             } else {
+                $permohonanData['created_at'] = $permohonan->created_at ?: now();
                 $permohonanId = $sis->table('sis_permohonan')->insertGetId($permohonanData);
             }
 
             // 5. Sync Multi-Items to sis_permohonan_komoditi
             if ($permohonanId) {
-                $sis->table('sis_permohonan_komoditi')->where('permohonan_id', $permohonanId)->delete();
+                $sis->table('sis_permohonan_komoditi')->where('mohon_id', $permohonanId)->delete();
 
                 foreach ($form->items as $item) {
                     $sis->table('sis_permohonan_komoditi')->insert([
-                        'permohonan_id' => $permohonanId,
-                        'komodt_id'     => $item->komoditi_id,
-                        'komodt_nama'   => $item->nama_produk,
-                        'komodt_merk'   => $item->merk_dagang,
-                        'komodt_tipe'   => $item->tipe_jenis,
-                        'komodt_sni'    => $item->standar_sni_iso,
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
+                        'mohon_id'             => $permohonanId,
+                        'komodt_id'            => $item->komoditi_id ?: 1,
+                        'mohon_kmditi_merk'    => $item->merk_dagang ?: $item->nama_produk,
+                        'mohon_kmditi_tipe'    => $item->tipe_jenis,
+                        'mohon_kmditi_sni'     => $item->standar_sni_iso,
+                        'mohon_kmditi_ukuran'  => $item->ukuran ?? null,
+                        'created_at'           => now(),
+                        'updated_at'           => now(),
                     ]);
                 }
             }
@@ -111,36 +158,40 @@ class SisSyncBridgingService
         try {
             $sis = DB::connection('sis');
 
-            $existingAudit = $sis->table('sis_audit')
-                ->where('polimer_audit_id', (string) $audit->id)
-                ->first();
-
             $statusAuditSis = match ($audit->status_audit) {
-                'PLANNED'     => 'direncanakan',
-                'IN_PROGRESS' => 'berjalan',
-                'COMPLETED'   => 'selesai',
-                'CANCELLED'   => 'batal',
-                default       => 'direncanakan',
+                'PLANNED', 'IN_PROGRESS' => 'on-going',
+                'COMPLETED'              => 'accepted',
+                'CANCELLED'              => 'rejected',
+                default                  => 'on-going',
             };
 
+            $jenisAuditSis = match ($audit->tipe_audit) {
+                'SURVEILANS' => 'survailen',
+                'RE_SERTIFIKASI' => 're-sertifikasi',
+                default => 'sertifikasi',
+            };
+
+            $existingAudit = $sis->table('sis_jadwal_audit')
+                ->where('jadw_audit_nomor_referensi', (string) $audit->id)
+                ->first();
+
             $auditData = [
-                'polimer_audit_id' => (string) $audit->id,
-                'audit_tipe'       => $audit->tipe_audit,
-                'audit_tgl_mulai'  => $audit->tanggal_mulai,
-                'audit_tgl_selesai'=> $audit->tanggal_selesai,
-                'audit_status'     => $statusAuditSis,
-                'audit_kesimpulan' => $audit->kesimpulan_audit,
-                'updated_at'       => now(),
+                'jadw_audit_nomor_referensi'   => (string) $audit->id,
+                'jadw_audit_jenis'             => $jenisAuditSis,
+                'jadw_audit_sertifikat_status' => $statusAuditSis,
+                'jadw_audit_ruang_lingkup'     => $audit->kesimpulan_audit ?: 'Audit Sertifikasi Polimer',
+                'updated_at'                   => now(),
             ];
 
             if ($existingAudit) {
-                $sis->table('sis_audit')
-                    ->where('audit_id', $existingAudit->audit_id)
+                $sis->table('sis_jadwal_audit')
+                    ->where('jadw_audit_id', $existingAudit->jadw_audit_id)
                     ->update($auditData);
-                $sisAuditId = $existingAudit->audit_id;
+                $sisAuditId = $existingAudit->jadw_audit_id;
             } else {
+                $auditData['sert_id'] = 1;
                 $auditData['created_at'] = now();
-                $sisAuditId = $sis->table('sis_audit')->insertGetId($auditData);
+                $sisAuditId = $sis->table('sis_jadwal_audit')->insertGetId($auditData);
             }
 
             return [
@@ -163,28 +214,35 @@ class SisSyncBridgingService
         try {
             $sis = DB::connection('sis');
 
+            $kategoriSis = match (strtoupper($lks->kategori ?? 'MINOR')) {
+                'KRITIS'    => 'kritis',
+                'MAYOR'     => 'mayor',
+                'OBSERVASI' => 'observasi',
+                default     => 'minor',
+            };
+
             $statusLksSis = match ($lks->status_lks) {
-                'OPEN'            => 'open',
-                'SUBMITTED'       => 'submitted',
-                'VERIFIED_CLOSED' => 'closed',
-                'REJECTED'        => 'rejected',
-                default           => 'open',
+                'VERIFIED_CLOSED' => 'memadai',
+                'REJECTED'        => 'tidak-memadai',
+                'REVISI',
+                'SUBMITTED'       => 'revisi',
+                default           => null,
             };
 
             $existingLks = $sis->table('sis_audit_lks')
-                ->where('lks_nomor', $lks->nomor_lks)
+                ->where('jadw_team_kode', $lks->nomor_lks)
                 ->first();
 
             $lksData = [
-                'lks_nomor'        => $lks->nomor_lks,
-                'lks_kategori'     => $lks->kategori,
-                'lks_klausul'      => $lks->klausul_standar,
-                'lks_deskripsi'    => $lks->deskripsi_temuan,
-                'lks_akar_masalah' => $lks->akar_masalah,
-                'lks_tindakan'     => $lks->tindakan_koreksi,
-                'lks_status'       => $statusLksSis,
-                'lks_deadline'     => $lks->batas_waktu_revisi,
-                'updated_at'       => now(),
+                'jadw_team_kode'              => $lks->nomor_lks,
+                'lks_kategori_ketidaksesuaian'=> $kategoriSis,
+                'lks_klausul_ketidaksesuaian' => $lks->klausul_standar,
+                'lks_uraian_ketidaksesuaian'  => $lks->deskripsi_temuan,
+                'lks_perbaikan_analisa'       => $lks->akar_masalah,
+                'lks_perbaikan_koreksi'       => $lks->tindakan_koreksi,
+                'lks_status'                  => $statusLksSis,
+                'lks_expired_date_perbaikan'  => $lks->batas_waktu_revisi,
+                'updated_at'                  => now(),
             ];
 
             if ($existingLks) {
@@ -193,6 +251,8 @@ class SisSyncBridgingService
                     ->update($lksData);
                 $sisLksId = $existingLks->lks_id;
             } else {
+                $lksData['jadw_id'] = 1;
+                $lksData['user_id'] = 1;
                 $lksData['created_at'] = now();
                 $sisLksId = $sis->table('sis_audit_lks')->insertGetId($lksData);
             }
@@ -221,8 +281,26 @@ class SisSyncBridgingService
             $pelanggan = Pelanggan::find($sertifikat->pelanggan_id);
             $sysUser = $pelanggan ? SysUser::find($pelanggan->user_id) : null;
             $sisUser = $sysUser ? $sis->table('sys_user')->where('user_email', $sysUser->email)->first() : null;
-            $sisPelanggan = $sisUser ? $sis->table('sis_pelanggan')->where('user_id', $sisUser->user_id)->first() : null;
-            $custId = $sisPelanggan?->cust_id ?: 0;
+            $sisPelanggan = null;
+            if ($sisUser) {
+                $sisPelanggan = $sis->table('sis_pelanggan')->where('user_id', $sisUser->user_id)->first();
+            }
+            if (!$sisPelanggan && $sysUser?->email) {
+                $sisPelanggan = $sis->table('sis_pelanggan')->where('cust_email', $sysUser->email)->first();
+            }
+
+            if (!$sisPelanggan) {
+                $userId = $sisUser?->user_id ?: ($sis->table('sys_user')->value('user_id') ?: 1);
+                $custId = $sis->table('sis_pelanggan')->insertGetId([
+                    'user_id'    => $userId,
+                    'cust_nama'  => $sysUser?->name ?: 'Pelanggan Sertifikasi',
+                    'cust_email' => $sysUser?->email ?: 'pelanggan@mailinator.com',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                $custId = $sisPelanggan->cust_id;
+            }
 
             $statusSis = match ($sertifikat->status) {
                 'on_going'  => 'on_going',

@@ -641,7 +641,8 @@ class SertifikasiController extends Controller
 
         // If local storage file
         if (Storage::disk('public')->exists($filePath)) {
-            return Storage::disk('public')->download($filePath, 'Sertifikat_' . $sertifikat->nomor_sertifikat . '.pdf');
+            $downloadName = 'Sertifikat_' . str_replace(['/', '\\', ' '], '_', $sertifikat->nomor_sertifikat) . '.pdf';
+            return Storage::disk('public')->download($filePath, $downloadName);
         }
 
         return response()->json(['success' => false, 'message' => 'Berkas fisik sertifikat tidak ditemukan di storage'], 404);

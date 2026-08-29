@@ -24,16 +24,26 @@ class KomiteSertifikasiTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\GroupSeeder::class);
+
         $this->clientUser = SysUser::create([
-            'email'    => 'client_komite@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'PT Sinar Kencana',
+            'email'             => 'client_komite@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'PT Sinar Kencana',
+            'email_verified_at' => now(),
         ]);
 
         $this->adminUser = SysUser::create([
-            'email'    => 'ketua_komite@example.com',
-            'password' => bcrypt('password'),
-            'name'     => 'Ketua Komite Sertifikasi',
+            'email'             => 'ketua_komite@example.com',
+            'password'          => bcrypt('password'),
+            'name'              => 'Ketua Komite Sertifikasi',
+            'email_verified_at' => now(),
+        ]);
+
+        \App\Models\Db1\SysUserGroup::create([
+            'user_id'    => $this->adminUser->id,
+            'group_id'   => \App\Enums\SysGroup::PEGAWAI->value,
+            'is_default' => 'yes',
         ]);
 
         $this->permohonan = Permohonan::create([

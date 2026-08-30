@@ -66,20 +66,28 @@ class SisSyncBridgingService
 
             // 3. Map status workflow Polimer ke status SIS
             $statusApprovedSis = match ($permohonan->status_workflow) {
-                'DRAFT', 'PERMOHONAN', 'PEMBAYARAN', 'PROSES_AUDIT', 'SIDANG_KOMITE' => 'on-progress',
-                'PENERBITAN_SERTIFIKAT', 'SELESAI' => 'accepted',
-                'DITOLAK' => 'rejected',
+                'DRAFT', 'PERMOHONAN', 'IN_REVIEW', 'PEMBAYARAN', 'PROCESS', 'REVISI',
+                'PROSES_AUDIT', 'SIDANG_KOMITE' => 'on-progress',
+                'DONE', 'PENERBITAN_SERTIFIKAT', 'SELESAI' => 'accepted',
+                'DITOLAK', 'BATAL' => 'rejected',
                 default => 'on-progress',
             };
 
-            $statusBayarSis = ($permohonan->status_bayar === 'LUNAS') ? 'lunas' : 'proses';
+            $statusBayarSis = match ($permohonan->status_bayar) {
+                'LUNAS' => 'lunas',
+                'BATAL' => 'batal',
+                default => 'proses',
+            };
             $jenisStatus = (strtoupper($form->tipe_pengajuan ?? 'BARU') === 'BARU') ? 'baru' : 'lama';
 
-            // 4. Upsert into sis_permohonan
-            $existingPermohonan = $sis->table('sis_permohonan')
-                ->where('cust_id', $custId)
-                ->where('mohon_cust_nama', $form->nama_perusahaan ?: ($creator?->name ?: 'Perusahaan Pemohon'))
+            // 4. Upsert into sis_permohonan based on unique reference (no_permohonan)
+            $existingDetail = $sis->table('sis_permohonan_detail')
+                ->where('mohon_det_no_referensi', $permohonan->no_permohonan)
                 ->first();
+
+            $existingPermohonan = $existingDetail
+                ? $sis->table('sis_permohonan')->where('mohon_id', $existingDetail->mohon_id)->first()
+                : null;
 
             $permohonanData = [
                 'cust_id'                          => $custId,
@@ -120,13 +128,33 @@ class SisSyncBridgingService
                 $permohonanId = $sis->table('sis_permohonan')->insertGetId($permohonanData);
             }
 
-            // 5. Sync Multi-Items to sis_permohonan_komoditi
+            // 5. Sync sis_permohonan_detail
             if ($permohonanId) {
+                $detail = $sis->table('sis_permohonan_detail')->where('mohon_id', $permohonanId)->first();
+                if (!$detail) {
+                    $mohonDetId = $sis->table('sis_permohonan_detail')->insertGetId([
+                        'mohon_id'               => $permohonanId,
+                        'mohon_det_jenis_status' => $jenisStatus,
+                        'sert_id'                => 1,
+                        'mohon_det_perlu_tahap1' => 'ya',
+                        'mohon_det_no_referensi' => $permohonan->no_permohonan,
+                    ]);
+                } else {
+                    $mohonDetId = $detail->mohon_det_id;
+                    $sis->table('sis_permohonan_detail')->where('mohon_det_id', $mohonDetId)->update([
+                        'mohon_det_jenis_status' => $jenisStatus,
+                        'sert_id'                => 1,
+                        'mohon_det_no_referensi' => $permohonan->no_permohonan,
+                    ]);
+                }
+
+                // 6. Sync Multi-Items to sis_permohonan_komoditi
                 $sis->table('sis_permohonan_komoditi')->where('mohon_id', $permohonanId)->delete();
 
                 foreach ($form->items as $item) {
                     $sis->table('sis_permohonan_komoditi')->insert([
                         'mohon_id'             => $permohonanId,
+                        'mohon_det_id'         => $mohonDetId,
                         'komodt_id'            => $item->komoditi_id ?: 1,
                         'mohon_kmditi_merk'    => $item->merk_dagang ?: $item->nama_produk,
                         'mohon_kmditi_tipe'    => $item->tipe_jenis,
@@ -134,6 +162,25 @@ class SisSyncBridgingService
                         'mohon_kmditi_ukuran'  => $item->ukuran ?? null,
                         'created_at'           => now(),
                         'updated_at'           => now(),
+                    ]);
+                }
+            }
+
+            // 7. Sync Pabrik to sis_permohonan_pabrik
+            if ($permohonanId && $form->pabrik) {
+                $sis->table('sis_permohonan_pabrik')->where('mohon_id', $permohonanId)->delete();
+
+                foreach ($form->pabrik as $pabrik) {
+                    $sis->table('sis_permohonan_pabrik')->insert([
+                        'mohon_id'                       => $permohonanId,
+                        'mohon_pabrik_nama'              => $pabrik->nama_pabrik,
+                        'mohon_pabrik_alamat'            => $pabrik->alamat_pabrik,
+                        'mohon_pabrik_nomor_telp'        => $pabrik->kontak_pabrik ?? null,
+                        'mohon_pabrik_nomor_hp'          => $pabrik->kontak_pabrik ?? null,
+                        'mohon_pabrik_jumlah_karyawan'   => $pabrik->jumlah_karyawan ?: null,
+                        'mohon_pabrik_luas_tanah'        => $pabrik->luas_fasilitas ?? null,
+                        'created_at'                     => now(),
+                        'updated_at'                     => now(),
                     ]);
                 }
             }

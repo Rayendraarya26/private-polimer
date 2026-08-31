@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardContent } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
-import { ArrowLeft, Plus, Trash2, Send, Loader2, Clock, RefreshCw, FileText } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Send, Loader2, Clock, RefreshCw, FileText, Check } from "lucide-react"
 import Step1JenisPermohonan from "../../components/sertifikasi/JenisPermohonan"
 import Step2KategoriSertifikat, { KomoditiData, DokumenPersyaratan } from "../../components/sertifikasi/KategoriSertifikat"
 import Step3KondisiPerusahaan, { KondisiPerusahaanData, defaultKondisiPerusahaan } from "../../components/sertifikasi/KondisiPerusahaan"
@@ -97,11 +97,73 @@ const SertifikasiPage: React.FC = () => {
     }))
   }
 
+  // Validasi Realtime per Step
+  const isStep1Valid = pengajuans.length > 0 && pengajuans.every(p =>
+    Boolean(p.jenisPermohonan) && (p.jenisPermohonan !== 'perpanjangan' || Boolean(p.sertifikatLama?.trim()))
+  )
+
+  const isStep2Valid = pengajuans.length > 0 && pengajuans.every(p =>
+    Boolean(p.kategoriSertifikat) && Array.isArray(p.komoditis) && p.komoditis.length > 0
+  )
+
+  const isStep3Valid = Boolean(
+    kondisiPerusahaan.namaPerusahaan?.trim() &&
+    kondisiPerusahaan.nomorAktaPendirian?.trim() &&
+    Number(kondisiPerusahaan.jumlahKaryawanTotal) > 0
+  )
+
+  const isStep4Valid = Boolean(isAgreed)
+
+  const isStepValid = (stepNum: number): boolean => {
+    switch (stepNum) {
+      case 1: return isStep1Valid
+      case 2: return isStep2Valid
+      case 3: return isStep3Valid
+      case 4: return isStep4Valid
+      default: return false
+    }
+  }
+
+  const canNavigateToStep = (targetStep: number): boolean => {
+    if (targetStep === currentStep) return true
+    if (targetStep < currentStep) return true
+
+    // Syarat maju: semua langkah sebelum targetStep harus sudah valid
+    for (let i = 1; i < targetStep; i++) {
+      if (!isStepValid(i)) return false
+    }
+    return true
+  }
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep === currentStep) return
+
+    if (targetStep < currentStep) {
+      setCurrentStep(targetStep)
+      return
+    }
+
+    // Jika ingin maju, periksa dan beri pesan jika langkah sebelumnya belum lengkap
+    for (let i = 1; i < targetStep; i++) {
+      if (!isStepValid(i)) {
+        if (i === 1) {
+          toast.error("Harap lengkapi Jenis Permohonan terlebih dahulu")
+        } else if (i === 2) {
+          toast.error("Harap pilih skema sertifikasi dan minimal 1 data komoditas terlebih dahulu")
+        } else if (i === 3) {
+          toast.error("Harap lengkapi data kondisi perusahaan terlebih dahulu")
+        }
+        return
+      }
+    }
+
+    setCurrentStep(targetStep)
+  }
+
   const handleNext = () => {
     // Validasi Step 1
     if (currentStep === 1) {
-      const invalid = pengajuans.some(p => !p.jenisPermohonan || (p.jenisPermohonan === 'perpanjangan' && !p.sertifikatLama))
-      if (invalid) {
+      if (!isStep1Valid) {
         toast.error("Harap lengkapi jenis permohonan untuk semua pengajuan")
         return
       }
@@ -109,8 +171,7 @@ const SertifikasiPage: React.FC = () => {
 
     // Validasi Step 2
     if (currentStep === 2) {
-      const invalid = pengajuans.some(p => !p.kategoriSertifikat || !p.komoditis || p.komoditis.length === 0)
-      if (invalid) {
+      if (!isStep2Valid) {
         toast.error("Harap pilih skema sertifikasi dan minimal 1 data komoditas")
         return
       }
@@ -118,7 +179,7 @@ const SertifikasiPage: React.FC = () => {
 
     // Validasi Step 3
     if (currentStep === 3) {
-      if (!kondisiPerusahaan.namaPerusahaan || !kondisiPerusahaan.nomorAktaPendirian) {
+      if (!kondisiPerusahaan.namaPerusahaan?.trim() || !kondisiPerusahaan.nomorAktaPendirian?.trim()) {
         toast.error("Nama perusahaan dan nomor akta pendirian wajib diisi")
         return
       }
@@ -346,32 +407,108 @@ const SertifikasiPage: React.FC = () => {
       )}
 
       {/* Progress Stepper Card */}
-      <Card className="border-brand-100 shadow-sm">
-        <CardHeader className="pt-6 pb-5 border-b border-slate-100 bg-slate-50/30">
+      <Card className="border-brand-100 shadow-sm overflow-hidden">
+        <CardHeader className="pt-6 pb-5 border-b border-slate-100 bg-slate-50/40">
           <div className="flex justify-between items-start w-full relative">
-            <div className="absolute top-4 left-[12.5%] right-[12.5%] h-0.5 bg-slate-200 z-0"></div>
+            {/* Background Base Track */}
+            <div className="absolute top-[18px] -translate-y-1/2 left-[12.5%] right-[12.5%] h-[3px] bg-slate-200 z-0 rounded-full" />
+
+            {/* Active Progress Fill Track */}
+            <div
+              className="absolute top-[18px] -translate-y-1/2 left-[12.5%] h-[3px] bg-emerald-500 z-0 rounded-full transition-all duration-500 ease-in-out"
+              style={{
+                width: isStep1Valid && isStep2Valid && isStep3Valid
+                  ? "75%"
+                  : isStep1Valid && isStep2Valid
+                  ? "50%"
+                  : isStep1Valid
+                  ? "25%"
+                  : "0%"
+              }}
+            />
 
             {[
               { num: 1, label: "Jenis Permohonan" },
               { num: 2, label: "Kategori Sertifikat" },
               { num: 3, label: "Kondisi Perusahaan" },
               { num: 4, label: "Pernyataan" },
-            ].map((step, idx) => {
-              const isActive = currentStep >= step.num;
+            ].map((step) => {
+              const isValid = isStepValid(step.num)
+              const isCurrent = currentStep === step.num
+              const isAccessible = canNavigateToStep(step.num)
+
               return (
-                <div key={idx} className="relative z-10 flex flex-col items-center w-1/4 px-1 transition-all duration-300">
+                <button
+                  key={step.num}
+                  type="button"
+                  onClick={() => handleStepClick(step.num)}
+                  disabled={!isAccessible && !isValid}
+                  title={
+                    isValid
+                      ? `${step.label} (Selesai & Valid - Klik untuk melihat)`
+                      : isAccessible
+                      ? `${step.label} (Klik untuk menuju langkah ini)`
+                      : `${step.label} (Lengkapi langkah sebelumnya terlebih dahulu)`
+                  }
+                  className={`relative z-10 flex flex-col items-center w-1/4 px-1 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none active:outline-none select-none transition-all duration-200 group ${
+                    isAccessible ? "cursor-pointer" : "cursor-not-allowed opacity-75"
+                  }`}
+                >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white shadow-sm transition-colors duration-300 ${isActive
-                      ? "bg-brand-600 text-white"
-                      : "bg-slate-100 text-slate-400"
-                      }`}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 shadow-sm ${
+                      isValid
+                        ? isCurrent
+                          ? "bg-emerald-600 text-white scale-105 shadow-emerald-200"
+                          : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-100 group-hover:scale-105"
+                        : isCurrent
+                        ? "bg-brand-600 text-white scale-105 shadow-brand-200"
+                        : isAccessible
+                        ? "bg-white text-slate-700 border border-slate-300 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50/50 group-hover:scale-105"
+                        : "bg-slate-100 text-slate-400 border border-slate-200"
+                    }`}
                   >
-                    {step.num}
+                    {isValid ? (
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    ) : (
+                      step.num
+                    )}
                   </div>
-                  <div className={`mt-2.5 text-[11px] leading-tight text-center transition-colors duration-300 ${isActive ? "font-semibold text-brand-700" : "font-medium text-slate-500"}`}>
+
+                  <div
+                    className={`mt-2.5 text-[11px] sm:text-xs leading-tight text-center transition-colors duration-200 ${
+                      isCurrent
+                        ? "font-bold text-slate-900"
+                        : isValid
+                        ? "font-semibold text-emerald-800 group-hover:text-emerald-950"
+                        : isAccessible
+                        ? "font-medium text-slate-700 group-hover:text-brand-600"
+                        : "font-medium text-slate-400"
+                    }`}
+                  >
                     {step.label}
                   </div>
-                </div>
+
+                  {/* Status Badge */}
+                  <div className="mt-1 flex items-center justify-center">
+                    {isValid ? (
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200/70 shadow-xs">
+                        <Check className="w-2.5 h-2.5 stroke-[3]" /> Selesai
+                      </span>
+                    ) : isCurrent ? (
+                      <span className="inline-flex items-center text-[10px] font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full border border-brand-200/70 shadow-xs">
+                        Aktif
+                      </span>
+                    ) : isAccessible ? (
+                      <span className="inline-flex items-center text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                        Bisa Diisi
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center text-[10px] font-medium text-slate-400">
+                        Terkunci
+                      </span>
+                    )}
+                  </div>
+                </button>
               )
             })}
           </div>

@@ -1040,8 +1040,14 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                                 </div>
                               </div>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 text-slate-500">
-                                Belum diunggah
+                              <span
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+                                  doc.wajib
+                                    ? "bg-rose-50 text-rose-600 border border-rose-200"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {doc.wajib ? "Wajib diunggah" : "Opsional"}
                               </span>
                             )}
                           </td>

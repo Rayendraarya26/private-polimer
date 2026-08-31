@@ -97,13 +97,27 @@ const SertifikasiPage: React.FC = () => {
     }))
   }
 
+  // Helper daftar dokumen wajib pada Step 2
+  const REQUIRED_DOC_IDS = ["surat_permohonan", "legalitas_perusahaan", "nib_iui", "npwp_perusahaan", "sertifikat_merek"]
+
+  const getMissingDocs = (pengajuan: PengajuanItem) => {
+    const docs = pengajuan.dokumens || []
+    return REQUIRED_DOC_IDS.filter(reqId => {
+      const found = docs.find(d => d.id === reqId)
+      return !found || (!found.file && !found.fileUrl && !found.fileName)
+    })
+  }
+
   // Validasi Realtime per Step
   const isStep1Valid = pengajuans.length > 0 && pengajuans.every(p =>
     Boolean(p.jenisPermohonan) && (p.jenisPermohonan !== 'perpanjangan' || Boolean(p.sertifikatLama?.trim()))
   )
 
   const isStep2Valid = pengajuans.length > 0 && pengajuans.every(p =>
-    Boolean(p.kategoriSertifikat) && Array.isArray(p.komoditis) && p.komoditis.length > 0
+    Boolean(p.kategoriSertifikat) &&
+    Array.isArray(p.komoditis) &&
+    p.komoditis.length > 0 &&
+    getMissingDocs(p).length === 0
   )
 
   const isStep3Valid = Boolean(
@@ -149,7 +163,21 @@ const SertifikasiPage: React.FC = () => {
         if (i === 1) {
           toast.error("Harap lengkapi Jenis Permohonan terlebih dahulu")
         } else if (i === 2) {
-          toast.error("Harap pilih skema sertifikasi dan minimal 1 data komoditas terlebih dahulu")
+          for (const p of pengajuans) {
+            if (!p.kategoriSertifikat) {
+              toast.error("Harap pilih skema sertifikasi terlebih dahulu")
+              return
+            }
+            if (!p.komoditis || p.komoditis.length === 0) {
+              toast.error("Harap tambahkan minimal 1 data komoditas ke dalam tabel")
+              return
+            }
+            const missing = getMissingDocs(p)
+            if (missing.length > 0) {
+              toast.error("Harap lengkapi seluruh dokumen persyaratan yang bertanda Wajib")
+              return
+            }
+          }
         } else if (i === 3) {
           toast.error("Harap lengkapi data kondisi perusahaan terlebih dahulu")
         }
@@ -171,9 +199,20 @@ const SertifikasiPage: React.FC = () => {
 
     // Validasi Step 2
     if (currentStep === 2) {
-      if (!isStep2Valid) {
-        toast.error("Harap pilih skema sertifikasi dan minimal 1 data komoditas")
-        return
+      for (const p of pengajuans) {
+        if (!p.kategoriSertifikat) {
+          toast.error("Harap pilih skema sertifikasi terlebih dahulu")
+          return
+        }
+        if (!p.komoditis || p.komoditis.length === 0) {
+          toast.error("Harap tambahkan minimal 1 data komoditas ke dalam tabel")
+          return
+        }
+        const missing = getMissingDocs(p)
+        if (missing.length > 0) {
+          toast.error("Harap unggah seluruh dokumen persyaratan yang bertanda Wajib (Surat Permohonan, Akta, NIB, NPWP, Sertifikat Merek)")
+          return
+        }
       }
     }
 

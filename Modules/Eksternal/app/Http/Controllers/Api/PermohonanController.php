@@ -3,6 +3,7 @@
 namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncPermohonanToSisJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -354,6 +355,9 @@ class PermohonanController extends Controller
         ]);
 
         DB::commit();
+
+        // Sync permohonan ke SIS secara async
+        SyncPermohonanToSisJob::dispatch($permohonan->id);
 
         return response()->json([
             'success' => true,

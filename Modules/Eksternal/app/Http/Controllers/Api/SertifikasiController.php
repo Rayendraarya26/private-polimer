@@ -3,6 +3,7 @@
 namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncPermohonanToSisJob;
 use App\Models\Db2\DetailPembayaran;
 use App\Models\Db2\DetailPermohonan;
 use App\Models\Db2\FormSertifikasi;
@@ -374,6 +375,11 @@ class SertifikasiController extends Controller
 
             DB::commit();
 
+            // Sync permohonan ke SIS secara async
+            if ($isAjukan) {
+                SyncPermohonanToSisJob::dispatch($permohonan->id);
+            }
+
             // Notification to Marketing
             if ($isAjukan) {
                 try {
@@ -542,6 +548,9 @@ class SertifikasiController extends Controller
                 'status_workflow' => 'IN_REVIEW',
             ]);
             DB::commit();
+
+            // Sync permohonan ke SIS secara async
+            SyncPermohonanToSisJob::dispatch($permohonan->id);
 
             try {
                 $adminIds = \App\Helpers\NotifHelper::getAdminUserIds();

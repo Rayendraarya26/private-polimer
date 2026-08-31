@@ -75,7 +75,6 @@ class SisSyncBridgingService
 
             $statusBayarSis = match ($permohonan->status_bayar) {
                 'LUNAS' => 'lunas',
-                'BATAL' => 'batal',
                 default => 'proses',
             };
             $jenisStatus = (strtoupper($form->tipe_pengajuan ?? 'BARU') === 'BARU') ? 'baru' : 'lama';

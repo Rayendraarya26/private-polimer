@@ -22,8 +22,13 @@ export function useProfileQuery() {
   const profileQuery = useQuery({
     queryKey: PROFILE_QUERY_KEY,
     queryFn: async () => {
-      const response = await api.get("/eksternal/profile")
-      return response.data?.data || response.data?.results || response.data
+      try {
+        const response = await api.get("/eksternal/user")
+        return response.data?.results || response.data?.data || response.data
+      } catch (e) {
+        const response = await api.get("/eksternal/profile")
+        return response.data?.results || response.data?.data || response.data
+      }
     },
     staleTime: 1000 * 60 * 5, // 5 menit cache segar
   })

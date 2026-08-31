@@ -173,10 +173,13 @@ class DashboardController extends Controller
             ->where('status_bayar', '!=', 'LUNAS')
             ->count();
 
-        $pertanyaanCount = \App\Models\Db1\PertanyaanPelanggan::query()
-            ->where('created_by', $userId)
-            ->where('status', 'opened')
-            ->count();
+        $pelangganId = $user?->pelanggan?->id;
+        $pertanyaanCount = $pelangganId
+            ? \App\Models\Db1\PertanyaanPelanggan::query()
+                ->where('pelanggan_id', $pelangganId)
+                ->where('status', 'opened')
+                ->count()
+            : 0;
 
         return responseJSON('Counts Found', [
             'permohonan' => $permohonanCount,

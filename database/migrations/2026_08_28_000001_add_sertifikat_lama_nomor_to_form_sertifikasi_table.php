@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('form_sertifikasi', function (Blueprint $table) {
             if (!Schema::hasColumn('form_sertifikasi', 'sertifikat_lama_nomor')) {
-                $table->string('sertifikat_lama_nomor')->nullable()->after('referensi_sertifikasi_id');
+                $table->string('sertifikat_lama_nomor')->nullable();
             }
         });
     }

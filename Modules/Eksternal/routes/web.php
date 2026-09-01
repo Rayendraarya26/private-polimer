@@ -146,6 +146,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/{uuid}/feedback', [PermohonanController::class,'getFeedback']);
             Route::post('/{uuid}/feedback', [PermohonanController::class,'storeFeedback']);
             Route::post('/{id}/ajukan', [PermohonanController::class, 'ajukan']);
+            Route::post('/{id}/request-tte-invoice', [PermohonanController::class, 'requestTteInvoice']);
+            Route::post('/{id}/request-tte-kuitansi', [PermohonanController::class, 'requestTteKuitansi']);
             Route::get('/{id}', [PermohonanController::class, 'show']);
         });
         Route::prefix('pembayaran')->group(function () {

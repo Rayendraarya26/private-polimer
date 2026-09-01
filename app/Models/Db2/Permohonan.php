@@ -36,10 +36,15 @@ class Permohonan extends Model
         'va_status',
         'invoice_number',
         'invoice_file',
+        'invoice_generated_at',
+        'tte_invoice_requested',
+        'tte_invoice_requested_at',
         'kuitansi_number',
         'kuitansi_file',
         'kuitansi_generated_at',
-        'invoice_generated_at',
+        'tte_kuitansi_requested',
+        'tte_kuitansi_requested_at',
+        'kuitansi_pdf_tte',
         'is_given_feedback',
         'feedback_json',
         'feedback_at',
@@ -47,11 +52,17 @@ class Permohonan extends Model
     ];
 
     protected $casts = [
-        'tgl_order'        => 'datetime',
-        'va_expired_at'    => 'datetime',
-        'total_harga'      => 'decimal:2',
-        'feedback_json'    => 'array',
-        'file_attachment'  => 'array',
+        'tgl_order'                 => 'datetime',
+        'va_expired_at'             => 'datetime',
+        'invoice_generated_at'      => 'datetime',
+        'kuitansi_generated_at'     => 'datetime',
+        'tte_invoice_requested'     => 'boolean',
+        'tte_invoice_requested_at'  => 'datetime',
+        'tte_kuitansi_requested'    => 'boolean',
+        'tte_kuitansi_requested_at' => 'datetime',
+        'total_harga'               => 'decimal:2',
+        'feedback_json'             => 'array',
+        'file_attachment'           => 'array',
     ];
 
     public function detailPembayaran()

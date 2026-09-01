@@ -460,6 +460,109 @@ class PermohonanController extends Controller
             ]
         ]);
     }
-   
+
+    public function requestTteInvoice($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->firstOrFail();
+
+        if (!$isPegawai && $permohonan->created_by !== $user?->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke permohonan ini.'
+            ], 403);
+        }
+
+        if (empty($permohonan->invoice_file)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice belum diterbitkan oleh Marketing.'
+            ], 422);
+        }
+
+        $permohonan->update([
+            'tte_invoice_requested'    => true,
+            'tte_invoice_requested_at' => now(),
+        ]);
+
+        // Notifikasi ke grup Bendahara
+        $bendaharaUserIds = \App\Models\Db1\SysUserGroup::where('group_id', \App\Enums\SysGroup::BENDAHARA->value)
+            ->pluck('user_id');
+
+        foreach ($bendaharaUserIds as $bendaharaId) {
+            \App\Models\Db1\SysUserNotif::create([
+                'user_id' => $bendaharaId,
+                'title'   => 'Permintaan TTE Invoice BSrE',
+                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Invoice ' . ($permohonan->invoice_number ?: $permohonan->no_permohonan),
+                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan TTE Invoice BSrE berhasil dikirim ke Bendahara.',
+            'data'    => [
+                'tte_invoice_requested'    => true,
+                'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
+            ]
+        ]);
+    }
+
+    public function requestTteKuitansi($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->firstOrFail();
+
+        if (!$isPegawai && $permohonan->created_by !== $user?->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke permohonan ini.'
+            ], 403);
+        }
+
+        if ($permohonan->status_bayar !== 'LUNAS') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembayaran belum lunas. TTE Kuitansi hanya dapat diajukan setelah pembayaran terverifikasi.'
+            ], 422);
+        }
+
+        $permohonan->update([
+            'tte_kuitansi_requested'    => true,
+            'tte_kuitansi_requested_at' => now(),
+        ]);
+
+        // Notifikasi ke grup Bendahara
+        $bendaharaUserIds = \App\Models\Db1\SysUserGroup::where('group_id', \App\Enums\SysGroup::BENDAHARA->value)
+            ->pluck('user_id');
+
+        foreach ($bendaharaUserIds as $bendaharaId) {
+            \App\Models\Db1\SysUserNotif::create([
+                'user_id' => $bendaharaId,
+                'title'   => 'Permintaan TTE Kuitansi BSrE',
+                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Kuitansi Pembayaran ' . ($permohonan->kuitansi_number ?: $permohonan->no_permohonan),
+                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan TTE Kuitansi BSrE berhasil dikirim ke Bendahara.',
+            'data'    => [
+                'tte_kuitansi_requested'    => true,
+                'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,
+            ]
+        ]);
+    }
 }
 

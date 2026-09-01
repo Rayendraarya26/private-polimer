@@ -66,17 +66,16 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::get('layanan/{id}/inquiry-bni', [InvoiceController::class, 'inquiryBniVa'])
         ->name('permohonan.invoice.inquiry-bni');
     
-    //     Route::post(
-    //     'layanan/{id}/approval-kuitansi',
-    //     [InvoiceController::class, 'approvalKuitansi']
-    // )->name('permohonan.approval-kuitansi');
+    Route::post(
+        'layanan/{id}/approval-kuitansi-tte',
+        [InvoiceController::class, 'approvalKuitansiTte']
+    )->name('permohonan.kuitansi.approval-tte');
 
+    Route::get('{id}/kuitansi/download-tte', [InvoiceController::class, 'downloadKuitansiTte'])
+        ->name('permohonan.kuitansi.download-tte');
 
-    // Route::get(
-    //     'layanan/{id}/approval-kuitansi',
-    //     [InvoiceController::class, 'generateKuitansi']
-    // )->name('permohonan.kuitansi.generate');
-
+    Route::get('{id}/kuitansi/stream-tte', [InvoiceController::class, 'streamKuitansiTte'])
+        ->name('permohonan.kuitansi.stream-tte');
 
     Route::get('layanan/{id}/kuitansi/preview',
         [InvoiceController::class, 'previewKuitansi']

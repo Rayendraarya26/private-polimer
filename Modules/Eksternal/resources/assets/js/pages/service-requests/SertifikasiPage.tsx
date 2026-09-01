@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Head from "../../components/common/Head"
-import { Card, CardHeader, CardContent } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
-import { ArrowLeft, Plus, Trash2, Send, Loader2, Clock, RefreshCw, FileText, Check } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Send, Loader2, Clock, RefreshCw, FileText, Check, Layers, Package, Building2, CheckSquare } from "lucide-react"
 import Step1JenisPermohonan from "../../components/sertifikasi/JenisPermohonan"
 import Step2KategoriSertifikat, { KomoditiData, DokumenPersyaratan } from "../../components/sertifikasi/KategoriSertifikat"
 import Step3KondisiPerusahaan, { KondisiPerusahaanData, defaultKondisiPerusahaan } from "../../components/sertifikasi/KondisiPerusahaan"
@@ -12,6 +11,13 @@ import { useSertifikasiDraft } from "../../hooks/useSertifikasiDraft"
 import { useProfileQuery } from "../../hooks/queries/useProfileQuery"
 import api from "../../utils/api"
 import toast from "react-hot-toast"
+
+const STEPS = [
+  { id: 1, title: "Jenis Permohonan", icon: Layers, desc: "Baru vs perpanjangan sertifikat" },
+  { id: 2, title: "Kategori & Komoditi", icon: Package, desc: "Ruang lingkup, produk & dokumen" },
+  { id: 3, title: "Kondisi Perusahaan", icon: Building2, desc: "Legalitas PT & fasilitas pabrik" },
+  { id: 4, title: "Pernyataan & Kirim", icon: CheckSquare, desc: "Pakta integritas & konfirmasi" },
+]
 
 export interface PengajuanItem {
   id: number
@@ -445,257 +451,202 @@ const SertifikasiPage: React.FC = () => {
         </div>
       )}
 
-      {/* Progress Stepper Card */}
-      <Card className="border-brand-100 shadow-sm overflow-hidden">
-        <CardHeader className="pt-6 pb-5 border-b border-slate-100 bg-slate-50/40">
-          <div className="flex justify-between items-start w-full relative">
-            {/* Background Base Track */}
-            <div className="absolute top-[18px] -translate-y-1/2 left-[12.5%] right-[12.5%] h-[3px] bg-slate-200 z-0 rounded-full" />
+      {/* Stepper Navigation Bar */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-soft">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {STEPS.map((s, idx) => {
+            const Icon = s.icon
+            const isCompleted = isStepValid(s.id) || currentStep > s.id
+            const isCurrent = currentStep === s.id
+            const isAccessible = canNavigateToStep(s.id) || isCompleted
 
-            {/* Active Progress Fill Track */}
-            <div
-              className="absolute top-[18px] -translate-y-1/2 left-[12.5%] h-[3px] bg-emerald-500 z-0 rounded-full transition-all duration-500 ease-in-out"
-              style={{
-                width: isStep1Valid && isStep2Valid && isStep3Valid
-                  ? "75%"
-                  : isStep1Valid && isStep2Valid
-                  ? "50%"
-                  : isStep1Valid
-                  ? "25%"
-                  : "0%"
-              }}
-            />
-
-            {[
-              { num: 1, label: "Jenis Permohonan" },
-              { num: 2, label: "Kategori Sertifikat" },
-              { num: 3, label: "Kondisi Perusahaan" },
-              { num: 4, label: "Pernyataan" },
-            ].map((step) => {
-              const isValid = isStepValid(step.num)
-              const isCurrent = currentStep === step.num
-              const isAccessible = canNavigateToStep(step.num)
-
-              return (
-                <button
-                  key={step.num}
-                  type="button"
-                  onClick={() => handleStepClick(step.num)}
-                  disabled={!isAccessible && !isValid}
-                  title={
-                    isValid
-                      ? `${step.label} (Selesai & Valid - Klik untuk melihat)`
-                      : isAccessible
-                      ? `${step.label} (Klik untuk menuju langkah ini)`
-                      : `${step.label} (Lengkapi langkah sebelumnya terlebih dahulu)`
+            return (
+              <div
+                key={s.id}
+                onClick={() => {
+                  if (isAccessible) {
+                    handleStepClick(s.id)
                   }
-                  className={`relative z-10 flex flex-col items-center w-1/4 px-1 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none active:outline-none select-none transition-all duration-200 group ${
-                    isAccessible ? "cursor-pointer" : "cursor-not-allowed opacity-75"
+                }}
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 select-none ${
+                  isCurrent
+                    ? "bg-brand-50/80 border-2 border-brand-600 shadow-sm"
+                    : isCompleted
+                    ? "bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70"
+                    : isAccessible
+                    ? "bg-transparent border border-slate-200/60 cursor-pointer hover:bg-slate-50 opacity-80"
+                    : "bg-transparent border border-transparent opacity-60 cursor-not-allowed"
+                }`}
+              >
+                <div
+                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                    isCompleted
+                      ? "bg-emerald-600 text-white"
+                      : isCurrent
+                      ? "bg-brand-600 text-white"
+                      : "bg-slate-200 text-slate-500"
                   }`}
                 >
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 shadow-sm ${
-                      isValid
-                        ? isCurrent
-                          ? "bg-emerald-600 text-white scale-105 shadow-emerald-200"
-                          : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-100 group-hover:scale-105"
-                        : isCurrent
-                        ? "bg-brand-600 text-white scale-105 shadow-brand-200"
-                        : isAccessible
-                        ? "bg-white text-slate-700 border border-slate-300 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50/50 group-hover:scale-105"
-                        : "bg-slate-100 text-slate-400 border border-slate-200"
-                    }`}
-                  >
-                    {isValid ? (
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    ) : (
-                      step.num
-                    )}
-                  </div>
-
-                  <div
-                    className={`mt-2.5 text-[11px] sm:text-xs leading-tight text-center transition-colors duration-200 ${
-                      isCurrent
-                        ? "font-bold text-slate-900"
-                        : isValid
-                        ? "font-semibold text-emerald-800 group-hover:text-emerald-950"
-                        : isAccessible
-                        ? "font-medium text-slate-700 group-hover:text-brand-600"
-                        : "font-medium text-slate-400"
-                    }`}
-                  >
-                    {step.label}
-                  </div>
-
-                  {/* Status Badge */}
-                  <div className="mt-1 flex items-center justify-center">
-                    {isValid ? (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200/70 shadow-xs">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" /> Selesai
-                      </span>
-                    ) : isCurrent ? (
-                      <span className="inline-flex items-center text-[10px] font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full border border-brand-200/70 shadow-xs">
-                        Aktif
-                      </span>
-                    ) : isAccessible ? (
-                      <span className="inline-flex items-center text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                        Bisa Diisi
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center text-[10px] font-medium text-slate-400">
-                        Terkunci
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-6 bg-slate-50/50">
-
-          {/* STEP 1 & STEP 2: Render per-skema pengajuan */}
-          {currentStep <= 2 && (
-            <div className="space-y-6">
-              {pengajuans.map((pengajuan, index) => (
-                <Card key={pengajuan.id} className="border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="bg-slate-100 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-700 text-sm">
-                      Pengajuan {index + 1}
-                    </h3>
-                    {pengajuans.length > 1 && (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => removePengajuan(pengajuan.id)}
-                        leftIcon={<Trash2 className="w-4 h-4" />}
-                        className="h-8 text-xs"
-                      >
-                        Hapus
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="p-6 bg-white">
-                    {currentStep === 1 && (
-                      <Step1JenisPermohonan
-                        hideButtons
-                        valueJenis={pengajuan.jenisPermohonan}
-                        onChangeJenis={(val) => updateFormData(pengajuan.id, 'jenisPermohonan', val)}
-                        valueSertifikat={pengajuan.sertifikatLama}
-                        onChangeSertifikat={(val) => updateFormData(pengajuan.id, 'sertifikatLama', val)}
-                      />
-                    )}
-                    {currentStep === 2 && (
-                      <Step2KategoriSertifikat
-                        hideButtons
-                        value={pengajuan.kategoriSertifikat}
-                        onChange={(val) => updateFormData(pengajuan.id, 'kategoriSertifikat', val)}
-                        komoditiListValue={pengajuan.komoditis || []}
-                        onChangeKomoditiList={(data) => updateFormData(pengajuan.id, 'komoditis', data)}
-                        dokumenListValue={pengajuan.dokumens || []}
-                        onChangeDokumenList={(data) => updateFormData(pengajuan.id, 'dokumens', data)}
-                      />
-                    )}
-                  </div>
-                </Card>
-              ))}
-
-              {/* Tombol Tambah Pengajuan (Maksimal 2 skema di Step 1) */}
-              {pengajuans.length < 2 && currentStep === 1 && (
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={addPengajuan}
-                    leftIcon={<Plus className="w-4 h-4" />}
-                    className="border-dashed border-2 text-brand-600 border-brand-200 hover:border-brand-400 hover:bg-brand-50"
-                  >
-                    Tambah Pengajuan Skema Lain
-                  </Button>
+                  {isCompleted ? <Check className="w-5 h-5 stroke-[2.5]" /> : <Icon className="w-5 h-5" />}
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* STEP 3: Kondisi Perusahaan (Tingkat Pemohon Global) */}
-          {currentStep === 3 && (
-            <Card className="border border-slate-200 shadow-sm overflow-hidden bg-white">
-              <div className="p-6">
-                <Step3KondisiPerusahaan
-                  hideButtons
-                  value={kondisiPerusahaan}
-                  onChange={setKondisiPerusahaan}
-                />
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 block uppercase">
+                    Langkah {idx + 1}
+                  </span>
+                  <p className="text-xs font-bold text-slate-900 truncate">{s.title}</p>
+                </div>
               </div>
-            </Card>
-          )}
+            )
+          })}
+        </div>
+      </div>
 
-          {/* STEP 4: Pernyataan Hukum */}
-          {currentStep === 4 && (
-            <Card className="border border-slate-200 shadow-sm overflow-hidden bg-white">
-              <div className="p-6">
-                <Step4Pernyataan
-                  hideButtons
-                  isChecked={isAgreed}
-                  onCheckChange={setIsAgreed}
-                />
+      {/* Form Content Card */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-7 shadow-soft space-y-6">
+
+        {/* STEP 1 & STEP 2: Render per-skema pengajuan */}
+        {currentStep <= 2 && (
+          <div className="space-y-6">
+            {pengajuans.map((pengajuan, index) => (
+              <div key={pengajuan.id} className="border border-slate-200 rounded-xl shadow-xs overflow-hidden bg-white">
+                <div className="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200 flex justify-between items-center">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center shadow-xs">
+                      {index + 1}
+                    </span>
+                    <h3 className="font-bold text-slate-800 text-sm">
+                      Pengajuan Sertifikasi #{index + 1}
+                    </h3>
+                  </div>
+                  {pengajuans.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removePengajuan(pengajuan.id)}
+                      className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-1.5 font-semibold transition-colors px-2.5 py-1.5 rounded-lg"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Hapus Pengajuan
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-5 sm:p-6 bg-white">
+                  {currentStep === 1 && (
+                    <Step1JenisPermohonan
+                      hideButtons
+                      valueJenis={pengajuan.jenisPermohonan}
+                      onChangeJenis={(val) => updateFormData(pengajuan.id, 'jenisPermohonan', val)}
+                      valueSertifikat={pengajuan.sertifikatLama}
+                      onChangeSertifikat={(val) => updateFormData(pengajuan.id, 'sertifikatLama', val)}
+                    />
+                  )}
+                  {currentStep === 2 && (
+                    <Step2KategoriSertifikat
+                      hideButtons
+                      value={pengajuan.kategoriSertifikat}
+                      onChange={(val) => updateFormData(pengajuan.id, 'kategoriSertifikat', val)}
+                      komoditiListValue={pengajuan.komoditis || []}
+                      onChangeKomoditiList={(data) => updateFormData(pengajuan.id, 'komoditis', data)}
+                      dokumenListValue={pengajuan.dokumens || []}
+                      onChangeDokumenList={(data) => updateFormData(pengajuan.id, 'dokumens', data)}
+                    />
+                  )}
+                </div>
               </div>
-            </Card>
-          )}
+            ))}
 
-          {/* Navigasi Lanjut / Kembali Utama */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-200">
-            {currentStep > 1 ? (
-              <Button
-                variant="outline"
-                type="button"
-                onClick={handleBack}
-                disabled={isSubmitting}
-                className="px-6 bg-white"
-              >
-                Kembali
-              </Button>
-            ) : <div />}
-
-            <div className="flex items-center gap-3">
-              {currentStep === 4 && (
+            {/* Tombol Tambah Pengajuan (Maksimal 2 skema di Step 1) */}
+            {pengajuans.length < 2 && currentStep === 1 && (
+              <div className="mt-6 flex justify-center">
                 <Button
-                  type="button"
                   variant="outline"
-                  disabled={isSubmitting}
-                  onClick={() => handleSubmitPermohonan('draft')}
-                  leftIcon={<FileText className="w-4 h-4" />}
-                  className="px-5 text-slate-700 bg-white hover:bg-slate-50"
+                  onClick={addPengajuan}
+                  disabled={!isStep1Valid}
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  className="rounded-xl border-2 border-dashed text-brand-600 border-brand-200 hover:border-brand-400 hover:bg-brand-50 text-xs font-semibold px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Simpan Draf
+                  Tambah Pengajuan
                 </Button>
-              )}
-
-              {currentStep < 4 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-6"
-                >
-                  Selanjutnya
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  disabled={!isAgreed || isSubmitting}
-                  onClick={() => handleSubmitPermohonan('ajukan')}
-                  leftIcon={isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  className="px-6 bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
-                >
-                  {isSubmitting ? "Mengirim Permohonan..." : "Kirim Permohonan"}
-                </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
+        )}
 
-        </CardContent>
-      </Card>
+        {/* STEP 3: Kondisi Perusahaan (Tingkat Pemohon Global) */}
+        {currentStep === 3 && (
+          <div className="border border-slate-200 rounded-xl shadow-xs overflow-hidden bg-white p-5 sm:p-6">
+            <Step3KondisiPerusahaan
+              hideButtons
+              value={kondisiPerusahaan}
+              onChange={setKondisiPerusahaan}
+            />
+          </div>
+        )}
+
+        {/* STEP 4: Pernyataan Hukum */}
+        {currentStep === 4 && (
+          <div className="border border-slate-200 rounded-xl shadow-xs overflow-hidden bg-white p-5 sm:p-6">
+            <Step4Pernyataan
+              hideButtons
+              isChecked={isAgreed}
+              onCheckChange={setIsAgreed}
+            />
+          </div>
+        )}
+
+        {/* Navigasi Lanjut / Kembali Utama */}
+        <div className="flex justify-between items-center pt-6 border-t border-slate-200">
+          {currentStep > 1 ? (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleBack}
+              disabled={isSubmitting}
+              className="px-6 rounded-xl bg-white hover:bg-slate-50 border-slate-300 text-slate-700 font-medium"
+            >
+              Kembali
+            </Button>
+          ) : <div />}
+
+          <div className="flex items-center gap-3">
+            {currentStep === 4 && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => handleSubmitPermohonan('draft')}
+                leftIcon={<FileText className="w-4 h-4" />}
+                className="px-5 rounded-xl text-slate-700 bg-white hover:bg-slate-50 border-slate-300 font-medium"
+              >
+                Simpan Draf
+              </Button>
+            )}
+
+            {currentStep < 4 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={!isStepValid(currentStep) || isSubmitting}
+                className="px-6 rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Selanjutnya
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={!isAgreed || isSubmitting || !isStep1Valid || !isStep2Valid || !isStep3Valid}
+                onClick={() => handleSubmitPermohonan('ajukan')}
+                leftIcon={isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                className="px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Mengirim Permohonan..." : "Kirim Permohonan"}
+              </Button>
+            )}
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }

@@ -835,7 +835,13 @@ const setLoading = (state) => {
                     }),
                 });
 
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (parseErr) {
+                    throw new Error(`Terjadi kesalahan pada server (HTTP ${res.status}). Silakan coba lagi.`);
+                }
 
                 // InvoiceController mengembalikan { success, message, file_link }
                 if (!res.ok || !data.success) {

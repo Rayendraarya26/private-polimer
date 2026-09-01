@@ -21,7 +21,10 @@ class PembayaranController extends Controller
                 'detailPembayaran',
                 'detailPermohonan.lingkupLayanan'
             ])
-            ->where('status_workflow', 'PEMBAYARAN')
+            ->where(function ($q) {
+                $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROCESS', 'DONE'])
+                  ->orWhereNotNull('invoice_number');
+            })
             ->where('created_by', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -40,27 +43,28 @@ class PembayaranController extends Controller
 
                 return [
                     'id' => $item->id,
-
                     'nama_permohonan' => $namaPermohonan,
-
                     'no_permohonan' => $item->no_permohonan,
-
                     'tgl_order' => $item->tgl_order,
-
                     'total_tagihan' => (float) $totalTagihan,
-
                     'status_bayar'   => $item->status_bayar,
                     'va'             => $item->va,
                     'va_trx_id'      => $item->va_trx_id,
                     'va_expired_at'  => $item->va_expired_at?->format('Y-m-d H:i:s'),
                     'va_status'      => $item->va_status ?? 'PENDING',
 
-                    // tambahan untuk kebutuhan preview invoice user
-                    'invoice_number' => $item->invoice_number,
+                    // Info invoice & kuitansi
+                    'invoice_number'            => $item->invoice_number,
+                    'invoice_file'              => $item->invoice_file,
+                    'pdf_tte'                   => $item->pdf_tte,
+                    'tte_invoice_requested'     => (bool) $item->tte_invoice_requested,
+                    'tte_invoice_requested_at'  => $item->tte_invoice_requested_at?->format('Y-m-d H:i:s'),
 
-                    'invoice_file' => $item->invoice_file,
-                    'kuitansi_number' => $item->kuitansi_number,
-                    'kuitansi_file' => $item->kuitansi_file,
+                    'kuitansi_number'           => $item->kuitansi_number,
+                    'kuitansi_file'             => $item->kuitansi_file,
+                    'kuitansi_pdf_tte'          => $item->kuitansi_pdf_tte,
+                    'tte_kuitansi_requested'    => (bool) $item->tte_kuitansi_requested,
+                    'tte_kuitansi_requested_at' => $item->tte_kuitansi_requested_at?->format('Y-m-d H:i:s'),
                 ];
             });
 

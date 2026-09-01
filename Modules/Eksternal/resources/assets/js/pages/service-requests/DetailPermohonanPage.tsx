@@ -38,12 +38,47 @@ const workflowSteps = [
 export const DetailPermohonanPage: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { openInvoice, openLhu, onDownloadCertificate, PdfPreviewModal } = usePembayaran()
+  const { openInvoice, openKuitansi, openLhu, onDownloadCertificate, PdfPreviewModal } = usePembayaran()
 
   const [loading, setLoading] = useState<boolean>(true)
+  const [requestingTte, setRequestingTte] = useState<"invoice" | "kuitansi" | null>(null)
   const [permohonan, setPermohonan] = useState<any>(null)
   const [formData, setFormData] = useState<any>(null)
   const [lingkup, setLingkup] = useState<any>(null)
+
+  const handleRequestTteInvoice = async () => {
+    if (!id) return
+    try {
+      setRequestingTte("invoice")
+      const res = await api.post(`/eksternal/permohonan/${id}/request-tte-invoice`)
+      toast.success(res?.data?.message || "Permintaan TTE BSrE Invoice telah dikirim ke Bendahara.")
+      setPermohonan((prev: any) => ({
+        ...prev,
+        tte_invoice_requested: true,
+      }))
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Invoice")
+    } finally {
+      setRequestingTte(null)
+    }
+  }
+
+  const handleRequestTteKuitansi = async () => {
+    if (!id) return
+    try {
+      setRequestingTte("kuitansi")
+      const res = await api.post(`/eksternal/permohonan/${id}/request-tte-kuitansi`)
+      toast.success(res?.data?.message || "Permintaan TTE BSrE Kuitansi telah dikirim ke Bendahara.")
+      setPermohonan((prev: any) => ({
+        ...prev,
+        tte_kuitansi_requested: true,
+      }))
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Kuitansi")
+    } finally {
+      setRequestingTte(null)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -602,27 +637,117 @@ export const DetailPermohonanPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="pt-2 space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<FileText className="w-4 h-4" />}
-                  onClick={() => openInvoice({ id, no_permohonan: noOrder })}
-                  className="w-full justify-center"
-                >
-                  Lihat Tagihan / Invoice
-                </Button>
+              {/* Invoice & TTE Block */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800">Dokumen Invoice</span>
+                  {permohonan?.pdf_tte ? (
+                    <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
+                      TTE BSrE Sah
+                    </span>
+                  ) : permohonan?.tte_invoice_requested ? (
+                    <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
+                      Menunggu TTE Bendahara
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200 rounded-lg">
+                      Digital Seal
+                    </span>
+                  )}
+                </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<FileCheck2 className="w-4 h-4" />}
-                  onClick={() => openLhu({ id, no_permohonan: noOrder })}
-                  className="w-full justify-center"
-                >
-                  Lihat Draft Hasil Uji (LHU)
-                </Button>
+                <div className="flex items-center gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={<FileText className="w-3.5 h-3.5" />}
+                    onClick={() => openInvoice({ id, no_permohonan: noOrder })}
+                    className="flex-1 justify-center"
+                  >
+                    Buka Invoice
+                  </Button>
+
+                  {!permohonan?.pdf_tte && !permohonan?.tte_invoice_requested && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleRequestTteInvoice}
+                      isLoading={requestingTte === "invoice"}
+                      className="text-xs"
+                      title="Minta TTE BSrE Resmi Bendahara"
+                    >
+                      Minta TTE
+                    </Button>
+                  )}
+                </div>
               </div>
+
+              {/* Kuitansi & TTE Block (Ketika Lunas) */}
+              {permohonan?.status_bayar === "LUNAS" && (
+                <div className="p-3.5 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800">Kuitansi Pembayaran</span>
+                    {permohonan?.kuitansi_pdf_tte ? (
+                      <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
+                        TTE BSrE Sah
+                      </span>
+                    ) : permohonan?.tte_kuitansi_requested ? (
+                      <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
+                        Menunggu TTE Bendahara
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200 rounded-lg">
+                        Digital Seal
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant="success"
+                      size="sm"
+                      leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+                      onClick={() => openKuitansi({ id, no_permohonan: noOrder })}
+                      className="flex-1 justify-center"
+                    >
+                      Buka Kuitansi
+                    </Button>
+
+                    {!permohonan?.kuitansi_pdf_tte && !permohonan?.tte_kuitansi_requested && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleRequestTteKuitansi}
+                        isLoading={requestingTte === "kuitansi"}
+                        className="text-xs"
+                        title="Minta TTE BSrE Resmi Bendahara"
+                      >
+                        Minta TTE
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {Boolean(
+                permohonan?.has_lhu ||
+                  (Array.isArray(permohonan?.file_attachment) &&
+                    permohonan.file_attachment.some(
+                      (f: any) => f.nama?.toLowerCase().includes("lhu") || f.kode === "LHU"
+                    ))
+              ) && (
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={<FileCheck2 className="w-4 h-4" />}
+                    onClick={() => openLhu({ id, no_permohonan: noOrder })}
+                    className="w-full justify-center"
+                  >
+                    Lihat Draft Hasil Uji (LHU)
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

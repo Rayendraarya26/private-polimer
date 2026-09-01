@@ -19,8 +19,11 @@ export interface SertifikasiPabrikItem {
   alamat_pabrik: string
   negara?: string
   provinsi_id?: string
+  provinsi?: string
   kabupaten_id?: string
+  kabupaten?: string
   kecamatan_id?: string
+  kecamatan?: string
   kode_pos?: string
   kontak_pabrik?: string
   no_hp?: string

@@ -117,12 +117,42 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
         return false
       }
       if (!p.items || p.items.length === 0) {
-        toast.error(`Pengajuan #${i + 1}: Minimal harus mengisi 1 item komoditi/produk.`)
+        toast.error(`Pengajuan #${i + 1}: Minimal harus mengisi 1 item komoditi/produk ke dalam tabel.`)
         return false
       }
       for (let j = 0; j < p.items.length; j++) {
-        if (!p.items[j].nama_produk?.trim()) {
-          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Nama produk/komoditi wajib diisi.`)
+        const item = p.items[j]
+        if (!item.nama_produk?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Nama komoditi/produk wajib diisi.`)
+          return false
+        }
+        if (!item.merk_dagang?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Merek dagang wajib diisi.`)
+          return false
+        }
+        if (!item.tipe_jenis?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Tipe/jenis komoditi wajib diisi.`)
+          return false
+        }
+        if (!item.ukuran?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Ukuran komoditi wajib diisi.`)
+          return false
+        }
+        if (!item.kapasitas_produksi?.toString().trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Jumlah produksi/tahun wajib diisi.`)
+          return false
+        }
+        if (!item.satuan_produksi?.trim()) {
+          toast.error(`Pengajuan #${i + 1} - Item #${j + 1}: Satuan produksi wajib diisi.`)
+          return false
+        }
+      }
+
+      // Validasi dokumen persyaratan wajib
+      const docList = p.dokumen_list || []
+      for (const doc of docList) {
+        if (doc.wajib && !doc.file && !doc.fileName && !doc.fileUrl && !doc.isFromProfile) {
+          toast.error(`Pengajuan #${i + 1}: Dokumen "${doc.nama}" wajib diunggah.`)
           return false
         }
       }
@@ -132,23 +162,93 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
 
   // Step 3 Validation (Perusahaan & Pabrik)
   const validateStep2 = () => {
-    if (!formData.nama_perusahaan.trim()) {
+    // 1. Data Perusahaan
+    if (!formData.nama_perusahaan?.trim()) {
       toast.error("Nama Perusahaan / Badan Usaha wajib diisi.")
       return false
     }
-    if (!formData.alamat_kantor.trim()) {
-      toast.error("Alamat Kantor Pusat wajib diisi.")
+    if (!formData.nomor_akta_pendirian?.trim()) {
+      toast.error("Nomor Akta Pendirian wajib diisi.")
       return false
     }
-    if (!formData.no_whatsapp.trim()) {
-      toast.error("Nomor WhatsApp PIC wajib diisi.")
+    if (!formData.nama_pemilik?.trim()) {
+      toast.error("Nama Pemilik wajib diisi.")
       return false
     }
-    if (!formData.email.trim()) {
+    if (!formData.nama_pimpinan?.trim()) {
+      toast.error("Nama Pimpinan wajib diisi.")
+      return false
+    }
+    if (!formData.nama_wakil_manajemen?.trim()) {
+      toast.error("Nama Wakil Manajemen wajib diisi.")
+      return false
+    }
+    if (!formData.no_telp?.trim()) {
+      toast.error("Nomor Telepon Perusahaan wajib diisi.")
+      return false
+    }
+    if (!formData.no_whatsapp?.trim()) {
+      toast.error("Nomor HP (CP) / WhatsApp wajib diisi.")
+      return false
+    }
+    if (!formData.email?.trim()) {
       toast.error("Email resmi perusahaan wajib diisi.")
       return false
     }
+    if (!formData.badan_hukum?.trim()) {
+      toast.error("Bentuk Badan Hukum wajib diisi.")
+      return false
+    }
+    if (!formData.jenis_perusahaan?.trim()) {
+      toast.error("Status Perusahaan wajib diisi.")
+      return false
+    }
 
+    // 2. Lokasi Domisili
+    if (!formData.negara?.trim()) {
+      toast.error("Negara domisili wajib dipilih.")
+      return false
+    }
+    if (!formData.provinsi?.trim()) {
+      toast.error("Provinsi domisili wajib diisi.")
+      return false
+    }
+    if (!formData.kabupaten?.trim()) {
+      toast.error("Kabupaten / Kota domisili wajib diisi.")
+      return false
+    }
+    if (!formData.kecamatan?.trim()) {
+      toast.error("Kecamatan domisili wajib diisi.")
+      return false
+    }
+    if (!formData.alamat_kantor?.trim()) {
+      toast.error("Alamat Lengkap Kantor Pusat wajib diisi.")
+      return false
+    }
+    if (!formData.luas_tanah?.toString().trim()) {
+      toast.error("Luas Tanah domisili kantor wajib diisi.")
+      return false
+    }
+    if (!formData.luas_bangunan?.toString().trim()) {
+      toast.error("Luas Bangunan domisili kantor wajib diisi.")
+      return false
+    }
+
+    // 3. Operasional & Ketenagakerjaan
+    if (formData.jumlah_shift === undefined || formData.jumlah_shift === null || Number(formData.jumlah_shift) < 1) {
+      toast.error("Jumlah Shift operasional dalam sehari minimal 1.")
+      return false
+    }
+    if (formData.jumlah_bagian === undefined || formData.jumlah_bagian === null || formData.jumlah_bagian === "") {
+      toast.error("Jumlah Bagian operasional wajib diisi.")
+      return false
+    }
+    if (!formData.jumlah_karyawan_total || Number(formData.jumlah_karyawan_total) <= 0) {
+      toast.error("Total Jumlah Karyawan harus lebih dari 0 orang. Silakan isi rincian karyawan.")
+      return false
+    }
+
+    // 4. Data Pabrik
     if (!formData.pabrik || formData.pabrik.length === 0) {
       toast.error("Minimal harus mendaftarkan 1 lokasi fasilitas pabrik.")
       return false
@@ -159,11 +259,22 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
         toast.error(`Fasilitas Pabrik #${i + 1}: Nama pabrik wajib diisi.`)
         return false
       }
+      if (!f.negara?.trim()) {
+        toast.error(`Fasilitas Pabrik #${i + 1}: Negara pabrik wajib dipilih.`)
+        return false
+      }
       if (!f.alamat_pabrik?.trim()) {
         toast.error(`Fasilitas Pabrik #${i + 1}: Alamat pabrik wajib diisi.`)
         return false
       }
     }
+
+    // 5. Berkas Gabungan
+    if (!formData.file_berkas_gabungan) {
+      toast.error("Upload Berkas Gabungan (Form 1, Form 2, dan Form 3) wajib diisi.")
+      return false
+    }
+
     return true
   }
 

@@ -405,24 +405,32 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
   // Handler simpan / tambah komoditi ke tabel
   const handleSaveKomoditiToTable = () => {
     // Validasi field wajib
-    if (!formInput.nama && !formInput.merek) {
-      setFormError("Nama komoditi atau merek wajib diisi.")
+    if (!formInput.nama?.trim()) {
+      setFormError("Nama komoditi wajib dipilih / diisi.")
       return
     }
-    if (!formInput.merek) {
-      setFormError("Merek produk wajib diisi.")
-      return
-    }
-    if (!formInput.tipe) {
-      setFormError("Tipe / varian komoditi wajib diisi.")
-      return
-    }
-    if (!formInput.ukuran) {
+    if (!formInput.ukuran?.trim()) {
       setFormError("Ukuran komoditi wajib diisi.")
       return
     }
-    if (!formInput.satuanProduksi) {
+    if (formInput.jumlahProduksi === undefined || formInput.jumlahProduksi === null || formInput.jumlahProduksi === "" || Number(formInput.jumlahProduksi) <= 0) {
+      setFormError("Jumlah produksi/tahun wajib diisi.")
+      return
+    }
+    if (!formInput.merek?.trim()) {
+      setFormError("Merek produk wajib diisi.")
+      return
+    }
+    if (!formInput.satuanProduksi?.trim()) {
       setFormError("Satuan produksi wajib diisi.")
+      return
+    }
+    if (!formInput.tipe?.trim()) {
+      setFormError("Tipe / varian komoditi wajib diisi.")
+      return
+    }
+    if (!formInput.keterangan?.trim()) {
+      setFormError("Keterangan komoditi wajib diisi.")
       return
     }
 
@@ -901,7 +909,7 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                   type="button"
                   size="sm"
                   onClick={handleSaveKomoditiToTable}
-                  leftIcon={editingIndex !== null ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  leftIcon={editingIndex !== null ? <CheckCircle2 className="w-4 h-4" /> : undefined}
                   className="px-5 py-3 text-xs bg-brand-600 hover:bg-brand-700"
                 >
                   {editingIndex !== null ? "Simpan Perubahan Komoditi" : "Tambah"}

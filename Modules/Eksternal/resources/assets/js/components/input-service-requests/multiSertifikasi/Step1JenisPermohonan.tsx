@@ -140,19 +140,17 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
                 {/* Option: Pengajuan Baru */}
                 <div
                   onClick={() => setJenisPengajuan(idx, "baru")}
-                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
-                    p.jenis_pengajuan === "baru"
+                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${p.jenis_pengajuan === "baru"
                       ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
                       : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                        p.jenis_pengajuan === "baru"
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${p.jenis_pengajuan === "baru"
                           ? "bg-brand-600 text-white shadow-sm"
                           : "bg-slate-100 text-slate-500"
-                      }`}
+                        }`}
                     >
                       <Award className="w-5 h-5" />
                     </div>
@@ -188,19 +186,17 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
                 {/* Option: Perpanjangan */}
                 <div
                   onClick={() => setJenisPengajuan(idx, "lama")}
-                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
-                    p.jenis_pengajuan === "lama"
+                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${p.jenis_pengajuan === "lama"
                       ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
                       : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                        p.jenis_pengajuan === "lama"
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${p.jenis_pengajuan === "lama"
                           ? "bg-brand-600 text-white shadow-sm"
                           : "bg-slate-100 text-slate-500"
-                      }`}
+                        }`}
                     >
                       <History className="w-5 h-5" />
                     </div>
@@ -314,7 +310,7 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
             leftIcon={<Plus className="w-4 h-4 text-brand-600" />}
             className="border-brand-200 text-brand-700 hover:bg-brand-50 shrink-0 font-semibold"
           >
-            Tambah Pengajuan (Maks. 2)
+            Tambah Pengajuan
           </Button>
         ) : (
           <span className="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-600 text-xs font-semibold shrink-0">

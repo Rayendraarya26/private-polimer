@@ -68,6 +68,7 @@
                         str_starts_with($kode, 'LSP') => 'Sertifikasi Profesi (LSP)',
                         str_starts_with($kode, 'REG') => 'Pelatihan Reguler',
                         str_starts_with($kode, 'UMK') => 'Pelatihan UMK',
+                        str_starts_with($kode, 'SRT') => 'Sertifikasi Industri',
                         default                        => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                     };
 
@@ -176,7 +177,9 @@
                         </div>
                         @foreach($grupPermohonan as $gp)
                             @php
-                                $gpNama  = $gp->detailPermohonan->first()?->formable?->nama_lengkap ?? '-';
+                                $gpNama  = $gp->detailPermohonan->first()?->formable?->nama_lengkap
+                                    ?? $gp->detailPermohonan->first()?->lingkupLayanan?->lingkup
+                                    ?? '-';
                                 $isAktif = $gp->id === $permohonan->id;
                                 $gpSwMap = [
                                     'PERMOHONAN' => ['#f1f5f9', '#475569', 'Permohonan'],
@@ -227,7 +230,7 @@
                                            color:{{ $idx === 0 ? '#1d4ed8' : '' }};
                                            border-bottom:{{ $idx === 0 ? '2px solid #3b82f6' : '2px solid transparent' }}"
                                     onclick="switchPeserta({{ $idx }}, this)">
-                                    {{ $di->formable?->nama_lengkap ?? 'Peserta ' . ($idx + 1) }}
+                                    {{ $di->formable?->nama_lengkap ?? $di->lingkupLayanan?->lingkup ?? 'Layanan ' . ($idx + 1) }}
                                 </button>
                             @endforeach
                         </div>
@@ -242,6 +245,7 @@
                                 str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                 str_starts_with($kode, 'REG') => 'pelatihan',
                                 str_starts_with($kode, 'UMK') => 'pelatihan',
+                                str_starts_with($kode, 'SRT') => 'sertifikasi-industri',
                                 default                        => 'default'
                             };
                         @endphp
@@ -336,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const pdf  = document.getElementById('previewPdf');
             img.classList.add('d-none');
             pdf.classList.add('d-none');
-            if (file.endsWith('.pdf')) {
+            if (file.toLowerCase().endsWith('.pdf')) {
                 pdf.src = file;
                 pdf.classList.remove('d-none');
             } else {

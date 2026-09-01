@@ -170,11 +170,15 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         });
 
         Route::prefix('sertifikasi')->group(function () {
+            Route::get('/jenis', [SertifikasiController::class, 'getJenisSertifikasi']);
+            Route::get('/komoditi', [SertifikasiController::class, 'getKomoditiSertifikasi']);
             Route::get('/skema', [SertifikasiController::class, 'getSkemaSertifikasi']);
             Route::get('/riwayat-aktif', [SertifikasiController::class, 'getRiwayatSertifikasi']);
             Route::get('/preview-hasil-uji/{id?}', [SertifikasiController::class, 'previewHasilUji']);
             Route::post('/', [SertifikasiController::class, 'store']);
+            Route::post('/upload-dokumen', [SertifikasiController::class, 'uploadDokumen']);
             Route::get('/{id}', [SertifikasiController::class, 'show']);
+            Route::put('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
             Route::delete('/{id}', [SertifikasiController::class, 'destroy']);

@@ -150,37 +150,71 @@ class SisSyncBridgingService
                 // 6. Sync Multi-Items to sis_permohonan_komoditi
                 $sis->table('sis_permohonan_komoditi')->where('mohon_id', $permohonanId)->delete();
 
-                foreach ($form->items as $item) {
-                    $sis->table('sis_permohonan_komoditi')->insert([
-                        'mohon_id'             => $permohonanId,
-                        'mohon_det_id'         => $mohonDetId,
-                        'komodt_id'            => $item->komoditi_id ?: 1,
-                        'mohon_kmditi_merk'    => $item->merk_dagang ?: $item->nama_produk,
-                        'mohon_kmditi_tipe'    => $item->tipe_jenis,
-                        'mohon_kmditi_sni'     => $item->standar_sni_iso,
-                        'mohon_kmditi_ukuran'  => $item->ukuran ?? null,
-                        'created_at'           => now(),
-                        'updated_at'           => now(),
-                    ]);
+                $komoditasList = $form->komoditas_json ?: [];
+                if (!empty($komoditasList) && is_array($komoditasList)) {
+                    foreach ($komoditasList as $item) {
+                        $sis->table('sis_permohonan_komoditi')->insert([
+                            'mohon_id'             => $permohonanId,
+                            'mohon_det_id'         => $mohonDetId,
+                            'komodt_id'            => $item['komoditi_id'] ?? ($item['id'] ?? 1),
+                            'mohon_kmditi_merk'    => $item['merk'] ?? ($item['merk_dagang'] ?? ($item['nama'] ?? ($item['nama_produk'] ?? '-'))),
+                            'mohon_kmditi_tipe'    => $item['tipe'] ?? ($item['tipe_jenis'] ?? '-'),
+                            'mohon_kmditi_sni'     => $item['noSni'] ?? ($item['sni'] ?? ($item['standar_sni_iso'] ?? '-')),
+                            'mohon_kmditi_ukuran'  => $item['ukuran'] ?? null,
+                            'created_at'           => now(),
+                            'updated_at'           => now(),
+                        ]);
+                    }
+                } elseif ($form->items && $form->items->count() > 0) {
+                    foreach ($form->items as $item) {
+                        $sis->table('sis_permohonan_komoditi')->insert([
+                            'mohon_id'             => $permohonanId,
+                            'mohon_det_id'         => $mohonDetId,
+                            'komodt_id'            => $item->komoditi_id ?: 1,
+                            'mohon_kmditi_merk'    => $item->merk_dagang ?: $item->nama_produk,
+                            'mohon_kmditi_tipe'    => $item->tipe_jenis,
+                            'mohon_kmditi_sni'     => $item->standar_sni_iso,
+                            'mohon_kmditi_ukuran'  => $item->ukuran ?? null,
+                            'created_at'           => now(),
+                            'updated_at'           => now(),
+                        ]);
+                    }
                 }
             }
 
             // 7. Sync Pabrik to sis_permohonan_pabrik
-            if ($permohonanId && $form->pabrik) {
+            if ($permohonanId) {
                 $sis->table('sis_permohonan_pabrik')->where('mohon_id', $permohonanId)->delete();
 
-                foreach ($form->pabrik as $pabrik) {
-                    $sis->table('sis_permohonan_pabrik')->insert([
-                        'mohon_id'                       => $permohonanId,
-                        'mohon_pabrik_nama'              => $pabrik->nama_pabrik,
-                        'mohon_pabrik_alamat'            => $pabrik->alamat_pabrik,
-                        'mohon_pabrik_nomor_telp'        => $pabrik->kontak_pabrik ?? null,
-                        'mohon_pabrik_nomor_hp'          => $pabrik->kontak_pabrik ?? null,
-                        'mohon_pabrik_jumlah_karyawan'   => $pabrik->jumlah_karyawan ?: null,
-                        'mohon_pabrik_luas_tanah'        => $pabrik->luas_fasilitas ?? null,
-                        'created_at'                     => now(),
-                        'updated_at'                     => now(),
-                    ]);
+                $pabrikList = $form->pabrik_json ?: [];
+                if (!empty($pabrikList) && is_array($pabrikList)) {
+                    foreach ($pabrikList as $pabrik) {
+                        $sis->table('sis_permohonan_pabrik')->insert([
+                            'mohon_id'                       => $permohonanId,
+                            'mohon_pabrik_nama'              => $pabrik['namaPabrik'] ?? ($pabrik['nama_pabrik'] ?? '-'),
+                            'mohon_pabrik_alamat'            => $pabrik['alamatPabrik'] ?? ($pabrik['alamat_pabrik'] ?? '-'),
+                            'mohon_pabrik_nomor_telp'        => $pabrik['noTelp'] ?? ($pabrik['kontak_pabrik'] ?? null),
+                            'mohon_pabrik_nomor_hp'          => $pabrik['noHp'] ?? ($pabrik['kontak_pabrik'] ?? null),
+                            'mohon_pabrik_jumlah_karyawan'   => $pabrik['jumlahKaryawan'] ?? ($pabrik['jumlah_karyawan'] ?? null),
+                            'mohon_pabrik_luas_tanah'        => $pabrik['luasTanah'] ?? ($pabrik['luas_fasilitas'] ?? null),
+                            'created_at'                     => now(),
+                            'updated_at'                     => now(),
+                        ]);
+                    }
+                } elseif ($form->pabrik && $form->pabrik->count() > 0) {
+                    foreach ($form->pabrik as $pabrik) {
+                        $sis->table('sis_permohonan_pabrik')->insert([
+                            'mohon_id'                       => $permohonanId,
+                            'mohon_pabrik_nama'              => $pabrik->nama_pabrik,
+                            'mohon_pabrik_alamat'            => $pabrik->alamat_pabrik,
+                            'mohon_pabrik_nomor_telp'        => $pabrik->kontak_pabrik ?? null,
+                            'mohon_pabrik_nomor_hp'          => $pabrik->kontak_pabrik ?? null,
+                            'mohon_pabrik_jumlah_karyawan'   => $pabrik->jumlah_karyawan ?: null,
+                            'mohon_pabrik_luas_tanah'        => $pabrik->luas_fasilitas ?? null,
+                            'created_at'                     => now(),
+                            'updated_at'                     => now(),
+                        ]);
+                    }
                 }
             }
 

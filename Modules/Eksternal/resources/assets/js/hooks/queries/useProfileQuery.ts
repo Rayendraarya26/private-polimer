@@ -5,10 +5,13 @@ import { toast } from "react-hot-toast"
 export const PROFILE_QUERY_KEY = ["userProfile"]
 
 export interface UserProfileResponse {
-  nama: string
-  surel: string
-  whatsapp: string
-  alamat: string
+  id?: string
+  name?: string
+  email?: string
+  nama?: string
+  surel?: string
+  whatsapp?: string
+  alamat?: string
   detail?: any
   jenis_pelanggan?: string
 }
@@ -22,15 +25,22 @@ export function useProfileQuery() {
   const profileQuery = useQuery({
     queryKey: PROFILE_QUERY_KEY,
     queryFn: async () => {
-      const response = await api.get("/eksternal/profile")
-      return response.data?.data || response.data?.results || response.data
+      try {
+        const response = await api.get("/eksternal/user")
+        return response.data?.data || response.data?.results || response.data
+      } catch (error) {
+        console.error("Gagal memuat profil pengguna:", error)
+        return null
+      }
     },
     staleTime: 1000 * 60 * 5, // 5 menit cache segar
   })
 
   const updateProfileMutation = useMutation({
     mutationFn: async (payload: FormData | Record<string, any>) => {
-      const response = await api.post("/eksternal/profile/update", payload)
+      const response = await api.post("/eksternal/user/profile", payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       return response.data
     },
     onSuccess: () => {

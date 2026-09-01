@@ -449,100 +449,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
         </CardContent>
       </Card>
 
-      {/* 2. Daftar Komoditi Permohonan (Tabel) */}
-      <Card className="border-slate-200 shadow-soft overflow-hidden">
-        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
-              <Package className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">
-                Daftar Komoditi Permohonan {formData.pengajuan.length > 1 ? `(Pengajuan #${activePengajuanIdx + 1})` : ""}
-              </h3>
-              <p className="text-[11px] text-slate-500">
-                Tambahkan satu atau lebih komoditi yang diajukan untuk proses sertifikasi.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-3 w-10 text-center">NO</th>
-                  <th className="py-3 px-4 min-w-[140px]">KOMODITI</th>
-                  <th className="py-3 px-3 min-w-[120px]">NO SNI</th>
-                  <th className="py-3 px-3 min-w-[100px]">MEREK</th>
-                  <th className="py-3 px-3 min-w-[90px]">TIPE</th>
-                  <th className="py-3 px-3 min-w-[90px]">UKURAN</th>
-                  <th className="py-3 px-3 min-w-[120px]">PRODUKSI / TAHUN</th>
-                  <th className="py-3 px-4 min-w-[120px]">KETERANGAN</th>
-                  <th className="py-3 px-3 w-20 text-center">AKSI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {itemsList.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="py-12 px-4 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-2">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
-                          <Package className="w-6 h-6" />
-                        </div>
-                        <p className="text-xs font-bold text-slate-700">
-                          Belum ada data komoditi yang ditambahkan
-                        </p>
-                        <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed">
-                          Silakan isi formulir di bawah ini dan klik tombol <span className="font-semibold text-brand-600">"Tambah"</span>.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  itemsList.map((item, idx) => (
-                    <tr key={item.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-3 text-center font-semibold text-slate-500">{idx + 1}</td>
-                      <td className="py-3.5 px-4 font-bold text-slate-800">{item.nama_produk}</td>
-                      <td className="py-3.5 px-3 text-slate-600 font-mono text-[11px]">{item.standar_sni_iso || "-"}</td>
-                      <td className="py-3.5 px-3 text-slate-700">{item.merk_dagang || "-"}</td>
-                      <td className="py-3.5 px-3 text-slate-700">{item.tipe_jenis || "-"}</td>
-                      <td className="py-3.5 px-3 text-slate-700">{item.ukuran || "-"}</td>
-                      <td className="py-3.5 px-3 text-slate-700 font-semibold">
-                        {item.kapasitas_produksi ? `${item.kapasitas_produksi} ${item.satuan_produksi || ''}` : "-"}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-500 text-[11px]">{item.keterangan || "-"}</td>
-                      <td className="py-3.5 px-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleEditItem(idx)}
-                            className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
-                            title="Edit Komoditi"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteItem(idx)}
-                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-md transition-colors"
-                            title="Hapus Komoditi"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 3. Form Data Komoditas */}
+      {/* 2. Form Data Komoditas */}
       <Card className="border-slate-200 shadow-soft overflow-hidden">
         <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900">
@@ -719,6 +626,99 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
             >
               {editingIndex !== null ? "Simpan Perubahan" : "Tambah"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 3. Daftar Komoditi Permohonan (Tabel) */}
+      <Card className="border-slate-200 shadow-soft overflow-hidden">
+        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+              <Package className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Daftar Komoditi Permohonan {formData.pengajuan.length > 1 ? `(Pengajuan #${activePengajuanIdx + 1})` : ""}
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Daftar komoditi yang diajukan untuk proses sertifikasi.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                  <th className="py-3 px-3 w-10 text-center">NO</th>
+                  <th className="py-3 px-4 min-w-[140px]">KOMODITI</th>
+                  <th className="py-3 px-3 min-w-[120px]">NO SNI</th>
+                  <th className="py-3 px-3 min-w-[100px]">MEREK</th>
+                  <th className="py-3 px-3 min-w-[90px]">TIPE</th>
+                  <th className="py-3 px-3 min-w-[90px]">UKURAN</th>
+                  <th className="py-3 px-3 min-w-[120px]">PRODUKSI / TAHUN</th>
+                  <th className="py-3 px-4 min-w-[120px]">KETERANGAN</th>
+                  <th className="py-3 px-3 w-20 text-center">AKSI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {itemsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="py-12 px-4 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                          <Package className="w-6 h-6" />
+                        </div>
+                        <p className="text-xs font-bold text-slate-700">
+                          Belum ada data komoditi yang ditambahkan
+                        </p>
+                        <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed">
+                          Silakan isi formulir di atas dan klik tombol <span className="font-semibold text-brand-600">"Tambah"</span>.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  itemsList.map((item, idx) => (
+                    <tr key={item.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-3 text-center font-semibold text-slate-500">{idx + 1}</td>
+                      <td className="py-3.5 px-4 font-bold text-slate-800">{item.nama_produk}</td>
+                      <td className="py-3.5 px-3 text-slate-600 font-mono text-[11px]">{item.standar_sni_iso || "-"}</td>
+                      <td className="py-3.5 px-3 text-slate-700">{item.merk_dagang || "-"}</td>
+                      <td className="py-3.5 px-3 text-slate-700">{item.tipe_jenis || "-"}</td>
+                      <td className="py-3.5 px-3 text-slate-700">{item.ukuran || "-"}</td>
+                      <td className="py-3.5 px-3 text-slate-700 font-semibold">
+                        {item.kapasitas_produksi ? `${item.kapasitas_produksi} ${item.satuan_produksi || ''}` : "-"}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500 text-[11px]">{item.keterangan || "-"}</td>
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleEditItem(idx)}
+                            className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
+                            title="Edit Komoditi"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(idx)}
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-md transition-colors"
+                            title="Hapus Komoditi"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>

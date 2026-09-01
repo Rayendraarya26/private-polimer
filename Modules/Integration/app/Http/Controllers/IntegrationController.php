@@ -133,4 +133,34 @@ class IntegrationController extends Controller
 
         return $currentData->merge($newData)->toArray();
     }
+
+    /**
+     * Manual sync permohonan to SIS.
+     */
+    public function syncManualSis($id)
+    {
+        try {
+            $permohonan = \App\Models\Db2\Permohonan::find($id);
+            if (!$permohonan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data permohonan tidak ditemukan',
+                ], 404);
+            }
+
+            $bridgingService = new \Modules\Integration\Services\SisSyncBridgingService();
+            $result = $bridgingService->syncPermohonanToSis($permohonan);
+
+            return response()->json([
+                'success' => $result['success'] ?? true,
+                'message' => $result['message'] ?? 'Sinkronisasi ke SIS berhasil dilakukan.',
+                'data'    => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal melakukan sinkronisasi SIS: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

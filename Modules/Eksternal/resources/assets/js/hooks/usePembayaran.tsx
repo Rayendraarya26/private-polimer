@@ -149,6 +149,19 @@ export function usePembayaran() {
     [fetchAndOpenPdf]
   )
 
+  const onDownloadCertificate = useCallback(
+    (id: any) => {
+      const permohonanId = typeof id === "object" ? id?.id : id
+      if (!permohonanId) return
+      fetchAndOpenPdf(
+        `/eksternal/sertifikasi/${permohonanId}/download-sertifikat`,
+        "Sertifikat Produk & Sistem SNI",
+        `Sertifikat-${permohonanId}.pdf`
+      )
+    },
+    [fetchAndOpenPdf]
+  )
+
   // Download manual ketika tombol 'Unduh PDF' diklik dari dalam modal
   const handleDownload = useCallback(() => {
     if (!previewState.blobUrl) return
@@ -311,6 +324,7 @@ export function usePembayaran() {
     openInvoice,
     openKuitansi,
     openLhu,
+    onDownloadCertificate,
     fetchAndOpenPdf,
     closePreview,
     PdfPreviewModal,

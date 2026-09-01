@@ -31,6 +31,11 @@ class BniVirtualAccountAndPaymentTest extends TestCase
             'password' => bcrypt('password123'),
         ]);
 
+        \App\Models\Db1\SysGroup::query()->firstOrCreate(
+            ['id' => SysGroup::PELANGGAN->value],
+            ['name' => 'Pelanggan', 'desc' => 'Pelanggan External', 'is_active' => 'yes']
+        );
+
         SysUserGroup::create([
             'id'         => (string) Str::uuid(),
             'user_id'    => $this->user->id,

@@ -48,19 +48,33 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
     return init
   })
   const [draftDismissed, setDraftDismissed] = useState(false)
+  const draftClearedRef = React.useRef(false)
 
   // Auto-save form data changes to IndexedDB
+  // Skip auto-save if user just cleared the draft to prevent immediate re-save
   useEffect(() => {
+    if (draftClearedRef.current) return
     // Only auto-save if user has filled at least some basic field
     if (formData.nama_perusahaan || formData.pengajuan.some(p => p.skema_id || p.items.some(i => i.nama_produk))) {
       autoSave(formData)
     }
   }, [formData, autoSave])
 
+  // Re-enable auto-save after user makes meaningful edits post-discard
+  useEffect(() => {
+    if (!draftClearedRef.current) return
+    // Only re-enable auto-save when user has manually filled skema or items (not just profile prefill)
+    const hasUserEdits = formData.pengajuan.some(p => p.skema_id || p.items.length > 0)
+    if (hasUserEdits) {
+      draftClearedRef.current = false
+    }
+  }, [formData])
+
   // Restore Draft Action
   const handleRestoreDraft = () => {
     if (existingDraft) {
       const { draftId, updatedAt, ...rest } = existingDraft
+      draftClearedRef.current = false
       setFormData(rest)
       toast.success("Draf permohonan berhasil dipulihkan.")
       setDraftDismissed(true)
@@ -69,9 +83,17 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
 
   // Discard Draft Action
   const handleDiscardDraft = async () => {
+    draftClearedRef.current = true
     await clearDraft()
+    // Reset form to initial clean state
+    const init = { ...initialSertifikasiFormData }
+    if (skemaId && init.pengajuan.length > 0) {
+      init.pengajuan[0].skema_id = skemaId
+    }
+    setFormData(init)
+    setStep(0)
     setDraftDismissed(true)
-    toast.success("Draf lama telah dihapus.")
+    toast.success("Draf lama telah dihapus. Formulir dikosongkan.")
   }
 
   // Prefill from user profile if available

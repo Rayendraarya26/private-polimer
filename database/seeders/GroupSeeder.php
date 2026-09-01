@@ -17,9 +17,10 @@ class GroupSeeder extends Seeder
         $data_group = [
             ['name' => 'Root', 'desc' => 'Root Super Access', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::ROOT],
             ['name' => 'Admin', 'desc' => 'Manage Setting', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::ADMIN],
-            ['name' => 'Pelanggan', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PELANGGAN],
-            ['name' => 'Pegawai', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PEGAWAI],
-            ['name' => 'Bendahara', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::BENDAHARA],
+            ['name' => 'Pelanggan', 'desc' => 'Pelanggan Layanan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PELANGGAN],
+            ['name' => 'Pegawai', 'desc' => 'Pegawai', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PEGAWAI],
+            ['name' => 'Bendahara', 'desc' => 'Bendahara Penerimaan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::BENDAHARA],
+            ['name' => 'Marketing', 'desc' => 'Tim Pemasaran & Verifikasi Permohonan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::MARKETING],
         ];
 
         foreach ($data_group as $group) {

@@ -40,7 +40,7 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
             'total_bayar'   => $this->totalBayar,
         ]);
 
-        $permohonan = Permohonan::with(['detailPembayaran', 'formPelatihan', 'formLsp'])
+        $permohonan = Permohonan::with(['detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'creator'])
             ->find($this->permohonanId);
 
         if (!$permohonan) {
@@ -65,9 +65,24 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
                     ->where('group_id', \App\Enums\SysGroup::BENDAHARA->value);
             })->first();
 
+            $sertifikasi = $permohonan->formSertifikasi?->first();
+            $pelatihan   = $permohonan->formPelatihan?->first();
+            $lsp         = $permohonan->formLsp?->first();
+            $creator     = $permohonan->creator;
+
+            $namaPemohon = $sertifikasi?->nama_perusahaan 
+                ?: ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
+                ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
+                ?: ($creator?->name ?: 'Pelanggan BBKKP');
+
+            $alamatPemohon = $sertifikasi?->alamat_kantor 
+                ?: ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
+                ?: ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+                ?: '-';
+
             $pemohon = [
-                'nama'   => $permohonan->formPelatihan?->first()?->nama_lengkap ?? $permohonan->formLsp?->first()?->nama_lengkap ?? 'Pelanggan BBKKP',
-                'alamat' => $permohonan->formPelatihan?->first()?->alamat_peserta ?? $permohonan->formLsp?->first()?->alamat_peserta ?? '-',
+                'nama'   => $namaPemohon,
+                'alamat' => $alamatPemohon,
             ];
 
             // Render PDF Kuitansi

@@ -19,6 +19,7 @@ export type PermissionAction =
 export type SysRoleCode =
   | 'SUPER_ADMIN'
   | 'ADMIN_LAYANAN'
+  | 'MARKETING'
   | 'VERIFIKATOR'
   | 'ASESOR'
   | 'BENDAHARA'

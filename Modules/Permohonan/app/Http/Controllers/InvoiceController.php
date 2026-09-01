@@ -20,8 +20,10 @@ class InvoiceController extends Controller
 
     private function buildPemohon(Permohonan $permohonan): array
     {
-        $pelatihan = $permohonan->formPelatihan?->first();
-        $lsp       = $permohonan->formLsp?->first();
+        $sertifikasi = $permohonan->formSertifikasi?->first();
+        $pelatihan   = $permohonan->formPelatihan?->first();
+        $lsp         = $permohonan->formLsp?->first();
+        $creator     = $permohonan->creator;
 
         $invoiceTargetName    = '-';
         $invoiceTargetAddress = '-';
@@ -32,22 +34,28 @@ class InvoiceController extends Controller
 
         $isPerorangan = $jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
 
-        if ($permohonan->is_split_bill || $isPerorangan) {
+        if ($sertifikasi) {
+            $invoiceTargetName    = $sertifikasi->nama_perusahaan ?: ($creator?->name ?: 'Pelanggan BBKKP');
+            $invoiceTargetAddress = $sertifikasi->alamat_kantor ?: '-';
+            $telepon              = $sertifikasi->no_whatsapp ?: ($sertifikasi->no_telp ?: ($creator?->no_hp ?: '-'));
+            $surel                = $sertifikasi->email ?: ($creator?->email ?: '-');
+        } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
-            $invoiceTargetName    = $pelatihan?->nama_lengkap   ?? $lsp?->nama_lengkap   ?? '-';
+            $invoiceTargetName    = $pelatihan?->nama_lengkap   ?? $lsp?->nama_lengkap   ?? ($creator?->name ?? '-');
             $invoiceTargetAddress = $pelatihan?->alamat_peserta ?? $lsp?->alamat_peserta ?? '-';
+            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? ($creator?->no_hp ?? '');
+            $surel                = $pelatihan?->email    ?? $lsp?->email    ?? ($creator?->email ?? '');
         } else {
             // Badan Usaha / Instansi Pemerintah → prioritaskan data instansi
             $invoiceTargetName    = ($pelatihan?->nama_instansi   ?: $pelatihan?->nama_lengkap)
                                     ?? ($lsp?->nama_instansi   ?: $lsp?->nama_lengkap)
-                                    ?? '-';
+                                    ?? ($creator?->name ?? '-');
             $invoiceTargetAddress = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
                                     ?? ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
                                     ?? '-';
+            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? ($creator?->no_hp ?? '');
+            $surel                = $pelatihan?->email    ?? $lsp?->email    ?? ($creator?->email ?? '');
         }
-
-        $telepon = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? '';
-        $surel   = $pelatihan?->email    ?? $lsp?->email    ?? '';
 
         return [
             'nama'     => $invoiceTargetName,

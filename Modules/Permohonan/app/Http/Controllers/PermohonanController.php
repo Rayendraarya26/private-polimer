@@ -9,7 +9,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
 use App\Models\Db2\Permohonan;
 use App\Models\Db1\SysUserNotif;
+use App\Models\Db1\SysUser;
+use App\Enums\SysGroup;
 use App\Models\Db2\DetailPembayaran;
+use App\Libraries\BniVaService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 
@@ -256,14 +262,19 @@ class PermohonanController extends Controller
     public function approve(Request $request, $id)
     {
         $request->validate([
-            'nominal'       => 'required|numeric',
+            'nominal'       => 'required|numeric|min:0',
             'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
+        $permohonan = Permohonan::with([
+            'detailPermohonan.formable',
+            'formSertifikasi',
+            'formPelatihan',
+            'formLsp',
+            'creator'
+        ])->findOrFail($id);
 
-        $permohonan = Permohonan::findOrFail($id);
-        $path       = $request->file('dok_penawaran')->store('penawaran', 'public');
-
+        $path = $request->file('dok_penawaran')->store('penawaran', 'public');
 
         $itemBayar = match(true) {
             str_starts_with($permohonan->no_permohonan, 'CERT') => 'Biaya Sertifikasi Produk & Sistem (SPPT SNI)',
@@ -273,50 +284,159 @@ class PermohonanController extends Controller
             default                                              => 'Biaya Layanan',
         };
 
+        $total         = (float) $request->nominal;
+        $invoiceNumber = $permohonan->invoice_number ?: ('INV/' . now()->format('Ymd') . '/' . strtoupper(Str::random(5)));
+        $trxId         = 'INV-' . $permohonan->id;
+
+        // Ambil Data Pemohon
+        $sertifikasi = $permohonan->formSertifikasi?->first();
+        $pelatihan   = $permohonan->formPelatihan?->first();
+        $lsp         = $permohonan->formLsp?->first();
+        $creator     = $permohonan->creator;
+
+        $namaPemohon = $sertifikasi?->nama_perusahaan 
+            ?: ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
+            ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
+            ?: ($creator?->name ?: 'Pelanggan BBKKP');
+
+        $alamatPemohon = $sertifikasi?->alamat_kantor 
+            ?: ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
+            ?: ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+            ?: '-';
+
+        $teleponPemohon = $sertifikasi?->no_whatsapp 
+            ?: $sertifikasi?->no_telp 
+            ?: $pelatihan?->whatsapp 
+            ?: $lsp?->whatsapp 
+            ?: ($creator?->no_hp ?: '-');
+
+        $emailPemohon = $sertifikasi?->email 
+            ?: $pelatihan?->email 
+            ?: $lsp?->email 
+            ?: ($creator?->email ?: '-');
+
+        // 1. AUTO-GENERATE BNI VIRTUAL ACCOUNT BILLING
+        $va          = $permohonan->va;
+        $vaExpiredAt = $permohonan->va_expired_at ?: now()->addDays(14);
+        try {
+            $bniService = new BniVaService();
+            $vaResult = $bniService->createBilling([
+                'trx_id'           => $trxId,
+                'trx_amount'       => $total,
+                'customer_name'    => $namaPemohon,
+                'customer_email'   => $emailPemohon,
+                'customer_phone'   => $teleponPemohon,
+                'datetime_expired' => now()->addDays(14)->toIso8601String(),
+                'description'      => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
+            ]);
+
+            if (!empty($vaResult['virtual_account'])) {
+                $va          = $vaResult['virtual_account'];
+                $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
+            }
+        } catch (\Exception $e) {
+            Log::warning('PermohonanController@approve - Gagal create billing BNI: ' . $e->getMessage());
+            $va = $va ?: '-';
+        }
 
         DB::beginTransaction();
         try {
-            $permohonan->update([
-                'status_workflow' => 'PEMBAYARAN',
-                'catatan_admin'   => $path,
-            ]);
-
-
             DetailPembayaran::where('permohonan_id', $id)->delete();
-
 
             DetailPembayaran::create([
                 'id'            => (string) Str::uuid(),
                 'id_pt_ins'     => $permohonan->id_pt_ins,
                 'permohonan_id' => $id,
                 'item_bayar'    => $itemBayar,
-                'harga_satuan'  => $request->nominal,
+                'harga_satuan'  => $total,
                 'kuantitas'     => 1,
-                'subtotal'      => $request->nominal,
+                'subtotal'      => $total,
             ]);
 
+            // 2. AUTO-GENERATE PDF INVOICE (Template polimer_v2)
+            $bendahara = SysUser::whereIn('id', function ($query) {
+                $query->select('user_id')
+                    ->from('sys_user_group')
+                    ->where('group_id', SysGroup::BENDAHARA->value);
+            })->first();
+
+            $detailPembayaran = DetailPembayaran::where('permohonan_id', $id)->get();
+            $grupPermohonan   = $permohonan->id_pt_ins
+                ? Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)->with('detailPembayaran')->get()
+                : collect([$permohonan]);
+
+            $pemohon = [
+                'nama'    => $namaPemohon,
+                'alamat'  => $alamatPemohon,
+                'telepon' => $teleponPemohon,
+                'surel'   => $emailPemohon,
+            ];
+
+            $pdf = Pdf::loadView('permohonan::layanan.invoice', [
+                'permohonan'       => $permohonan,
+                'detailPembayaran' => $detailPembayaran,
+                'grupPermohonan'   => $grupPermohonan,
+                'invoiceNumber'    => $invoiceNumber,
+                'va'               => $va ?: '-',
+                'total'            => $total,
+                'pemohon'          => $pemohon,
+                'bendahara'        => $bendahara,
+            ])
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont'          => 'sans-serif',
+                'isRemoteEnabled'      => true,
+                'isHtml5ParserEnabled' => true,
+            ]);
+
+            $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
+            $filePath = 'invoice/' . $fileName;
+            Storage::disk('public')->put($filePath, $pdf->output());
+
+            $permohonan->update([
+                'status_workflow'      => 'PEMBAYARAN',
+                'catatan_admin'        => $path,
+                'invoice_number'       => $invoiceNumber,
+                'invoice_file'         => $filePath,
+                'invoice_generated_at' => now(),
+                'va'                   => $va,
+                'va_trx_id'            => $trxId,
+                'va_expired_at'        => $vaExpiredAt,
+                'va_status'            => 'ACTIVE',
+            ]);
 
             DB::commit();
 
-
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('PermohonanController@approve error: ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return back()->with('error', $e->getMessage());
         }
 
-
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title'   => 'Permohonan Disetujui',
-            'content' => 'Permohonan Anda telah disetujui dan masuk tahap pembayaran.',
-            'link'    => route('permohonan.layanan.detail', $permohonan->id),
+            'title'   => 'Permohonan Disetujui & Tagihan Diterbitkan',
+            'content' => 'Permohonan Anda ' . $permohonan->no_permohonan . ' telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
+            'link'    => '/app/#/pembayaran',
             'is_read' => 'no',
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'         => true,
+                'message'         => 'Permohonan berhasil disetujui, Invoice & Virtual Account BNI telah otomatis terbit.',
+                'invoice_number'  => $invoiceNumber,
+                'virtual_account' => $va,
+                'invoice_file'    => $filePath,
+            ]);
+        }
 
         return redirect()
             ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
-            ->with('success', 'Permohonan berhasil disetujui');
+            ->with('success', 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.');
     }
 
 

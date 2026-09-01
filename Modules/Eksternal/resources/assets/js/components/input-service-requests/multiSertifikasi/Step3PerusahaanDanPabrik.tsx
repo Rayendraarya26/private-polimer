@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { SertifikasiFormData, SertifikasiPabrikItem, emptyPabrik } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
@@ -11,10 +11,16 @@ import {
   Trash2,
   FileDown,
   UploadCloud,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 import useProfile from "../../../hooks/useProfile"
+import {
+  useProvincesQuery,
+  useRegenciesQuery,
+  useDistrictsQuery,
+} from "../../../hooks/queries/useMasterQuery"
 
 interface Props {
   formData: SertifikasiFormData
@@ -38,6 +44,343 @@ const DAFTAR_NEGARA = [
   "Lainnya"
 ]
 
+/**
+ * Sub-komponen Kartu Pabrik dengan Cascading Master Wilayah & Logika Kondisional Negara
+ */
+interface PabrikCardItemProps {
+  f: SertifikasiPabrikItem
+  idx: number
+  totalPabrik: number
+  provinces: any[]
+  loadingProvinces: boolean
+  onUpdate: (index: number, field: keyof SertifikasiPabrikItem, value: any) => void
+  onRemove: (index: number) => void
+}
+
+const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
+  f,
+  idx,
+  totalPabrik,
+  provinces,
+  loadingProvinces,
+  onUpdate,
+  onRemove,
+}) => {
+  const isDomestic = (f.negara || "Indonesia") === "Indonesia"
+
+  const [selectedProvId, setSelectedProvId] = useState<string | number>(f.provinsi_id || "")
+  const [selectedKabId, setSelectedKabId] = useState<string | number>(f.kabupaten_id || "")
+
+  // Eager-matching ID jika user sudah memiliki nilai provinsi/kabupaten
+  useEffect(() => {
+    if (!selectedProvId && f.provinsi && provinces.length > 0) {
+      const found = provinces.find(
+        (p: any) =>
+          p.nama?.toLowerCase() === f.provinsi?.toLowerCase() ||
+          String(p.id) === String(f.provinsi_id || f.provinsi)
+      )
+      if (found) setSelectedProvId(found.id)
+    }
+  }, [provinces, f.provinsi, f.provinsi_id, selectedProvId])
+
+  const { data: rawRegencies = [], isLoading: loadingRegencies } = useRegenciesQuery(selectedProvId)
+  const regencies = Array.isArray(rawRegencies) ? rawRegencies : []
+
+  useEffect(() => {
+    if (!selectedKabId && f.kabupaten && regencies.length > 0) {
+      const found = regencies.find(
+        (k: any) =>
+          k.nama?.toLowerCase() === f.kabupaten?.toLowerCase() ||
+          String(k.id) === String(f.kabupaten_id || f.kabupaten)
+      )
+      if (found) setSelectedKabId(found.id)
+    }
+  }, [regencies, f.kabupaten, f.kabupaten_id, selectedKabId])
+
+  const { data: rawDistricts = [], isLoading: loadingDistricts } = useDistrictsQuery(selectedKabId)
+  const districts = Array.isArray(rawDistricts) ? rawDistricts : []
+
+  return (
+    <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4 transition-all hover:border-slate-300">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center">
+            {idx + 1}
+          </span>
+          <span className="text-xs font-bold text-slate-900">
+            {f.nama_pabrik || `Pabrik #${idx + 1}`}
+          </span>
+        </div>
+        {totalPabrik > 1 && (
+          <button
+            type="button"
+            onClick={() => onRemove(idx)}
+            className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Hapus Pabrik
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Nama Pabrik */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">
+            Nama Pabrik <span className="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={f.nama_pabrik}
+            onChange={(e) => onUpdate(idx, "nama_pabrik", e.target.value)}
+            placeholder="PT. Example"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* No Telp */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">No Telp</label>
+          <input
+            type="text"
+            value={f.kontak_pabrik || ""}
+            onChange={(e) => onUpdate(idx, "kontak_pabrik", e.target.value)}
+            placeholder="02212345678"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* No HP */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">No HP</label>
+          <input
+            type="text"
+            value={f.no_hp || ""}
+            onChange={(e) => onUpdate(idx, "no_hp", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Fax */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Fax</label>
+          <input
+            type="text"
+            value={f.fax || ""}
+            onChange={(e) => onUpdate(idx, "fax", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Negara */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">
+            Negara <span className="text-rose-500">*</span>
+          </label>
+          <select
+            value={f.negara || "Indonesia"}
+            onChange={(e) => {
+              const newCountry = e.target.value
+              onUpdate(idx, "negara", newCountry)
+              if (newCountry !== "Indonesia") {
+                setSelectedProvId("")
+                setSelectedKabId("")
+                onUpdate(idx, "provinsi", "")
+                onUpdate(idx, "provinsi_id", "")
+                onUpdate(idx, "kabupaten", "")
+                onUpdate(idx, "kabupaten_id", "")
+                onUpdate(idx, "kecamatan", "")
+                onUpdate(idx, "kecamatan_id", "")
+              }
+            }}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          >
+            {DAFTAR_NEGARA.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Kode Pos */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Kode Pos</label>
+          <input
+            type="text"
+            value={f.kode_pos || ""}
+            onChange={(e) => onUpdate(idx, "kode_pos", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Cascading Region Master Dropdowns (Hanya ditampilkan jika Negara = Indonesia) */}
+        {isDomestic && (
+          <>
+            {/* Provinsi Pabrik */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Provinsi <span className="text-rose-500">*</span></span>
+                {loadingProvinces && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+              </label>
+              <select
+                value={selectedProvId || ""}
+                onChange={(e) => {
+                  const pId = e.target.value
+                  const found = provinces.find((p: any) => String(p.id) === String(pId))
+                  setSelectedProvId(pId)
+                  setSelectedKabId("")
+                  onUpdate(idx, "provinsi_id", pId)
+                  onUpdate(idx, "provinsi", found?.nama || "")
+                  onUpdate(idx, "kabupaten_id", "")
+                  onUpdate(idx, "kabupaten", "")
+                  onUpdate(idx, "kecamatan_id", "")
+                  onUpdate(idx, "kecamatan", "")
+                }}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="">-- Pilih Provinsi --</option>
+                {provinces.map((p: any) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Kabupaten / Kota Pabrik */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Kabupaten / Kota <span className="text-rose-500">*</span></span>
+                {loadingRegencies && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+              </label>
+              <select
+                disabled={!selectedProvId}
+                value={selectedKabId || ""}
+                onChange={(e) => {
+                  const kId = e.target.value
+                  const found = regencies.find((k: any) => String(k.id) === String(kId))
+                  setSelectedKabId(kId)
+                  onUpdate(idx, "kabupaten_id", kId)
+                  onUpdate(idx, "kabupaten", found?.nama || "")
+                  onUpdate(idx, "kecamatan_id", "")
+                  onUpdate(idx, "kecamatan", "")
+                }}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {selectedProvId ? "-- Pilih Kabupaten/Kota --" : "-- Pilih Provinsi Dahulu --"}
+                </option>
+                {regencies.map((k: any) => (
+                  <option key={k.id} value={k.id}>
+                    {k.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Kecamatan Pabrik */}
+            <div className="space-y-1 md:col-span-2">
+              <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                <span>Kecamatan <span className="text-rose-500">*</span></span>
+                {loadingDistricts && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+              </label>
+              <select
+                disabled={!selectedKabId}
+                value={f.kecamatan_id || ""}
+                onChange={(e) => {
+                  const kecId = e.target.value
+                  const found = districts.find((d: any) => String(d.id) === String(kecId))
+                  onUpdate(idx, "kecamatan_id", kecId)
+                  onUpdate(idx, "kecamatan", found?.nama || "")
+                }}
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {selectedKabId ? "-- Pilih Kecamatan --" : "-- Pilih Kab/Kota Dahulu --"}
+                </option>
+                {districts.map((d: any) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+
+        {/* Alamat Pabrik */}
+        <div className="space-y-1 md:col-span-2">
+          <label className="block text-xs font-bold text-slate-800">
+            Alamat Pabrik <span className="text-rose-500">*</span>
+          </label>
+          <textarea
+            rows={2}
+            value={f.alamat_pabrik}
+            onChange={(e) => onUpdate(idx, "alamat_pabrik", e.target.value)}
+            placeholder="Jl. Contoh No. 1, Jakarta"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Jumlah Karyawan */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Jumlah Karyawan</label>
+          <input
+            type="number"
+            min={0}
+            value={f.jumlah_karyawan === undefined || f.jumlah_karyawan === null ? "" : f.jumlah_karyawan}
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => {
+              const raw = e.target.value
+              onUpdate(idx, "jumlah_karyawan", raw === "" ? "" : parseInt(raw, 10) || 0)
+            }}
+            placeholder="0"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Kegiatan Utama */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Kegiatan Utama</label>
+          <input
+            type="text"
+            value={f.kegiatan_utama || ""}
+            onChange={(e) => onUpdate(idx, "kegiatan_utama", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Luas Tanah */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Luas Tanah</label>
+          <input
+            type="text"
+            value={f.luas_tanah || ""}
+            onChange={(e) => onUpdate(idx, "luas_tanah", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+
+        {/* Luas Bangunan */}
+        <div className="space-y-1">
+          <label className="block text-xs font-bold text-slate-800">Luas Bangunan</label>
+          <input
+            type="text"
+            value={f.luas_bangunan || ""}
+            onChange={(e) => onUpdate(idx, "luas_bangunan", e.target.value)}
+            placeholder="-"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
   formData,
   setFormData,
@@ -48,6 +391,44 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
   const { profile: reduxProfile } = useProfile()
   const profileData = queryProfile || reduxProfile
   const detail = (profileData?.detail || profileData?.pelanggan?.detail || profileData?.results?.detail || profileData) as Record<string, any> | undefined
+
+  // Master Wilayah Hooks
+  const { data: rawProvinces = [], isLoading: loadingProvinces } = useProvincesQuery()
+  const provinces = Array.isArray(rawProvinces) ? rawProvinces : []
+
+  const isCompanyDomestic = (formData.negara || "Indonesia") === "Indonesia"
+
+  const [selectedCompanyProvId, setSelectedCompanyProvId] = useState<string | number>("")
+  const [selectedCompanyKabId, setSelectedCompanyKabId] = useState<string | number>("")
+
+  // Eager-matching ID jika formData sudah memiliki nama / id provinsi
+  useEffect(() => {
+    if (!selectedCompanyProvId && formData.provinsi && provinces.length > 0) {
+      const found = provinces.find(
+        (p: any) =>
+          p.nama?.toLowerCase() === formData.provinsi?.toLowerCase() ||
+          String(p.id) === String(formData.provinsi)
+      )
+      if (found) setSelectedCompanyProvId(found.id)
+    }
+  }, [provinces, formData.provinsi, selectedCompanyProvId])
+
+  const { data: rawCompanyRegencies = [], isLoading: loadingCompanyRegencies } = useRegenciesQuery(selectedCompanyProvId)
+  const companyRegencies = Array.isArray(rawCompanyRegencies) ? rawCompanyRegencies : []
+
+  useEffect(() => {
+    if (!selectedCompanyKabId && formData.kabupaten && companyRegencies.length > 0) {
+      const found = companyRegencies.find(
+        (k: any) =>
+          k.nama?.toLowerCase() === formData.kabupaten?.toLowerCase() ||
+          String(k.id) === String(formData.kabupaten)
+      )
+      if (found) setSelectedCompanyKabId(found.id)
+    }
+  }, [companyRegencies, formData.kabupaten, selectedCompanyKabId])
+
+  const { data: rawCompanyDistricts = [], isLoading: loadingCompanyDistricts } = useDistrictsQuery(selectedCompanyKabId)
+  const companyDistricts = Array.isArray(rawCompanyDistricts) ? rawCompanyDistricts : []
 
   // Prefill otomatis dari profil perusahaan
   useEffect(() => {
@@ -176,7 +557,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 type="text"
                 value={formData.nomor_akta_pendirian || ""}
                 onChange={(e) => setFormData({ ...formData, nomor_akta_pendirian: e.target.value })}
-                placeholder="123/AHU/1990"
+                placeholder="AHU-001234.AH.01.01.Tahun 2020"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
@@ -212,39 +593,53 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
             {/* Nama Wakil Manajemen */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800">
-                Nama Wakil Manajemen <span className="text-rose-500">*</span>
+                Nama Wakil Manajemen (MR) <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.nama_wakil_manajemen || ""}
                 onChange={(e) => setFormData({ ...formData, nama_wakil_manajemen: e.target.value })}
-                placeholder="John Doe"
+                placeholder="Alex Smith"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
-            {/* Telp (Perusahaan) */}
+            {/* Email Perusahaan */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800">
-                Telp (Perusahaan) <span className="text-rose-500">*</span>
+                Email Perusahaan <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={formData.email || ""}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="info@perusahaan.co.id"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+              />
+            </div>
+
+            {/* Nomor Telepon Kantor */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800">
+                Nomor Telepon Kantor <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.no_telp || ""}
                 onChange={(e) => setFormData({ ...formData, no_telp: e.target.value })}
-                placeholder="02212345678"
+                placeholder="021-1234567"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
-            {/* Fax */}
+            {/* Nomor Fax */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">Fax</label>
+              <label className="block text-xs font-bold text-slate-800">Nomor Fax</label>
               <input
                 type="text"
                 value={formData.fax || ""}
                 onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
-                placeholder="123-4124-4123"
+                placeholder="021-1234568"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
@@ -317,7 +712,18 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
               </label>
               <select
                 value={formData.negara || "Indonesia"}
-                onChange={(e) => setFormData({ ...formData, negara: e.target.value })}
+                onChange={(e) => {
+                  const newCountry = e.target.value
+                  setFormData((prev) => ({
+                    ...prev,
+                    negara: newCountry,
+                    ...(newCountry !== "Indonesia" ? { provinsi: "", kabupaten: "", kecamatan: "" } : {})
+                  }))
+                  if (newCountry !== "Indonesia") {
+                    setSelectedCompanyProvId("")
+                    setSelectedCompanyKabId("")
+                  }
+                }}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               >
                 {DAFTAR_NEGARA.map((n) => (
@@ -328,47 +734,121 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
               </select>
             </div>
 
-            {/* Provinsi */}
+            {/* Kode Pos */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Provinsi <span className="text-rose-500">*</span>
-              </label>
+              <label className="block text-xs font-bold text-slate-800">Kode Pos</label>
               <input
                 type="text"
-                value={formData.provinsi || ""}
-                onChange={(e) => setFormData({ ...formData, provinsi: e.target.value })}
-                placeholder="Contoh: Jawa Timur / D.I. Yogyakarta"
+                value={formData.kode_pos || ""}
+                onChange={(e) => setFormData({ ...formData, kode_pos: e.target.value })}
+                placeholder="Contoh: 55161"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
-            {/* Kabupaten / Kota */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Kabupaten / Kota <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.kabupaten || ""}
-                onChange={(e) => setFormData({ ...formData, kabupaten: e.target.value })}
-                placeholder="Contoh: Kota Yogyakarta / Kab. Sleman"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
-              />
-            </div>
+            {/* Cascading Region Master Dropdowns (Hanya ditampilkan jika Negara = Indonesia) */}
+            {isCompanyDomestic && (
+              <>
+                {/* Provinsi */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>Provinsi <span className="text-rose-500">*</span></span>
+                    {loadingProvinces && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+                  </label>
+                  <select
+                    value={selectedCompanyProvId || ""}
+                    onChange={(e) => {
+                      const pId = e.target.value
+                      const found = provinces.find((p: any) => String(p.id) === String(pId))
+                      setSelectedCompanyProvId(pId)
+                      setSelectedCompanyKabId("")
+                      setFormData((prev) => ({
+                        ...prev,
+                        provinsi: found?.nama || pId,
+                        kabupaten: "",
+                        kecamatan: "",
+                      }))
+                    }}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                  >
+                    <option value="">-- Pilih Provinsi --</option>
+                    {provinces.map((p: any) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {/* Kecamatan */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Kecamatan <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.kecamatan || ""}
-                onChange={(e) => setFormData({ ...formData, kecamatan: e.target.value })}
-                placeholder="Contoh: Umbulharjo"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
-              />
-            </div>
+                {/* Kabupaten / Kota */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>Kabupaten / Kota <span className="text-rose-500">*</span></span>
+                    {loadingCompanyRegencies && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+                  </label>
+                  <select
+                    disabled={!selectedCompanyProvId}
+                    value={selectedCompanyKabId || ""}
+                    onChange={(e) => {
+                      const kId = e.target.value
+                      const found = companyRegencies.find((k: any) => String(k.id) === String(kId))
+                      setSelectedCompanyKabId(kId)
+                      setFormData((prev) => ({
+                        ...prev,
+                        kabupaten: found?.nama || kId,
+                        kecamatan: "",
+                      }))
+                    }}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">
+                      {selectedCompanyProvId ? "-- Pilih Kabupaten/Kota --" : "-- Pilih Provinsi Dahulu --"}
+                    </option>
+                    {companyRegencies.map((k: any) => (
+                      <option key={k.id} value={k.id}>
+                        {k.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Kecamatan */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>Kecamatan <span className="text-rose-500">*</span></span>
+                    {loadingCompanyDistricts && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
+                  </label>
+                  <select
+                    disabled={!selectedCompanyKabId}
+                    value={
+                      companyDistricts.find(
+                        (d: any) =>
+                          d.nama?.toLowerCase() === formData.kecamatan?.toLowerCase() ||
+                          String(d.id) === String(formData.kecamatan)
+                      )?.id || ""
+                    }
+                    onChange={(e) => {
+                      const kecId = e.target.value
+                      const found = companyDistricts.find((d: any) => String(d.id) === String(kecId))
+                      setFormData((prev) => ({
+                        ...prev,
+                        kecamatan: found?.nama || kecId,
+                      }))
+                    }}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">
+                      {selectedCompanyKabId ? "-- Pilih Kecamatan --" : "-- Pilih Kab/Kota Dahulu --"}
+                    </option>
+                    {companyDistricts.map((d: any) => (
+                      <option key={d.id} value={d.id}>
+                        {d.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Alamat Lengkap */}
             <div className="space-y-1.5 md:col-span-2">
@@ -450,35 +930,30 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
             {/* Jumlah Bagian */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800">
-                Jumlah Bagian <span className="text-rose-500">*</span>
+                Jumlah Bagian / Divisi <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
-                min={0}
-                value={formData.jumlah_bagian === undefined || formData.jumlah_bagian === null ? "" : formData.jumlah_bagian}
+                min={1}
+                value={formData.jumlah_bagian === undefined || formData.jumlah_bagian === null ? 1 : formData.jumlah_bagian}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => handleNumericChange("jumlah_bagian", e.target.value)}
-                placeholder="0"
+                placeholder="1"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
           </div>
 
-          {/* Rincian Jumlah Karyawan */}
-          <div className="space-y-3 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold text-slate-800">
-                Jumlah Karyawan <span className="text-rose-500">*</span>
-              </label>
-              <span className="text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200 px-3 py-1 rounded-full">
-                Total: {formData.jumlah_karyawan_total || 0} Orang
-              </span>
-            </div>
+          {/* Rincian Karyawan */}
+          <div className="space-y-3 pt-3 border-t border-slate-200">
+            <h4 className="text-xs font-bold text-slate-900">
+              Rincian Karyawan Sesuai Ruang Lingkup Sertifikasi
+            </h4>
 
-            <div className="space-y-2.5 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
+            <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 space-y-3">
               {/* Manajemen */}
               <div className="flex items-center justify-between gap-4">
-                <span className="text-xs font-medium text-slate-700 w-40">1. Manajemen</span>
+                <span className="text-xs font-medium text-slate-700 w-40">1. Manajemen <span className="text-rose-500">*</span></span>
                 <div className="relative flex-1 max-w-xs">
                   <input
                     type="number"
@@ -599,6 +1074,18 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                 </div>
               </div>
+
+              {/* Summary Bar */}
+              <div className="flex flex-col sm:flex-row justify-between gap-3 pt-3 border-t border-slate-200">
+                <div className="text-xs text-slate-600">
+                  Total Karyawan Operasional:{" "}
+                  <span className="font-bold text-slate-900">{formData.jumlah_operasional || 0}</span> Orang
+                </div>
+                <div className="text-xs text-slate-600">
+                  Total Keseluruhan:{" "}
+                  <span className="font-bold text-brand-700 text-sm">{formData.jumlah_karyawan_total || 0}</span> Orang
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -612,186 +1099,29 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
               <Factory className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Data Pabrik</h3>
-              <p className="text-[11px] text-slate-500">2.2. Detail Lokasi Pabrik <span className="text-rose-500">*</span></p>
+              <h3 className="text-sm font-bold text-slate-900">Data Pabrik / Lokasi Fasilitas</h3>
+              <p className="text-[11px] text-slate-500">
+                Informasi lokasi pabrik atau fasilitas produksi yang diajukan dalam permohonan.
+              </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-brand-50 text-brand-700 border border-brand-200 rounded-full text-xs font-bold">
-            {formData.pabrik.length} Pabrik Terdaftar
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
+            {formData.pabrik.length} Lokasi Pabrik
           </span>
         </div>
 
         <CardContent className="p-6 space-y-6">
           {formData.pabrik.map((f, idx) => (
-            <div key={f.id || idx} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center">
-                    {idx + 1}
-                  </span>
-                  <span className="text-xs font-bold text-slate-900">
-                    {f.nama_pabrik || `Pabrik #${idx + 1}`}
-                  </span>
-                </div>
-                {formData.pabrik.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removePabrik(idx)}
-                    className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Hapus Pabrik
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nama Pabrik */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">
-                    Nama Pabrik <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={f.nama_pabrik}
-                    onChange={(e) => updatePabrik(idx, "nama_pabrik", e.target.value)}
-                    placeholder="PT. Example"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* No Telp */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">No Telp</label>
-                  <input
-                    type="text"
-                    value={f.kontak_pabrik || ""}
-                    onChange={(e) => updatePabrik(idx, "kontak_pabrik", e.target.value)}
-                    placeholder="02212345678"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* No HP */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">No HP</label>
-                  <input
-                    type="text"
-                    value={f.no_hp || ""}
-                    onChange={(e) => updatePabrik(idx, "no_hp", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Fax */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Fax</label>
-                  <input
-                    type="text"
-                    value={f.fax || ""}
-                    onChange={(e) => updatePabrik(idx, "fax", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Negara */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">
-                    Negara <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={f.negara || "Indonesia"}
-                    onChange={(e) => updatePabrik(idx, "negara", e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  >
-                    {DAFTAR_NEGARA.map((n) => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Kode Pos */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Kode Pos</label>
-                  <input
-                    type="text"
-                    value={f.kode_pos || ""}
-                    onChange={(e) => updatePabrik(idx, "kode_pos", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Alamat Pabrik */}
-                <div className="space-y-1 md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-800">
-                    Alamat Pabrik <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={f.alamat_pabrik}
-                    onChange={(e) => updatePabrik(idx, "alamat_pabrik", e.target.value)}
-                    placeholder="Jl. Contoh No. 1, Jakarta"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Jumlah Karyawan */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Jumlah Karyawan</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={f.jumlah_karyawan === undefined || f.jumlah_karyawan === null ? "" : f.jumlah_karyawan}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const raw = e.target.value
-                      updatePabrik(idx, "jumlah_karyawan", raw === "" ? "" : parseInt(raw, 10) || 0)
-                    }}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Kegiatan Utama */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Kegiatan Utama</label>
-                  <input
-                    type="text"
-                    value={f.kegiatan_utama || ""}
-                    onChange={(e) => updatePabrik(idx, "kegiatan_utama", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Luas Tanah */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Luas Tanah</label>
-                  <input
-                    type="text"
-                    value={f.luas_tanah || ""}
-                    onChange={(e) => updatePabrik(idx, "luas_tanah", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-
-                {/* Luas Bangunan */}
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-800">Luas Bangunan</label>
-                  <input
-                    type="text"
-                    value={f.luas_bangunan || ""}
-                    onChange={(e) => updatePabrik(idx, "luas_bangunan", e.target.value)}
-                    placeholder="-"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                </div>
-              </div>
-            </div>
+            <PabrikCardItem
+              key={f.id || idx}
+              f={f}
+              idx={idx}
+              totalPabrik={formData.pabrik.length}
+              provinces={provinces}
+              loadingProvinces={loadingProvinces}
+              onUpdate={updatePabrik}
+              onRemove={removePabrik}
+            />
           ))}
 
           <div className="flex justify-center">

@@ -85,7 +85,7 @@ export function useProvincesQuery() {
     queryFn: async () => {
       try {
         const response = await api.get("/eksternal/regions/provinces")
-        return response.data?.data || response.data?.results || []
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
       } catch (e) {
         const data = await regionService.getProvinces()
         return Array.isArray(data) ? data : []
@@ -95,14 +95,16 @@ export function useProvincesQuery() {
   })
 }
 
-export function useRegenciesQuery(provinceId?: string) {
+export function useRegenciesQuery(provinceId?: string | number) {
   return useQuery({
     queryKey: ["master", "regencies", provinceId],
     queryFn: async () => {
       if (!provinceId) return []
       try {
-        const response = await api.get(`/eksternal/regions/regencies/${provinceId}`)
-        return response.data?.data || response.data?.results || []
+        const response = await api.get("/eksternal/regions/regencies", {
+          params: { prov_id: provinceId }
+        })
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
       } catch (e) {
         const data = await regionService.getRegencies(provinceId)
         return Array.isArray(data) ? data : []
@@ -113,14 +115,16 @@ export function useRegenciesQuery(provinceId?: string) {
   })
 }
 
-export function useDistrictsQuery(regencyId?: string) {
+export function useDistrictsQuery(regencyId?: string | number) {
   return useQuery({
     queryKey: ["master", "districts", regencyId],
     queryFn: async () => {
       if (!regencyId) return []
       try {
-        const response = await api.get(`/eksternal/regions/districts/${regencyId}`)
-        return response.data?.data || response.data?.results || []
+        const response = await api.get("/eksternal/regions/districts", {
+          params: { kab_id: regencyId }
+        })
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
       } catch (e) {
         const data = await regionService.getDistricts(regencyId)
         return Array.isArray(data) ? data : []

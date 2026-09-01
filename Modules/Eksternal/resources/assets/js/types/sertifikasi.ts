@@ -6,6 +6,9 @@ export interface DokumenPersyaratanItem {
   keterangan: string
   wajib: boolean
   file: File | null
+  fileName?: string
+  fileUrl?: string
+  fileSize?: string
   isFromProfile?: boolean
   templateUrl?: string
 }
@@ -189,7 +192,7 @@ export const emptyPengajuan = (id: number | string = 0): SertifikasiPengajuanIte
   sertifikat_lama_id: '',
   sertifikat_lama_text: '',
   skema_id: '',
-  items: [emptyProductItem(0)],
+  items: [],
   dokumen_list: defaultDokumenList.map((d) => ({ ...d })),
   dok_legalitas: null,
   dok_manual_mutu: null,

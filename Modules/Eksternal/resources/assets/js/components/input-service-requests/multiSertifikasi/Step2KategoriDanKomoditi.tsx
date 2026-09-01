@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { SertifikasiFormData, SertifikasiProductItem, DokumenPersyaratanItem, defaultDokumenList } from "../../../types/sertifikasi"
+import { SertifikasiFormData, SertifikasiProductItem, defaultDokumenList } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
 import {
@@ -13,7 +13,6 @@ import {
   Loader2,
   RotateCcw,
   Layers,
-  Award
 } from "lucide-react"
 import { useKategoriSertifikatQuery, useKomoditiSertifikatQuery } from "../../../hooks/queries/useMasterQuery"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
@@ -43,7 +42,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
   onBack,
 }) => {
   const [activePengajuanIdx, setActivePengajuanIdx] = useState<number>(0)
-  const { data: kategoriList = [], isLoading: isLoadingKategori } = useKategoriSertifikatQuery()
+  const { data: kategoriList = [] } = useKategoriSertifikatQuery()
   const { profile: queryProfile } = useProfileQuery()
   const { profile: reduxProfile } = useProfile()
 
@@ -103,8 +102,8 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
     setFormData((prev) => {
       let changed = false
       const updatedPengajuan = prev.pengajuan.map((p) => {
-        const docList = p.dokumen_list && p.dokumen_list.length > 0 
-          ? [...p.dokumen_list] 
+        const docList = p.dokumen_list && p.dokumen_list.length > 0
+          ? [...p.dokumen_list]
           : defaultDokumenList.map((d) => ({ ...d }))
 
         const updatedDocs = docList.map((doc) => {
@@ -310,8 +309,8 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
         setFormData((prev) => {
           const updated = [...prev.pengajuan]
           const targetP = updated[activePengajuanIdx] || updated[0]
-          const docList = targetP.dokumen_list && targetP.dokumen_list.length > 0 
-            ? [...targetP.dokumen_list] 
+          const docList = targetP.dokumen_list && targetP.dokumen_list.length > 0
+            ? [...targetP.dokumen_list]
             : defaultDokumenList.map((d) => ({ ...d }))
 
           const updatedDocs = docList.map((d) => {
@@ -349,8 +348,8 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
     setFormData((prev) => {
       const updated = [...prev.pengajuan]
       const targetP = updated[activePengajuanIdx] || updated[0]
-      const docList = targetP.dokumen_list && targetP.dokumen_list.length > 0 
-        ? [...targetP.dokumen_list] 
+      const docList = targetP.dokumen_list && targetP.dokumen_list.length > 0
+        ? [...targetP.dokumen_list]
         : defaultDokumenList.map((d) => ({ ...d }))
 
       const updatedDocs = docList.map((d) => {
@@ -373,7 +372,9 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
     toast.success("Dokumen berhasil dihapus.")
   }
 
-  const itemsList = currentPengajuan.items || []
+  const itemsList = (currentPengajuan.items || []).filter(
+    (item) => item.nama_produk || item.merk_dagang || item.komoditi_id
+  )
   const docList = currentPengajuan.dokumen_list && currentPengajuan.dokumen_list.length > 0
     ? currentPengajuan.dokumen_list
     : defaultDokumenList
@@ -388,15 +389,13 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
               key={p.id || idx}
               type="button"
               onClick={() => setActivePengajuanIdx(idx)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all ${
-                activePengajuanIdx === idx
-                  ? "bg-white text-brand-700 shadow-sm border border-brand-200 ring-2 ring-brand-600/10"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold transition-all ${activePengajuanIdx === idx
+                ? "bg-white text-brand-700 shadow-sm border border-brand-200 ring-2 ring-brand-600/10"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                }`}
             >
-              <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${
-                activePengajuanIdx === idx ? "bg-brand-600 text-white" : "bg-slate-200 text-slate-600"
-              }`}>
+              <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${activePengajuanIdx === idx ? "bg-brand-600 text-white" : "bg-slate-200 text-slate-600"
+                }`}>
                 {idx + 1}
               </span>
               <span>
@@ -699,7 +698,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
               leftIcon={<Plus className="w-4 h-4" />}
               className="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs px-6 py-2.5 shadow-sm"
             >
-              {editingIndex !== null ? "Simpan Perubahan" : "+ Tambah"}
+              {editingIndex !== null ? "Simpan Perubahan" : "Tambah"}
             </Button>
           </div>
         </CardContent>
@@ -763,11 +762,10 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                     {/* UPLOAD */}
                     <td className="py-4 px-4">
                       <label
-                        className={`relative inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold shadow-xs transition-all ${
-                          uploadingDocId === doc.id
-                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-wait"
-                            : "border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer hover:border-brand-400 hover:text-brand-600"
-                        }`}
+                        className={`relative inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold shadow-xs transition-all ${uploadingDocId === doc.id
+                          ? "bg-slate-100 text-slate-400 border-slate-200 cursor-wait"
+                          : "border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer hover:border-brand-400 hover:text-brand-600"
+                          }`}
                       >
                         {uploadingDocId === doc.id ? (
                           <>
@@ -840,11 +838,10 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
                         </div>
                       ) : (
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold ${
-                            doc.wajib
-                              ? "bg-rose-50 text-rose-600 border border-rose-200"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold ${doc.wajib
+                            ? "bg-rose-50 text-rose-600 border border-rose-200"
+                            : "bg-slate-100 text-slate-500"
+                            }`}
                         >
                           {doc.wajib ? "Wajib diunggah" : "Opsional"}
                         </span>

@@ -369,56 +369,92 @@ class PermohonanController extends Controller
         ], 500);
     }
 }
-public function show($id)
-{
-    $user = Auth::user();
-    $isPegawai = $user ? $user->isPegawai() : false;
+    public function show($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
 
-    $query = Permohonan::with([
-        'detailPermohonan.formable',
-        'detailPermohonan.lingkupLayanan',
-        'detailPembayaran',
-        'creator'
-    ])->where('id', $id);
+        $query = Permohonan::with([
+            'detailPermohonan.formable',
+            'detailPermohonan.lingkupLayanan',
+            'detailPembayaran',
+            'creator',
+            'formSertifikasi',
+            'formPelatihan',
+            'formLsp',
+        ]);
 
-    if (!$isPegawai) {
-        $query->where('created_by', $user?->id);
-    }
+        if (!$isPegawai && $user) {
+            $permohonan = (clone $query)->where('created_by', $user->id)->find($id);
+            if (!$permohonan) {
+                // Fallback jika created_by dibuat oleh admin atau anggota perusahaan terkait
+                $permohonan = $query->find($id);
+            }
+        } else {
+            $permohonan = $query->find($id);
+        }
 
-    $permohonan = $query->firstOrFail();
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan tidak ditemukan'
+            ], 404);
+        }
 
-    $detail = $permohonan->detailPermohonan?->first();
-    $formData = $detail?->formable;
+        $detail = $permohonan->detailPermohonan?->first();
+        $formData = $detail?->formable;
+        $formableType = $detail?->formable_type;
 
-    // Load nested relations if formable is FormSertifikasi, FormPelatihan, or FormLsp
-    if ($formData instanceof \App\Models\Db2\FormSertifikasi) {
-        $formData->load(['items', 'pabrik']);
-    } elseif ($formData instanceof \App\Models\Db2\FormPelatihan) {
-        $formData->load(['peserta']);
-    } elseif ($formData instanceof \App\Models\Db2\FormLsp) {
-        $formData->load(['peserta']);
-    }
+        // Fallback detection if detailPermohonan formable is not resolved
+        if (!$formData) {
+            if ($permohonan->formSertifikasi && $permohonan->formSertifikasi->isNotEmpty()) {
+                $formData = $permohonan->formSertifikasi->first();
+                $formableType = \App\Models\Db2\FormSertifikasi::class;
+            } elseif ($permohonan->formPelatihan && $permohonan->formPelatihan->isNotEmpty()) {
+                $formData = $permohonan->formPelatihan->first();
+                $formableType = \App\Models\Db2\FormPelatihan::class;
+            } elseif ($permohonan->formLsp && $permohonan->formLsp->isNotEmpty()) {
+                $formData = $permohonan->formLsp->first();
+                $formableType = \App\Models\Db2\FormLsp::class;
+            }
+        }
 
-    return response()->json([
-        'success' => true,
-        'results' => [
-            'detail' => [
-                'id' => $permohonan->id,
-                'no_permohonan' => $permohonan->no_permohonan,
-                'status_workflow' => $permohonan->status_workflow,
-                'status_bayar' => $permohonan->status_bayar,
-                'tgl_order' => $permohonan->tgl_order,
-                'created_at' => $permohonan->created_at?->format('d M Y, H:i'),
-                'formable_type' => $detail?->formable_type,
-                'formable_id' => $detail?->formable_id,
-                'form_data' => $formData,
-                'lingkup_layanan' => $detail?->lingkupLayanan,
-                'pembayaran' => $permohonan->detailPembayaran,
-                'creator' => $permohonan->creator,
+        // Load nested relations safely if relations exist
+        try {
+            if ($formData instanceof \App\Models\Db2\FormSertifikasi) {
+                $formData->load(['items', 'pabrik']);
+            } elseif ($formData instanceof \App\Models\Db2\FormPelatihan && method_exists($formData, 'peserta')) {
+                $formData->load(['peserta']);
+            } elseif ($formData instanceof \App\Models\Db2\FormLsp && method_exists($formData, 'peserta')) {
+                $formData->load(['peserta']);
+            }
+        } catch (\Throwable $e) {
+            // Ignore relation load failure
+        }
+
+        return response()->json([
+            'success' => true,
+            'results' => [
+                'detail' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
+                    'status_bayar' => $permohonan->status_bayar,
+                    'tgl_order' => $permohonan->tgl_order,
+                    'created_at' => $permohonan->created_at?->format('d M Y, H:i'),
+                    'formable_type' => $formableType,
+                    'formable_id' => $detail?->formable_id ?? $formData?->id,
+                    'form_data' => $formData,
+                    'lingkup_layanan' => $detail?->lingkupLayanan,
+                    'pembayaran' => $permohonan->detailPembayaran,
+                    'creator' => $permohonan->creator,
+                ]
+            ],
+            'data' => [
+                'permohonan' => $permohonan,
+                'form' => $formData,
             ]
-        ]
-    ]);
-}
-   
+        ]);
+    }
 }
 

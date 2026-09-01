@@ -5,6 +5,7 @@ namespace App\Models\Db2;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -21,6 +22,7 @@ class FormSertifikasi extends Model
         'permohonan_id', 
         'jenis_pengajuan', 
         'tipe_pengajuan',
+        'referensi_sertifikasi_id',
         'sertifikat_lama_id',
         'sertifikat_lama_nomor',
         'nama_perusahaan',
@@ -29,6 +31,8 @@ class FormSertifikasi extends Model
         'no_telp',
         'no_whatsapp',
         'email',
+        'kuesioner_kelayakan',
+        'dokumen_persyaratan',
         'komoditas_json', 
         'jumlah_karyawan_total',
         'jumlah_manajemen',
@@ -79,6 +83,16 @@ class FormSertifikasi extends Model
     public function permohonan(): BelongsTo
     {
         return $this->belongsTo(Permohonan::class, 'permohonan_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(FormSertifikasiItem::class, 'form_sertifikasi_id');
+    }
+
+    public function pabrik(): HasMany
+    {
+        return $this->hasMany(FormSertifikasiPabrik::class, 'form_sertifikasi_id');
     }
 
     /**

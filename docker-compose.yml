@@ -1,6 +1,5 @@
 services:
-    private_polimer_2_wsl:
-        container_name: private-polimer-2-wsl
+    private_polimer:
         build:
             context: .
             dockerfile: ./docker/dockerfile/app.Dockerfile
@@ -11,13 +10,13 @@ services:
         networks:
             - bbkkp_network
         ports:
-            - "4903:80"
+            - "4900:80"
         depends_on:
-            - mysql_wsl
+            - mysql
 
-    mysql_wsl:
+    mysql:
         image: mysql:8.0
-        container_name: private-mysql-wsl
+        container_name: private-mysql
         restart: unless-stopped
         environment:
             MYSQL_DATABASE: private_polimer
@@ -25,24 +24,24 @@ services:
             MYSQL_USER: bbkkp
             MYSQL_PASSWORD: bbkkp_password
         ports:
-            - "3311:3306"
+            - "3308:3306"
         volumes:
-            - private_mysql_data_wsl:/var/lib/mysql
+            - private_mysql_data:/var/lib/mysql
         networks:
             - bbkkp_network
 
-    minio_wsl:
+    minio:
         image: minio/minio:latest
-        container_name: private-minio-wsl
+        container_name: private-minio
         restart: unless-stopped
         environment:
             MINIO_ROOT_USER: minioadmin
             MINIO_ROOT_PASSWORD: miniopassword123
         ports:
-            - "9004:9000"
-            - "9005:9001"
+            - "9000:9000"
+            - "9001:9001"
         volumes:
-            - private_minio_data_wsl:/data
+            - private_minio_data:/data
         command: server /data --console-address ":9001"
         networks:
             - bbkkp_network
@@ -52,5 +51,5 @@ networks:
         external: true
 
 volumes:
-    private_mysql_data_wsl:
-    private_minio_data_wsl:
+    private_mysql_data:
+    private_minio_data:

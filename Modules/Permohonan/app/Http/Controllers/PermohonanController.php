@@ -10,8 +10,10 @@ use Illuminate\Support\Str;
 use App\Models\Db2\Permohonan;
 use App\Models\Db1\SysUserNotif;
 use App\Models\Db2\DetailPembayaran;
+use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+ 
 
 class PermohonanController extends Controller
 {
@@ -603,6 +605,27 @@ class PermohonanController extends Controller
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    // Untuk sinkronisasi manual ke SIS
+    public function retrySyncSis(string $id): JsonResponse
+    {
+        $permohonan = Permohonan::findOrFail($id);
+
+        if ($permohonan->status_bayar !== 'LUNAS' && empty($permohonan->kuitansi_number)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan belum lunas, tidak dapat disinkronkan ke SIS'
+            ], 422);
+        }
+
+        // Jalankan job antrean
+        DispatchPermohonanToSisJob::dispatch($permohonan->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proses sinkronisasi ke SIS telah dijadwalkan di antrean sistem'
+        ]);
     }
 }
 

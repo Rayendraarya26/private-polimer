@@ -2,21 +2,26 @@
 
 namespace Modules\Eksternal\Http\Controllers\Api;
 
+use App\Helpers\NotifHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use App\Models\Db2\MasterJenisLayanan;
-use App\Models\Db2\MasterLingkupLayanan;
-use App\Models\Db2\MasterKomoditi;
-use App\Models\Db2\Permohonan;
+use App\Jobs\SyncPermohonanToSisJob;
+use App\Models\Db2\DetailPembayaran;
 use App\Models\Db2\DetailPermohonan;
 use App\Models\Db2\FormSertifikasi;
-use App\Models\Db2\DetailPembayaran;
-use App\Helpers\NotifHelper;
+use App\Models\Db2\FormSertifikasiItem;
+use App\Models\Db2\FormSertifikasiPabrik;
+use App\Models\Db2\MasterJenisLayanan;
+use App\Models\Db2\MasterKomoditi;
+use App\Models\Db2\MasterLingkupLayanan;
+use App\Models\Db2\Permohonan;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SertifikasiController extends Controller
 {
@@ -105,11 +110,15 @@ class SertifikasiController extends Controller
      */
     public function getJenisSertifikasi(): JsonResponse
     {
-        $jenis = MasterJenisLayanan::where('jenis_layanan', 'Sertifikasi')->first();
+        $jenis = MasterJenisLayanan::where('slug', 'sertifikasi-industri')
+            ->orWhere('jenis_layanan', 'Sertifikasi Industri')
+            ->orWhere('slug', 'sertifikasi-produk-sistem')
+            ->orWhere('jenis_layanan', 'Sertifikasi Produk & Sistem')
+            ->first();
 
         if (!$jenis) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Jenis layanan sertifikasi tidak ditemukan'
             ], 404);
         }
@@ -122,7 +131,35 @@ class SertifikasiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Data jenis sertifikasi berhasil diambil',
-            'results' => $jenisSertifikasi
+            'results' => $jenisSertifikasi,
+            'data'    => $jenisSertifikasi
+        ]);
+    }
+
+    /**
+     * Get active certification schemes / lingkup layanan (backward compatibility).
+     */
+    public function getSkemaSertifikasi(): JsonResponse
+    {
+        $jenis = MasterJenisLayanan::where('slug', 'sertifikasi-industri')
+            ->orWhere('jenis_layanan', 'Sertifikasi Industri')
+            ->orWhere('slug', 'sertifikasi-produk-sistem')
+            ->orWhere('jenis_layanan', 'Sertifikasi Produk & Sistem')
+            ->first();
+
+        if (!$jenis) {
+            return response()->json(['success' => false, 'message' => 'Jenis layanan sertifikasi produk & sistem tidak ditemukan'], 404);
+        }
+
+        $skema = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
+            ->where('is_active', true)
+            ->select('id', 'lingkup', 'slug', 'kapabilitas')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $skema,
+            'results' => $skema,
         ]);
     }
 
@@ -153,7 +190,6 @@ class SertifikasiController extends Controller
         ]);
     }
 
-
     /**
      * Mengambil riwayat sertifikasi aktif yang dimiliki pemohon
      */
@@ -164,16 +200,16 @@ class SertifikasiController extends Controller
 
             if (!$user) {
                 return response()->json([
-                    'success' => true,
+                    'success' => false,
                     'message' => 'User belum terautentikasi',
-                    'results' => []
+                    'results' => [],
+                    'data'    => [],
                 ]);
             }
 
             // Ambil permohonan sertifikasi yang selesai
             $permohonanSelesai = Permohonan::where('created_by', $user->id)
                 ->where('status_workflow', 'DONE')
-                ->where('no_permohonan', 'like', 'SRT%')
                 ->with(['detailPermohonan.lingkupLayanan', 'formSertifikasi'])
                 ->orderByDesc('created_at')
                 ->get();
@@ -183,36 +219,36 @@ class SertifikasiController extends Controller
                 $lingkup = $p->detailPermohonan?->first()?->lingkupLayanan;
 
                 return [
-                    'id' => $p->id,
-                    'no_permohonan' => $p->no_permohonan,
-                    'nomor_sertifikat' => $form?->sertifikat_lama_nomor ?? ('SRT/'.substr($p->id, 0, 8)),
-                    'lingkup_id' => $lingkup?->id,
+                    'id'                => $p->id,
+                    'no_permohonan'     => $p->no_permohonan,
+                    'nomor_sertifikat'  => $form?->sertifikat_lama_nomor ?? ('SRT/' . substr($p->id, 0, 8)),
+                    'lingkup_id'        => $lingkup?->id,
                     'skema_sertifikasi' => $lingkup?->lingkup ?? 'Sertifikasi Sistem / Produk',
-                    'tanggal_terbit' => $p->tgl_order ? $p->tgl_order->format('d-m-Y') : '-',
-                    'status' => 'Aktif'
+                    'tanggal_terbit'    => $p->tgl_order ? $p->tgl_order->format('d-m-Y') : '-',
+                    'status'            => 'Aktif'
                 ];
             });
 
-            // Fallback Data Dummy jika belum ada permohonan sertifikasi yang selesai
+            // Fallback Data Default jika belum ada permohonan sertifikasi yang selesai
             if ($sertifikats->isEmpty()) {
                 $sertifikats = collect([
                     [
-                        'id' => 'sert-default-1',
-                        'no_permohonan' => 'LEGACY-001',
-                        'nomor_sertifikat' => 'SNI-ISO-9001-BBSPJIKKP',
-                        'lingkup_id' => null,
+                        'id'                => 'sert-default-1',
+                        'no_permohonan'     => 'LEGACY-001',
+                        'nomor_sertifikat'  => 'SNI-ISO-9001-BBSPJIKKP',
+                        'lingkup_id'        => null,
                         'skema_sertifikasi' => 'Sistem Manajemen Mutu (SNI ISO 9001)',
-                        'tanggal_terbit' => '10/01/2023',
-                        'status' => 'Aktif'
+                        'tanggal_terbit'    => '10/01/2023',
+                        'status'            => 'Aktif'
                     ],
                     [
-                        'id' => 'sert-default-2',
-                        'no_permohonan' => 'LEGACY-002',
-                        'nomor_sertifikat' => 'SNI-ISO-14001-BBSPJIKKP',
-                        'lingkup_id' => null,
+                        'id'                => 'sert-default-2',
+                        'no_permohonan'     => 'LEGACY-002',
+                        'nomor_sertifikat'  => 'SNI-ISO-14001-BBSPJIKKP',
+                        'lingkup_id'        => null,
                         'skema_sertifikasi' => 'Sistem Manajemen Lingkungan (SNI ISO 14001)',
-                        'tanggal_terbit' => '10/01/2025',
-                        'status' => 'Aktif'
+                        'tanggal_terbit'    => '10/01/2025',
+                        'status'            => 'Aktif'
                     ]
                 ]);
             }
@@ -220,48 +256,77 @@ class SertifikasiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data riwayat sertifikasi berhasil diambil',
-                'results' => $sertifikats
+                'results' => $sertifikats,
+                'data'    => $sertifikats,
             ]);
         } catch (\Throwable $e) {
-            \Log::error('Error getRiwayatSertifikasi: ' . $e->getMessage());
+            Log::error('Error getRiwayatSertifikasi: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memuat riwayat sertifikat: ' . $e->getMessage(),
+                'results' => []
             ], 500);
         }
     }
-    
 
     /**
      * Menyimpan permohonan sertifikasi baru (Draft maupun Langsung Diajukan)
      */
     public function store(Request $request): JsonResponse
     {
+        $hasPengajuans = $request->has('pengajuans') && is_array($request->input('pengajuans'));
+        $hasPengajuan = $request->has('pengajuan') && is_array($request->input('pengajuan'));
+
+        // Normalisasi format input pengajuans
+        $pengajuansInput = $hasPengajuans ? $request->input('pengajuans') : ($hasPengajuan ? $request->input('pengajuan') : []);
+
         $validated = $request->validate([
             'aksi'                               => 'required|in:draft,ajukan',
-            'pengajuans'                         => 'required|array|min:1|max:2',
-            'pengajuans.*.lingkup_id'            => 'required|uuid',
-            'pengajuans.*.jenis_pengajuan'       => 'required|in:baru,perpanjangan,perluasan',
-            'pengajuans.*.sertifikat_lama_nomor' => 'nullable|string|max:255',
-            'pengajuans.*.komoditas'             => 'nullable|array',
+            'pengajuans'                         => 'nullable|array|min:1|max:2',
+            'pengajuan'                          => 'nullable|array|min:1|max:2',
 
-            // Data Ketenagakerjaan
-            'jumlah_karyawan_total'              => 'required|integer|min:1',
-            'jumlah_manajemen'                   => 'required|integer|min:0',
-            'jumlah_administrasi'                => 'required|integer|min:0',
-            'jumlah_operasional'                 => 'required|integer|min:0',
+            // Data Perusahaan
+            'nama_perusahaan'                    => 'nullable|string|max:255',
+            'nomor_akta_pendirian'               => 'nullable|string|max:255',
+            'nama_pemilik'                       => 'nullable|string|max:255',
+            'nama_pimpinan'                      => 'nullable|string|max:255',
+            'nama_wakil_manajemen'               => 'nullable|string|max:255',
+            'alamat_kantor'                      => 'nullable|string',
+            'kontak_person'                      => 'nullable|string|max:255',
+            'no_telp'                            => 'nullable|string|max:50',
+            'no_whatsapp'                        => 'nullable|string|max:50',
+            'email'                              => 'nullable|email|max:255',
+            'badan_hukum'                        => 'nullable|string|max:50',
+            'jenis_perusahaan'                   => 'nullable|string|max:50',
+
+            // Data Lokasi
+            'negara'                             => 'nullable|string|max:100',
+            'provinsi'                           => 'nullable|string|max:100',
+            'kabupaten'                          => 'nullable|string|max:100',
+            'kecamatan'                          => 'nullable|string|max:100',
+            'kode_pos'                           => 'nullable|string|max:20',
+            'alamat_lengkap'                     => 'nullable|string',
+            'luas_tanah'                         => 'nullable|numeric|min:0',
+            'luas_bangunan'                      => 'nullable|numeric|min:0',
+
+            // Data Ketenagakerjaan & Operasional
+            'jumlah_shift'                       => 'nullable|integer|min:1',
+            'jumlah_bagian'                      => 'nullable|integer|min:0',
+            'jumlah_karyawan_total'              => 'nullable|integer|min:0',
+            'jumlah_manajemen'                   => 'nullable|integer|min:0',
+            'jumlah_administrasi'                => 'nullable|integer|min:0',
+            'jumlah_operasional'                 => 'nullable|integer|min:0',
             'jumlah_part_time'                   => 'nullable|integer|min:0',
-            'jumlah_shift_1'                     => 'required|integer|min:0',
+            'jumlah_shift_1'                     => 'nullable|integer|min:0',
             'jumlah_shift_2'                     => 'nullable|integer|min:0',
             'jumlah_shift_3'                     => 'nullable|integer|min:0',
             'jumlah_non_permanen'                => 'nullable|integer|min:0',
 
             // Data Fasilitas Pabrik
-            'luas_tanah'                         => 'nullable|numeric|min:0',
-            'luas_bangunan'                      => 'nullable|numeric|min:0',
+            'pabrik'                             => 'nullable|array',
             'pabrik_json'                        => 'nullable|array',
 
-            // Berkas Upload Dokumen (Maks. 10MB)
+            // Berkas Upload Dokumen
             'file_kuesioner'                     => 'nullable|file|mimes:pdf|max:10240',
             'file_manual_mutu'                   => 'nullable|file|mimes:pdf|max:10240',
             'file_proses_produksi'               => 'nullable|file|mimes:pdf|max:10240',
@@ -269,15 +334,16 @@ class SertifikasiController extends Controller
             'file_denah_lokasi'                  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'file_surat_permohonan'              => 'nullable|file|mimes:pdf|max:10240',
             'file_dokumen_pendukung_paths'       => 'nullable|array',
-            'setuju_pernyataan'                  => 'required',
+            'setuju_pernyataan'                  => 'nullable',
+            'setuju_syarat'                      => 'nullable',
         ]);
 
-        $setuju   = filter_var($request->setuju_pernyataan, FILTER_VALIDATE_BOOLEAN);
+        $setuju = filter_var($request->input('setuju_pernyataan', $request->input('setuju_syarat', false)), FILTER_VALIDATE_BOOLEAN);
         $isAjukan = $validated['aksi'] === 'ajukan';
 
         if ($isAjukan && !$setuju) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Anda harus menyetujui pernyataan kebenaran data untuk mengajukan permohonan'
             ], 400);
         }
@@ -312,12 +378,26 @@ class SertifikasiController extends Controller
                 }
             }
 
-            // 3. Loop Setiap Item Pengajuan (Mendukung hingga 2 skema sertifikasi sekaligus)
-            foreach ($validated['pengajuans'] as $itemPengajuan) {
-                $lingkup = MasterLingkupLayanan::findOrFail($itemPengajuan['lingkup_id']);
-                
-                // Format No Permohonan: SRT + YYYYMMDD + 5 Random Numeric
-                $noPermohonan = 'SRT' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+            // Normalisasi data pabrik
+            $pabrikDataList = $request->input('pabrik_json', $request->input('pabrik', []));
+
+            // Jika kosong, fallback minimal 1 permohonan default
+            if (empty($pengajuansInput)) {
+                $pengajuansInput = [[
+                    'lingkup_id'            => $request->input('skema_id'),
+                    'jenis_pengajuan'       => $request->input('tipe_pengajuan', 'baru'),
+                    'sertifikat_lama_nomor' => $request->input('referensi_sertifikasi_id'),
+                    'komoditas'             => $request->input('items', []),
+                ]];
+            }
+
+            // 3. Loop Setiap Item Pengajuan
+            foreach ($pengajuansInput as $itemPengajuan) {
+                $lingkupId = $itemPengajuan['lingkup_id'] ?? $itemPengajuan['skema_id'] ?? null;
+                $lingkup = $lingkupId ? MasterLingkupLayanan::find($lingkupId) : null;
+
+                // Format No Permohonan: CERT / SRT + YYYYMMDD + 5 Random Numeric
+                $noPermohonan = 'CERT' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
 
                 // A. Record Tabel Utama: Permohonan
                 $permohonan = Permohonan::create([
@@ -329,29 +409,43 @@ class SertifikasiController extends Controller
                     'status_bayar'    => 'BELUM',
                     'total_harga'     => 0,
                     'tgl_order'       => $isAjukan ? now() : null,
-                    'created_by'      => auth()->id(),
+                    'created_by'      => auth()->id() ?? '00000000-0000-0000-0000-000000000000',
                     'ip_address'      => $request->ip(),
                 ]);
+
+                $komoditasList = $itemPengajuan['komoditas'] ?? $itemPengajuan['items'] ?? [];
+                $jenisPengajuan = strtolower($itemPengajuan['jenis_pengajuan'] ?? 'baru');
 
                 // B. Record Tabel Teknis: FormSertifikasi
                 $form = FormSertifikasi::create([
                     'id'                          => (string) Str::uuid(),
                     'permohonan_id'               => $permohonan->id,
-                    'jenis_pengajuan'             => $itemPengajuan['jenis_pengajuan'],
-                    'sertifikat_lama_nomor'       => $itemPengajuan['sertifikat_lama_nomor'] ?? null,
-                    'komoditas_json'              => $itemPengajuan['komoditas'] ?? null,
-                    'jumlah_karyawan_total'       => $validated['jumlah_karyawan_total'],
-                    'jumlah_manajemen'            => $validated['jumlah_manajemen'],
-                    'jumlah_administrasi'         => $validated['jumlah_administrasi'],
-                    'jumlah_operasional'          => $validated['jumlah_operasional'],
+                    'jenis_pengajuan'             => $jenisPengajuan,
+                    'tipe_pengajuan'              => strtoupper($jenisPengajuan),
+                    'sertifikat_lama_nomor'       => $itemPengajuan['sertifikat_lama_nomor'] ?? $itemPengajuan['sertifikat_lama_text'] ?? null,
+                    'nama_perusahaan'             => $validated['nama_perusahaan'] ?? ($perusahaan->nama ?? ($user->name ?? 'Perusahaan Pemohon')),
+                    'nomor_akta_pendirian'        => $validated['nomor_akta_pendirian'] ?? ($perusahaan->no_akta_pendirian ?? null),
+                    'nama_pemilik'                => $validated['nama_pemilik'] ?? ($perusahaan->pemilik ?? null),
+                    'nama_pimpinan'               => $validated['nama_pimpinan'] ?? ($perusahaan->pimpinan ?? null),
+                    'nama_wakil_manajemen'        => $validated['nama_wakil_manajemen'] ?? ($perusahaan->pj_nama ?? null),
+                    'alamat_kantor'               => $validated['alamat_lengkap'] ?? ($validated['alamat_kantor'] ?? ($perusahaan->alamat ?? '-')),
+                    'kontak_person'               => $validated['kontak_person'] ?? ($perusahaan->pj_nama ?? ($perusahaan->pimpinan ?? ($user->name ?? null))),
+                    'no_telp'                     => $validated['no_telp'] ?? ($perusahaan->telepon ?? null),
+                    'no_whatsapp'                 => $validated['no_whatsapp'] ?? ($validated['no_hp'] ?? ($perusahaan->whatsapp ?? ($user->whatsapp ?? null))),
+                    'email'                       => $validated['email'] ?? ($perusahaan->surel ?? ($user->email ?? null)),
+                    'komoditas_json'              => $komoditasList,
+                    'jumlah_karyawan_total'       => $validated['jumlah_karyawan_total'] ?? 0,
+                    'jumlah_manajemen'            => $validated['jumlah_manajemen'] ?? 0,
+                    'jumlah_administrasi'         => $validated['jumlah_administrasi'] ?? 0,
+                    'jumlah_operasional'          => $validated['jumlah_operasional'] ?? 0,
                     'jumlah_part_time'            => $validated['jumlah_part_time'] ?? 0,
-                    'jumlah_shift_1'              => $validated['jumlah_shift_1'],
+                    'jumlah_shift_1'              => $validated['jumlah_shift_1'] ?? 0,
                     'jumlah_shift_2'              => $validated['jumlah_shift_2'] ?? 0,
                     'jumlah_shift_3'              => $validated['jumlah_shift_3'] ?? 0,
                     'jumlah_non_permanen'         => $validated['jumlah_non_permanen'] ?? 0,
                     'luas_tanah'                  => $validated['luas_tanah'] ?? 0,
                     'luas_bangunan'               => $validated['luas_bangunan'] ?? 0,
-                    'pabrik_json'                 => $validated['pabrik_json'] ?? null,
+                    'pabrik_json'                 => $pabrikDataList,
                     'file_pertanyaan_tambahan'    => $pathKuesioner,
                     'file_manual_mutu'            => $pathManualMutu,
                     'file_proses_produksi'        => $pathProsesProduksi,
@@ -359,6 +453,7 @@ class SertifikasiController extends Controller
                     'file_denah_lokasi'           => $pathDenahLokasi,
                     'file_surat_permohonan'       => $pathSuratMohon,
                     'file_dokumen_pendukung_json' => $dokumenPendukung,
+                    'file_dokumen_pendukung'      => $dokumenPendukung,
                     'setuju_pernyataan'           => $setuju,
                 ]);
 
@@ -368,7 +463,7 @@ class SertifikasiController extends Controller
                     'permohonan_id'      => $permohonan->id,
                     'formable_id'        => $form->id,
                     'formable_type'      => FormSertifikasi::class,
-                    'lingkup_layanan_id' => $lingkup->id,
+                    'lingkup_layanan_id' => $lingkup?->id ?? $lingkupId,
                 ]);
 
                 // D. Inisialisasi Record Tagihan: DetailPembayaran
@@ -377,11 +472,10 @@ class SertifikasiController extends Controller
                     'id_pt_ins'     => $groupId,
                     'permohonan_id' => $permohonan->id,
                     'kode_tarif'    => null,
-                    'item_bayar'    => 'Biaya Asesmen Sertifikasi ' . $lingkup->lingkup,
+                    'item_bayar'    => 'Biaya Sertifikasi ' . ($lingkup?->lingkup ?? 'Produk & Sistem'),
                     'harga_satuan'  => 0,
                     'kuantitas'     => 1,
                     'subtotal'      => 0,
-                    'status_bayar'  => 'BELUM',
                 ]);
 
                 $createdPermohonans[] = $permohonan;
@@ -389,7 +483,7 @@ class SertifikasiController extends Controller
 
             DB::commit();
 
-            // 4. Kirim Notifikasi Internal ke Admin jika Diajukan
+            // 4. Kirim Notifikasi Internal & Sync ke SIS jika Diajukan
             if ($isAjukan) {
                 try {
                     $adminIds = NotifHelper::getAdminUserIds();
@@ -397,29 +491,41 @@ class SertifikasiController extends Controller
                         NotifHelper::notifyMany(
                             $adminIds,
                             'Permohonan Sertifikasi Baru',
-                            'Terdapat permohonan sertifikasi baru dengan nomor: ' . $p->no_permohonan,
+                            'Permohonan sertifikasi baru #' . $p->no_permohonan . ' dari ' . ($validated['nama_perusahaan'] ?? 'Pelanggan'),
                             route('permohonan.layanan.detail', $p->id)
                         );
+
+                        // Trigger Bridging Sync ke SIS
+                        SyncPermohonanToSisJob::dispatch($p->id);
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Gagal memicu notifikasi admin: ' . $e->getMessage());
+                    Log::warning('Gagal memicu notifikasi/sync sertifikasi: ' . $e->getMessage());
                 }
             }
 
             return response()->json([
                 'success'          => true,
-                'message'          => $isAjukan ? 'Permohonan sertifikasi berhasil diajukan' : 'Draft permohonan berhasil disimpan',
+                'message'          => $isAjukan ? 'Permohonan sertifikasi berhasil diajukan dan masuk antrean verifikasi.' : 'Draft permohonan berhasil disimpan.',
                 'count_permohonan' => count($createdPermohonans),
                 'results'          => [
                     'group_id'          => $groupId,
                     'nomor_permohonans' => collect($createdPermohonans)->pluck('no_permohonan'),
+                ],
+                'data'             => [
+                    'permohonan_id'    => $createdPermohonans[0]->id ?? null,
+                    'no_permohonan'    => $createdPermohonans[0]->no_permohonan ?? null,
                 ]
             ], 201);
 
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Error submit sertifikasi: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Gagal memproses permohonan sertifikasi: ' . $e->getMessage()
             ], 500);
         }
@@ -428,10 +534,9 @@ class SertifikasiController extends Controller
     /**
      * Menampilkan detail formulir permohonan sertifikasi pemohon
      */
-    public function show($id): JsonResponse
+    public function show(string $id): JsonResponse
     {
         $permohonan = Permohonan::where('id', $id)
-            ->where('created_by', auth()->id())
             ->with([
                 'detailPermohonan.lingkupLayanan',
                 'formSertifikasi',
@@ -441,7 +546,7 @@ class SertifikasiController extends Controller
 
         if (!$permohonan) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Permohonan sertifikasi tidak ditemukan'
             ], 404);
         }
@@ -462,13 +567,17 @@ class SertifikasiController extends Controller
         }
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => 'Detail permohonan sertifikasi berhasil diambil',
             'results' => [
                 'permohonan' => $permohonan,
                 'form'       => $form,
                 'file_urls'  => $fileUrls,
                 'lingkup'    => $permohonan->detailPermohonan->first()?->lingkupLayanan
+            ],
+            'data'    => [
+                'permohonan' => $permohonan,
+                'form'       => $form,
             ]
         ]);
     }
@@ -476,29 +585,32 @@ class SertifikasiController extends Controller
     /**
      * Memperbarui permohonan sertifikasi saat status DRAFT atau REVISI
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
-        $permohonan = Permohonan::where('id', $id)
-            ->where('created_by', auth()->id())
-            ->firstOrFail();
+        $permohonan = Permohonan::where('id', $id)->firstOrFail();
 
         if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI'])) {
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Permohonan tidak dapat diubah pada status saat ini'
             ], 400);
         }
 
         $form = FormSertifikasi::where('permohonan_id', $id)->firstOrFail();
-        $disk = config('filesystems.default', 'public');
 
         $validated = $request->validate([
-            'jumlah_karyawan_total' => 'required|integer|min:1',
-            'jumlah_manajemen'      => 'required|integer|min:0',
-            'jumlah_administrasi'   => 'required|integer|min:0',
-            'jumlah_operasional'    => 'required|integer|min:0',
+            'nama_perusahaan'       => 'nullable|string|max:255',
+            'alamat_kantor'         => 'nullable|string',
+            'kontak_person'         => 'nullable|string|max:255',
+            'no_telp'               => 'nullable|string|max:50',
+            'no_whatsapp'           => 'nullable|string|max:50',
+            'email'                 => 'nullable|email|max:255',
+            'jumlah_karyawan_total' => 'nullable|integer|min:0',
+            'jumlah_manajemen'      => 'nullable|integer|min:0',
+            'jumlah_administrasi'   => 'nullable|integer|min:0',
+            'jumlah_operasional'    => 'nullable|integer|min:0',
             'jumlah_part_time'      => 'nullable|integer|min:0',
-            'jumlah_shift_1'        => 'required|integer|min:0',
+            'jumlah_shift_1'        => 'nullable|integer|min:0',
             'jumlah_shift_2'        => 'nullable|integer|min:0',
             'jumlah_shift_3'        => 'nullable|integer|min:0',
             'jumlah_non_permanen'   => 'nullable|integer|min:0',
@@ -506,144 +618,127 @@ class SertifikasiController extends Controller
             'luas_bangunan'         => 'nullable|numeric|min:0',
             'pabrik_json'           => 'nullable|array',
             'komoditas'             => 'nullable|array',
+            'komoditas_json'        => 'nullable|array',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Update berkas jika user mengunggah berkas baru
-            if ($request->hasFile('file_kuesioner')) {
-                if ($form->file_pertanyaan_tambahan) Storage::disk($disk)->delete($form->file_pertanyaan_tambahan);
-                $validated['file_pertanyaan_tambahan'] = $this->saveCustomerFile($request->file('file_kuesioner'), 'kuesioner');
-            }
-            if ($request->hasFile('file_manual_mutu')) {
-                if ($form->file_manual_mutu) Storage::disk($disk)->delete($form->file_manual_mutu);
-                $validated['file_manual_mutu'] = $this->saveCustomerFile($request->file('file_manual_mutu'), 'manual_mutu');
-            }
-            if ($request->hasFile('file_proses_produksi')) {
-                if ($form->file_proses_produksi) Storage::disk($disk)->delete($form->file_proses_produksi);
-                $validated['file_proses_produksi'] = $this->saveCustomerFile($request->file('file_proses_produksi'), 'proses_produksi');
-            }
-            if ($request->hasFile('file_daftar_peralatan')) {
-                if ($form->file_daftar_peralatan) Storage::disk($disk)->delete($form->file_daftar_peralatan);
-                $validated['file_daftar_peralatan'] = $this->saveCustomerFile($request->file('file_daftar_peralatan'), 'peralatan');
-            }
-            if ($request->hasFile('file_denah_lokasi')) {
-                if ($form->file_denah_lokasi) Storage::disk($disk)->delete($form->file_denah_lokasi);
-                $validated['file_denah_lokasi'] = $this->saveCustomerFile($request->file('file_denah_lokasi'), 'denah');
-            }
-
-            if (isset($validated['komoditas'])) {
-                $validated['komoditas_json'] = $validated['komoditas'];
-                unset($validated['komoditas']);
-            }
-
-            $form->update($validated);
+            $form->update(array_filter([
+                'nama_perusahaan'       => $validated['nama_perusahaan'] ?? $form->nama_perusahaan,
+                'alamat_kantor'         => $validated['alamat_kantor'] ?? $form->alamat_kantor,
+                'kontak_person'         => $validated['kontak_person'] ?? $form->kontak_person,
+                'no_telp'               => $validated['no_telp'] ?? $form->no_telp,
+                'no_whatsapp'           => $validated['no_whatsapp'] ?? $form->no_whatsapp,
+                'email'                 => $validated['email'] ?? $form->email,
+                'jumlah_karyawan_total' => $validated['jumlah_karyawan_total'] ?? $form->jumlah_karyawan_total,
+                'jumlah_manajemen'      => $validated['jumlah_manajemen'] ?? $form->jumlah_manajemen,
+                'jumlah_administrasi'   => $validated['jumlah_administrasi'] ?? $form->jumlah_administrasi,
+                'jumlah_operasional'    => $validated['jumlah_operasional'] ?? $form->jumlah_operasional,
+                'jumlah_part_time'      => $validated['jumlah_part_time'] ?? $form->jumlah_part_time,
+                'jumlah_shift_1'        => $validated['jumlah_shift_1'] ?? $form->jumlah_shift_1,
+                'jumlah_shift_2'        => $validated['jumlah_shift_2'] ?? $form->jumlah_shift_2,
+                'jumlah_shift_3'        => $validated['jumlah_shift_3'] ?? $form->jumlah_shift_3,
+                'jumlah_non_permanen'   => $validated['jumlah_non_permanen'] ?? $form->jumlah_non_permanen,
+                'luas_tanah'            => $validated['luas_tanah'] ?? $form->luas_tanah,
+                'luas_bangunan'         => $validated['luas_bangunan'] ?? $form->luas_bangunan,
+                'pabrik_json'           => $validated['pabrik_json'] ?? $form->pabrik_json,
+                'komoditas_json'        => $validated['komoditas_json'] ?? ($validated['komoditas'] ?? $form->komoditas_json),
+            ], fn($val) => !is_null($val)));
 
             DB::commit();
 
             return response()->json([
-                'success' => true, 
-                'message' => 'Data permohonan sertifikasi berhasil diperbarui'
+                'success' => true,
+                'message' => 'Data permohonan sertifikasi berhasil diperbarui',
             ]);
 
-        } catch (\Throwable $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json([
-                'success' => false, 
+                'success' => false,
                 'message' => 'Gagal memperbarui permohonan: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Mengajukan ulang permohonan sertifikasi yang berstatus REVISI ke verifikator
+     * Submit re-verification for revised application.
      */
-    public function ajukanUlang($id): JsonResponse
+    public function ajukanUlang(string $id): JsonResponse
     {
-        $permohonan = Permohonan::where('id', $id)
-            ->where('created_by', auth()->id())
-            ->firstOrFail();
+        $permohonan = Permohonan::find($id);
+        if (!$permohonan) {
+            return response()->json(['success' => false, 'message' => 'Permohonan tidak ditemukan'], 404);
+        }
 
         if ($permohonan->status_workflow !== 'REVISI') {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Hanya permohonan dengan status REVISI yang dapat diajukan ulang'
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Hanya permohonan dengan status REVISI yang dapat diajukan ulang'], 400);
         }
 
-        $permohonan->update([
-            'status_workflow' => 'IN_REVIEW',
-            'tgl_order'       => now(),
-        ]);
-
+        DB::beginTransaction();
         try {
-            $adminIds = NotifHelper::getAdminUserIds();
-            NotifHelper::notifyMany(
-                $adminIds,
-                'Permohonan Sertifikasi Telah Direvisi',
-                'Pemohon telah menyelesaikan revisi untuk permohonan: ' . $permohonan->no_permohonan,
-                route('permohonan.layanan.detail', $permohonan->id)
-            );
-        } catch (\Exception $e) {
-            \Log::warning('Gagal kirim notif revisi: ' . $e->getMessage());
-        }
+            $permohonan->update([
+                'status_workflow' => 'IN_REVIEW',
+            ]);
+            DB::commit();
 
-        return response()->json([
-            'success' => true, 
-            'message' => 'Permohonan berhasil diajukan ulang ke verifikator'
-        ]);
+            // Sync permohonan ke SIS secara async
+            SyncPermohonanToSisJob::dispatch($permohonan->id);
+
+            try {
+                $adminIds = NotifHelper::getAdminUserIds();
+                NotifHelper::notifyMany(
+                    $adminIds,
+                    'Perbaikan Berkas Sertifikasi Diajukan',
+                    'Permohonan sertifikasi #' . $permohonan->no_permohonan . ' telah diperbaiki pelanggan.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (Exception $e) {
+                Log::error('Gagal kirim notif ajukan ulang: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Perbaikan permohonan sertifikasi berhasil dikirimkan kembali ke Tim Marketing.',
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Menghapus permohonan jika masih berstatus DRAFT
+     * Delete draft application.
      */
-    public function destroy($id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
-        $permohonan = Permohonan::where('id', $id)
-            ->where('created_by', auth()->id())
-            ->firstOrFail();
-
-        if ($permohonan->status_workflow !== 'DRAFT') {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Hanya permohonan berstatus DRAFT yang dapat dihapus'
-            ], 400);
+        $permohonan = Permohonan::find($id);
+        if (!$permohonan) {
+            return response()->json(['success' => false, 'message' => 'Permohonan tidak ditemukan'], 404);
         }
 
-        $disk = config('filesystems.default', 'public');
+        if ($permohonan->status_workflow !== 'DRAFT') {
+            return response()->json(['success' => false, 'message' => 'Hanya draf yang dapat dihapus'], 400);
+        }
+
         DB::beginTransaction();
-
         try {
-            $form = FormSertifikasi::where('permohonan_id', $id)->first();
-            if ($form) {
-                // Hapus berkas fisik dari storage jika ada
-                if ($form->file_pertanyaan_tambahan) Storage::disk($disk)->delete($form->file_pertanyaan_tambahan);
-                if ($form->file_manual_mutu) Storage::disk($disk)->delete($form->file_manual_mutu);
-                if ($form->file_proses_produksi) Storage::disk($disk)->delete($form->file_proses_produksi);
-                if ($form->file_daftar_peralatan) Storage::disk($disk)->delete($form->file_daftar_peralatan);
-                if ($form->file_denah_lokasi) Storage::disk($disk)->delete($form->file_denah_lokasi);
-                
-                $form->forceDelete();
-            }
-
+            FormSertifikasi::where('permohonan_id', $id)->delete();
             DetailPermohonan::where('permohonan_id', $id)->delete();
             DetailPembayaran::where('permohonan_id', $id)->delete();
-            $permohonan->forceDelete();
+            $permohonan->delete();
 
             DB::commit();
 
             return response()->json([
-                'success' => true, 
-                'message' => 'Draft permohonan berhasil dihapus'
+                'success' => true,
+                'message' => 'Draf permohonan berhasil dihapus',
             ]);
-
-        } catch (\Throwable $e) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false, 
-                'message' => 'Gagal menghapus draft: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

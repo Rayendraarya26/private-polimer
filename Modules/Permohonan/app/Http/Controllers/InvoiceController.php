@@ -13,6 +13,8 @@ use App\Models\Db1\SysUser;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pegawai;
 use App\Models\Db2\Permohonan;
+use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
+
 
 class InvoiceController extends Controller
 {
@@ -605,6 +607,9 @@ public function previewKuitansi($id)
         'kuitansi_generated_at' => now(),
     ]);
 
+    if ($permohonan->formSertifikasi()->exists() && $permohonan->sis_sync_status !== 'SYNCED') {
+        DispatchPermohonanToSisJob::dispatch($permohonan->id)->afterCommit();
+    }
 
     return $pdf->stream($fileName);
 }

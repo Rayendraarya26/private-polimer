@@ -43,6 +43,9 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     ->name('permohonan.reject');
     Route::post('{id}/revisi', [PermohonanController::class, 'revisi'])
     ->name('permohonan.revisi');
+    Route::post('{id}/retry-sync-sis', [PermohonanController::class, 'retrySyncSis'])
+    ->name('permohonan.retry-sync-sis');
+
 
     Route::post(
         'layanan/{id}/approval-invoice',

@@ -37,6 +37,12 @@ class WebhookReceiverController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($validated['milestone_code'] === 'KAJIAN_APPROVED_PJT') {
+                $permohonan->update([
+                    'status_workflow' => 'PENAWARAN_BIAYA',
+                ]);
+            }
+
             // Simpan ke tracking timeline 
             PermohonanTrackingLog::create([
                 'id'            => (string) Str::uuid(),
@@ -148,65 +154,5 @@ class WebhookReceiverController extends Controller
             500);
         }
     }
-        
-
-
-    
-
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('webhook::index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('webhook::create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        //
-    }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('webhook::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('webhook::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }
+

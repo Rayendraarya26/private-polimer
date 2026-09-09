@@ -68,7 +68,7 @@
                         str_starts_with($kode, 'LSP') => 'Sertifikasi Profesi (LSP)',
                         str_starts_with($kode, 'REG') => 'Pelatihan Reguler',
                         str_starts_with($kode, 'UMK') => 'Pelatihan UMK',
-                        str_starts_with($kode, 'SRT') => 'Sertifikasi Industri',
+                        str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'Sertifikasi Industri',
                         default                        => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                     };
 
@@ -240,12 +240,13 @@
                     {{-- Panel data tiap peserta --}}
                     @foreach($detailItems as $idx => $detailItem)
                         @php
-                            $form     = $detailItem->formable;
+                            $form     = $detailItem->formable ?? $permohonan->formSertifikasi?->first();
                             $viewName = match(true) {
                                 str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                 str_starts_with($kode, 'REG') => 'pelatihan',
                                 str_starts_with($kode, 'UMK') => 'pelatihan',
-                                str_starts_with($kode, 'SRT') => 'sertifikasi-industri',
+                                str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'sertifikasi-industri',
+                                ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
                                 default                        => 'default'
                             };
                         @endphp

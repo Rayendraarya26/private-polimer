@@ -2,17 +2,19 @@ import { useQuery } from "@tanstack/react-query"
 import api from "../../utils/api"
 import { getSkemalsp } from "../../services/lsp"
 import { getSkemaPelatihan } from "../../services/pelatihan"
+import { getSkemaSertifikasi } from "../../services/sertifikasi"
+import { regionService } from "../../services/region-service"
 
 /**
- * Hook TanStack Query untuk Daftar Skema Sertifikasi LSP
+ * Hook TanStack Query untuk Daftar Skema Sertifikasi Produk & Sistem (LSPro)
  */
-export function useLspSkemaQuery() {
+export function useSertifikasiSkemaQuery() {
   return useQuery({
-    queryKey: ["master", "skemaLSP"],
+    queryKey: ["master", "skemaSertifikasi"],
     queryFn: async () => {
-      return await getSkemalsp()
+      return await getSkemaSertifikasi()
     },
-    staleTime: 1000 * 60 * 30, // 30 menit master data
+    staleTime: 1000 * 60 * 30,
   })
 }
 
@@ -24,7 +26,7 @@ export function useKategoriSertifikatQuery() {
     queryKey: ["master", "kategoriSertifikat"],
     queryFn: async () => {
       const response = await api.get("/eksternal/sertifikasi/jenis")
-      return response.data?.results || []
+      return response.data?.results || response.data?.data || []
     },
     staleTime: 1000 * 60 * 30, // 30 menit master data
   })
@@ -41,10 +43,23 @@ export function useKomoditiSertifikatQuery(kategoriId?: string) {
       const response = await api.get("/eksternal/sertifikasi/komoditi", {
         params: { kategori_id: kategoriId },
       })
-      return response.data?.results || []
+      return response.data?.results || response.data?.data || []
     },
     enabled: Boolean(kategoriId),
     staleTime: 1000 * 60 * 30,
+  })
+}
+
+/**
+ * Hook TanStack Query untuk Daftar Skema Sertifikasi LSP
+ */
+export function useLspSkemaQuery() {
+  return useQuery({
+    queryKey: ["master", "skemaLSP"],
+    queryFn: async () => {
+      return await getSkemalsp()
+    },
+    staleTime: 1000 * 60 * 30, // 30 menit master data
   })
 }
 
@@ -68,33 +83,52 @@ export function useProvincesQuery() {
   return useQuery({
     queryKey: ["master", "provinces"],
     queryFn: async () => {
-      const response = await api.get("/eksternal/regions/provinces")
-      return response.data?.data || []
+      try {
+        const response = await api.get("/eksternal/regions/provinces")
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
+      } catch (e) {
+        const data = await regionService.getProvinces()
+        return Array.isArray(data) ? data : []
+      }
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 jam untuk provinsi
   })
 }
 
-export function useRegenciesQuery(provinceId?: string) {
+export function useRegenciesQuery(provinceId?: string | number) {
   return useQuery({
     queryKey: ["master", "regencies", provinceId],
     queryFn: async () => {
       if (!provinceId) return []
-      const response = await api.get(`/eksternal/regions/regencies/${provinceId}`)
-      return response.data?.data || []
+      try {
+        const response = await api.get("/eksternal/regions/regencies", {
+          params: { prov_id: provinceId }
+        })
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
+      } catch (e) {
+        const data = await regionService.getRegencies(provinceId)
+        return Array.isArray(data) ? data : []
+      }
     },
     enabled: Boolean(provinceId),
     staleTime: 1000 * 60 * 60 * 24,
   })
 }
 
-export function useDistrictsQuery(regencyId?: string) {
+export function useDistrictsQuery(regencyId?: string | number) {
   return useQuery({
     queryKey: ["master", "districts", regencyId],
     queryFn: async () => {
       if (!regencyId) return []
-      const response = await api.get(`/eksternal/regions/districts/${regencyId}`)
-      return response.data?.data || []
+      try {
+        const response = await api.get("/eksternal/regions/districts", {
+          params: { kab_id: regencyId }
+        })
+        return Array.isArray(response.data) ? response.data : response.data?.data || response.data?.results || []
+      } catch (e) {
+        const data = await regionService.getDistricts(regencyId)
+        return Array.isArray(data) ? data : []
+      }
     },
     enabled: Boolean(regencyId),
     staleTime: 1000 * 60 * 60 * 24,

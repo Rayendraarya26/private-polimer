@@ -11,6 +11,7 @@ use Modules\Permohonan\Http\Controllers\MasterLokasiController;
 use Modules\Permohonan\Http\Controllers\MasterJenisLayananController;
 use Modules\Permohonan\Http\Controllers\MasterLingkupLayananController;
 use Modules\Permohonan\Http\Controllers\InvoiceController;
+use Modules\Permohonan\Http\Controllers\TagihanBiayaController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -45,6 +46,8 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     ->name('permohonan.revisi');
     Route::post('{id}/retry-sync-sis', [PermohonanController::class, 'retrySyncSis'])
     ->name('permohonan.retry-sync-sis');
+    Route::post('{id}/kirim-penawaran-biaya', [PermohonanController::class, 'kirimPenawaranBiaya'])
+    ->name('permohonan.kirim-penawaran-biaya');
 
 
     Route::post(
@@ -127,5 +130,13 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     ->name('permohonan.bulk.revisi');
     Route::post('/permohonan/bulk-reject', [PermohonanController::class, 'bulkReject'])
     ->name('permohonan.bulk.reject');
+
+
+    Route::prefix('tagihan-biaya')->name('permohonan.tagihan-biaya.')->group(function() {
+        Route::get('/', [TagihanBiayaController::class, 'index'])->name('index');
+        Route::get('/ajax', [TagihanBiayaController::class, 'ajax'])->name('ajax');
+        Route::put('/{id}/edit', [TagihanBiayaController::class, 'edit'])->name('edit');
+        Route::post('/{id}/kirim', [TagihanBiayaController::class, 'index'])->name('index');
+    });
 
 });

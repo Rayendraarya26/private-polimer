@@ -14,13 +14,14 @@ use Modules\Eksternal\Http\Controllers\FaqController;
 use Modules\Eksternal\Http\Controllers\HomeController;
 use Modules\Eksternal\Http\Controllers\TrackingPermohonanController;
 use Modules\Eksternal\Http\Controllers\TteController;
-use Modules\Eksternal\Http\Controllers\Api\BimtekController;
+use Modules\Permohonan\Http\Controllers\BimtekController;
 use Modules\Eksternal\Http\Controllers\Api\LSPController;
 use Modules\Eksternal\Http\Controllers\Api\RegionController;
 use Modules\Eksternal\Http\Controllers\Api\PermohonanController;
 use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
-use Modules\Eksternal\Http\Controllers\Api\SertifikasiController as ApiSertifikasiController;
+use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
+use Modules\Eksternal\Http\Controllers\Api\LksClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,8 +42,14 @@ Route::get('/app', [AppController::class, 'index'])
     ->name('app')
     ->middleware([CustomAuthMiddleware::class, SentryContext::class]);
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/', [HomeController::class, 'contactUs']);
+Route::get('lang/{locale}', function ($locale) {
+    if (in_array($locale, ['id', 'en'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
 
 Route::prefix('faq')->group(function () {
     Route::get('/', [FaqController::class, 'index'])->name('faq');
@@ -73,12 +80,25 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::patch('/account', [UserController::class, 'updateAccount']);
             Route::patch('/password', [UserController::class, 'updatePassword']);
             Route::patch('/profile', [UserController::class, 'updateProfile']);
-            Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
+            Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');
+            ;
         });
 
         Route::prefix('dashboard')->group(function () {
             Route::get('/banner', [DashboardController::class, 'slider']);
+            Route::get('/sso-hub', [DashboardController::class, 'ssoHub']);
             Route::get('/layanan', [DashboardController::class, 'layanan']);
+            Route::get('/sidebar-counts', [DashboardController::class, 'sidebarCounts']);
+        });
+
+        Route::prefix('admin')->group(function () {
+            Route::get('/dashboard/summary', [DashboardController::class, 'adminSummary']);
+
+            Route::prefix('pertanyaan')->group(function () {
+                Route::get('/', [PertanyaanController::class, 'adminList']);
+                Route::post('/{id}/reply', [PertanyaanController::class, 'adminReply']);
+                Route::post('/{id}/close', [PertanyaanController::class, 'adminClose']);
+            });
         });
 
         Route::prefix('bimtek-halal')->group(function () {
@@ -121,27 +141,25 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         // Route::get('/permohonan', [PermohonanController::class, 'index']);
         // Route::get('/permohonan/statistik', [PermohonanController::class, 'statistik']);
         Route::prefix('permohonan')->group(function () {
-            Route::get('/', [PermohonanController::class,'index']);
-            Route::get('/statistik', [PermohonanController::class,'statistik']);
-            Route::get('/riwayat', [PermohonanController::class,'riwayat']);
-            Route::get('/{uuid}/feedback', [PermohonanController::class,'getFeedback']);
-            Route::post('/{uuid}/feedback', [PermohonanController::class,'storeFeedback']);
+            Route::get('/', [PermohonanController::class, 'index']);
+            Route::get('/statistik', [PermohonanController::class, 'statistik']);
+            Route::get('/riwayat', [PermohonanController::class, 'riwayat']);
+            Route::get('/{uuid}/feedback', [PermohonanController::class, 'getFeedback']);
+            Route::post('/{uuid}/feedback', [PermohonanController::class, 'storeFeedback']);
             Route::post('/{id}/ajukan', [PermohonanController::class, 'ajukan']);
+            Route::post('/{id}/request-tte-invoice', [PermohonanController::class, 'requestTteInvoice']);
+            Route::post('/{id}/request-tte-kuitansi', [PermohonanController::class, 'requestTteKuitansi']);
             Route::get('/{id}', [PermohonanController::class, 'show']);
         });
         Route::prefix('pembayaran')->group(function () {
             Route::get('/', [PembayaranController::class, 'index']);
-            Route::get('/{id}/invoice',[PembayaranController::class, 'previewInvoice']);
+            Route::get('/{id}/invoice', [PembayaranController::class, 'previewInvoice']);
             Route::get('/{id}/stream-invoice', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamInvoice']);
             Route::get('/{id}/stream-kuitansi', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamKuitansi']);
         });
         Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
         Route::post('/pelatihan', [PelatihanController::class, 'store']);
         Route::get('/skema-lsp', [LSPController::class, 'getSkemalsp']);
-        // Route::get('/sertifikasi/jenis', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getJenisSertifikasi']);
-        // Route::get('/sertifikasi/komoditi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'getKomoditiSertifikasi']);
-        // Route::post('/sertifikasi', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'store']);
-        // Route::post('/sertifikasi/upload-dokumen', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'uploadDokumen']);
         Route::get('/pelatihan/{id}', [PelatihanController::class, 'show']);
         Route::put('/pelatihan/{id}', [PelatihanController::class, 'update']);
         Route::delete('/pelatihan/{id}', [PelatihanController::class, 'destroy']);
@@ -153,18 +171,32 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}/ajukan-ulang', [LSPController::class, 'ajukanUlang']);
             Route::delete('/{id}', [LSPController::class, 'destroy']);
         });
+
         Route::prefix('sertifikasi')->group(function () {
-            Route::get('/jenis', [ApiSertifikasiController::class, 'getJenisSertifikasi']);
-            Route::get('/komoditi', [ApiSertifikasiController::class, 'getKomoditiSertifikasi']);
-            Route::get('/riwayat-aktif', [ApiSertifikasiController::class, 'getRiwayatSertifikasi']);
-            Route::post('/', [ApiSertifikasiController::class, 'store']);
-            Route::post('/upload-dokumen', [ApiSertifikasiController::class, 'uploadDokumen']);
-            Route::get('/{id}', [ApiSertifikasiController::class, 'show']);
-            Route::put('/{id}', [ApiSertifikasiController::class, 'update']);
-            Route::post('/{id}', [ApiSertifikasiController::class, 'update']);
-            Route::delete('/{id}', [ApiSertifikasiController::class, 'destroy']);
-            Route::post('/{id}/ajukan-ulang', [ApiSertifikasiController::class, 'ajukanUlang']);
+            Route::get('/jenis', [SertifikasiController::class, 'getJenisSertifikasi']);
+            Route::get('/komoditi', [SertifikasiController::class, 'getKomoditiSertifikasi']);
+            Route::get('/skema', [SertifikasiController::class, 'getSkemaSertifikasi']);
+            Route::get('/riwayat-aktif', [SertifikasiController::class, 'getRiwayatSertifikasi']);
+            Route::get('/preview-hasil-uji/{id?}', [SertifikasiController::class, 'previewHasilUji']);
+            Route::post('/', [SertifikasiController::class, 'store']);
+            Route::post('/upload-dokumen', [SertifikasiController::class, 'uploadDokumen']);
+            Route::get('/{id}', [SertifikasiController::class, 'show']);
+            Route::put('/{id}', [SertifikasiController::class, 'update']);
+            Route::post('/{id}', [SertifikasiController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
+            Route::post('/{id}/approval-penawaran', [SertifikasiController::class, 'approvalPenawaranBiaya']);
+            Route::post('/{id}/simulasi-bayar', [SertifikasiController::class, 'simulasiBayar']);
+            Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
+            Route::get('/{id}/download-sertifikat', [SertifikasiController::class, 'downloadSertifikat']);
         });
+
+        Route::prefix('sertifikasi-lks')->group(function () {
+            Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
+            Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
+        });
+
+        Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);
     });
-   
+
 });
+

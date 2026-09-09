@@ -33,50 +33,80 @@ class HomeController extends Controller
         $bannersObj    = SiteManajemen::query()->where('key', HomepageKey::SLIDER)->first();
         $banners       = [];
 
-        foreach ($bannersObj->data as $item) {
-            $banners[] = [
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
-                // "image_url"   => asset('storage/' . $item['image_path']),
-                "title"       => $item['title'],
-                "description" => $item['description'],
-                "cta_text"    => Arr::get($item, 'cta_text', null),
-                "cta_url"     => Arr::get($item, 'cta_url', null),
-                "cta_target"  => Arr::get($item, 'cta_target', null),
-                'order'       => $item['order']
-            ];
+        if (!empty($bannersObj) && is_array($bannersObj->data)) {
+            foreach ($bannersObj->data as $item) {
+                $imgPath = $item['image_path'] ?? null;
+                $imgUrl = null;
+                if (!empty($imgPath)) {
+                    try {
+                        $imgUrl = Storage::disk('s3')->temporaryUrl($imgPath, $cacheDuration);
+                    } catch (\Throwable $e) {
+                        $imgUrl = asset($imgPath);
+                    }
+                }
+                $banners[] = [
+                    "image_url"   => $imgUrl,
+                    "title"       => $item['title'] ?? '',
+                    "description" => $item['description'] ?? '',
+                    "cta_text"    => Arr::get($item, 'cta_text', null),
+                    "cta_url"     => Arr::get($item, 'cta_url', null),
+                    "cta_target"  => Arr::get($item, 'cta_target', null),
+                    'order'       => $item['order'] ?? 0
+                ];
+            }
         }
         usort($banners, function ($a, $b) {
-            return $a['order'] <=> $b['order'];
+            return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
         });
 
 
         $servicesObj = SiteManajemen::query()->where('key', HomepageKey::SERVICES)->first();
         $services    = [];
-        foreach ($servicesObj->data as $item) {
-            $services[] = [
-                "id"          => $item['id'],
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
-                // "image_url"   => asset('storage/' . $item['image_path']),
-                "name"        => Arr::get($item, 'title'),
-                "description" => Arr::get($item, 'description'),
-                'order'       => Arr::get($item, 'order'),
-            ];
+        if (!empty($servicesObj) && is_array($servicesObj->data)) {
+            foreach ($servicesObj->data as $item) {
+                $imgPath = $item['image_path'] ?? null;
+                $imgUrl = null;
+                if (!empty($imgPath)) {
+                    try {
+                        $imgUrl = Storage::disk('s3')->temporaryUrl($imgPath, $cacheDuration);
+                    } catch (\Throwable $e) {
+                        $imgUrl = asset($imgPath);
+                    }
+                }
+                $services[] = [
+                    "id"          => $item['id'] ?? '',
+                    "image_url"   => $imgUrl,
+                    "name"        => Arr::get($item, 'title', ''),
+                    "description" => Arr::get($item, 'description', ''),
+                    'order'       => Arr::get($item, 'order', 0),
+                ];
+            }
         }
         usort($services, function ($a, $b) {
-            return $a['order'] <=> $b['order'];
+            return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
         });
 
         $partnersObj = SiteManajemen::query()->where('key', HomepageKey::PARTNERS)->first();
         $partners    = [];
-        foreach ($partnersObj->data as $item) {
-            $partners[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
-                // "image_url" => asset('storage/' . $item['image_path']),
-                'order'     => $item['order']
-            ];
+        if (!empty($partnersObj) && is_array($partnersObj->data)) {
+            foreach ($partnersObj->data as $item) {
+                $imgPath = $item['image_path'] ?? null;
+                $imgUrl = null;
+                if (!empty($imgPath)) {
+                    try {
+                        $imgUrl = Storage::disk('s3')->temporaryUrl($imgPath, $cacheDuration);
+                    } catch (\Throwable $e) {
+                        $imgUrl = asset($imgPath);
+                    }
+                }
+                $partners[] = [
+                    "image_url" => $imgUrl,
+                    'order'     => $item['order'] ?? 0
+                ];
+            }
         }
         usort($partners, function ($a, $b) {
-            return $a['order'] <=> $b['order'];
+            return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
         });
 
         $testimonials = [

@@ -37,7 +37,7 @@ trait AuthTrait
                     ->where('sma.name', '=', 'index');
             })
             ->join('sys_group_permission as sgp', 'sma.id', '=', 'sgp.action_id')
-            ->select('sys_menu.name', 'sys_menu.id', 'sys_menu.parent_id', 'sys_menu.icon', 'sma.controller', 'sys_menu.order')
+            ->select('sys_menu.name', 'sys_menu.id', 'sys_menu.parent_id', 'sys_menu.icon', 'sma.controller', 'sys_menu.order', 'sys_menu.desc')
             ->where('sgp.group_id', $group_selected)
             ->where('is_active', 'yes')
             ->distinct()

@@ -84,13 +84,19 @@ const defaultDokumenList: DokumenPersyaratan[] = [
   },
   {
     id: "legalitas_perusahaan",
-    nama: "Akta Pendirian Perusahaan & SK Kemenkumham",
+    nama: "Akta Pendirian Perusahaan & SK Kemenkumham / SK Nomenklatur",
     keterangan: "Format PDF maks. 10MB",
     wajib: true,
   },
   {
     id: "nib_iui",
-    nama: "Nomor Induk Berusaha (NIB) / Izin Usaha Industri (IUI)",
+    nama: "Nomor Induk Berusaha (NIB) / Izin Usaha Industri (IUI/IUP)",
+    keterangan: "Format PDF maks. 5MB",
+    wajib: true,
+  },
+  {
+    id: "npwp_perusahaan",
+    nama: "Nomor Pokok Wajib Pajak (NPWP)",
     keterangan: "Format PDF maks. 5MB",
     wajib: true,
   },
@@ -185,36 +191,75 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
   }, [dokumenListValue])
 
   const { profile } = useProfileQuery()
-  const detailPerusahaan = profile?.detail
+  const detailPerusahaan = (profile?.detail || profile?.pelanggan?.detail || profile?.results?.detail || profile?.data?.detail || profile) as Record<string, any> | undefined
 
-  // Inisialisasi otomatis dokumen legalitas yang sudah ada di profil perusahaan
+  // Inisialisasi otomatis dokumen persyaratan yang sudah ada di profil pelanggan/perusahaan
   useEffect(() => {
     if (detailPerusahaan) {
       setDokumenList((prev) => {
         let changed = false
         const updated = prev.map((doc) => {
-          // 1. Akta Pendirian & SK Kemenkumham
-          if (doc.id === "legalitas_perusahaan" && detailPerusahaan.dok_akta_pendirian && !doc.fileUrl) {
-            changed = true
-            return {
-              ...doc,
-              isFromProfile: true,
-              fileName: "Akta Pendirian (Tersedia dari Profil)",
-              fileUrl: detailPerusahaan.dok_akta_pendirian,
+          if (doc.file) return doc
+
+          // 1. Akta Pendirian & SK Kemenkumham / SK Nomenklatur
+          if (doc.id === "legalitas_perusahaan") {
+            const url = detailPerusahaan.dok_akta_pendirian || detailPerusahaan.dok_sk_nomenklatur || detailPerusahaan.akta_pendirian || detailPerusahaan.sk_nomenklatur
+            if (url && doc.fileUrl !== url) {
+              changed = true
+              return {
+                ...doc,
+                isFromProfile: true,
+                fileName: detailPerusahaan.dok_akta_pendirian || detailPerusahaan.akta_pendirian
+                  ? "Akta Pendirian"
+                  : "SK Nomenklatur",
+                fileUrl: url,
+              }
             }
           }
-          // 2. Nomor Induk Berusaha (NIB)
-          if (doc.id === "nib_iui" && detailPerusahaan.dok_nib && !doc.fileUrl) {
-            changed = true
-            return {
-              ...doc,
-              isFromProfile: true,
-              fileName: "NIB (Tersedia dari Profil)",
-              fileUrl: detailPerusahaan.dok_nib,
+          // 2. Nomor Induk Berusaha (NIB) / Izin Usaha
+          if (doc.id === "nib_iui") {
+            const url = detailPerusahaan.dok_nib || detailPerusahaan.dok_iui || detailPerusahaan.dok_iup || detailPerusahaan.nib || detailPerusahaan.iui || detailPerusahaan.iup
+            if (url && doc.fileUrl !== url) {
+              changed = true
+              return {
+                ...doc,
+                isFromProfile: true,
+                fileName: "NIB / Izin Usaha",
+                fileUrl: url,
+              }
+            }
+          }
+          // 3. NPWP Perusahaan
+          if (doc.id === "npwp_perusahaan") {
+            const url = detailPerusahaan.dok_npwp || detailPerusahaan.npwp
+            if (url && doc.fileUrl !== url) {
+              changed = true
+              return {
+                ...doc,
+                isFromProfile: true,
+                fileName: "NPWP",
+                fileUrl: url,
+              }
+            }
+          }
+          // 4. Sertifikat Merek
+          if (doc.id === "sertifikat_merek") {
+            const url = detailPerusahaan.dok_merek || detailPerusahaan.dok_sertifikat_merek || detailPerusahaan.dok_lainnya || detailPerusahaan.merek
+            if (url && doc.fileUrl !== url) {
+              changed = true
+              return {
+                ...doc,
+                isFromProfile: true,
+                fileName: detailPerusahaan.dok_merek || detailPerusahaan.dok_sertifikat_merek
+                  ? "Sertifikat Merek"
+                  : "Dokumen Legalitas",
+                fileUrl: url,
+              }
             }
           }
           return doc
         })
+
         if (changed) {
           const serializableDocs = updated.map(({ file, ...rest }) => rest)
           onChangeDokumenList?.(serializableDocs)
@@ -360,24 +405,32 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
   // Handler simpan / tambah komoditi ke tabel
   const handleSaveKomoditiToTable = () => {
     // Validasi field wajib
-    if (!formInput.nama && !formInput.merek) {
-      setFormError("Nama komoditi atau merek wajib diisi.")
+    if (!formInput.nama?.trim()) {
+      setFormError("Nama komoditi wajib dipilih / diisi.")
       return
     }
-    if (!formInput.merek) {
-      setFormError("Merek produk wajib diisi.")
-      return
-    }
-    if (!formInput.tipe) {
-      setFormError("Tipe / varian komoditi wajib diisi.")
-      return
-    }
-    if (!formInput.ukuran) {
+    if (!formInput.ukuran?.trim()) {
       setFormError("Ukuran komoditi wajib diisi.")
       return
     }
-    if (!formInput.satuanProduksi) {
+    if (formInput.jumlahProduksi === undefined || formInput.jumlahProduksi === null || formInput.jumlahProduksi === "" || Number(formInput.jumlahProduksi) <= 0) {
+      setFormError("Jumlah produksi/tahun wajib diisi.")
+      return
+    }
+    if (!formInput.merek?.trim()) {
+      setFormError("Merek produk wajib diisi.")
+      return
+    }
+    if (!formInput.satuanProduksi?.trim()) {
       setFormError("Satuan produksi wajib diisi.")
+      return
+    }
+    if (!formInput.tipe?.trim()) {
+      setFormError("Tipe / varian komoditi wajib diisi.")
+      return
+    }
+    if (!formInput.keterangan?.trim()) {
+      setFormError("Keterangan komoditi wajib diisi.")
       return
     }
 
@@ -519,6 +572,19 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                 </label>
               )
             })}
+          </div>
+        )}
+
+        {/* Notifikasi panduan jika kategori belum dipilih */}
+        {!selectedKategori && categories.length > 0 && (
+          <div className="mt-6 p-4 bg-amber-50/80 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-900 shadow-xs animate-in fade-in duration-300">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs space-y-0.5">
+              <p className="font-semibold text-amber-950">Pilih Skema / Kategori Sertifikat</p>
+              <p className="text-amber-800 leading-relaxed">
+                Silakan klik salah satu kartu kategori di atas untuk membuka formulir pengisian data komoditi dan daftar kelengkapan dokumen persyaratan.
+              </p>
+            </div>
           </div>
         )}
 
@@ -843,7 +909,7 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                   type="button"
                   size="sm"
                   onClick={handleSaveKomoditiToTable}
-                  leftIcon={editingIndex !== null ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  leftIcon={editingIndex !== null ? <CheckCircle2 className="w-4 h-4" /> : undefined}
                   className="px-5 py-3 text-xs bg-brand-600 hover:bg-brand-700"
                 >
                   {editingIndex !== null ? "Simpan Perubahan Komoditi" : "Tambah"}
@@ -948,7 +1014,7 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                                 <div className="flex items-center gap-2 min-w-0">
                                   <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
                                   <div className="min-w-0">
-                                    <p className="text-xs font-semibold text-emerald-900 truncate max-w-[150px]" title={doc.fileName}>
+                                    <p className="text-xs font-semibold text-emerald-900 truncate max-w-[170px]" title={doc.fileName}>
                                       {doc.fileName}
                                     </p>
                                     {doc.fileSize && (
@@ -982,8 +1048,14 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
                                 </div>
                               </div>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 text-slate-500">
-                                Belum diunggah
+                              <span
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+                                  doc.wajib
+                                    ? "bg-rose-50 text-rose-600 border border-rose-200"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {doc.wajib ? "Wajib diunggah" : "Opsional"}
                               </span>
                             )}
                           </td>

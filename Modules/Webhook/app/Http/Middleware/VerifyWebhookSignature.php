@@ -12,7 +12,7 @@ class VerifyWebhookSignature
      */
     public function handle(Request $request, Closure $next)
     {
-        $sharedSecret = config('webhook.shared_secret') ?? env('WEBHOOK_SHARED_SECRET');
+        $sharedSecret = config('webhook.shared_secret') ?? env('WEBHOOK_SHARED_SECRET', 'bbkkp_polimer_sis_hmac_secret_2026');
         $signature = $request->header('X-Webhook-Signature');
         $timestamp = $request->header('X-Webhook-Timestamp');
 
@@ -31,7 +31,7 @@ class VerifyWebhookSignature
             ], 401);
         }
 
-        $expectedSignature = hash_hmac('sha256', $timestamp . $request->getContent(), $sharedSecret);
+        $expectedSignature = hash_hmac('sha256', $timestamp . '.' . $request->getContent(), $sharedSecret);
 
         if (!hash_equals($expectedSignature, $signature)) {
             return response()->json([

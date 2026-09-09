@@ -13,6 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
+use \Modules\Webhook\Services\SisSyncBridgingService;
 
 
 class GenerateKwitansiDigitalJob implements ShouldQueue
@@ -127,8 +128,12 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
         }
 
         // Trigger sinkronisasi asinkron ke SIS via Queue Webhook
-        if ($permohonan->formSertifikasi()->exists() && $permohonan->sis_sync_status !== 'SYNCED') {
-            DispatchPermohonanToSisJob::dispatch($permohonan->id);
+        if ($permohonan->formSertifikasi()->exists()) {
+            try {
+                app(SisSyncBridgingService::class)->updatePaymentStatusToSis($permohonan);
+            } catch (\Throwable $e) {
+                Log::error('GenerateKwitansiDigitalJob - Gagal kirim update status bayar ke SIS: ' . $e->getMessage());
+            }
         }
     }
 }

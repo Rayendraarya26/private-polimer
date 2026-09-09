@@ -13,11 +13,15 @@ use App\Models\Db2\DetailPembayaran;
 use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
- 
+use App\Models\Db2\PermohonanPenawaranBiaya;
+use App\Models\Db2\PermohonanTrackingLog;
+use Modules\Webhook\Services\SisSyncBridgingService;
+use Illuminate\Support\Facades\Log;
+
 
 class PermohonanController extends Controller
 {
-    private string $url  = 'permohonan/layanan';
+    private string $url = 'permohonan/layanan';
     private string $view = 'permohonan::layanan';
 
     public function index()
@@ -74,14 +78,16 @@ class PermohonanController extends Controller
 
         return DataTables::eloquent($query)
             ->editColumn('no_permohonan', fn($row) => $row->no_permohonan)
-            ->editColumn('tgl_order',     fn($row) => $row->tgl_order)
+            ->editColumn('tgl_order', fn($row) => $row->tgl_order)
             ->addColumn('user', function ($row) {
                 $detail = $row->detailPermohonan->first();
                 return $detail?->formable->nama_lengkap ?? '-';
             })
             ->addColumn('layanan', function ($row) {
-                if (str_starts_with($row->no_permohonan, 'LSP')) return 'Sertifikasi Profesi (LSP)';
-                if (str_starts_with($row->no_permohonan, 'REG')) return 'Pelatihan';
+                if (str_starts_with($row->no_permohonan, 'LSP'))
+                    return 'Sertifikasi Profesi (LSP)';
+                if (str_starts_with($row->no_permohonan, 'REG'))
+                    return 'Pelatihan';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -162,14 +168,14 @@ class PermohonanController extends Controller
 
         return DataTables::eloquent($query)
             ->editColumn('no_permohonan', fn($row) => $row->no_permohonan)
-            ->editColumn('tgl_order',     fn($row) => $row->tgl_order)
+            ->editColumn('tgl_order', fn($row) => $row->tgl_order)
             ->addColumn('user', function ($row) {
                 $grup = Permohonan::where('id_pt_ins', $row->id_pt_ins)
                     ->with('detailPermohonan.formable')
                     ->get();
 
 
-                $aktif    = $grup->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'DONE']);
+                $aktif = $grup->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'DONE']);
                 $formable = $row->detailPermohonan->first()?->formable;
 
 
@@ -180,13 +186,16 @@ class PermohonanController extends Controller
 
 
                 if ($aktif->count() > 1) {
-                    $names = $aktif->map(fn($g) =>
+                    $names = $aktif->map(
+                        fn($g) =>
                         $g->detailPermohonan->first()?->formable?->nama_lengkap
                     )->filter()->unique()->values();
 
 
-                    if ($names->isEmpty()) return '-';
-                    if ($names->count() === 1) return $names->first();
+                    if ($names->isEmpty())
+                        return '-';
+                    if ($names->count() === 1)
+                        return $names->first();
                     return $names->first()
                         . ' <small class="text-muted">+' . ($names->count() - 1) . ' lainnya</small>';
                 }
@@ -195,8 +204,10 @@ class PermohonanController extends Controller
                 return $formable?->nama_lengkap ?? '-';
             })
             ->addColumn('layanan', function ($row) {
-                if (str_starts_with($row->no_permohonan, 'LSP')) return 'Sertifikasi Profesi (LSP)';
-                if (str_starts_with($row->no_permohonan, 'REG')) return 'Pelatihan';
+                if (str_starts_with($row->no_permohonan, 'LSP'))
+                    return 'Sertifikasi Profesi (LSP)';
+                if (str_starts_with($row->no_permohonan, 'REG'))
+                    return 'Pelatihan';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -205,7 +216,7 @@ class PermohonanController extends Controller
                 return '-';
             })
             ->editColumn('status_workflow', fn($row) => strtolower($row->status_workflow))
-            ->addColumn('invoice_status',   fn($row) => $row->invoice_file ? 'generated' : 'not_generated')
+            ->addColumn('invoice_status', fn($row) => $row->invoice_file ? 'generated' : 'not_generated')
             ->addColumn('invoice_file_val', fn($row) => $row->invoice_file ?? '')
             ->addColumn('aksi', function ($row) {
                 $url = route('permohonan.layanan.detail', $row->id);
@@ -225,12 +236,13 @@ class PermohonanController extends Controller
             'detailPembayaranGrup',
             'creator',
             'pelanggan',
+            'formSertifikasi',
         ])->findOrFail($id);
 
 
-        $detail           = $request->query('d', 'overview');
+        $detail = $request->query('d', 'overview');
         $detailPermohonan = $permohonan->detailPermohonan->first();
-        $form             = $detailPermohonan?->formable;
+        $form = $detailPermohonan?->formable;
 
 
         $isPerorangan = $permohonan->pelanggan?->jenis_pelanggan
@@ -243,8 +255,8 @@ class PermohonanController extends Controller
                 new Breadcrumbs('Manajemen Permohonan Layanan', url($this->url)),
                 new Breadcrumbs('Detail Permohonan'),
             ],
-            'permohonan'  => $permohonan,
-            'detail'      => $detail,
+            'permohonan' => $permohonan,
+            'detail' => $detail,
             'isPerorangan' => $isPerorangan,
         ]);
     }
@@ -252,67 +264,192 @@ class PermohonanController extends Controller
 
     public function approve(Request $request, $id)
     {
-        $request->validate([
-            'nominal'       => 'required|numeric',
-            'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
-
-
         $permohonan = Permohonan::findOrFail($id);
-        $path       = $request->file('dok_penawaran')->store('penawaran', 'public');
 
+        $isSertifikasi = str_starts_with($permohonan->no_permohonan, 'CERT')
+            || str_starts_with($permohonan->no_permohonan, 'SRT')
+            || ($permohonan->detailPermohonan->first()?->formable_type === 'App\Models\Db2\FormSertifikasi');
 
-        $itemBayar = match(true) {
-            str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
-            str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
-            str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
-            default                                             => 'Biaya Layanan',
-        };
+        if ($isSertifikasi) {
+            $currentStatus = strtoupper(trim($permohonan->status_workflow));
 
+            if ($currentStatus === 'PERMOHONAN') {
+                // ============================================================
+                // 1A. TAHAP 1 SERTIFIKASI: VERIFIKASI ADMINISTRASI -> IN_REVIEW
+                // ============================================================
+                DB::beginTransaction();
+                try {
+                    $permohonan->update([
+                        'status_workflow' => 'IN_REVIEW',
+                        'catatan_admin' => 'Verifikasi administrasi disetujui Marketing. Permohonan diteruskan ke Operator LS di SIS.',
+                    ]);
 
-        DB::beginTransaction();
-        try {
-            $permohonan->update([
-                'status_workflow' => 'PEMBAYARAN',
-                'catatan_admin'   => $path,
+                    // Catat log tracking
+                    PermohonanTrackingLog::create([
+                        'id' => (string) Str::uuid(),
+                        'permohonan_id' => $permohonan->id,
+                        'sumber' => 'POLIMER',
+                        'milestone_code' => 'VERIFIKASI_ADMINISTRASI_ACCEPTED',
+                        'judul' => 'Verifikasi Administrasi Disetujui',
+                        'deskripsi' => 'Kelengkapan dokumen telah diverifikasi oleh Marketing dan diteruskan ke Operator LS di SIS.',
+                    ]);
+
+                    DB::commit();
+
+                    // Pemicu bridging ke SIS
+                    try {
+                        app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
+                    } catch (\Throwable $bridgeErr) {
+                        Log::warning('Bridging to SIS error: ' . $bridgeErr->getMessage());
+                    }
+
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return back()->with('error', 'Gagal memproses verifikasi: ' . $e->getMessage());
+                }
+
+                SysUserNotif::create([
+                    'user_id' => $permohonan->created_by,
+                    'title' => 'Verifikasi Administrasi Disetujui',
+                    'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diverifikasi dan masuk tahap Kajian Teknis.',
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
+                    'is_read' => 'no',
+                ]);
+
+                return redirect()
+                    ->route('permohonan.layanan.detail', ['id' => $id])
+                    ->with('success', 'Verifikasi administrasi berhasil! Permohonan telah diteruskan ke Operator LS di SIS.');
+
+            } else {
+                // ============================================================
+                // 1B. TAHAP 2 SERTIFIKASI: PENERBITAN SURAT PENAWARAN BIAYA -> PEMBAYARAN
+                // ============================================================
+                $request->validate([
+                    'nominal' => 'required|numeric|min:1',
+                    'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+                ]);
+
+                $path = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
+
+                DB::beginTransaction();
+                try {
+                    $permohonan->update([
+                        'status_workflow' => 'PEMBAYARAN',
+                        'total_harga' => $request->nominal,
+                        'catatan_admin' => $path,
+                    ]);
+
+                    DetailPembayaran::where('permohonan_id', $id)->delete();
+                    DetailPembayaran::create([
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $permohonan->id_pt_ins,
+                        'permohonan_id' => $id,
+                        'item_bayar' => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
+                        'harga_satuan' => $request->nominal,
+                        'kuantitas' => 1,
+                        'subtotal' => $request->nominal,
+                    ]);
+
+                    PermohonanPenawaranBiaya::create([
+                        'id' => (string) Str::uuid(),
+                        'permohonan_id' => $permohonan->id,
+                        'total_biaya' => $request->nominal,
+                        'file_surat_penawaran' => $path,
+                        'status' => 'MENUNGGU_PERSETUJUAN',
+                    ]);
+
+                    PermohonanTrackingLog::create([
+                        'id' => (string) Str::uuid(),
+                        'permohonan_id' => $permohonan->id,
+                        'sumber' => 'POLIMER',
+                        'milestone_code' => 'PENAWARAN_BIAYA_TERKIRIM',
+                        'judul' => 'Surat Penawaran Biaya Diterbitkan',
+                        'deskripsi' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($request->nominal, 0, ',', '.') . '.',
+                    ]);
+
+                    DB::commit();
+
+                    // Optional resync to SIS
+                    try {
+                        app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
+                    } catch (\Throwable $bridgeErr) {
+                        Log::warning('Bridging penawaran to SIS error: ' . $bridgeErr->getMessage());
+                    }
+
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    return back()->with('error', 'Gagal menerbitkan penawaran: ' . $e->getMessage());
+                }
+
+                SysUserNotif::create([
+                    'user_id' => $permohonan->created_by,
+                    'title' => 'Surat Penawaran Biaya Diterbitkan',
+                    'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diterbitkan surat penawaran biaya dan masuk tahap pembayaran.',
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
+                    'is_read' => 'no',
+                ]);
+
+                return redirect()
+                    ->route('permohonan.layanan.detail', ['id' => $id])
+                    ->with('success', 'Surat Penawaran Biaya berhasil diterbitkan! Permohonan masuk ke tahap Pembayaran.');
+            }
+
+        } else {
+            // ============================================================
+            // 2. ALUR LAYANAN PELATIHAN / LSP (EXISTING LOGIC)
+            // ============================================================
+            $request->validate([
+                'nominal' => 'required|numeric',
+                'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             ]);
 
+            $path = $request->file('dok_penawaran')->store('penawaran', 'public');
 
-            DetailPembayaran::where('permohonan_id', $id)->delete();
+            $itemBayar = match (true) {
+                str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
+                str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
+                str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
+                default => 'Biaya Layanan',
+            };
 
+            DB::beginTransaction();
+            try {
+                $permohonan->update([
+                    'status_workflow' => 'PEMBAYARAN',
+                    'catatan_admin' => $path,
+                ]);
 
-            DetailPembayaran::create([
-                'id'            => (string) Str::uuid(),
-                'id_pt_ins'     => $permohonan->id_pt_ins,
-                'permohonan_id' => $id,
-                'item_bayar'    => $itemBayar,
-                'harga_satuan'  => $request->nominal,
-                'kuantitas'     => 1,
-                'subtotal'      => $request->nominal,
+                DetailPembayaran::where('permohonan_id', $id)->delete();
+
+                DetailPembayaran::create([
+                    'id' => (string) Str::uuid(),
+                    'id_pt_ins' => $permohonan->id_pt_ins,
+                    'permohonan_id' => $id,
+                    'item_bayar' => $itemBayar,
+                    'harga_satuan' => $request->nominal,
+                    'kuantitas' => 1,
+                    'subtotal' => $request->nominal,
+                ]);
+
+                DB::commit();
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                return back()->with('error', $e->getMessage());
+            }
+
+            SysUserNotif::create([
+                'user_id' => $permohonan->created_by,
+                'title' => 'Permohonan Disetujui',
+                'content' => 'Permohonan Anda telah disetujui dan masuk tahap pembayaran.',
+                'link' => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
             ]);
 
-
-            DB::commit();
-
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', $e->getMessage());
+            return redirect()
+                ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
+                ->with('success', 'Permohonan berhasil disetujui');
         }
-
-
-        SysUserNotif::create([
-            'user_id' => $permohonan->created_by,
-            'title'   => 'Permohonan Disetujui',
-            'content' => 'Permohonan Anda telah disetujui dan masuk tahap pembayaran.',
-            'link'    => route('permohonan.layanan.detail', $permohonan->id),
-            'is_read' => 'no',
-        ]);
-
-
-        return redirect()
-            ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
-            ->with('success', 'Permohonan berhasil disetujui');
     }
 
 
@@ -328,8 +465,8 @@ class PermohonanController extends Controller
 
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title'   => 'Permohonan Ditolak',
-            'link'    => route('permohonan.layanan.detail', $permohonan->id),
+            'title' => 'Permohonan Ditolak',
+            'link' => route('permohonan.layanan.detail', $permohonan->id),
             'is_read' => 'no',
         ]);
 
@@ -350,15 +487,15 @@ class PermohonanController extends Controller
 
         $permohonan->update([
             'status_workflow' => 'REVISI',
-            'catatan_admin'   => $request->catatan_revisi,
+            'catatan_admin' => $request->catatan_revisi,
         ]);
 
 
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title'   => 'Permohonan Perlu Revisi',
+            'title' => 'Permohonan Perlu Revisi',
             'content' => 'Permohonan Anda perlu revisi. Catatan: ' . $request->catatan_revisi,
-            'link'    => route('permohonan.layanan.detail', $permohonan->id),
+            'link' => route('permohonan.layanan.detail', $permohonan->id),
             'is_read' => 'no',
         ]);
 
@@ -370,13 +507,13 @@ class PermohonanController extends Controller
     public function simpanTarif(Request $request, string $id)
     {
         $request->validate([
-            'billing_type'        => 'required|in:together,split',
-            'rows'                => 'required|array|min:1',
-            'rows.*.item_bayar'   => 'required|string|max:255',
-            'rows.*.kode_tarif'   => 'nullable|string|max:100',
+            'billing_type' => 'required|in:together,split',
+            'rows' => 'required|array|min:1',
+            'rows.*.item_bayar' => 'required|string|max:255',
+            'rows.*.kode_tarif' => 'nullable|string|max:100',
             'rows.*.harga_satuan' => 'required|numeric|min:0',
-            'rows.*.kuantitas'    => 'required|integer|min:1',
-            'rows.*.subtotal'     => 'required|numeric|min:0',
+            'rows.*.kuantitas' => 'required|integer|min:1',
+            'rows.*.subtotal' => 'required|numeric|min:0',
         ]);
 
 
@@ -391,14 +528,14 @@ class PermohonanController extends Controller
 
                 foreach ($request->rows as $row) {
                     DetailPembayaran::create([
-                        'id'            => (string) Str::uuid(),
-                        'id_pt_ins'     => $id,
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $id,
                         'permohonan_id' => $permohonan->id,
-                        'item_bayar'    => $row['item_bayar'],
-                        'kode_tarif'    => $row['kode_tarif'] ?? null,
-                        'harga_satuan'  => $row['harga_satuan'],
-                        'kuantitas'     => $row['kuantitas'],
-                        'subtotal'      => $row['subtotal'],
+                        'item_bayar' => $row['item_bayar'],
+                        'kode_tarif' => $row['kode_tarif'] ?? null,
+                        'harga_satuan' => $row['harga_satuan'],
+                        'kuantitas' => $row['kuantitas'],
+                        'subtotal' => $row['subtotal'],
                     ]);
                 }
 
@@ -415,14 +552,14 @@ class PermohonanController extends Controller
 
                 foreach ($request->rows as $row) {
                     DetailPembayaran::create([
-                        'id'            => (string) Str::uuid(),
-                        'id_pt_ins'     => $permohonan->id_pt_ins,
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $permohonan->id_pt_ins,
                         'permohonan_id' => $id,
-                        'item_bayar'    => $row['item_bayar'],
-                        'kode_tarif'    => $row['kode_tarif'] ?? null,
-                        'harga_satuan'  => $row['harga_satuan'],
-                        'kuantitas'     => $row['kuantitas'],
-                        'subtotal'      => $row['subtotal'],
+                        'item_bayar' => $row['item_bayar'],
+                        'kode_tarif' => $row['kode_tarif'] ?? null,
+                        'harga_satuan' => $row['harga_satuan'],
+                        'kuantitas' => $row['kuantitas'],
+                        'subtotal' => $row['subtotal'],
                     ]);
                 }
 
@@ -449,13 +586,13 @@ class PermohonanController extends Controller
     public function bulkApprove(Request $request)
     {
         $request->validate([
-            'ids'           => 'required|string',
-            'nominal'       => 'required|numeric',
+            'ids' => 'required|string',
+            'nominal' => 'required|numeric',
             'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
 
-        $ids  = explode(',', $request->ids);
+        $ids = explode(',', $request->ids);
         $path = $request->file('dok_penawaran')->store('penawaran', 'public');
 
 
@@ -469,7 +606,7 @@ class PermohonanController extends Controller
                 $permohonan = Permohonan::findOrFail($id);
 
 
-                $itemBayar = match(true) {
+                $itemBayar = match (true) {
                     str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
                     str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
                     str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
@@ -479,7 +616,7 @@ class PermohonanController extends Controller
 
                 $permohonan->update([
                     'status_workflow' => 'PEMBAYARAN',
-                    'catatan_admin'   => $path,
+                    'catatan_admin' => $path,
                 ]);
 
 
@@ -487,21 +624,21 @@ class PermohonanController extends Controller
 
 
                 DetailPembayaran::create([
-                    'id'            => (string) Str::uuid(),
-                    'id_pt_ins'     => $permohonan->id_pt_ins,
+                    'id' => (string) Str::uuid(),
+                    'id_pt_ins' => $permohonan->id_pt_ins,
                     'permohonan_id' => $id,
-                    'item_bayar'    => $itemBayar,
-                    'harga_satuan'  => $request->nominal,
-                    'kuantitas'     => 1,
-                    'subtotal'      => $request->nominal,
+                    'item_bayar' => $itemBayar,
+                    'harga_satuan' => $request->nominal,
+                    'kuantitas' => 1,
+                    'subtotal' => $request->nominal,
                 ]);
 
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title'   => 'Permohonan Disetujui',
+                    'title' => 'Permohonan Disetujui',
                     'content' => 'Permohonan Anda telah disetujui dan masuk tahap pembayaran.',
-                    'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
                     'is_read' => 'no',
                 ]);
             }
@@ -540,8 +677,8 @@ class PermohonanController extends Controller
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title'   => 'Permohonan Ditolak',
-                    'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                    'title' => 'Permohonan Ditolak',
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
                     'is_read' => 'no',
                 ]);
             }
@@ -563,7 +700,7 @@ class PermohonanController extends Controller
     public function bulkRevisi(Request $request)
     {
         $request->validate([
-            'ids'            => 'required|string',
+            'ids' => 'required|string',
             'catatan_revisi' => 'required',
         ]);
 
@@ -581,15 +718,15 @@ class PermohonanController extends Controller
 
                 $permohonan->update([
                     'status_workflow' => 'REVISI',
-                    'catatan_admin'   => $request->catatan_revisi,
+                    'catatan_admin' => $request->catatan_revisi,
                 ]);
 
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title'   => 'Permohonan Perlu Revisi',
+                    'title' => 'Permohonan Perlu Revisi',
                     'content' => 'Catatan: ' . $request->catatan_revisi,
-                    'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
                     'is_read' => 'no',
                 ]);
             }
@@ -626,6 +763,79 @@ class PermohonanController extends Controller
             'success' => true,
             'message' => 'Proses sinkronisasi ke SIS telah dijadwalkan di antrean sistem'
         ]);
+    }
+
+
+    public function kirimPenawaranBiaya(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'total_biaya' => 'required|numeric|min:1',
+            'rincian_item' => 'required|array',
+            'file_surat_penawaran' => 'nullable|file|mimes:pdf|max:10240',
+            'catatan_marketing' => 'nullable|string',
+        ]);
+
+        $permohonan = Permohonan::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $filePath = null;
+            if ($request->hasFile('file_surat_penawaran')) {
+                $filePath = $request->file('file_surat_penawaran')->store('surat_penawaran', 'public');
+            }
+
+            // Simpan ke tabel permohonan_penawaran_biaya
+            $penawaran = PermohonanPenawaranBiaya::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'total_biaya' => $request->input('total_biaya'),
+                'rincian_json' => $request->input('rincian_item'),
+                'file_surat_penawaran' => $filePath,
+                'catatan' => $request->input('catatan_marketing'),
+                'status' => 'MENUNGGU_PERSETUJUAN',
+            ]);
+
+            // Update status permohonan
+            $permohonan->update([
+                'total_harga' => $request->input('total_biaya'),
+                'status_workflow' => 'MENUNGGU_PERSETUJUAN_PELANGGAN',
+            ]);
+
+            // Sinkronkan ke rincian tabel detail_pembayaran
+            DetailPembayaran::where('permohonan_id', $permohonan->id)->delete();
+            foreach ($request->input('rincian_item') as $item) {
+                DetailPembayaran::create([
+                    'id' => (string) Str::uuid(),
+                    'id_pt_ins' => $permohonan->id_pt_ins,
+                    'permohonan_id' => $permohonan->id,
+                    'item_bayar' => $item['nama_item'] ?? 'Biaya Sertifikasi',
+                    'harga_satuan' => $item['nominal'] ?? 0,
+                    'kuantitas' => $item['qty'] ?? 1,
+                    'subtotal' => ($item['nominal'] ?? 0) * ($item['qty'] ?? 1),
+                ]);
+            }
+
+            // Log tracking timeline
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'milestone_code' => 'PENAWARAN_BIAYA_TERKIRIM',
+                'title' => 'Surat Penawaran Biaya Diterbitkan',
+                'description' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($request->input('total_biaya'), 0, ',', '.') . '.',
+                'actor_name' => auth()->user()?->name ?? 'Tim Marketing',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penawaran biaya berhasil dikirimkan ke Pelanggan.',
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }
 

@@ -543,7 +543,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
               type="number"
               min="1"
               value={formData.jumlahShift || 1}
-              onChange={(e) => updateField("jumlahShift", parseInt(e.target.value) || 1)}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => updateField("jumlahShift", e.target.value === "" ? "" : parseInt(e.target.value, 10) || 1)}
               placeholder="1"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -557,8 +558,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
             <input
               type="number"
               min="0"
-              value={formData.jumlahBagian || 0}
-              onChange={(e) => updateField("jumlahBagian", parseInt(e.target.value) || 0)}
+              value={formData.jumlahBagian === 0 ? "" : (formData.jumlahBagian || "")}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => updateField("jumlahBagian", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
               placeholder="0"
               className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-800"
             />
@@ -581,8 +583,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={formData.jumlahManajemen}
-                    onChange={(e) => updateField("jumlahManajemen", parseInt(e.target.value) || 0)}
+                    value={formData.jumlahManajemen === 0 ? "" : (formData.jumlahManajemen || "")}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => updateField("jumlahManajemen", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -603,8 +606,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={formData.jumlahAdministrasi}
-                    onChange={(e) => updateField("jumlahAdministrasi", parseInt(e.target.value) || 0)}
+                    value={formData.jumlahAdministrasi === 0 ? "" : (formData.jumlahAdministrasi || "")}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => updateField("jumlahAdministrasi", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -625,8 +629,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={formData.jumlahPartTime}
-                    onChange={(e) => updateField("jumlahPartTime", parseInt(e.target.value) || 0)}
+                    value={formData.jumlahPartTime === 0 ? "" : (formData.jumlahPartTime || "")}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => updateField("jumlahPartTime", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -657,8 +662,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={formData.jumlahShift1}
-                        onChange={(e) => updateField("jumlahShift1", parseInt(e.target.value) || 0)}
+                        value={formData.jumlahShift1 === 0 ? "" : (formData.jumlahShift1 || "")}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => updateField("jumlahShift1", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -679,8 +685,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={formData.jumlahShift2}
-                        onChange={(e) => updateField("jumlahShift2", parseInt(e.target.value) || 0)}
+                        value={formData.jumlahShift2 === 0 ? "" : (formData.jumlahShift2 || "")}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => updateField("jumlahShift2", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -701,8 +708,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={formData.jumlahShift3}
-                        onChange={(e) => updateField("jumlahShift3", parseInt(e.target.value) || 0)}
+                        value={formData.jumlahShift3 === 0 ? "" : (formData.jumlahShift3 || "")}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => updateField("jumlahShift3", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                         placeholder="Berapa orang ?"
                         className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                       />
@@ -716,7 +724,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
               </div>
 
               {/* 5. Non Permanen */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pt-1">
                 <span className="text-xs text-slate-600 font-medium w-5 text-right">5.</span>
                 <div className="flex-1 flex rounded-lg border border-slate-300 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 shadow-2xs">
                   <span className="inline-flex items-center px-4 py-2 bg-slate-50 border-r border-slate-200 text-xs font-medium text-slate-700 min-w-[130px]">
@@ -725,8 +733,9 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={formData.jumlahNonPermanen}
-                    onChange={(e) => updateField("jumlahNonPermanen", parseInt(e.target.value) || 0)}
+                    value={formData.jumlahNonPermanen === 0 ? "" : (formData.jumlahNonPermanen || "")}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => updateField("jumlahNonPermanen", e.target.value === "" ? 0 : parseInt(e.target.value, 10) || 0)}
                     placeholder="Berapa orang ?"
                     className="flex-1 px-3.5 py-2 text-sm outline-none text-slate-800 bg-transparent"
                   />
@@ -737,7 +746,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                 </div>
               </div>
             </div>
-          </div>
+          </div>  </div>
         </div>
       </div>
 

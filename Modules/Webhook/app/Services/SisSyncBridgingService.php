@@ -30,14 +30,17 @@ class SisSyncBridgingService
         $payload = [
             'external_permohonan_id' => $permohonan->id, 
             'no_permohonan'          => $permohonan->no_permohonan, 
+            'status_workflow'        => $permohonan->status_workflow,
             'tgl_permohonan'         => $permohonan->tgl_order?->format('Y-m-d'),
             'tipe_pengajuan'         => strtolower($form?->jenis_pengajuan ?? 'baru'),
             'sertifikat_lama_nomor'  => $form?->sertifikat_lama_nomor, 
             'pemohon'                => [
                 'email'           => $form?->email ?? $permohonan->creator?->email,
-                'nama_perusahaan' => $form?->nama_perusahaan ?? $perusahaan?->nama, 
-                'badan_hukum'     => $perusahaan?->bentuk_badan_usaha ?? 'PT',
-                'nomor_akta'      => $form?->nomor_akta_pendirian ?? $perusahaan?->no_akta_pendirian,
+                'nama_perusahaan'     => $form?->nama_perusahaan ?? $perusahaan?->nama, 
+                'badan_hukum'         => $perusahaan?->bentuk_badan_usaha ?? 'PT',
+                'jenis_perusahaan_id' => (int) ($form?->jenis_perusahaan_id ?? ($perusahaan?->jenis_perusahaan_id ?? 1)),
+                'jenis_perusahaan'    => $form?->jenis_perusahaan ?? ($perusahaan?->jenis ?? 'Produsen / Pabrikan'),
+                'nomor_akta'          => $form?->nomor_akta_pendirian ?? $perusahaan?->no_akta_pendirian,
                 'pimpinan'        => $form?->nama_pimpinan ?? $perusahaan?->pimpinan, 
                 'pemilik'         => $form?->nama_pemilik ?? $perusahaan?->pemilik,
                 'wakil_manajemen' => $form?->nama_wakil_manajemen ?? $perusahaan?->pj_nama, 
@@ -60,6 +63,7 @@ class SisSyncBridgingService
             'pabrik' => $form?->pabrik_json ?? [],
             'komoditas' => $form?->komoditas_json ?? [],
             'dokumen_berkas' => $form?->file_dokumen_pendukung_json ?? [],
+            'file_kuesioner' => $form?->file_pertanyaan_tambahan ?? null,
             'keuangan' => [
                 'invoice_number' => $permohonan->invoice_number,
                 'kuitansi_number'=> $permohonan->kuitansi_number,
@@ -127,6 +131,61 @@ class SisSyncBridgingService
 
             throw $e;
     
+        }
+    }
+
+
+    public function updatePaymentStatusToSis(Permohonan $permohonan): array
+    {
+        $endpoint = $this->sisBaseUrl . '/bridge/permohonan/update-payment-status';
+
+        $payload = [
+            'external_permohonan_id' => $permohonan->id,
+            'no_permohonan'          => $permohonan->no_permohonan,
+            'status_bayar'           => 'LUNAS',
+            'kuitansi_number'        => $permohonan->kuitansi_number,
+            'total_bayar'            => (float) $permohonan->total_harga,
+            'paid_at'                => now()->toIso8601String(),
+        ];
+
+        $rawJson   = json_encode($payload);
+        $timestamp = now()->toISOString();
+        $signature = hash_hmac('sha256', $timestamp . '.' . $rawJson, $this->sharedSecret);
+
+        try {
+            $response = Http::withHeaders([
+                'X-API-KEY'           => $this->apiKey,
+                'X-Webhook-Timestamp' => $timestamp,
+                'X-Webhook-Signature' => $signature,
+                'Content-Type'        => 'application/json',
+                'Accept'              => 'application/json',
+            ])->timeout(15)->post($endpoint, $payload);
+
+            $resJson = $response->json();
+
+            IntegrationLog::create([
+                'id'               => (string) Str::uuid(),
+                'permohonan_id'    => $permohonan->id,
+                'arah'             => 'OUTGOING_TO_SIS',
+                'endpoint'         => $endpoint,
+                'method'           => 'POST',
+                'payload_request'  => $payload,
+                'payload_response' => $resJson,
+                'http_status'      => $response->status(),
+                'status'           => $response->successful() ? 'SUCCESS' : 'FAILED',
+                'error_message'    => $response->successful() ? null : ($resJson['message'] ?? 'HTTP Error'),
+            ]);
+
+            return [
+                'status_code' => $response->status(),
+                'body'        => $resJson,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('updatePaymentStatusToSis error: ' . $e->getMessage());
+            return [
+                'status_code' => 500,
+                'body'        => ['success' => false, 'message' => $e->getMessage()],
+            ];
         }
     }
 }

@@ -18,6 +18,7 @@ const PembayaranPage = lazy(() => import('./pages/service-requests/PembayaranPag
 const PelatihanPage = lazy(() => import('./pages/service-requests/PelatihanPage'))
 const EditFormRouter = lazy(() => import('./components/input-service-requests/EditFormRouter'))
 const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
+const DetailPermohonanPage = lazy(() => import('./pages/service-requests/DetailPermohonanPage'))
 const SertifikasiPage = lazy(() => import('./pages/service-requests/SertifikasiPage'))
 
 const AppRoutes: React.FC = () => {
@@ -42,16 +43,20 @@ const AppRoutes: React.FC = () => {
         <Route path="/permohonan">
           <Route index element={<PermohonanPage />} />
           <Route path="pelatihan" element={<PelatihanPage />} />
-          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
-          <Route path="edit/:id" element={<EditFormRouter />} />
           <Route path="sertifikasi" element={<SertifikasiPage />} />
+          <Route path="sertifikasi-industri" element={<SertifikasiPage />} />
+          <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
+          <Route path="detail/:id" element={<DetailPermohonanPage />} />
+          <Route path="edit/:id" element={<EditFormRouter />} />
         </Route>
         <Route path="/service-requests">
           <Route index element={<PermohonanPage />} />
           <Route path="input" element={<PermohonanPage />} />
           <Route path="pelatihan" element={<PelatihanPage />} />
+          <Route path="sertifikasi" element={<SertifikasiPage />} />
+          <Route path="sertifikasi-industri" element={<SertifikasiPage />} />
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
-          <Route path=":id" element={<DashboardPage />} />
+          <Route path=":id" element={<DetailPermohonanPage />} />
         </Route>
 
         {/* Tanya Jawab */}

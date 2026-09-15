@@ -14,6 +14,7 @@ export enum FeedbackItemStatusOrder {
   IN_REVIEW = 'review',
   DONE = 'selesai',
   DITOLAK = 'ditolak',
+  MENUNGGU_PERSETUJUAN = 'menunggu_persetujuan',
 }
 
 export type SertifikatItem = {

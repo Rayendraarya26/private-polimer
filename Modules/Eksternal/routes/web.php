@@ -185,6 +185,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
             Route::post('/{id}/approval-penawaran', [SertifikasiController::class, 'approvalPenawaranBiaya']);
+            Route::post('/{id}/approve-temuan-tahap1', [SertifikasiController::class, 'approveTemuanTahap1']);
+            Route::match(['get', 'post'], '/{id}/rollback-audit-tahap1', [SertifikasiController::class, 'rollbackAuditTahap1']);
             Route::post('/{id}/simulasi-bayar', [SertifikasiController::class, 'simulasiBayar']);
             Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
             Route::get('/{id}/download-sertifikat', [SertifikasiController::class, 'downloadSertifikat']);

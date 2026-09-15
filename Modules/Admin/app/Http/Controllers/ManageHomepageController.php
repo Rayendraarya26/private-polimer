@@ -212,7 +212,11 @@ class ManageHomepageController
             Arr::set($updated_data, "$key.title", $input['title']);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-                Arr::set($updated_data, "$key.image_path", $path);
+                if ($path) {
+                    Arr::set($updated_data, "$key.image_path", $path);
+                } else {
+                    return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+                }
             }
         }
 
@@ -220,15 +224,19 @@ class ManageHomepageController
         $saved          = $partners->save();
 
         if (!$saved) {
-            if ($path !== null) {
-                Storage::disk('s3')->delete($path);
+            if ($path !== null && $path !== false) {
+                try {
+                    Storage::disk('s3')->delete($path);
+                } catch (\Throwable $e) {}
             }
-            return responseJSON('Galat mengubah data services.');
+            return responseJSON('Galat mengubah data partner.');
         } else {
-            if ($image != null) {
-                Storage::disk('s3')->delete($input['image_old']);
+            if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
+                try {
+                    Storage::disk('s3')->delete($input['image_old']);
+                } catch (\Throwable $e) {}
             }
-            return responseJSON('Sukses mengubah data services.');
+            return responseJSON('Sukses mengubah data partner.');
         }
     }
 
@@ -261,7 +269,11 @@ class ManageHomepageController
             Arr::set($updated_data, "$key.description", $input['description']);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-                Arr::set($updated_data, "$key.image_path", $path);
+                if ($path) {
+                    Arr::set($updated_data, "$key.image_path", $path);
+                } else {
+                    return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+                }
             }
         }
 
@@ -269,13 +281,17 @@ class ManageHomepageController
         $saved          = $services->save();
 
         if (!$saved) {
-            if ($path !== null) {
-                Storage::disk('s3')->delete($path);
+            if ($path !== null && $path !== false) {
+                try {
+                    Storage::disk('s3')->delete($path);
+                } catch (\Throwable $e) {}
             }
             return responseJSON('Galat mengubah data services.');
         } else {
-            if ($image != null) {
-                Storage::disk('s3')->delete($input['image_old']);
+            if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
+                try {
+                    Storage::disk('s3')->delete($input['image_old']);
+                } catch (\Throwable $e) {}
             }
             return responseJSON('Sukses mengubah data services.');
         }
@@ -314,7 +330,11 @@ class ManageHomepageController
             Arr::set($updated_data, "$key.cta_url", $input['cta_url'] ?? null);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
-                Arr::set($updated_data, "$key.image_path", $path);
+                if ($path) {
+                    Arr::set($updated_data, "$key.image_path", $path);
+                } else {
+                    return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+                }
             }
         }
 
@@ -322,13 +342,17 @@ class ManageHomepageController
         $saved        = $banner->save();
 
         if (!$saved) {
-            if ($path !== null) {
-                Storage::disk('s3')->delete($path);
+            if ($path !== null && $path !== false) {
+                try {
+                    Storage::disk('s3')->delete($path);
+                } catch (\Throwable $e) {}
             }
             return responseJSON('Galat mengubah data slider.');
         } else {
-            if ($image != null) {
-                Storage::disk('s3')->delete($input['image_old']);
+            if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
+                try {
+                    Storage::disk('s3')->delete($input['image_old']);
+                } catch (\Throwable $e) {}
             }
             return responseJSON('Sukses mengubah data slider.');
         }
@@ -404,9 +428,11 @@ class ManageHomepageController
             $site->data = $sliders;
             $site->save();
 
-            if (!str_contains($image_path, 'dummy')) {
+            if (!empty($image_path) && !str_contains($image_path, 'dummy')) {
                 // delete image
-                Storage::disk('s3')->delete($image_path);
+                try {
+                    Storage::disk('s3')->delete($image_path);
+                } catch (\Throwable $e) {}
             }
 
             return responseJSON('Data berhasil dihapus.');
@@ -447,26 +473,28 @@ class ManageHomepageController
         };
     }
 
-    private function getSiteData(HomepageKey $action)
+    private function getSiteData(HomepageKey $action): array
     {
         $data_slider = SiteManajemen::where('key', '=', $action->value)->first();
-        if (empty($data_slider)) {
-            return responseJSON('Sukses', []);
+        if (empty($data_slider) || empty($data_slider->data) || !is_array($data_slider->data)) {
+            return [];
         }
 
         $data_result = $data_slider->data;
         if ($action !== HomepageKey::SOCIAL_MEDIA) {
             foreach ($data_result as $key => $value) {
-                Arr::set($data_result, "$key.image_url", Storage::disk('s3')->temporaryUrl(
-                    $value['image_path'],
-                    now()->addMinutes(5),
-                ));
+                $imagePath = $value['image_path'] ?? null;
+                if (!empty($imagePath)) {
+                    Arr::set($data_result, "$key.image_url", url('/media/s3/' . ltrim($imagePath, '/')));
+                } else {
+                    Arr::set($data_result, "$key.image_url", null);
+                }
             }
         }
 
         // sort by order
         usort($data_result, function ($a, $b) {
-            return $a['order'] <=> $b['order'];
+            return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
         });
 
         return $data_result;

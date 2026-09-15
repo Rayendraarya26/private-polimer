@@ -80,7 +80,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::patch('/account', [UserController::class, 'updateAccount']);
             Route::patch('/password', [UserController::class, 'updatePassword']);
             Route::patch('/profile', [UserController::class, 'updateProfile']);
-            Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');;
+            Route::post('/request-whatsapp-otp', [UserController::class, 'reqWhatsappOtp'])->middleware('throttle:1,1');
+            ;
         });
 
         Route::prefix('dashboard')->group(function () {
@@ -140,11 +141,11 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         // Route::get('/permohonan', [PermohonanController::class, 'index']);
         // Route::get('/permohonan/statistik', [PermohonanController::class, 'statistik']);
         Route::prefix('permohonan')->group(function () {
-            Route::get('/', [PermohonanController::class,'index']);
-            Route::get('/statistik', [PermohonanController::class,'statistik']);
-            Route::get('/riwayat', [PermohonanController::class,'riwayat']);
-            Route::get('/{uuid}/feedback', [PermohonanController::class,'getFeedback']);
-            Route::post('/{uuid}/feedback', [PermohonanController::class,'storeFeedback']);
+            Route::get('/', [PermohonanController::class, 'index']);
+            Route::get('/statistik', [PermohonanController::class, 'statistik']);
+            Route::get('/riwayat', [PermohonanController::class, 'riwayat']);
+            Route::get('/{uuid}/feedback', [PermohonanController::class, 'getFeedback']);
+            Route::post('/{uuid}/feedback', [PermohonanController::class, 'storeFeedback']);
             Route::post('/{id}/ajukan', [PermohonanController::class, 'ajukan']);
             Route::post('/{id}/request-tte-invoice', [PermohonanController::class, 'requestTteInvoice']);
             Route::post('/{id}/request-tte-kuitansi', [PermohonanController::class, 'requestTteKuitansi']);
@@ -152,7 +153,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         });
         Route::prefix('pembayaran')->group(function () {
             Route::get('/', [PembayaranController::class, 'index']);
-            Route::get('/{id}/invoice',[PembayaranController::class, 'previewInvoice']);
+            Route::get('/{id}/invoice', [PembayaranController::class, 'previewInvoice']);
             Route::get('/{id}/stream-invoice', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamInvoice']);
             Route::get('/{id}/stream-kuitansi', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamKuitansi']);
         });
@@ -183,14 +184,20 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::put('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}', [SertifikasiController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [SertifikasiController::class, 'ajukanUlang']);
+            Route::post('/{id}/approval-penawaran', [SertifikasiController::class, 'approvalPenawaranBiaya']);
+            Route::post('/{id}/approve-temuan-tahap1', [SertifikasiController::class, 'approveTemuanTahap1']);
+            Route::match(['get', 'post'], '/{id}/rollback-audit-tahap1', [SertifikasiController::class, 'rollbackAuditTahap1']);
+            Route::post('/{id}/simulasi-bayar', [SertifikasiController::class, 'simulasiBayar']);
             Route::delete('/{id}', [SertifikasiController::class, 'destroy']);
             Route::get('/{id}/download-sertifikat', [SertifikasiController::class, 'downloadSertifikat']);
         });
 
-        Route::prefix('sertifikasi-lks')->group(function () {
+        Route::prefix('lks-client')->group(function () {
             Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
             Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
         });
+
+        Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);
     });
-   
+
 });

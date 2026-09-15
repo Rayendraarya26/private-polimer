@@ -35,6 +35,7 @@ export const useSertifikasi = () => {
     formData.append('nama_perusahaan', payload.nama_perusahaan)
     if (payload.badan_hukum) formData.append('badan_hukum', payload.badan_hukum)
     if (payload.jenis_perusahaan) formData.append('jenis_perusahaan', payload.jenis_perusahaan)
+    if (payload.jenis_perusahaan_id) formData.append('jenis_perusahaan_id', String(payload.jenis_perusahaan_id))
     if (payload.nomor_akta_pendirian) formData.append('nomor_akta_pendirian', payload.nomor_akta_pendirian)
     if (payload.nama_pemilik) formData.append('nama_pemilik', payload.nama_pemilik)
     if (payload.nama_pimpinan) formData.append('nama_pimpinan', payload.nama_pimpinan)
@@ -134,9 +135,7 @@ export const useSertifikasi = () => {
       try {
         setSubmitting(true)
         const formData = buildFormData(payload)
-        const res = await api.post('/eksternal/sertifikasi', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        const res = await api.post('/eksternal/sertifikasi', formData)
         const response = res?.data ?? res
         if (response?.success) {
           toast.success(response.message || 'Permohonan sertifikasi berhasil disimpan!')

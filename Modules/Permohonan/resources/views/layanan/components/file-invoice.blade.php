@@ -1,5 +1,5 @@
 @php
-$invoiceFile = $permohonan->invoice_file ?? null;
+$invoiceFile = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice ?? null;
 @endphp
 
 
@@ -17,9 +17,13 @@ $invoiceFile = $permohonan->invoice_file ?? null;
             </div>
 
 
-            @if($invoiceFile)
+            @if(!empty($permohonan->pdf_tte))
             <span class="badge rounded-pill" style="background:#dcfce7;color:#166534">
-                Invoice tersedia
+                <i class="fas fa-shield-check me-1"></i> Invoice TTE BSrE
+            </span>
+            @elseif($invoiceFile)
+            <span class="badge rounded-pill" style="background:#dbeafe;color:#1d4ed8">
+                <i class="fas fa-file-invoice me-1"></i> Invoice Tersedia
             </span>
             @else
             <span class="badge rounded-pill" style="background:#fef3c7;color:#92400e">
@@ -112,7 +116,7 @@ $invoiceFile = $permohonan->invoice_file ?? null;
 
                                     <div class="modal-header">
                                         <h5 class="modal-title" style="font-size:16px; font-weight:600;">
-                                            Preview Invoice TTE
+                                            {{ !empty($permohonan->pdf_tte) ? 'Preview Invoice (TTE BSrE)' : 'Preview Invoice' }}
                                         </h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>

@@ -13,11 +13,21 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    // Do something before request is sent
+    config.headers = config.headers || {}
+    config.headers['X-Requested-With'] = 'XMLHttpRequest'
+    config.headers['Accept'] = 'application/json'
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    if (csrfToken) {
+      config.headers['X-CSRF-TOKEN'] = csrfToken
+    }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
     return config
   },
   (error) => {
-    // Do something with request error
     return Promise.reject(error)
   }
 )

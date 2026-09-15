@@ -14,6 +14,8 @@ use Modules\Permohonan\Http\Controllers\InvoiceController;
 use Modules\Permohonan\Http\Controllers\AuditSertifikasiController;
 use Modules\Permohonan\Http\Controllers\KomiteSertifikasiController;
 use Modules\Permohonan\Http\Controllers\PenerbitanSertifikasiController;
+use Modules\Permohonan\Http\Controllers\TagihanBiayaController;
+use Modules\Permohonan\Http\Controllers\BillingPembayaranController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -30,22 +32,27 @@ use App\Http\Middleware\Restriction;
 // Route::group([], function () {
 
 Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restriction::class, InternalUserMiddleware::class, SentryContext::class])->group(function () {
-   
+
     Route::get('layanan/ajax', [PermohonanController::class, 'ajax'])
         ->name('permohonan.ajax');
 
     Route::get('layanan/{id}/detail', [PermohonanController::class, 'detail'])
-            ->name('permohonan.layanan.detail');
-   
+        ->name('permohonan.layanan.detail');
+
     Route::resource('layanan', PermohonanController::class)
-            ->names('layanan');
+        ->names('layanan');
 
     Route::post('{id}/approve', [PermohonanController::class, 'approve'])
-    ->name('permohonan.approve');
+        ->name('permohonan.approve');
     Route::post('{id}/reject', [PermohonanController::class, 'reject'])
-    ->name('permohonan.reject');
+        ->name('permohonan.reject');
     Route::post('{id}/revisi', [PermohonanController::class, 'revisi'])
-    ->name('permohonan.revisi');
+        ->name('permohonan.revisi');
+    Route::post('{id}/retry-sync-sis', [PermohonanController::class, 'retrySyncSis'])
+        ->name('permohonan.retry-sync-sis');
+    Route::post('{id}/kirim-penawaran-biaya', [PermohonanController::class, 'kirimPenawaranBiaya'])
+        ->name('permohonan.kirim-penawaran-biaya');
+
 
     Route::post(
         'layanan/{id}/approval-invoice',
@@ -77,58 +84,73 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::get('{id}/kuitansi/stream-tte', [InvoiceController::class, 'streamKuitansiTte'])
         ->name('permohonan.kuitansi.stream-tte');
 
-    Route::get('layanan/{id}/kuitansi/preview',
+    Route::get(
+        'layanan/{id}/kuitansi/preview',
         [InvoiceController::class, 'previewKuitansi']
     )->name('permohonan.preview-kuitansi');
 
 
     Route::prefix('master-lokasi')->name('permohonan.master-lokasi.')->group(function () {
-        Route::get('/',     [MasterLokasiController::class, 'index'])->name('index');
+        Route::get('/', [MasterLokasiController::class, 'index'])->name('index');
 
         Route::get('/ajax', [MasterLokasiController::class, 'ajax'])->name('ajax');
-   
-        Route::post(  '/provinsi',      [MasterLokasiController::class, 'storeProvinsi'])->name('provinsi.store');
-        Route::put(   '/provinsi/{id}', [MasterLokasiController::class, 'updateProvinsi'])->name('provinsi.update');
+
+        Route::post('/provinsi', [MasterLokasiController::class, 'storeProvinsi'])->name('provinsi.store');
+        Route::put('/provinsi/{id}', [MasterLokasiController::class, 'updateProvinsi'])->name('provinsi.update');
         Route::delete('/provinsi/{id}', [MasterLokasiController::class, 'destroyProvinsi'])->name('provinsi.destroy');
-   
-        Route::post(  '/kabupaten',      [MasterLokasiController::class, 'storeKabupaten'])->name('kabupaten.store');
-        Route::put(   '/kabupaten/{id}', [MasterLokasiController::class, 'updateKabupaten'])->name('kabupaten.update');
+
+        Route::post('/kabupaten', [MasterLokasiController::class, 'storeKabupaten'])->name('kabupaten.store');
+        Route::put('/kabupaten/{id}', [MasterLokasiController::class, 'updateKabupaten'])->name('kabupaten.update');
         Route::delete('/kabupaten/{id}', [MasterLokasiController::class, 'destroyKabupaten'])->name('kabupaten.destroy');
 
-        Route::post(  '/kecamatan',      [MasterLokasiController::class, 'storeKecamatan'])->name('kecamatan.store');
-        Route::put(   '/kecamatan/{id}', [MasterLokasiController::class, 'updateKecamatan'])->name('kecamatan.update');
+        Route::post('/kecamatan', [MasterLokasiController::class, 'storeKecamatan'])->name('kecamatan.store');
+        Route::put('/kecamatan/{id}', [MasterLokasiController::class, 'updateKecamatan'])->name('kecamatan.update');
         Route::delete('/kecamatan/{id}', [MasterLokasiController::class, 'destroyKecamatan'])->name('kecamatan.destroy');
-   
+
     });
 
     Route::prefix('master-jenis-layanan')->name('permohonan.master-jenis-layanan.')->group(function () {
 
-        Route::get('/',     [MasterJenisLayananController::class, 'index'])->name('index');
+        Route::get('/', [MasterJenisLayananController::class, 'index'])->name('index');
         Route::get('/ajax', [MasterJenisLayananController::class, 'ajax'])->name('ajax');
 
-        Route::post('/',            [MasterJenisLayananController::class, 'store'])->name('store');
-        Route::put('/{id}',         [MasterJenisLayananController::class, 'update'])->name('update');
-        Route::delete('/{id}',      [MasterJenisLayananController::class, 'destroy'])->name('destroy');
+        Route::post('/', [MasterJenisLayananController::class, 'store'])->name('store');
+        Route::put('/{id}', [MasterJenisLayananController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MasterJenisLayananController::class, 'destroy'])->name('destroy');
 
     });
-     Route::prefix('master-lingkup-layanan')->name('permohonan.master-lingkup-layanan.')->group(function () {
+    Route::prefix('master-lingkup-layanan')->name('permohonan.master-lingkup-layanan.')->group(function () {
 
-        Route::get('/',     [MasterLingkupLayananController::class, 'index'])->name('index');
+        Route::get('/', [MasterLingkupLayananController::class, 'index'])->name('index');
         Route::get('/ajax', [MasterLingkupLayananController::class, 'ajax'])->name('ajax');
 
-        Route::post('/',            [MasterLingkupLayananController::class, 'store'])->name('store');
-        Route::put('/{id}',         [MasterLingkupLayananController::class, 'update'])->name('update');
-        Route::delete('/{id}',      [MasterLingkupLayananController::class, 'destroy'])->name('destroy');
+        Route::post('/', [MasterLingkupLayananController::class, 'store'])->name('store');
+        Route::put('/{id}', [MasterLingkupLayananController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MasterLingkupLayananController::class, 'destroy'])->name('destroy');
 
-     });
-     Route::post('permohonan/layanan/pembayaran/simpan-tarif/{id}', [PermohonanController::class, 'simpanTarif'])
-     ->name('permohonan.pembayaran.simpan-tarif');
-      Route::post('/permohonan/bulk-approve', [PermohonanController::class, 'bulkApprove'])
-    ->name('permohonan.bulk.approve');
+    });
+    Route::post('permohonan/layanan/pembayaran/simpan-tarif/{id}', [PermohonanController::class, 'simpanTarif'])
+        ->name('permohonan.pembayaran.simpan-tarif');
+    Route::post('/permohonan/bulk-approve', [PermohonanController::class, 'bulkApprove'])
+        ->name('permohonan.bulk.approve');
     Route::post('/permohonan/bulk-revisi', [PermohonanController::class, 'bulkRevisi'])
-    ->name('permohonan.bulk.revisi');
+        ->name('permohonan.bulk.revisi');
     Route::post('/permohonan/bulk-reject', [PermohonanController::class, 'bulkReject'])
-    ->name('permohonan.bulk.reject');
+        ->name('permohonan.bulk.reject');
+
+
+    Route::prefix('tagihan-biaya')->name('permohonan.tagihan-biaya.')->group(function () {
+        Route::get('/', [TagihanBiayaController::class, 'index'])->name('index');
+        Route::get('/ajax', [TagihanBiayaController::class, 'ajax'])->name('ajax');
+        Route::get('/{id}/edit', [TagihanBiayaController::class, 'edit'])->name('edit');
+        Route::post('/{id}/kirim', [TagihanBiayaController::class, 'kirim'])->name('kirim');
+    });
+
+    Route::prefix('billing')->name('permohonan.billing.')->group(function () {
+        Route::get('/', [BillingPembayaranController::class, 'index'])->name('index');
+        Route::get('/create', [BillingPembayaranController::class, 'create'])->name('create');
+        Route::post('/store', [BillingPembayaranController::class, 'store'])->name('store');
+    });
 
     // Sertifikasi Audit & LKS Endpoints
     Route::prefix('sertifikasi-audit')->name('permohonan.audit.')->group(function () {

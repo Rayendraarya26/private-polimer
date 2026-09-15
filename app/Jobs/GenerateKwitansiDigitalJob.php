@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Db1\SysUser;
 use App\Models\Db2\Permohonan;
+use App\Models\Db2\Billing;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,7 +13,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Modules\Integration\Services\SisSyncBridgingService;
+use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
+use \Modules\Webhook\Services\SisSyncBridgingService;
+
 
 class GenerateKwitansiDigitalJob implements ShouldQueue
 {
@@ -115,6 +118,21 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
                 'kuitansi_generated_at' => now(),
             ]);
 
+            // Pastikan status billing juga LUNAS jika billing sudah diterbitkan
+            try {
+                Billing::where('permohonan_id', $permohonan->id)
+                    ->orWhereHas('items', function ($q) use ($permohonan) {
+                        $q->where('mohon_id', $permohonan->id);
+                    })
+                    ->update([
+                        'status_pembayaran' => 'LUNAS',
+                        'tgl_lunas' => now(),
+                        'metode_pembayaran' => 'VIRTUAL_ACCOUNT_BNI',
+                    ]);
+            } catch (\Throwable $bErr) {
+                Log::warning('GenerateKwitansiDigitalJob - Gagal update status billing: ' . $bErr->getMessage());
+            }
+
             Log::info('GenerateKwitansiDigitalJob - Kwitansi created successfully', [
                 'permohonan_id'   => $permohonan->id,
                 'kuitansi_number' => $kuitansiNumber,
@@ -125,16 +143,13 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
             Log::error('GenerateKwitansiDigitalJob - Failed to generate PDF: ' . $e->getMessage());
         }
 
-        // Sinkronisasi status pelunasan ke SIS Pusat
-        try {
-            $bridgingService = new SisSyncBridgingService();
-            $bridgingService->syncPermohonanToSis($permohonan);
-
-            Log::info('GenerateKwitansiDigitalJob - SIS sync completed', [
-                'permohonan_id' => $permohonan->id,
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('GenerateKwitansiDigitalJob - SIS sync warning: ' . $e->getMessage());
+        // Trigger sinkronisasi asinkron ke SIS via Queue Webhook
+        if ($permohonan->formSertifikasi()->exists()) {
+            try {
+                app(SisSyncBridgingService::class)->updatePaymentStatusToSis($permohonan);
+            } catch (\Throwable $e) {
+                Log::error('GenerateKwitansiDigitalJob - Gagal kirim update status bayar ke SIS: ' . $e->getMessage());
+            }
         }
     }
 }

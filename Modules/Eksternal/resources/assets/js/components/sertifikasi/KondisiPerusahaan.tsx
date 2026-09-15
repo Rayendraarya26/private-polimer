@@ -533,7 +533,8 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
           </h4>
         </div>
 
-        <div className="space-y-4"          {/* 18. Jumlah Shift */}
+        <div className="space-y-4">
+          {/* 18. Jumlah Shift */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-2">
               Jumlah Shift (dalam sehari) <span className="text-rose-500">*</span>

@@ -148,6 +148,7 @@ const DashboardPage: React.FC = () => {
       { value: FeedbackItemStatusOrder.PERMOHONAN, label: "Permohonan Masuk" },
       { value: FeedbackItemStatusOrder.REVISI, label: "Revisi Berkas" },
       { value: FeedbackItemStatusOrder.IN_REVIEW, label: "Dalam Review" },
+      { value: FeedbackItemStatusOrder.MENUNGGU_PERSETUJUAN, label: "Menunggu Persetujuan" },
       { value: FeedbackItemStatusOrder.PEMBAYARAN, label: "Menunggu Pembayaran" },
       { value: FeedbackItemStatusOrder.PROCESS, label: "Dalam Pengujian" },
       { value: FeedbackItemStatusOrder.DONE, label: "Selesai" },
@@ -169,6 +170,8 @@ const DashboardPage: React.FC = () => {
         return <Badge variant="primary" dot>Dalam Review</Badge>
       case FeedbackItemStatusOrder.DRAFT:
         return <Badge variant="neutral">Draft</Badge>
+      case FeedbackItemStatusOrder.MENUNGGU_PERSETUJUAN:
+        return <Badge variant="warning" dot>Menunggu Persetujuan</Badge>
       default:
         return <Badge variant="neutral">{orderStatus || 'Permohonan'}</Badge>
     }

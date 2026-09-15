@@ -14,6 +14,8 @@ use App\Models\Db1\SysUser;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pegawai;
 use App\Models\Db2\Permohonan;
+use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
+
 
 class InvoiceController extends Controller
 {
@@ -25,14 +27,20 @@ class InvoiceController extends Controller
         $lsp         = $permohonan->formLsp?->first();
         $creator     = $permohonan->creator;
 
-        $invoiceTargetName    = '-';
-        $invoiceTargetAddress = '-';
+        // Ambil data pelanggan & detail relasi polimorfik
+        $pelanggan = \App\Models\Db1\Pelanggan::with(['detail'])
+            ->where('user_id', $permohonan->created_by)
+            ->first();
 
-        // Ambil jenis_pelanggan via created_by → sys_user → pelanggan
-        $jenisPelanggan = \App\Models\Db1\Pelanggan::where('user_id', $permohonan->created_by)
-            ->value('jenis_pelanggan');
+        $detailPelanggan = $pelanggan?->detail;
+        $jenisPelanggan  = $pelanggan?->jenis_pelanggan;
+        $isPerorangan    = $jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
 
-        $isPerorangan = $jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
+        // Data dari detail pelanggan (PelangganPerusahaan / PelangganPerorangan / PelangganInstansi)
+        $namaDetail   = $detailPelanggan?->nama;
+        $alamatDetail = $detailPelanggan?->alamat;
+        $surelDetail  = $detailPelanggan?->surel;
+        $waDetail     = $detailPelanggan?->whatsapp ?? $detailPelanggan?->telepon;
 
         if ($sertifikasi) {
             $invoiceTargetName    = $sertifikasi->nama_perusahaan ?: ($creator?->name ?: 'Pelanggan BBKKP');
@@ -41,20 +49,30 @@ class InvoiceController extends Controller
             $surel                = $sertifikasi->email ?: ($creator?->email ?: '-');
         } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
-            $invoiceTargetName    = $pelatihan?->nama_lengkap   ?? $lsp?->nama_lengkap   ?? ($creator?->name ?? '-');
-            $invoiceTargetAddress = $pelatihan?->alamat_peserta ?? $lsp?->alamat_peserta ?? '-';
-            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? ($creator?->no_hp ?? '');
-            $surel                = $pelatihan?->email    ?? $lsp?->email    ?? ($creator?->email ?? '');
-        } else {
-            // Badan Usaha / Instansi Pemerintah → prioritaskan data instansi
-            $invoiceTargetName    = ($pelatihan?->nama_instansi   ?: $pelatihan?->nama_lengkap)
-                                    ?? ($lsp?->nama_instansi   ?: $lsp?->nama_lengkap)
-                                    ?? ($creator?->name ?? '-');
-            $invoiceTargetAddress = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
-                                    ?? ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+            $invoiceTargetName    = $pelatihan?->nama_lengkap
+                                    ?? $lsp?->nama_lengkap
+                                    ?? $namaDetail
+                                    ?? $creator?->name
                                     ?? '-';
-            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? ($creator?->no_hp ?? '');
-            $surel                = $pelatihan?->email    ?? $lsp?->email    ?? ($creator?->email ?? '');
+            $invoiceTargetAddress = $pelatihan?->alamat_peserta
+                                    ?? $lsp?->alamat_peserta
+                                    ?? $alamatDetail
+                                    ?? '-';
+            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? $waDetail ?? ($creator?->no_hp ?? '');
+            $surel                = $pelatihan?->email ?? $lsp?->email ?? $surelDetail ?? ($creator?->email ?? '');
+        } else {
+            // Badan Usaha / Instansi Pemerintah → prioritaskan data instansi / perusahaan
+            $invoiceTargetName    = $namaDetail
+                                    ?: (($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
+                                    ?? ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
+                                    ?? $creator?->name
+                                    ?? '-');
+            $invoiceTargetAddress = $alamatDetail
+                                    ?: (($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
+                                    ?? ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+                                    ?? '-');
+            $telepon              = $pelatihan?->whatsapp ?? $lsp?->whatsapp ?? $waDetail ?? ($creator?->no_hp ?? '');
+            $surel                = $pelatihan?->email ?? $lsp?->email ?? $surelDetail ?? ($creator?->email ?? '');
         }
 
         return [
@@ -62,6 +80,8 @@ class InvoiceController extends Controller
             'alamat'   => $invoiceTargetAddress,
             'telepon'  => $telepon,
             'surel'    => $surel,
+            'email'    => $surel,
+            'whatsapp' => $telepon,
         ];
     }
 
@@ -135,78 +155,51 @@ class InvoiceController extends Controller
 
     public function approvalInvoice(Request $request, $id)
     {
-        $input = $request->validate([
-            'passphrase' => 'required|string',
-        ]);
-
-        $pegawai = Pegawai::where('user_id', auth()->id())->first();
-        if (!$pegawai || empty($pegawai->nik)) {
-            return response()->json(['success' => false, 'message' => 'NIK Anda belum terdaftar'], 422);
-        }
-        $nik = $pegawai->nik;
-
-        Log::info('InvoiceController::approvalInvoice - NIK dari session', [
-            'user_id' => auth()->id(),
-            'nik'     => $nik,
-        ]);
-
-        $permohonan = Permohonan::with([
-            'detailPembayaran', 'formPelatihan', 'formLsp',
-        ])->findOrFail($id);
-
-        $detailPembayaran = $this->buildDetailPembayaran($permohonan);
-        $grupPermohonan   = $this->buildGrupPermohonan($permohonan);
-        $pemohon          = $this->buildPemohon($permohonan);
-        $bendahara        = $this->getBendahara();
-
-        $invoiceNumber = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
-        $total         = $detailPembayaran->sum('subtotal');
-
-        // -------------------------------------------------------------------
-        // 1. OTOMATISASI PENERBITAN VIRTUAL ACCOUNT BANK BNI (e-Collection)
-        // -------------------------------------------------------------------
-        $va          = $permohonan->va;
-        $vaExpiredAt = $permohonan->va_expired_at;
-        $vaTrxId     = $permohonan->va_trx_id ?: $permohonan->no_permohonan;
-
-        if (empty($va) || $va === '-') {
-            try {
-                $bniService = new BniVaService();
-                $vaResult = $bniService->createBilling([
-                    'trx_id'           => $vaTrxId,
-                    'trx_amount'       => $total,
-                    'customer_name'    => $pemohon['nama'] ?? 'Pelanggan BBKKP',
-                    'customer_email'   => $pemohon['surel'] ?? '',
-                    'customer_phone'   => $pemohon['telepon'] ?? '',
-                    'datetime_expired' => now()->addDays(14),
-                    'description'      => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
-                ]);
-
-                if (!empty($vaResult['virtual_account'])) {
-                    $va          = $vaResult['virtual_account'];
-                    $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
-                }
-            } catch (\Exception $e) {
-                Log::warning('InvoiceController::approvalInvoice - Gagal create billing BNI: ' . $e->getMessage());
-                $va = $va ?: '-';
-            }
-        }
-
-        // -------------------------------------------------------------------
-        // 2. GENERATE PDF INVOICE & PENANDATANGANAN TTE BSrE
-        // -------------------------------------------------------------------
-        $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va, $total, $pemohon, $bendahara);
-        $pdfContent = $pdf->output();
-        $fileName   = 'invoice-' . $permohonan->no_permohonan . '.pdf';
-
-        Log::info('InvoiceController::approvalInvoice - PDF generated', [
-            'permohonan_id' => $id,
-            'fileName'      => $fileName,
-            'fileSize'      => strlen($pdfContent),
-        ]);
-
         try {
+            $input = $request->validate([
+                'passphrase' => 'required|string',
+            ]);
+
+            $pegawai = Pegawai::where('user_id', auth()->id())->first();
             $tteService = new TteService();
+            if (!$pegawai || empty($pegawai->nik)) {
+                if ($tteService->isDummy()) {
+                    $nik = $pegawai?->nik ?: '3201000000000001';
+                } else {
+                    return response()->json(['success' => false, 'message' => 'NIK Anda belum terdaftar'], 422);
+                }
+            } else {
+                $nik = $pegawai->nik;
+            }
+
+            Log::info('InvoiceController::approvalInvoice - NIK dari session', [
+                'user_id' => auth()->id(),
+                'nik'     => $nik,
+            ]);
+
+            $permohonan = Permohonan::with([
+                'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi',
+            ])->findOrFail($id);
+
+            $detailPembayaran = $this->buildDetailPembayaran($permohonan);
+            $grupPermohonan   = $this->buildGrupPermohonan($permohonan);
+            $pemohon          = $this->buildPemohon($permohonan);
+            $bendahara        = $this->getBendahara();
+
+            $invoiceNumber = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
+            $va            = $permohonan->va ?: '-';
+            $total         = $detailPembayaran->sum('subtotal');
+
+            $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va, $total, $pemohon, $bendahara);
+            $pdfContent = $pdf->output();
+            $fileName   = 'invoice-' . $permohonan->no_permohonan . '.pdf';
+
+            Log::info('InvoiceController::approvalInvoice - PDF generated', [
+                'permohonan_id' => $id,
+                'fileName'      => $fileName,
+                'fileSize'      => strlen($pdfContent),
+            ]);
+
             $tteResult  = $tteService->signPDF(
                 nik:         $nik,
                 passphrase:  $input['passphrase'],
@@ -219,7 +212,6 @@ class InvoiceController extends Controller
                     'total_amount'    => $total,
                 ],
             );
-
 
             $esignId = $tteResult['id'];
 
@@ -258,13 +250,22 @@ class InvoiceController extends Controller
                 'verify_url'      => $verifyUrl,
             ]);
 
-        } catch (\Exception $e) {
-            Log::error('InvoiceController::approvalInvoice - TTE gagal', [
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => $ve->validator->errors()->first() ?: 'Validasi gagal',
+                'errors'  => $ve->validator->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('InvoiceController::approvalInvoice - Exception', [
                 'permohonan_id' => $id,
                 'error'         => $e->getMessage(),
             ]);
 
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Terjadi kesalahan saat menandatangani invoice.',
+            ], 500);
         }
     }
 
@@ -300,12 +301,18 @@ class InvoiceController extends Controller
      * Route: GET /permohonan/layanan/{id}/download-tte
      */
  
-        public function downloadTte($id)
+    public function downloadTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with('billing')->findOrFail($id);
 
         if (empty($permohonan->pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk invoice ini');
+            $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+            if (!empty($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
+                $filePath = storage_path('app/public/' . $invoicePath);
+                $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+                return response()->download($filePath, $fileName);
+            }
+            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
         }
 
         try {
@@ -334,45 +341,52 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Stream konten PDF TTE langsung ke browser (untuk iframe preview).
-     *
-     * Menggunakan stream bukan redirect karena beberapa browser memblokir
-     * iframe yang memuat PDF dari cross-origin redirect (S3 presigned URL).
+     * Stream konten PDF TTE / Invoice langsung ke browser (untuk iframe preview).
      *
      * Route: GET /permohonan/layanan/{id}/stream-tte
      * Name : permohonan.invoice.stream-tte
      */
     public function streamTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with('billing')->findOrFail($id);
 
         if (empty($permohonan->pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk invoice ini');
+            $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+            if (!empty($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
+                $pdfContent = Storage::disk('public')->get($invoicePath);
+                $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+                return response($pdfContent, 200, [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                    'Content-Length'      => strlen($pdfContent),
+                ]);
+            }
+            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
         }
 
         try {
-            if (str_starts_with($permohonan->pdf_tte, 'dummy-esign|')) {
-                $pathStr = explode('|', $permohonan->pdf_tte)[1];
-                $path = storage_path('app/public/' . $pathStr);
-                if (!file_exists($path)) {
-                    abort(404, 'File TTE Dummy tidak ditemukan');
-                }
-                $pdfContent = file_get_contents($path);
-                $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
-            } else {
-                $tteService = new TteService();
-                $result     = $tteService->verifyById($permohonan->pdf_tte);
+            $tteService = new TteService();
+            $result     = $tteService->verifyById($permohonan->pdf_tte);
 
-                if (empty($result['file_link'])) {
-                    abort(404, 'File TTE tidak ditemukan di server');
-                }
-
-                // Download konten PDF dari S3 presigned URL
-                $pdfContent = file_get_contents($result['file_link']);
-                
-                $fileName = $result['file_name']
-                    ?? ('invoice-' . $permohonan->no_permohonan . '.pdf');
+            if (empty($result['file_link'])) {
+                abort(404, 'File TTE tidak ditemukan di server');
             }
+
+            // Download konten PDF dari S3 presigned URL atau local storage
+            $pdfContent = @file_get_contents($result['file_link']);
+            if ($pdfContent === false || empty($pdfContent)) {
+                $cached = cache()->get('tte_dummy_' . $permohonan->pdf_tte);
+                if ($cached && !empty($cached['file_path']) && Storage::disk('public')->exists($cached['file_path'])) {
+                    $pdfContent = Storage::disk('public')->get($cached['file_path']);
+                }
+            }
+
+            if (empty($pdfContent)) {
+                abort(404, 'Gagal memuat konten dokumen TTE');
+            }
+            
+            $fileName = $result['file_name']
+                ?? ('invoice-' . $permohonan->no_permohonan . '.pdf');
 
             Log::info('InvoiceController::streamTte - Streaming PDF', [
                 'permohonan_id' => $id,
@@ -653,6 +667,10 @@ class InvoiceController extends Controller
 
         $pemohon   = $this->buildPemohon($permohonan);
         $bendahara = $this->getBendahara();
+
+        if ($permohonan->formSertifikasi()->exists() && $permohonan->sis_sync_status !== 'SYNCED') {
+            DispatchPermohonanToSisJob::dispatch($permohonan->id)->afterCommit();
+        }
 
         // Jika sudah ada file kuitansi fisik lokal
         if ($permohonan->kuitansi_file && Storage::disk('public')->exists($permohonan->kuitansi_file)) {

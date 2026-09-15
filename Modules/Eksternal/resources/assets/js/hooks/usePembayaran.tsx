@@ -76,7 +76,8 @@ export function usePembayaran() {
   // Fungsi untuk mengambil PDF dan membuka modal pratinjau
   const fetchAndOpenPdf = useCallback(
     async (url: string, title: string, filename?: string) => {
-      const docFilename = filename || `${title}.pdf`
+      if (!url) return
+      const docFilename = filename || `${title.replace(/\s+/g, "-")}.pdf`
 
       // Buka modal dengan status loading terlebih dahulu
       setPreviewState({
@@ -88,6 +89,45 @@ export function usePembayaran() {
       })
 
       try {
+        if (url.startsWith("blob:")) {
+          setPreviewState({
+            isOpen: true,
+            title,
+            filename: docFilename,
+            blobUrl: url,
+            loading: false,
+          })
+          return
+        }
+
+        // Jika URL absolut atau file statis di /storage/
+        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/storage/")) {
+          try {
+            const res = await axios.get(url, { responseType: "blob" })
+            const blob = new Blob([res.data], { type: "application/pdf" })
+            const blobUrl = window.URL.createObjectURL(blob)
+            setPreviewState({
+              isOpen: true,
+              title,
+              filename: docFilename,
+              blobUrl,
+              loading: false,
+            })
+            return
+          } catch (corsOrFetchErr) {
+            // Fallback gunakan URL langsung di iframe/object jika axios blob terhalang
+            setPreviewState({
+              isOpen: true,
+              title,
+              filename: docFilename,
+              blobUrl: url,
+              loading: false,
+            })
+            return
+          }
+        }
+
+        // Default endpoint internal API
         const response = await api.get(url, { responseType: "blob" })
         const blob = new Blob([response.data], { type: "application/pdf" })
         const blobUrl = window.URL.createObjectURL(blob)
@@ -101,8 +141,19 @@ export function usePembayaran() {
         })
       } catch (error: any) {
         console.error(`Gagal memuat ${title}:`, error)
-        closePreview()
+        // Jika gagal via API, fallback ke direct url
+        if (url && (url.startsWith("http") || url.startsWith("/"))) {
+          setPreviewState({
+            isOpen: true,
+            title,
+            filename: docFilename,
+            blobUrl: url,
+            loading: false,
+          })
+          return
+        }
 
+        closePreview()
         Swal.fire({
           icon: "error",
           title: "Gagal Membuka Dokumen",
@@ -115,6 +166,14 @@ export function usePembayaran() {
       }
     },
     [closePreview]
+  )
+
+  const openPdfDoc = useCallback(
+    (url: string, title: string = "Dokumen", filename?: string) => {
+      if (!url) return
+      fetchAndOpenPdf(url, title, filename)
+    },
+    [fetchAndOpenPdf]
   )
 
   const openInvoice = useCallback(
@@ -326,6 +385,7 @@ export function usePembayaran() {
     openLhu,
     onDownloadCertificate,
     fetchAndOpenPdf,
+    openPdfDoc,
     closePreview,
     PdfPreviewModal,
   }

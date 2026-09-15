@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Permohonan extends Model
@@ -49,9 +50,14 @@ class Permohonan extends Model
         'feedback_json',
         'feedback_at',
         'file_attachment',
+        'harga_permohonan',
+        'file_surat_penawaran',
+        'status_penawaran',
+        'catatan_penawaran',
     ];
 
     protected $casts = [
+        'harga_permohonan'          => 'float',
         'tgl_order'                 => 'datetime',
         'va_expired_at'             => 'datetime',
         'invoice_generated_at'      => 'datetime',
@@ -118,7 +124,7 @@ class Permohonan extends Model
 
     public function updater()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(SysUser::class, 'updated_by');
     }
 
     public function detailPembayaranGrup()
@@ -137,5 +143,55 @@ class Permohonan extends Model
             'created_by',     
             'id'               
         );
+    }
+
+
+    public function trackingLogs() : HasMany
+    {
+        return $this->hasMany(PermohonanTrackingLog::class)->orderBy('created_at', 'asc');
+    }
+
+
+    public function penawaranBiaya() : HasOne
+    {
+        return $this->hasOne(PermohonanPenawaranBiaya::class, 'permohonan_id')->latestOfMany();
+    }
+
+    public function getPenawaranBiayaAttribute()
+    {
+        if ($this->relationLoaded('penawaranBiaya') && $this->getRelation('penawaranBiaya')) {
+            return $this->getRelation('penawaranBiaya');
+        }
+
+        if (!$this->harga_permohonan && !$this->file_surat_penawaran) {
+            return null;
+        }
+
+        return (object) [
+            'total_nominal'        => (float) $this->harga_permohonan,
+            'file_surat_penawaran' => $this->file_surat_penawaran,
+            'status_persetujuan'   => match (strtolower($this->status_penawaran ?? '')) {
+                'setuju' => 'DISETUJUI',
+                'tolak'  => 'DITOLAK',
+                'proses' => 'MENUNGGU',
+                default  => 'MENUNGGU',
+            },
+            'alasan_penolakan'     => $this->catatan_penawaran,
+        ];
+    }
+
+    public function integrationLog()  : HasMany
+    {
+        return $this->hasMany(IntegrationLog::class, 'permohonan_id')->orderBy('created_at', 'desc');
+    }
+
+    public function billing(): HasOne
+    {
+        return $this->hasOne(Billing::class, 'permohonan_id');
+    }
+
+    public function billingItems(): HasMany
+    {
+        return $this->hasMany(BillingItem::class, 'mohon_id');
     }
 }

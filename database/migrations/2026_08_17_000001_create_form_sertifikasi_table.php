@@ -11,27 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('form_sertifikasi', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('permohonan_id')->constrained('permohonan')->cascadeOnDelete();
-            $table->enum('tipe_pengajuan', ['BARU', 'PERPANJANG', 'PERUBAHAN', 'SURVEILANS'])->default('BARU')->index();
-            $table->uuid('referensi_sertifikasi_id')->nullable()->index()->comment('ID sertifikat acuan jika perpanjangan atau surveilans');
-            
-            // Profil Perusahaan Pemohon
-            $table->string('nama_perusahaan');
-            $table->text('alamat_kantor');
-            $table->string('kontak_person')->nullable();
-            $table->string('no_telp')->nullable();
-            $table->string('no_whatsapp')->nullable();
-            $table->string('email')->nullable();
-            
-            // Dynamic Assessment & Uploaded Files
-            $table->json('kuesioner_kelayakan')->nullable()->comment('Rekaman kuesioner kelayakan sertifikasi');
-            $table->json('dokumen_persyaratan')->nullable()->comment('Path dokumen legalitas, manual mutu, alur proses');
-            
-            $table->timestampsTz();
-            $table->softDeletesTz();
-        });
+        if (!Schema::hasTable('form_sertifikasi')) {
+            Schema::create('form_sertifikasi', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->foreignUuid('permohonan_id')->constrained('permohonan')->cascadeOnDelete();
+                $table->enum('tipe_pengajuan', ['BARU', 'PERPANJANG', 'PERUBAHAN', 'SURVEILANS'])->default('BARU')->index();
+                $table->uuid('referensi_sertifikasi_id')->nullable()->index()->comment('ID sertifikat acuan jika perpanjangan atau surveilans');
+                
+                // Profil Perusahaan Pemohon
+                $table->string('nama_perusahaan');
+                $table->text('alamat_kantor');
+                $table->string('kontak_person')->nullable();
+                $table->string('no_telp')->nullable();
+                $table->string('no_whatsapp')->nullable();
+                $table->string('email')->nullable();
+                
+                // Dynamic Assessment & Uploaded Files
+                $table->json('kuesioner_kelayakan')->nullable()->comment('Rekaman kuesioner kelayakan sertifikasi');
+                $table->json('dokumen_persyaratan')->nullable()->comment('Path dokumen legalitas, manual mutu, alur proses');
+                
+                $table->timestampsTz();
+                $table->softDeletesTz();
+            });
+        }
     }
 
     /**

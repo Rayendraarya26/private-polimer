@@ -19,7 +19,8 @@ class PembayaranController extends Controller
 
             $data = Permohonan::with([
                 'detailPembayaran',
-                'detailPermohonan.lingkupLayanan'
+                'detailPermohonan.lingkupLayanan',
+                'billing'
             ])
             ->where(function ($q) {
                 $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROCESS', 'DONE'])
@@ -39,7 +40,7 @@ class PembayaranController extends Controller
                     )->lingkup ?? '-';
 
                 $totalTagihan =
-                    $item->detailPembayaran->sum('subtotal');
+                    $item->detailPembayaran->sum('subtotal') ?: ($item->billing?->total_nominal ?? $item->harga_permohonan ?? 0);
 
                 return [
                     'id' => $item->id,
@@ -60,6 +61,8 @@ class PembayaranController extends Controller
                     'tte_invoice_requested'     => (bool) $item->tte_invoice_requested,
                     'tte_invoice_requested_at'  => $item->tte_invoice_requested_at?->format('Y-m-d H:i:s'),
 
+                    'invoice_number'            => $item->invoice_number ?? $item->billing?->no_billing,
+                    'invoice_file'              => $item->invoice_file ?? $item->billing?->file_invoice,
                     'kuitansi_number'           => $item->kuitansi_number,
                     'kuitansi_file'             => $item->kuitansi_file,
                     'kuitansi_pdf_tte'          => $item->kuitansi_pdf_tte,
@@ -97,7 +100,7 @@ class PembayaranController extends Controller
 
             $userId = auth()->id();
 
-            $permohonan = Permohonan::where('id', $id)
+            $permohonan = Permohonan::with('billing')->where('id', $id)
                 ->where('created_by', $userId)
                 ->firstOrFail();
 
@@ -105,12 +108,12 @@ class PembayaranController extends Controller
                 'success' => true,
                 'data' => [
                     'id'                    => $permohonan->id,
+                    'invoice_number'        => $permohonan->invoice_number ?? $permohonan->billing?->no_billing,
+                    'invoice_file'          => $permohonan->invoice_file ?? $permohonan->billing?->file_invoice,
                     'va'                    => $permohonan->va,
                     'va_trx_id'             => $permohonan->va_trx_id,
                     'va_expired_at'         => $permohonan->va_expired_at?->format('Y-m-d H:i:s'),
                     'va_status'             => $permohonan->va_status ?? 'PENDING',
-                    'invoice_number'        => $permohonan->invoice_number,
-                    'invoice_file'          => $permohonan->invoice_file,
                     'kuitansi_number'       => $permohonan->kuitansi_number,
                     'kuitansi_file'         => $permohonan->kuitansi_file,
                     'kuitansi_generated_at' => $permohonan->kuitansi_generated_at?->format('Y-m-d H:i:s'),
@@ -318,9 +321,7 @@ class PembayaranController extends Controller
         }
 
         try {
-            $pdfContent = null;
-
-            // CEK 1: Apakah file fisik ada di storage?
+            // CEK 1: Apakah file fisik ada di storage atau TTE?
             if (!empty($permohonan->kuitansi_file)) {
                 if (str_starts_with($permohonan->kuitansi_file, 'dummy-esign|')) {
                     $pathStr = explode('|', $permohonan->kuitansi_file)[1];
@@ -332,6 +333,17 @@ class PembayaranController extends Controller
                     $path = storage_path('app/public/' . $permohonan->kuitansi_file);
                     if (file_exists($path)) {
                         $pdfContent = @file_get_contents($path);
+                    }
+                } else {
+                    // Asumsi kuitansi_file menyimpan esign_id dari TTE
+                    try {
+                        $tteService = new TteService();
+                        $result     = $tteService->verifyById($permohonan->kuitansi_file);
+                        if (!empty($result['file_link'])) {
+                            $pdfContent = @file_get_contents($result['file_link']);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning('Gagal verifikasi kuitansi via TTE: ' . $e->getMessage());
                     }
                 }
             }

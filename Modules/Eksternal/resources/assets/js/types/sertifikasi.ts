@@ -70,6 +70,7 @@ export interface SertifikasiFormData {
   nama_perusahaan: string
   badan_hukum?: string
   jenis_perusahaan?: string
+  jenis_perusahaan_id?: number | string
   nomor_akta_pendirian?: string
   nama_pemilik?: string
   nama_pimpinan?: string

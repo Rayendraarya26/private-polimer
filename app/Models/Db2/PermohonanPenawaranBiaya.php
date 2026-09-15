@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Models\Db2;
+
+use App\Models\Db1\SysUser;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PermohonanPenawaranBiaya extends Model
+{
+    use HasFactory;
+
+    protected $table = 'permohonan_penawaran_biaya';
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'total_nominal' => 'decimal:2',
+        'responded_at'  => 'datetime',
+    ];
+
+    protected $appends = [
+        'status',
+        'status_persetujuan',
+        'total_biaya',
+    ];
+
+    public function getStatusAttribute($value)
+    {
+        return $value ?? $this->attributes['status_persetujuan'] ?? 'MENUNGGU';
+    }
+
+    public function getStatusPersetujuanAttribute($value)
+    {
+        return $value ?? $this->attributes['status'] ?? 'MENUNGGU';
+    }
+
+    public function getTotalBiayaAttribute($value)
+    {
+        return $value ?? $this->attributes['total_nominal'] ?? 0;
+    }
+
+    public function getTotalNominalAttribute($value)
+    {
+        return $value ?? $this->attributes['total_biaya'] ?? 0;
+    }
+
+    public function permohonan(): BelongsTo
+    {
+        return $this->belongsTo(Permohonan::class, 'permohonan_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(SysUser::class, 'created_by');
+    }
+}
+

@@ -144,27 +144,19 @@ class SertifikatSeeder extends Seeder
             // B. Buat Form Sertifikasi
             $form = FormSertifikasi::create([
                 'permohonan_id'         => $permohonan->id,
-                'tipe_pengajuan'        => 'BARU',
+                'jenis_pengajuan'       => 'baru',
                 'sertifikat_lama_nomor' => $data['nomor_sertifikat'],
-                'nama_perusahaan'       => 'PT Demo BBSPJIKKP',
-                'alamat_kantor'         => 'Jl. Sukonandi No. 9, Yogyakarta',
-                'kontak_person'         => 'Budi Santoso',
-                'no_telp'               => '0274-512061',
-                'no_whatsapp'           => '081234567890',
-                'email'                 => 'perusahaan@mailinator.com',
-                'dokumen_persyaratan'   => [
-                    'nomor_sertifikat' => $data['nomor_sertifikat'],
+                'komoditas_json'        => [
+                    [
+                        'nama' => $data['komoditi'],
+                        'sni'  => $data['sni'],
+                    ]
                 ],
-            ]);
-
-            // Buat Form Sertifikasi Item
-            \App\Models\Db2\FormSertifikasiItem::create([
-                'form_sertifikasi_id' => $form->id,
-                'nama_produk'         => $data['komoditi'],
-                'merk_dagang'         => 'Merk Demo',
-                'tipe_jenis'          => 'Standar',
-                'standar_sni_iso'     => $data['sni'],
-                'ruang_lingkup'       => $data['lingkup']->lingkup,
+                'jumlah_karyawan_total' => $data['jumlah_karyawan_total'],
+                'jumlah_manajemen'      => 10,
+                'jumlah_administrasi'   => 15,
+                'jumlah_operasional'    => $data['jumlah_karyawan_total'] - 25,
+                'setuju_pernyataan'     => true,
             ]);
 
             // C. Buat Detail Permohonan (Menghubungkan Permohonan ke Lingkup & Form)

@@ -43,7 +43,8 @@ class PermohonanController extends Controller
             'creator',
             'detailPermohonan.formable',
             'detailPermohonan.lingkupLayanan',
-            'detailPembayaran'
+            'detailPembayaran',
+            'penawaranBiaya'
         ]);
 
         if (!$isPegawai) {
@@ -68,16 +69,33 @@ class PermohonanController extends Controller
             $form = $detail?->formable;
             $lingkup = $detail?->lingkupLayanan;
 
-            $statusMap = match ($item->status_workflow) {
-                'DRAFT' => 'draft',
-                'PERMOHONAN' => 'permohonan',
-                'REVISI' => 'revisi',
-                'IN_REVIEW' => 'review',
-                'PEMBAYARAN' => 'pembayaran',
-                'PROCESS' => 'proses',
-                'DONE' => 'selesai',
-                'DITOLAK' => 'ditolak',
-                default => 'draft'
+            // Cek status penawaran biaya
+            $penawaran = $item->penawaranBiaya;
+            $penawaranStatus = strtoupper((string) ($penawaran?->status_persetujuan ?? $penawaran?->status ?? ''));
+            $isPenawaranPending = in_array($penawaranStatus, ['MENUNGGU', 'MENUNGGU_PERSETUJUAN']);
+
+            $isMenungguPersetujuanBiaya = (
+                $penawaran &&
+                $isPenawaranPending &&
+                in_array($item->status_workflow, ['PEMBAYARAN', 'MENUNGGU_PERSETUJUAN_PELANGGAN', 'PENAWARAN_BIAYA'])
+            );
+
+            $statusMap = match (true) {
+                $isMenungguPersetujuanBiaya          => 'menunggu_persetujuan',
+                $item->status_workflow === 'DRAFT'      => 'draft',
+                $item->status_workflow === 'PERMOHONAN' => 'permohonan',
+                $item->status_workflow === 'REVISI'     => 'revisi',
+                $item->status_workflow === 'IN_REVIEW'  => 'review',
+                $item->status_workflow === 'KAJIAN_TEKNIS' => 'review',
+                $item->status_workflow === 'PEMBAYARAN' => 'pembayaran',
+                $item->status_workflow === 'LUNAS'      => 'proses',
+                $item->status_workflow === 'PROSES'     => 'proses',
+                $item->status_workflow === 'PROCESS'    => 'proses',
+                $item->status_workflow === 'PROSES_AUDIT' => 'proses',
+                $item->status_workflow === 'DONE'       => 'selesai',
+                $item->status_workflow === 'SELESAI'    => 'selesai',
+                $item->status_workflow === 'DITOLAK'    => 'ditolak',
+                default                                 => 'draft'
             };
 
             $attachments = $item->file_attachment;
@@ -145,10 +163,12 @@ class PermohonanController extends Controller
                 'persentase_order' => match ($item->status_workflow) {
                     'DRAFT' => 0,
                     'PERMOHONAN' => 20,
-                    'IN_REVIEW' => 40,
+                    'IN_REVIEW', 'KAJIAN_TEKNIS' => 40,
+                    'MENUNGGU_PERSETUJUAN_PELANGGAN', 'PENAWARAN_BIAYA' => 50,
                     'REVISI' => 20,
                     'PEMBAYARAN' => 60,
-                    'PROCESS' => 80,
+                    'LUNAS' => 70,
+                    'PROCESS', 'PROSES_AUDIT' => 80,
                     'DONE' => 100,
                     'DITOLAK' => 0,
                     default => 0
@@ -204,11 +224,11 @@ class PermohonanController extends Controller
             ->count();
 
         $totalSelesai = (clone $query)
-            ->where('status_workflow', 'DONE')
+            ->whereIn('status_workflow', ['DONE', 'SELESAI'])
             ->count();
 
         $totalProses = (clone $query)
-            ->whereIn('status_workflow', ['PROCESS', 'IN_REVIEW'])
+            ->whereIn('status_workflow', ['PROSES', 'PROCESS', 'IN_REVIEW', 'KAJIAN_TEKNIS'])
             ->count();
 
         $totalDitolak = (clone $query)
@@ -383,6 +403,9 @@ class PermohonanController extends Controller
             'detailPermohonan.lingkupLayanan',
             'detailPembayaran',
             'creator',
+            'penawaranBiaya',
+            'creator.pelanggan.detail',
+            'creator.pelanggan.pabrik',
             'formSertifikasi',
             'formPelatihan',
             'formLsp',
@@ -436,23 +459,29 @@ class PermohonanController extends Controller
             // Ignore relation load failure
         }
 
+        $detailData = array_merge($permohonan->toArray(), [
+            'id' => $permohonan->id,
+            'no_permohonan' => $permohonan->no_permohonan,
+            'status_workflow' => $permohonan->status_workflow,
+            'status_bayar' => $permohonan->status_bayar,
+            'tgl_order' => $permohonan->tgl_order,
+            'created_at' => $permohonan->created_at?->toIso8601String(),
+            'formable_type' => $formableType,
+            'formable_id' => $detail?->formable_id ?? $formData?->id,
+            'form_data' => $formData,
+            'lingkup_layanan' => $detail?->lingkupLayanan,
+            'pembayaran' => $permohonan->detailPembayaran,
+            'detail_pembayaran' => $permohonan->detailPembayaran,
+            'penawaran_biaya' => $permohonan->penawaran_biaya ?? $permohonan->penawaranBiaya,
+            'penawaranBiaya' => $permohonan->penawaran_biaya ?? $permohonan->penawaranBiaya,
+            'tracking_logs' => $permohonan->trackingLogs ?? [],
+            'creator' => $permohonan->creator,
+        ]);
+
         return response()->json([
             'success' => true,
             'results' => [
-                'detail' => [
-                    'id' => $permohonan->id,
-                    'no_permohonan' => $permohonan->no_permohonan,
-                    'status_workflow' => $permohonan->status_workflow,
-                    'status_bayar' => $permohonan->status_bayar,
-                    'tgl_order' => $permohonan->tgl_order,
-                    'created_at' => $permohonan->created_at?->format('d M Y, H:i'),
-                    'formable_type' => $formableType,
-                    'formable_id' => $detail?->formable_id ?? $formData?->id,
-                    'form_data' => $formData,
-                    'lingkup_layanan' => $detail?->lingkupLayanan,
-                    'pembayaran' => $permohonan->detailPembayaran,
-                    'creator' => $permohonan->creator,
-                ]
+                'detail' => $detailData,
             ],
             'data' => [
                 'permohonan' => $permohonan,

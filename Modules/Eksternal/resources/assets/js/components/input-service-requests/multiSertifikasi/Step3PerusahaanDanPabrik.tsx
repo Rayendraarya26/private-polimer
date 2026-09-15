@@ -21,6 +21,7 @@ import {
   useRegenciesQuery,
   useDistrictsQuery,
 } from "../../../hooks/queries/useMasterQuery"
+import api from "../../../utils/api"
 
 interface Props {
   formData: SertifikasiFormData
@@ -430,6 +431,13 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
   const { data: rawCompanyDistricts = [], isLoading: loadingCompanyDistricts } = useDistrictsQuery(selectedCompanyKabId)
   const companyDistricts = Array.isArray(rawCompanyDistricts) ? rawCompanyDistricts : []
 
+  const [jenisPerusahaanList, setJenisPerusahaanList] = useState<any[]>([])
+  useEffect(() => {
+    api.get('/eksternal/master/jenis-perusahaan')
+      .then(res => setJenisPerusahaanList(res?.data?.data || []))
+      .catch(() => { })
+  }, [])
+
   // Prefill otomatis dari profil perusahaan
   useEffect(() => {
     if (!detail) return
@@ -445,7 +453,8 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
       fax: prev.fax || detail.fax || "",
       email: prev.email || detail.surel || profileData?.surel || profileData?.email || "",
       badan_hukum: prev.badan_hukum || (detail.bentuk_badan_usaha || "PT"),
-      jenis_perusahaan: prev.jenis_perusahaan || (detail.jenis_perusahaan || "Swasta"),
+      jenis_perusahaan_id: prev.jenis_perusahaan_id || detail.jenis_perusahaan_id || 1,
+      jenis_perusahaan: prev.jenis_perusahaan || detail.jenis_perusahaan || detail.jenis || "Produsen / Pabrikan",
       negara: prev.negara || "Indonesia",
       alamat_kantor: prev.alamat_kantor || detail.alamat || "",
     }))
@@ -672,18 +681,53 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
               />
             </div>
 
-            {/* Status Perusahaan */}
+            {/* Jenis / Peran Perusahaan */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800">
-                Status Perusahaan <span className="text-rose-500">*</span>
+                Jenis / Peran Perusahaan <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.jenis_perusahaan || "Swasta"}
-                onChange={(e) => setFormData({ ...formData, jenis_perusahaan: e.target.value })}
-                placeholder="Swasta"
+              <select
+                value={
+                  formData.jenis_perusahaan_id ||
+                  jenisPerusahaanList.find(
+                    (j: any) =>
+                      j.nama?.toLowerCase() === formData.jenis_perusahaan?.toLowerCase() ||
+                      String(j.id) === String(formData.jenis_perusahaan)
+                  )?.id ||
+                  1
+                }
+                onChange={(e) => {
+                  const selectedId = Number(e.target.value)
+                  const selectedObj = jenisPerusahaanList.find((j: any) => Number(j.id) === selectedId)
+                  setFormData({
+                    ...formData,
+                    jenis_perusahaan_id: selectedId,
+                    jenis_perusahaan: selectedObj?.nama || "Produsen / Pabrikan",
+                  })
+                }}
                 className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
-              />
+              >
+                {jenisPerusahaanList.length > 0 ? (
+                  jenisPerusahaanList.map((item: any) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nama}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value={1}>Produsen / Pabrikan</option>
+                    <option value={2}>Distributor / Penyalur</option>
+                    <option value={3}>Importir</option>
+                    <option value={4}>Eksportir</option>
+                    <option value={5}>Perdagangan Umum</option>
+                    <option value={6}>Jasa</option>
+                    <option value={7}>Agen / Perwakilan Resmi</option>
+                  </>
+                )}
+              </select>
+              <span className="text-[10px] text-slate-400 block">
+                Pilih peran bisnis perusahaan (misal: Produsen untuk pabrik pembuat barang).
+              </span>
             </div>
           </div>
         </CardContent>

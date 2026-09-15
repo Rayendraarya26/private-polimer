@@ -19,7 +19,8 @@ class PembayaranController extends Controller
 
             $data = Permohonan::with([
                 'detailPembayaran',
-                'detailPermohonan.lingkupLayanan'
+                'detailPermohonan.lingkupLayanan',
+                'billing'
             ])
             ->where('status_workflow', 'PEMBAYARAN')
             ->where('created_by', $userId)
@@ -36,7 +37,7 @@ class PembayaranController extends Controller
                     )->lingkup ?? '-';
 
                 $totalTagihan =
-                    $item->detailPembayaran->sum('subtotal');
+                    $item->detailPembayaran->sum('subtotal') ?: ($item->billing?->total_nominal ?? $item->harga_permohonan ?? 0);
 
                 return [
                     'id' => $item->id,
@@ -52,9 +53,9 @@ class PembayaranController extends Controller
                     'status_bayar' => $item->status_bayar,
 
                     // tambahan untuk kebutuhan preview invoice user
-                    'invoice_number' => $item->invoice_number,
+                    'invoice_number' => $item->invoice_number ?? $item->billing?->no_billing,
 
-                    'invoice_file' => $item->invoice_file,
+                    'invoice_file' => $item->invoice_file ?? $item->billing?->file_invoice,
                     'kuitansi_number' => $item->kuitansi_number,
                     'kuitansi_file' => $item->kuitansi_file,
                 ];
@@ -89,7 +90,7 @@ class PembayaranController extends Controller
 
             $userId = auth()->id();
 
-            $permohonan = Permohonan::where('id', $id)
+            $permohonan = Permohonan::with('billing')->where('id', $id)
                 ->where('created_by', $userId)
                 ->firstOrFail();
 
@@ -97,8 +98,8 @@ class PembayaranController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $permohonan->id,
-                    'invoice_number' => $permohonan->invoice_number,
-                    'invoice_file' => $permohonan->invoice_file,
+                    'invoice_number' => $permohonan->invoice_number ?? $permohonan->billing?->no_billing,
+                    'invoice_file' => $permohonan->invoice_file ?? $permohonan->billing?->file_invoice,
                     'kuitansi_number' => $permohonan->kuitansi_number,
                     'kuitansi_file' => $permohonan->kuitansi_file,
                 ]
@@ -124,18 +125,20 @@ class PembayaranController extends Controller
    public function streamInvoice($id)
 {
     $userId = auth()->id();
-    $permohonan = Permohonan::where('id', $id)
+    $permohonan = Permohonan::with('billing')->where('id', $id)
         ->where('created_by', $userId)
         ->firstOrFail();
 
-    if (empty($permohonan->invoice_file)) {
+    $invoiceFile = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+
+    if (empty($invoiceFile)) {
         abort(404, 'Invoice belum tersedia untuk permohonan ini');
     }
 
     try {
         // CEK 1: Apakah file ini berupa path storage lokal (misal berakhiran .pdf)?
-        if (str_ends_with(strtolower($permohonan->invoice_file), '.pdf')) {
-            $path = storage_path('app/public/' . $permohonan->invoice_file);
+        if (str_ends_with(strtolower($invoiceFile), '.pdf')) {
+            $path = storage_path('app/public/' . $invoiceFile);
             if (!file_exists($path)) {
                 abort(404, 'File Invoice tidak ditemukan di storage lokal');
             }
@@ -144,7 +147,7 @@ class PembayaranController extends Controller
         // CEK 2: Jika bukan path file lokal, asumsikan itu adalah TTE / Esign ID
         else {
             $tteService = new \App\Libraries\TteService();
-            $result     = $tteService->verifyById($permohonan->invoice_file);
+            $result     = $tteService->verifyById($invoiceFile);
 
             if (empty($result['file_link'])) {
                 abort(404, 'File Invoice tidak ditemukan di server TTE');
@@ -156,8 +159,8 @@ class PembayaranController extends Controller
             abort(500, 'Gagal mengambil konten PDF');
         }
 
-        $fileName = $permohonan->invoice_number 
-            ? 'Invoice-' . str_replace('/', '-', $permohonan->invoice_number) . '.pdf' 
+        $fileName = ($permohonan->invoice_number ?? $permohonan->billing?->no_billing)
+            ? 'Invoice-' . str_replace('/', '-', ($permohonan->invoice_number ?? $permohonan->billing?->no_billing)) . '.pdf' 
             : 'Invoice-' . $permohonan->no_permohonan . '.pdf';
 
         return response($pdfContent, 200, [

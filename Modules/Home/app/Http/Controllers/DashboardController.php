@@ -98,7 +98,7 @@ class DashboardController
                 'IN_REVIEW' => 'Verifikasi Berkas APL',
                 'REVISI' => 'Perlu Revisi Dokumen',
                 'PEMBAYARAN' => 'Menunggu Approval Invoice',
-                'PROCESS' => 'Sedang Diproses Lab/Asesor',
+                'PROSES', 'PROCESS' => 'Sedang Diproses Lab/Asesor',
                 'DONE', 'SELESAI' => 'Selesai & Siap Terbit',
                 default => 'Dalam Antrean',
             };
@@ -108,7 +108,7 @@ class DashboardController
                 'IN_REVIEW' => 'primary',
                 'REVISI' => 'danger',
                 'PEMBAYARAN' => 'info',
-                'PROCESS' => 'secondary',
+                'PROSES', 'PROCESS' => 'secondary',
                 'DONE', 'SELESAI' => 'success',
                 default => 'light',
             };
@@ -161,7 +161,7 @@ class DashboardController
             ->get();
 
         // 6. User Groups / Role description
-        $userGroups = $user && method_exists($user, 'groups') ? $user->groups->pluck('name')->toArray() : [];
+        $userGroups = $user && $user->sys_user_groups ? $user->sys_user_groups->map(fn($ug) => $ug->sys_group?->name)->filter()->toArray() : [];
         $primaryRole = !empty($userGroups) ? implode(', ', $userGroups) : 'Pegawai Balai';
 
         $parser = [

@@ -91,7 +91,7 @@ class LoginController
             if ($group_id == SysGroup::PELANGGAN->value) {
                 return redirect(url('/app/#/dashboard'));
             }
-            return redirect(url('/app/#/admin/dashboard'));
+            return redirect(route('home'));
         } else {
             if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
                 return responseJSON("Anda tidak memiliki akses ke role yang dipilih.", null, 403);
@@ -229,7 +229,7 @@ class LoginController
             return redirect()->intended(url('/app/#/dashboard'));
         }
 
-        return redirect()->intended(url('/app/#/admin/dashboard'));
+        return redirect()->intended(route('home'));
     }
 
     private function handleFailedLogin($rateLimiterKey, $email)

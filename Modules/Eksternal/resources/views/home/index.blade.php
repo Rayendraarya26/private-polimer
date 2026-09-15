@@ -1269,7 +1269,7 @@
                     </li>
                     <li class="nav-item">
                         @if(auth()->check())
-                            <a class="nav-link" href="{{ auth()->user()->hasGroup(\App\Enums\SysGroup::PELANGGAN) ? url('/app/#/dashboard') : url('/app/#/admin/dashboard') }}">
+                            <a class="nav-link" href="{{ auth()->user()->hasGroup(\App\Enums\SysGroup::PELANGGAN) ? url('/app/#/dashboard') : route('home') }}">
                                 {{ __('home.nav.portal') }}
                             </a>
                         @else

@@ -22,6 +22,44 @@ class PermohonanTrackingLog extends Model
         'metadata' => 'array',
     ];
 
+    protected $appends = [
+        'title',
+        'description',
+        'actor_name',
+    ];
+
+    public function setTitleAttribute($value)
+    {
+        $this->attributes['judul'] = $value;
+    }
+
+    public function getTitleAttribute()
+    {
+        return $this->attributes['judul'] ?? null;
+    }
+
+    public function setDescriptionAttribute($value)
+    {
+        $this->attributes['deskripsi'] = $value;
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->attributes['deskripsi'] ?? null;
+    }
+
+    public function setActorNameAttribute($value)
+    {
+        $meta = $this->metadata ?? [];
+        $meta['actor_name'] = $value;
+        $this->metadata = $meta;
+    }
+
+    public function getActorNameAttribute()
+    {
+        return $this->metadata['actor_name'] ?? null;
+    }
+
     public function permohonan(): BelongsTo
     {
         return $this->belongsTo(Permohonan::class, 'permohonan_id');

@@ -24,6 +24,32 @@ class PermohonanPenawaranBiaya extends Model
         'responded_at'  => 'datetime',
     ];
 
+    protected $appends = [
+        'status',
+        'status_persetujuan',
+        'total_biaya',
+    ];
+
+    public function getStatusAttribute($value)
+    {
+        return $value ?? $this->attributes['status_persetujuan'] ?? 'MENUNGGU';
+    }
+
+    public function getStatusPersetujuanAttribute($value)
+    {
+        return $value ?? $this->attributes['status'] ?? 'MENUNGGU';
+    }
+
+    public function getTotalBiayaAttribute($value)
+    {
+        return $value ?? $this->attributes['total_nominal'] ?? 0;
+    }
+
+    public function getTotalNominalAttribute($value)
+    {
+        return $value ?? $this->attributes['total_biaya'] ?? 0;
+    }
+
     public function permohonan(): BelongsTo
     {
         return $this->belongsTo(Permohonan::class, 'permohonan_id');

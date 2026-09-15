@@ -245,12 +245,18 @@ class InvoiceController extends Controller
      * Route: GET /permohonan/layanan/{id}/download-tte
      */
  
-        public function downloadTte($id)
+    public function downloadTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with('billing')->findOrFail($id);
 
         if (empty($permohonan->pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk invoice ini');
+            $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+            if (!empty($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
+                $filePath = storage_path('app/public/' . $invoicePath);
+                $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+                return response()->download($filePath, $fileName);
+            }
+            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
         }
 
         try {
@@ -279,20 +285,27 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Stream konten PDF TTE langsung ke browser (untuk iframe preview).
-     *
-     * Menggunakan stream bukan redirect karena beberapa browser memblokir
-     * iframe yang memuat PDF dari cross-origin redirect (S3 presigned URL).
+     * Stream konten PDF TTE / Invoice langsung ke browser (untuk iframe preview).
      *
      * Route: GET /permohonan/layanan/{id}/stream-tte
      * Name : permohonan.invoice.stream-tte
      */
     public function streamTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with('billing')->findOrFail($id);
 
         if (empty($permohonan->pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk invoice ini');
+            $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+            if (!empty($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
+                $pdfContent = Storage::disk('public')->get($invoicePath);
+                $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+                return response($pdfContent, 200, [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                    'Content-Length'      => strlen($pdfContent),
+                ]);
+            }
+            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
         }
 
         try {

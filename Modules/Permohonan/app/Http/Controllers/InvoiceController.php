@@ -187,10 +187,36 @@ class InvoiceController extends Controller
             $bendahara        = $this->getBendahara();
 
             $invoiceNumber = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
-            $va            = $permohonan->va ?: '-';
             $total         = $detailPembayaran->sum('subtotal');
 
-            $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va, $total, $pemohon, $bendahara);
+            $va          = $permohonan->va;
+            $vaExpiredAt = $permohonan->va_expired_at;
+            $vaTrxId     = $permohonan->va_trx_id ?: ('INV-' . $permohonan->id);
+
+            if (empty($va) || $va === '-') {
+                try {
+                    $bniService = new BniVaService();
+                    $vaResult = $bniService->createBilling([
+                        'trx_id'           => $vaTrxId,
+                        'trx_amount'       => $total,
+                        'customer_name'    => $pemohon['nama'] ?? 'Pelanggan BBKKP',
+                        'customer_email'   => $pemohon['surel'] ?? '',
+                        'customer_phone'   => $pemohon['telepon'] ?? '',
+                        'datetime_expired' => $vaExpiredAt ? \Carbon\Carbon::parse($vaExpiredAt)->toIso8601String() : now()->addDays(14)->toIso8601String(),
+                        'description'      => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
+                    ]);
+
+                    if (!empty($vaResult['virtual_account'])) {
+                        $va          = $vaResult['virtual_account'];
+                        $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('InvoiceController::approvalInvoice - Gagal create billing BNI: ' . $e->getMessage());
+                    $va = $va ?: '-';
+                }
+            }
+
+            $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va ?: '-', $total, $pemohon, $bendahara);
             $pdfContent = $pdf->output();
             $fileName   = 'invoice-' . $permohonan->no_permohonan . '.pdf';
 

@@ -498,17 +498,31 @@ PHP vars dipakai di konten DAN di script section
                                 const map = {
                                     PERMOHONAN: 'secondary',
                                     IN_REVIEW: 'info',
+                                    KAJIAN_TEKNIS: 'info',
                                     REVISI: 'warning',
                                     PEMBAYARAN: 'primary',
                                     PROSES: 'dark',
+                                    PROCESS: 'dark',
+                                    LUNAS: 'info',
                                     DONE: 'success',
+                                    SELESAI: 'success',
                                     DITOLAK: 'danger'
                                 };
-                                const color = map[data?.toUpperCase()] ?? 'secondary';
-                                const text = data ?
-                                    data.charAt(0).toUpperCase() + data.slice(1).toLowerCase() :
-                                    '-';
-                                return `<span class="badge badge-light-${color}">${text}</span>`;
+                                const uData = data ? data.toUpperCase() : '';
+                                const color = map[uData] ?? 'secondary';
+                                
+                                let labelText = '-';
+                                if (uData === 'PROCESS' || uData === 'PROSES') {
+                                    labelText = 'Proses';
+                                } else if (uData === 'DONE' || uData === 'SELESAI') {
+                                    labelText = 'Selesai';
+                                } else if (uData === 'IN_REVIEW' || uData === 'KAJIAN_TEKNIS') {
+                                    labelText = 'Kajian Teknis';
+                                } else if (uData) {
+                                    labelText = data.charAt(0).toUpperCase() + data.slice(1).toLowerCase();
+                                }
+
+                                return `<span class="badge badge-light-${color}">${labelText}</span>`;
                             }
                         },
                         {

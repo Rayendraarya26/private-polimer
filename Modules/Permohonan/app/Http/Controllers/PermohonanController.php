@@ -70,9 +70,21 @@ class PermohonanController extends Controller
         if ($request->filled('end_date')) {
             $query->whereDate('tgl_order', '<=', $request->end_date);
         }
-        if ($request->filled('status_order')) {
-            $status = array_map('strtoupper', $request->status_order);
-            $query->whereIn('status_workflow', $status);
+        $statusWorkflowList = $request->filled('status_order')
+            ? array_map('strtoupper', $request->status_order)
+            : [];
+
+        if (!empty($statusWorkflowList)) {
+            if (in_array('PROSES', $statusWorkflowList) && !in_array('PROCESS', $statusWorkflowList)) {
+                $statusWorkflowList[] = 'PROCESS';
+            }
+            if (in_array('PROCESS', $statusWorkflowList) && !in_array('PROSES', $statusWorkflowList)) {
+                $statusWorkflowList[] = 'PROSES';
+            }
+            if (in_array('DONE', $statusWorkflowList) && !in_array('SELESAI', $statusWorkflowList)) {
+                $statusWorkflowList[] = 'SELESAI';
+            }
+            $query->whereIn('status_workflow', $statusWorkflowList);
         }
 
 
@@ -107,9 +119,10 @@ class PermohonanController extends Controller
 
     private function datatableBendahara(Request $request): JsonResponse
     {
-        $statusPending = ['DRAFT', 'PERMOHONAN', 'REVISI', 'IN_REVIEW'];
+        $statusPending = ['DRAFT', 'PERMOHONAN', 'REVISI', 'IN_REVIEW', 'KAJIAN_TEKNIS'];
+        $statusPaid = ['PEMBAYARAN', 'PROSES', 'PROCESS', 'LUNAS', 'DONE', 'SELESAI'];
 
-
+        // Instansi yang masih memiliki permohonan pending/revisi
         $excludePending = Permohonan::whereNotNull('tgl_order')
             ->whereNotNull('id_pt_ins')
             ->whereIn('status_workflow', $statusPending)
@@ -117,28 +130,17 @@ class PermohonanController extends Controller
             ->unique()
             ->toArray();
 
-
+        // 1. Ambil ID representatif untuk permohonan kolektif (memiliki id_pt_ins)
         $validIdPtIns = Permohonan::whereNotNull('tgl_order')
             ->whereNotNull('id_pt_ins')
             ->when(!empty($excludePending), fn($q) => $q->whereNotIn('id_pt_ins', $excludePending))
-            ->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'DONE'])
+            ->whereIn('status_workflow', $statusPaid)
             ->pluck('id_pt_ins')
             ->unique()
             ->toArray();
 
-
-        if (empty($validIdPtIns)) {
-            return DataTables::eloquent(
-                Permohonan::query()
-                    ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
-                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file'])
-                    ->whereRaw('1=0')
-            )->make(true);
-        }
-
-
-        $representativeIds = Permohonan::whereIn('id_pt_ins', $validIdPtIns)
-            ->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'DONE'])
+        $collectiveIds = Permohonan::whereIn('id_pt_ins', $validIdPtIns)
+            ->whereIn('status_workflow', $statusPaid)
             ->whereNotNull('tgl_order')
             ->orderBy('tgl_order', 'asc')
             ->get(['id', 'id_pt_ins'])
@@ -146,6 +148,24 @@ class PermohonanController extends Controller
             ->map(fn($group) => $group->first()->id)
             ->values()
             ->toArray();
+
+        // 2. Ambil ID permohonan individual (tanpa id_pt_ins) yang siap bayar/proses
+        $individualIds = Permohonan::whereNotNull('tgl_order')
+            ->whereNull('id_pt_ins')
+            ->whereIn('status_workflow', $statusPaid)
+            ->pluck('id')
+            ->toArray();
+
+        $representativeIds = array_merge($collectiveIds, $individualIds);
+
+        if (empty($representativeIds)) {
+            return DataTables::eloquent(
+                Permohonan::query()
+                    ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
+                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file'])
+                    ->whereRaw('1=0')
+            )->make(true);
+        }
 
 
         $query = Permohonan::query()
@@ -162,6 +182,15 @@ class PermohonanController extends Controller
         }
         if ($request->filled('status_order')) {
             $status = array_map('strtoupper', $request->status_order);
+            if (in_array('PROSES', $status) && !in_array('PROCESS', $status)) {
+                $status[] = 'PROCESS';
+            }
+            if (in_array('PROCESS', $status) && !in_array('PROSES', $status)) {
+                $status[] = 'PROSES';
+            }
+            if (in_array('DONE', $status) && !in_array('SELESAI', $status)) {
+                $status[] = 'SELESAI';
+            }
             $query->whereIn('status_workflow', $status);
         }
 
@@ -170,38 +199,39 @@ class PermohonanController extends Controller
             ->editColumn('no_permohonan', fn($row) => $row->no_permohonan)
             ->editColumn('tgl_order', fn($row) => $row->tgl_order)
             ->addColumn('user', function ($row) {
-                $grup = Permohonan::where('id_pt_ins', $row->id_pt_ins)
-                    ->with('detailPermohonan.formable')
-                    ->get();
+                if ($row->id_pt_ins) {
+                    $grup = Permohonan::where('id_pt_ins', $row->id_pt_ins)
+                        ->with('detailPermohonan.formable')
+                        ->get();
 
+                    $statusPaid = ['PEMBAYARAN', 'PROSES', 'PROCESS', 'LUNAS', 'DONE', 'SELESAI'];
+                    $aktif = $grup->whereIn('status_workflow', $statusPaid);
+                    $formable = $row->detailPermohonan->first()?->formable;
 
-                $aktif = $grup->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'DONE']);
+                    if ($aktif->count() > 1 && $formable?->nama_instansi) {
+                        return $formable->nama_instansi
+                            . ' <small class="text-muted">(' . $aktif->count() . ' peserta)</small>';
+                    }
+
+                    if ($aktif->count() > 1) {
+                        $names = $aktif->map(
+                            fn($g) =>
+                            $g->detailPermohonan->first()?->formable?->nama_lengkap
+                        )->filter()->unique()->values();
+
+                        if ($names->isEmpty())
+                            return '-';
+                        if ($names->count() === 1)
+                            return $names->first();
+                        return $names->first()
+                            . ' <small class="text-muted">+' . ($names->count() - 1) . ' lainnya</small>';
+                    }
+
+                    return $formable?->nama_instansi ?? $formable?->nama_lengkap ?? '-';
+                }
+
                 $formable = $row->detailPermohonan->first()?->formable;
-
-
-                if ($aktif->count() > 1 && $formable?->nama_instansi) {
-                    return $formable->nama_instansi
-                        . ' <small class="text-muted">(' . $aktif->count() . ' peserta)</small>';
-                }
-
-
-                if ($aktif->count() > 1) {
-                    $names = $aktif->map(
-                        fn($g) =>
-                        $g->detailPermohonan->first()?->formable?->nama_lengkap
-                    )->filter()->unique()->values();
-
-
-                    if ($names->isEmpty())
-                        return '-';
-                    if ($names->count() === 1)
-                        return $names->first();
-                    return $names->first()
-                        . ' <small class="text-muted">+' . ($names->count() - 1) . ' lainnya</small>';
-                }
-
-
-                return $formable?->nama_lengkap ?? '-';
+                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP'))
@@ -334,9 +364,12 @@ class PermohonanController extends Controller
                 DB::beginTransaction();
                 try {
                     $permohonan->update([
-                        'status_workflow' => 'PEMBAYARAN',
-                        'total_harga' => $request->nominal,
-                        'catatan_admin' => $path,
+                        'status_workflow'      => 'PEMBAYARAN',
+                        'total_harga'          => $request->nominal,
+                        'harga_permohonan'     => $request->nominal,
+                        'file_surat_penawaran' => $path,
+                        'status_penawaran'     => 'proses',
+                        'catatan_admin'        => $path,
                     ]);
 
                     DetailPembayaran::where('permohonan_id', $id)->delete();
@@ -348,14 +381,6 @@ class PermohonanController extends Controller
                         'harga_satuan' => $request->nominal,
                         'kuantitas' => 1,
                         'subtotal' => $request->nominal,
-                    ]);
-
-                    PermohonanPenawaranBiaya::create([
-                        'id' => (string) Str::uuid(),
-                        'permohonan_id' => $permohonan->id,
-                        'total_biaya' => $request->nominal,
-                        'file_surat_penawaran' => $path,
-                        'status' => 'MENUNGGU_PERSETUJUAN',
                     ]);
 
                     PermohonanTrackingLog::create([
@@ -784,21 +809,14 @@ class PermohonanController extends Controller
                 $filePath = $request->file('file_surat_penawaran')->store('surat_penawaran', 'public');
             }
 
-            // Simpan ke tabel permohonan_penawaran_biaya
-            $penawaran = PermohonanPenawaranBiaya::create([
-                'id' => (string) Str::uuid(),
-                'permohonan_id' => $permohonan->id,
-                'total_biaya' => $request->input('total_biaya'),
-                'rincian_json' => $request->input('rincian_item'),
-                'file_surat_penawaran' => $filePath,
-                'catatan' => $request->input('catatan_marketing'),
-                'status' => 'MENUNGGU_PERSETUJUAN',
-            ]);
-
-            // Update status permohonan
+            // Update status permohonan dengan kolom flat penawaran
             $permohonan->update([
-                'total_harga' => $request->input('total_biaya'),
-                'status_workflow' => 'MENUNGGU_PERSETUJUAN_PELANGGAN',
+                'total_harga'          => $request->input('total_biaya'),
+                'harga_permohonan'     => $request->input('total_biaya'),
+                'file_surat_penawaran' => $filePath,
+                'status_penawaran'     => 'proses',
+                'catatan_penawaran'    => $request->input('catatan_marketing'),
+                'status_workflow'      => 'MENUNGGU_PERSETUJUAN_PELANGGAN',
             ]);
 
             // Sinkronkan ke rincian tabel detail_pembayaran
@@ -819,10 +837,13 @@ class PermohonanController extends Controller
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
                 'milestone_code' => 'PENAWARAN_BIAYA_TERKIRIM',
-                'title' => 'Surat Penawaran Biaya Diterbitkan',
-                'description' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($request->input('total_biaya'), 0, ',', '.') . '.',
-                'actor_name' => auth()->user()?->name ?? 'Tim Marketing',
+                'judul' => 'Surat Penawaran Biaya Diterbitkan',
+                'deskripsi' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($request->input('total_biaya'), 0, ',', '.') . '.',
+                'metadata' => [
+                    'actor_name' => auth()->user()?->name ?? 'Tim Marketing',
+                ],
             ]);
 
             DB::commit();

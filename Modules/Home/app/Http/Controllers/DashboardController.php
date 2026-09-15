@@ -38,8 +38,8 @@ class DashboardController
             $trendGrowth = ($diff >= 0 ? '+' : '') . round($diff) . '%';
         }
 
-        $menungguVerifikasi = Permohonan::whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW'])->count();
-        $sedangProses = Permohonan::where('status_workflow', 'PROCESS')->count();
+        $menungguVerifikasi = Permohonan::whereIn('status_workflow', ['PERMOHONAN', 'IN_REVIEW', 'KAJIAN_TEKNIS'])->count();
+        $sedangProses = Permohonan::whereIn('status_workflow', ['PROSES', 'PROCESS'])->count();
         $siapTerbit = Permohonan::whereIn('status_workflow', ['DONE', 'SELESAI'])->count();
         $menungguBayar = Permohonan::where('status_workflow', 'PEMBAYARAN')->count();
         $permohonanRevisi = Permohonan::where('status_workflow', 'REVISI')->count();

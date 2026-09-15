@@ -25,6 +25,8 @@ use Illuminate\Support\Str;
 use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
 use App\Models\Db2\PermohonanTrackingLog;
 use App\Models\Db2\PermohonanPenawaranBiaya;
+use App\Models\Db2\Billing;
+use Modules\Webhook\Services\SisSyncBridgingService;
 
 class SertifikasiController extends Controller
 {
@@ -551,7 +553,10 @@ class SertifikasiController extends Controller
                 'detailPermohonan.lingkupLayanan',
                 'formSertifikasi',
                 'detailPembayaran',
-                'penawaranBiaya'
+                'penawaranBiaya',
+                'creator.pelanggan.detail',
+                'creator.pelanggan.pabrik',
+                'trackingLogs',
             ])
             ->first();
 
@@ -764,49 +769,83 @@ class SertifikasiController extends Controller
         $permohonan = Permohonan::where('id', $id)->where('created_by', $userId)->firstOrFail();
         $penawaran = PermohonanPenawaranBiaya::where('permohonan_id', $id)->latest()->first();
 
-        if (!$penawaran || $penawaran->status !== 'MENUNGGU_PERSETUJUAN') {
+        $currentStatus = $penawaran?->status_persetujuan ?? $penawaran?->status ?? ($permohonan->status_penawaran === 'proses' ? 'MENUNGGU' : $permohonan->status_penawaran);
+        $isMenunggu = in_array(strtoupper((string) $currentStatus), ['MENUNGGU', 'MENUNGGU_PERSETUJUAN', 'PROSES']) || $permohonan->status_penawaran === 'proses';
+
+        if ((!$penawaran && $permohonan->status_penawaran !== 'proses') || !$isMenunggu) {
             return response()->json(['success' => false, 'message' => 'Tidak ada penawaran aktif yang memerlukan persetujuan'], 400);
         }
 
         DB::beginTransaction();
         try {
+            $catatan = $request->input('catatan');
+
             if ($request->input('keputusan') === 'SETUJU') {
-                $penawaran->update([
-                    'status' => 'DISETUJUI',
-                    'responded_at' => now(),
-                    'catatan_respon' => $request->input('catatan'),
-                ]);
+                if ($penawaran) {
+                    $tableName = $penawaran->getTable();
+                    $connection = $penawaran->getConnectionName();
+                    $hasColumnStatus = \Illuminate\Support\Facades\Schema::connection($connection)->hasColumn($tableName, 'status');
+                    $hasColumnCatatanRespon = \Illuminate\Support\Facades\Schema::connection($connection)->hasColumn($tableName, 'catatan_respon');
+
+                    $updatePenawaran = [
+                        'status_persetujuan' => 'DISETUJUI',
+                        'responded_at' => now(),
+                    ];
+                    if ($hasColumnStatus) $updatePenawaran['status'] = 'DISETUJUI';
+                    if ($hasColumnCatatanRespon) $updatePenawaran['catatan_respon'] = $catatan;
+                    $penawaran->update($updatePenawaran);
+                }
 
                 $permohonan->update([
-                    'status_workflow' => 'PEMBAYARAN', // Siap diterbitkan Invoice oleh Bendahara
+                    'status_penawaran' => 'setuju',
+                    'status_workflow'  => 'PEMBAYARAN', // Siap diterbitkan Invoice oleh Bendahara
                 ]);
 
                 PermohonanTrackingLog::create([
                     'id' => (string) Str::uuid(),
                     'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
                     'milestone_code' => 'PENAWARAN_BIAYA_DISETUJUI',
-                    'title' => 'Penawaran Biaya Disetujui Pelanggan',
-                    'description' => 'Pelanggan telah menyetujui nominal penawaran biaya. Menunggu penerbitan Invoice Billing dari Bendahara.',
-                    'actor_name' => auth()->user()?->name ?? 'Pelanggan',
+                    'judul' => 'Penawaran Biaya Disetujui Pelanggan',
+                    'deskripsi' => 'Pelanggan telah menyetujui nominal penawaran biaya. Menunggu penerbitan Invoice Billing dari Bendahara.',
+                    'metadata' => [
+                        'actor_name' => auth()->user()?->name ?? 'Pelanggan',
+                    ],
                 ]);
             } else {
-                $penawaran->update([
-                    'status' => 'DITOLAK',
-                    'responded_at' => now(),
-                    'catatan_respon' => $request->input('catatan'),
-                ]);
+                if ($penawaran) {
+                    $tableName = $penawaran->getTable();
+                    $connection = $penawaran->getConnectionName();
+                    $hasColumnStatus = \Illuminate\Support\Facades\Schema::connection($connection)->hasColumn($tableName, 'status');
+                    $hasColumnCatatanRespon = \Illuminate\Support\Facades\Schema::connection($connection)->hasColumn($tableName, 'catatan_respon');
+                    $hasColumnAlasanPenolakan = \Illuminate\Support\Facades\Schema::connection($connection)->hasColumn($tableName, 'alasan_penolakan');
+
+                    $updatePenawaran = [
+                        'status_persetujuan' => 'DITOLAK',
+                        'responded_at' => now(),
+                    ];
+                    if ($hasColumnStatus) $updatePenawaran['status'] = 'DITOLAK';
+                    if ($hasColumnCatatanRespon) $updatePenawaran['catatan_respon'] = $catatan;
+                    if ($hasColumnAlasanPenolakan) $updatePenawaran['alasan_penolakan'] = $catatan;
+                    $penawaran->update($updatePenawaran);
+                }
 
                 $permohonan->update([
-                    'status_workflow' => 'PENAWARAN_BIAYA', // Dikembalikan ke Marketing
+                    'status_penawaran'  => 'tolak',
+                    'catatan_penawaran' => $catatan,
+                    'status_workflow'   => 'PENAWARAN_BIAYA', // Dikembalikan ke Marketing
                 ]);
 
                 PermohonanTrackingLog::create([
                     'id' => (string) Str::uuid(),
                     'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
                     'milestone_code' => 'PENAWARAN_BIAYA_DITOLAK',
-                    'title' => 'Negosiasi Penawaran Biaya Diajukan',
-                    'description' => 'Catatan pelanggan: ' . ($request->input('catatan') ?? 'Penawaran biaya perlu ditinjau ulang.'),
-                    'actor_name' => auth()->user()?->name ?? 'Pelanggan',
+                    'judul' => 'Negosiasi Penawaran Biaya Diajukan',
+                    'deskripsi' => 'Catatan pelanggan: ' . ($catatan ?? 'Penawaran biaya perlu ditinjau ulang.'),
+                    'metadata' => [
+                        'actor_name' => auth()->user()?->name ?? 'Pelanggan',
+                    ],
                 ]);
             }
 
@@ -842,20 +881,33 @@ class SertifikasiController extends Controller
 
             $permohonan->update([
                 'status_bayar' => 'LUNAS',
-                'status_workflow' => 'PROCESS',
-                'tgl_bayar' => now(),
+                'status_workflow' => 'PROSES',
                 'kuitansi_number' => $kuitansiNumber,
                 'invoice_number' => $invoiceNumber,
             ]);
+
+            // Sinkronkan status billing jika sudah terbit billing untuk permohonan ini
+            Billing::where('permohonan_id', $permohonan->id)
+                ->orWhereHas('items', function ($q) use ($permohonan) {
+                    $q->where('mohon_id', $permohonan->id);
+                })
+                ->update([
+                    'status_pembayaran' => 'LUNAS',
+                    'tgl_lunas' => now(),
+                    'metode_pembayaran' => 'VIRTUAL_ACCOUNT_BNI',
+                ]);
 
             // Catat ke log tracking
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
                 'milestone_code' => 'PEMBAYARAN_LUNAS_TESTING',
-                'title' => 'Pembayaran Lunas (Simulasi Testing)',
-                'description' => 'Tagihan biaya sertifikasi telah berhasil disimulasikan lunas. Kuitansi digital terbit dan diteruskan ke SIS.',
-                'actor_name' => auth()->user()?->name ?? 'Pelanggan (Testing)',
+                'judul' => 'Pembayaran Lunas (Simulasi Testing)',
+                'deskripsi' => 'Tagihan biaya sertifikasi telah berhasil disimulasikan lunas. Kuitansi digital terbit dan diteruskan ke SIS.',
+                'metadata' => [
+                    'actor_name' => auth()->user()?->name ?? 'Pelanggan (Testing)',
+                ],
             ]);
 
             DB::commit();
@@ -888,5 +940,168 @@ class SertifikasiController extends Controller
             'success' => true,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * Pelanggan menyetujui temuan audit Tahap 1 dan mengunggah berkas perbaikan
+     */
+    public function approveTemuanTahap1(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'status'         => 'nullable|string|in:setuju,revisi',
+            'catatan'        => 'nullable|string|max:2000',
+            'file_perbaikan' => 'nullable|file|max:20480', // Maks 20MB
+        ]);
+
+        $userId = auth()->id();
+        $permohonan = Permohonan::where('id', $id)->where('created_by', $userId)->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            $catatan = $request->input('catatan');
+            $status = $request->input('status', 'setuju');
+            $fileUrl = null;
+            $fileName = null;
+
+            if ($request->hasFile('file_perbaikan')) {
+                $file = $request->file('file_perbaikan');
+                $fileName = $file->getClientOriginalName();
+                $filePath = $this->saveCustomerFile($file, 'perbaikan_tahap1');
+                $fileUrl = $this->getFileUrl($filePath);
+
+                // Tambahkan file ke attachment permohonan jika belum ada
+                $rawAttachments = $permohonan->file_attachment;
+                $currentAttachments = is_array($rawAttachments)
+                    ? $rawAttachments
+                    : (is_string($rawAttachments) ? json_decode($rawAttachments, true) : []);
+
+                if (!is_array($currentAttachments)) {
+                    $currentAttachments = [];
+                }
+
+                $currentAttachments[] = [
+                    'kode'        => 'PERBAIKAN_TAHAP_1',
+                    'nama'        => 'Berkas Tindak Lanjut Perbaikan Temuan Tahap 1 (' . $fileName . ')',
+                    'file_url'    => $fileUrl,
+                    'path'        => $filePath,
+                    'uploaded_at' => now()->toIso8601String(),
+                    'actor'       => auth()->user()?->name ?? 'Pelanggan',
+                    'created_at'  => now()->toIso8601String(),
+                ];
+
+                $permohonan->update([
+                    'file_attachment' => $currentAttachments,
+                ]);
+            }
+
+            // Catat log timeline di Polimer
+            PermohonanTrackingLog::create([
+                'id'             => (string) Str::uuid(),
+                'permohonan_id'  => $permohonan->id,
+                'sumber'         => 'POLIMER',
+                'milestone_code' => 'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
+                'judul'          => 'Tindak Lanjut & Perbaikan Temuan Tahap 1 Dikirim',
+                'deskripsi'      => $catatan ? "Catatan Pemohon: {$catatan}" : 'Pelanggan telah menyetujui catatan temuan dokumen dan mengirimkan berkas perbaikan.',
+                'metadata'       => [
+                    'actor_name' => auth()->user()?->name ?? 'Pelanggan',
+                    'file_url'   => $fileUrl,
+                    'file_name'  => $fileName,
+                    'status'     => $status,
+                ],
+            ]);
+
+            DB::commit();
+
+            // Kirim bridging callback ke SIS
+            $bridgingService = app(SisSyncBridgingService::class);
+            $bridgeRes = $bridgingService->syncApproveTemuanTahap1ToSis($permohonan, [
+                'status'              => $status,
+                'catatan'             => $catatan,
+                'file_perbaikan_url'  => $fileUrl,
+                'file_perbaikan_name' => $fileName,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Persetujuan dan berkas perbaikan temuan Tahap 1 berhasil dikirim ke Tim Auditor.',
+                'data'    => [
+                    'sis_sync' => $bridgeRes,
+                ],
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error approveTemuanTahap1: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses persetujuan temuan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Rollback status dan riwayat Audit Tahap 1 pada Polimer
+     */
+    public function rollbackAuditTahap1(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->orWhere('kode_order', $id)
+            ->firstOrFail();
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Hapus riwayat permohonan terkait persetujuan temuan / verifikasi tahap 1
+            $permohonan->riwayatPermohonan()
+                ->whereIn('keterangan', [
+                    'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
+                    'AUDIT_TAHAP_1_VERIFIED',
+                    'LAPORAN_AUDIT_TAHAP_1_SUBMITTED'
+                ])
+                ->orWhere(function ($q) use ($permohonan) {
+                    $q->where('permohonan_id', $permohonan->id)
+                      ->where('catatan', 'like', '%menyetujui temuan%');
+                })
+                ->delete();
+
+            // 2. Hapus tracking log terkait
+            PermohonanTrackingLog::where('permohonan_id', $permohonan->id)
+                ->whereIn('milestone_code', [
+                    'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
+                    'AUDIT_TAHAP_1_VERIFIED',
+                    'LAPORAN_AUDIT_TAHAP_1_SUBMITTED'
+                ])
+                ->delete();
+
+            // 3. Pastikan status workflow tetap di tahap audit
+            if (in_array($permohonan->status_workflow, ['PROCESS', 'AUDIT_TAHAP_2', 'DONE'])) {
+                $permohonan->update([
+                    'status_workflow' => 'AUDIT_TAHAP_1',
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Riwayat & hasil Audit Tahap 1 untuk permohonan {$permohonan->no_permohonan} berhasil di-rollback.",
+                'data'    => [
+                    'permohonan_id'   => $permohonan->id,
+                    'no_permohonan'   => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
+                ],
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error rollbackAuditTahap1: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal rollback riwayat audit tahap 1: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

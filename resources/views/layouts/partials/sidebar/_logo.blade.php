@@ -1,28 +1,22 @@
 <!--begin::Logo-->
-<div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
+<div class="app-sidebar-logo px-6 border-bottom border-gray-200 d-flex align-items-center justify-content-center position-relative w-100" id="kt_app_sidebar_logo" style="height: 70px;">
     <!--begin::Logo image-->
-    <a href="{{ route('home') }}">
-        <img alt="Logo" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-45px app-sidebar-logo-default theme-light-show"/>
-        <img alt="Logo" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-45px app-sidebar-logo-default theme-dark-show"/>
+    <a href="{{ route('home') }}" class="d-flex align-items-center justify-content-center text-decoration-none w-100">
+        <img alt="Logo" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-40px app-sidebar-logo-default theme-light-show"/>
+        <img alt="Logo" src="{{ asset('assets/media/logos/polimer-logo.svg') }}" class="h-40px app-sidebar-logo-default theme-dark-show"/>
         <img alt="Logo" src="{{ asset('assets/media/logos/logo-only.png') }}" class="h-35px app-sidebar-logo-minimize"/>
     </a>
     <!--end::Logo image-->
+
     <!--begin::Sidebar toggle-->
-    <!--begin::Minimized sidebar setup:
-        if (isset($_COOKIE["sidebar_minimize_state"]) && $_COOKIE["sidebar_minimize_state"] === "on") {
-            1. "src/js/layout/sidebar.js" adds "sidebar_minimize_state" cookie value to save the sidebar minimize state.
-            2. Set data-kt-app-sidebar-minimize="on" attribute for body tag.
-            3. Set data-kt-toggle-state="active" attribute to the toggle element with "kt_app_sidebar_toggle" id.
-            4. Add "active" class to to sidebar toggle element with "kt_app_sidebar_toggle" id.
-        }
-    -->
     <div
         id="kt_app_sidebar_toggle"
-        class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary h-30px w-30px position-absolute top-50 start-100 translate-middle rotate "
+        class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary h-30px w-30px position-absolute top-50 start-100 translate-middle rotate"
         data-kt-toggle="true"
         data-kt-toggle-state="active"
         data-kt-toggle-target="body"
         data-kt-toggle-name="app-sidebar-minimize"
+        title="Kecilkan Sidebar"
     >
         <i class="fa-duotone fa-arrow-left-long-to-line fs-5 rotate-180"></i>
     </div>

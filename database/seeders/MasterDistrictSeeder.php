@@ -13,20 +13,28 @@ class MasterDistrictSeeder extends Seeder
      */
     public function run(): void
     {
-         $dataProvinces = fopen(storage_path("db_migration/districts.csv"), 'r');
+        $dataProvinces = fopen(storage_path("db_migration/districts.csv"), 'r');
         $loop = 1;
         $now = Carbon::now();
+        $batch = [];
         while (($data = fgetcsv($dataProvinces, 0, ",")) !== FALSE) {
             if ($loop > 1) {
-                DB::table('master_kecamatan')
-                    ->insert([
-                        "kec_id" => $data[0],
-                        "kab_id" => $data[1],
-                        "kec_nama" => $data[2],
-                        "created_at" => $now
-                    ]);
+                $batch[] = [
+                    "kec_id" => $data[0],
+                    "kab_id" => $data[1],
+                    "kec_nama" => $data[2],
+                    "created_at" => $now
+                ];
+                if (count($batch) >= 500) {
+                    DB::table('master_kecamatan')->insert($batch);
+                    $batch = [];
+                }
             }
             $loop++;
         }
+        if (!empty($batch)) {
+            DB::table('master_kecamatan')->insert($batch);
+        }
+        fclose($dataProvinces);
     }
 }

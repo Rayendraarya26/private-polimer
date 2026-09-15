@@ -17,24 +17,27 @@ class GroupSeeder extends Seeder
         $data_group = [
             ['name' => 'Root', 'desc' => 'Root Super Access', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::ROOT],
             ['name' => 'Admin', 'desc' => 'Manage Setting', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::ADMIN],
-            ['name' => 'Pelanggan', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PELANGGAN],
-            ['name' => 'Pegawai', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PEGAWAI],
-            ['name' => 'Bendahara', 'desc' => 'Pelanggan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::BENDAHARA],
+            ['name' => 'Pelanggan', 'desc' => 'Pelanggan Layanan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PELANGGAN],
+            ['name' => 'Pegawai', 'desc' => 'Pegawai', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::PEGAWAI],
+            ['name' => 'Bendahara', 'desc' => 'Bendahara Penerimaan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::BENDAHARA],
+            ['name' => 'Marketing', 'desc' => 'Tim Pemasaran & Verifikasi Permohonan', 'is_active' => 'yes', 'id' => \App\Enums\SysGroup::MARKETING],
         ];
 
         foreach ($data_group as $group) {
-            SysGroup::query()->create([
-                'id' => $group['id'],
-                'name' => $group['name'],
-                'desc' => $group['desc'],
-                'is_active' => $group['is_active'],
-            ]);
+            SysGroup::query()->firstOrCreate(
+                ['id' => $group['id']],
+                [
+                    'name' => $group['name'],
+                    'desc' => $group['desc'],
+                    'is_active' => $group['is_active'],
+                ]
+            );
         }
 
         // Insert All Permission to root user
         $data = SysMenuAction::all();
         foreach ($data as $d) {
-            SysGroupPermission::query()->create([
+            SysGroupPermission::query()->firstOrCreate([
                 'group_id' => \App\Enums\SysGroup::ROOT,
                 'action_id' => $d->id,
             ]);
@@ -47,7 +50,7 @@ class GroupSeeder extends Seeder
         ])->get();
 
         foreach ($invoiceActions as $action) {
-            SysGroupPermission::query()->create([
+            SysGroupPermission::query()->firstOrCreate([
                 'group_id'  => \App\Enums\SysGroup::BENDAHARA,
                 'action_id' => $action->id,
             ]);

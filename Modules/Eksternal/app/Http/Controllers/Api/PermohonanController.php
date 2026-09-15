@@ -3,6 +3,7 @@
 namespace Modules\Eksternal\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncPermohonanToSisJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,14 +35,21 @@ class PermohonanController extends Controller
 
     public function index(Request $request)
     {
-        $userId = Auth::id();
-        $rows = min($request->get('rows', 10), 50);
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+        $rows = min($request->get('rows', 10), 100);
 
         $query = Permohonan::with([
+            'creator',
             'detailPermohonan.formable',
             'detailPermohonan.lingkupLayanan',
-            'detailPembayaran'
-        ])->where('created_by', $userId);
+            'detailPembayaran',
+            'penawaranBiaya'
+        ]);
+
+        if (!$isPegawai) {
+            $query->where('created_by', $user?->id);
+        }
 
         if ($request->filled('status')) {
             $query->where('status_workflow', strtoupper($request->status));
@@ -61,16 +69,33 @@ class PermohonanController extends Controller
             $form = $detail?->formable;
             $lingkup = $detail?->lingkupLayanan;
 
-            $statusMap = match ($item->status_workflow) {
-                'DRAFT' => 'draft',
-                'PERMOHONAN' => 'permohonan',
-                'REVISI' => 'revisi',
-                'IN_REVIEW' => 'review',
-                'PEMBAYARAN' => 'pembayaran',
-                'PROCESS' => 'proses',
-                'DONE' => 'selesai',
-                'DITOLAK' => 'ditolak',
-                default => 'draft'
+            // Cek status penawaran biaya
+            $penawaran = $item->penawaranBiaya;
+            $penawaranStatus = strtoupper((string) ($penawaran?->status_persetujuan ?? $penawaran?->status ?? ''));
+            $isPenawaranPending = in_array($penawaranStatus, ['MENUNGGU', 'MENUNGGU_PERSETUJUAN']);
+
+            $isMenungguPersetujuanBiaya = (
+                $penawaran &&
+                $isPenawaranPending &&
+                in_array($item->status_workflow, ['PEMBAYARAN', 'MENUNGGU_PERSETUJUAN_PELANGGAN', 'PENAWARAN_BIAYA'])
+            );
+
+            $statusMap = match (true) {
+                $isMenungguPersetujuanBiaya          => 'menunggu_persetujuan',
+                $item->status_workflow === 'DRAFT'      => 'draft',
+                $item->status_workflow === 'PERMOHONAN' => 'permohonan',
+                $item->status_workflow === 'REVISI'     => 'revisi',
+                $item->status_workflow === 'IN_REVIEW'  => 'review',
+                $item->status_workflow === 'KAJIAN_TEKNIS' => 'review',
+                $item->status_workflow === 'PEMBAYARAN' => 'pembayaran',
+                $item->status_workflow === 'LUNAS'      => 'proses',
+                $item->status_workflow === 'PROSES'     => 'proses',
+                $item->status_workflow === 'PROCESS'    => 'proses',
+                $item->status_workflow === 'PROSES_AUDIT' => 'proses',
+                $item->status_workflow === 'DONE'       => 'selesai',
+                $item->status_workflow === 'SELESAI'    => 'selesai',
+                $item->status_workflow === 'DITOLAK'    => 'ditolak',
+                default                                 => 'draft'
             };
 
             $attachments = $item->file_attachment;
@@ -92,35 +117,68 @@ class PermohonanController extends Controller
                 ];
             })->values()->toArray();
 
+            $namaPemohon = $form?->nama_perusahaan 
+                ?? $form?->nama_lengkap 
+                ?? $form?->nama_peserta 
+                ?? $item->creator?->name 
+                ?? '-';
+
+            $layananNama = $lingkup?->lingkup;
+            if (!$layananNama) {
+                if (str_starts_with($item->no_permohonan, 'CERT')) $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
+                elseif (str_starts_with($item->no_permohonan, 'LSP')) $layananNama = 'Sertifikasi Profesi (LSP)';
+                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN')) $layananNama = 'Bimtek / Pelatihan';
+                else $layananNama = 'Layanan BBKKP';
+            }
+
+            $komoditi = null;
+            if ($form instanceof \App\Models\Db2\FormSertifikasi) {
+                $komoditi = $form->items?->first()?->nama_produk ?? $form->nama_perusahaan;
+            } elseif ($form instanceof \App\Models\Db2\FormPelatihan) {
+                $komoditi = $form->masalah_materi ?? $form->hal_dipelajari ?? 'Bimbingan Teknis & Pelatihan';
+            } elseif ($form instanceof \App\Models\Db2\FormLsp) {
+                $komoditi = $form->jenis_produk ?? $form->jabatan ?? 'Sertifikasi Kompetensi BNSP';
+            }
+
+            $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
+
             return [
                 'id' => $item->id,
                 'kode_order' => $item->no_permohonan ?? '-',
+                'no_order' => $item->no_permohonan ?? '-',
 
-                // PERBAIKAN DISINI
-                'layanan' => $lingkup?->lingkup ?? '-',
+                'layanan' => $layananNama,
                 'layanan_slug' => $lingkup?->slug ?? null,
+                'komoditi' => $komoditi,
 
                 'status_order' => $statusMap,
+                'status_workflow' => $item->status_workflow,
                 'status_bayar' => strtolower($item->status_bayar ?? 'belum'),
 
                 'tanggal_order' => $item->tgl_order,
+                'created_at' => $item->created_at?->toISOString() ?? (string) $item->created_at,
+                'tanggal_permohonan' => $item->created_at?->toISOString() ?? (string) $item->created_at,
                 'catatan_admin' => $item->catatan_admin,
 
                 'persentase_order' => match ($item->status_workflow) {
                     'DRAFT' => 0,
                     'PERMOHONAN' => 20,
-                    'IN_REVIEW' => 40,
+                    'IN_REVIEW', 'KAJIAN_TEKNIS' => 40,
+                    'MENUNGGU_PERSETUJUAN_PELANGGAN', 'PENAWARAN_BIAYA' => 50,
                     'REVISI' => 20,
                     'PEMBAYARAN' => 60,
-                    'PROCESS' => 80,
+                    'LUNAS' => 70,
+                    'PROCESS', 'PROSES_AUDIT' => 80,
                     'DONE' => 100,
                     'DITOLAK' => 0,
                     default => 0
                 },
 
-                'nama' => $form?->nama_lengkap ?? '-',
-                'email' => $form?->email ?? '-',
-                'instansi' => $form?->nama_instansi ?? '-',
+                'nama' => $namaPemohon,
+                'pelanggan' => $namaPemohon,
+                'email' => $form?->email ?? $item->creator?->email ?? '-',
+                'instansi' => $form?->nama_perusahaan ?? $form?->nama_instansi ?? '-',
+                'total_tagihan' => (float)$totalNominal,
 
                 'is_given_feedback' => (bool) ($item->is_given_feedback ?? false),
 
@@ -141,12 +199,22 @@ class PermohonanController extends Controller
 
     public function statistik(Request $request)
     {
-        $userId = Auth::id(); // WAJIB ditambahkan
-
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
         $tahun = $request->get('tahun', now()->year);
 
-        $query = Permohonan::where('created_by', $userId)
-            ->whereYear('tgl_order', $tahun);
+        $query = Permohonan::query();
+
+        if (!$isPegawai) {
+            $query->where('created_by', $user?->id);
+        }
+
+        $query->where(function ($q) use ($tahun) {
+            $q->whereYear('tgl_order', $tahun)
+              ->orWhere(function ($sub) use ($tahun) {
+                  $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
+              });
+        });
 
         $totalAll = (clone $query)->count();
 
@@ -156,11 +224,11 @@ class PermohonanController extends Controller
             ->count();
 
         $totalSelesai = (clone $query)
-            ->where('status_workflow', 'DONE')
+            ->whereIn('status_workflow', ['DONE', 'SELESAI'])
             ->count();
 
         $totalProses = (clone $query)
-            ->whereIn('status_workflow', ['PROCESS', 'IN_REVIEW'])
+            ->whereIn('status_workflow', ['PROSES', 'PROCESS', 'IN_REVIEW', 'KAJIAN_TEKNIS'])
             ->count();
 
         $totalDitolak = (clone $query)
@@ -308,6 +376,9 @@ class PermohonanController extends Controller
 
         DB::commit();
 
+        // Sync permohonan ke SIS secara async
+        SyncPermohonanToSisJob::dispatch($permohonan->id);
+
         return response()->json([
             'success' => true,
             'message' => 'Permohonan berhasil diajukan ke admin'
@@ -322,35 +393,205 @@ class PermohonanController extends Controller
         ], 500);
     }
 }
-public function show($id)
-{
-    $userId = Auth::id();
+    public function show($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
 
-    $permohonan = Permohonan::with([
-        'detailPermohonan.formable',
-        'detailPermohonan.lingkupLayanan',
-        'detailPembayaran'
-    ])
-    ->where('created_by', $userId)
-    ->where('id', $id) 
-    ->firstOrFail();
+        $query = Permohonan::with([
+            'detailPermohonan.formable',
+            'detailPermohonan.lingkupLayanan',
+            'detailPembayaran',
+            'creator',
+            'penawaranBiaya',
+            'creator.pelanggan.detail',
+            'creator.pelanggan.pabrik',
+            'formSertifikasi',
+            'formPelatihan',
+            'formLsp',
+        ]);
 
-    $detail = $permohonan->detailPermohonan?->first();
+        if (!$isPegawai && $user) {
+            $permohonan = (clone $query)->where('created_by', $user->id)->find($id);
+            if (!$permohonan) {
+                // Fallback jika created_by dibuat oleh admin atau anggota perusahaan terkait
+                $permohonan = $query->find($id);
+            }
+        } else {
+            $permohonan = $query->find($id);
+        }
 
-    return response()->json([
-        'success' => true,
-        'results' => [
-            'detail' => [
-                'id' => $permohonan->id,
-                'no_permohonan' => $permohonan->no_permohonan,
-                'formable_type' => $detail?->formable_type,
-                'formable_id' => $detail?->formable_id,
-                'form_data' => $detail?->formable,
-                'lingkup_layanan' => $detail?->lingkupLayanan,
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan tidak ditemukan'
+            ], 404);
+        }
+
+        $detail = $permohonan->detailPermohonan?->first();
+        $formData = $detail?->formable;
+        $formableType = $detail?->formable_type;
+
+        // Fallback detection if detailPermohonan formable is not resolved
+        if (!$formData) {
+            if ($permohonan->formSertifikasi && $permohonan->formSertifikasi->isNotEmpty()) {
+                $formData = $permohonan->formSertifikasi->first();
+                $formableType = \App\Models\Db2\FormSertifikasi::class;
+            } elseif ($permohonan->formPelatihan && $permohonan->formPelatihan->isNotEmpty()) {
+                $formData = $permohonan->formPelatihan->first();
+                $formableType = \App\Models\Db2\FormPelatihan::class;
+            } elseif ($permohonan->formLsp && $permohonan->formLsp->isNotEmpty()) {
+                $formData = $permohonan->formLsp->first();
+                $formableType = \App\Models\Db2\FormLsp::class;
+            }
+        }
+
+        // Load nested relations safely if relations exist
+        try {
+            if ($formData instanceof \App\Models\Db2\FormSertifikasi) {
+                $formData->load(['items', 'pabrik']);
+            } elseif ($formData instanceof \App\Models\Db2\FormPelatihan && method_exists($formData, 'peserta')) {
+                $formData->load(['peserta']);
+            } elseif ($formData instanceof \App\Models\Db2\FormLsp && method_exists($formData, 'peserta')) {
+                $formData->load(['peserta']);
+            }
+        } catch (\Throwable $e) {
+            // Ignore relation load failure
+        }
+
+        $detailData = array_merge($permohonan->toArray(), [
+            'id' => $permohonan->id,
+            'no_permohonan' => $permohonan->no_permohonan,
+            'status_workflow' => $permohonan->status_workflow,
+            'status_bayar' => $permohonan->status_bayar,
+            'tgl_order' => $permohonan->tgl_order,
+            'created_at' => $permohonan->created_at?->toIso8601String(),
+            'formable_type' => $formableType,
+            'formable_id' => $detail?->formable_id ?? $formData?->id,
+            'form_data' => $formData,
+            'lingkup_layanan' => $detail?->lingkupLayanan,
+            'pembayaran' => $permohonan->detailPembayaran,
+            'detail_pembayaran' => $permohonan->detailPembayaran,
+            'penawaran_biaya' => $permohonan->penawaran_biaya ?? $permohonan->penawaranBiaya,
+            'penawaranBiaya' => $permohonan->penawaran_biaya ?? $permohonan->penawaranBiaya,
+            'tracking_logs' => $permohonan->trackingLogs ?? [],
+            'creator' => $permohonan->creator,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'results' => [
+                'detail' => $detailData,
+            ],
+            'data' => [
+                'permohonan' => $permohonan,
+                'form' => $formData,
             ]
-        ]
-    ]);
-}
-   
+        ]);
+    }
+
+    public function requestTteInvoice($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->firstOrFail();
+
+        if (!$isPegawai && $permohonan->created_by !== $user?->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke permohonan ini.'
+            ], 403);
+        }
+
+        if (empty($permohonan->invoice_file)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice belum diterbitkan oleh Marketing.'
+            ], 422);
+        }
+
+        $permohonan->update([
+            'tte_invoice_requested'    => true,
+            'tte_invoice_requested_at' => now(),
+        ]);
+
+        // Notifikasi ke grup Bendahara
+        $bendaharaUserIds = \App\Models\Db1\SysUserGroup::where('group_id', \App\Enums\SysGroup::BENDAHARA->value)
+            ->pluck('user_id');
+
+        foreach ($bendaharaUserIds as $bendaharaId) {
+            \App\Models\Db1\SysUserNotif::create([
+                'user_id' => $bendaharaId,
+                'title'   => 'Permintaan TTE Invoice BSrE',
+                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Invoice ' . ($permohonan->invoice_number ?: $permohonan->no_permohonan),
+                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan TTE Invoice BSrE berhasil dikirim ke Bendahara.',
+            'data'    => [
+                'tte_invoice_requested'    => true,
+                'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
+            ]
+        ]);
+    }
+
+    public function requestTteKuitansi($id)
+    {
+        $user = Auth::user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->firstOrFail();
+
+        if (!$isPegawai && $permohonan->created_by !== $user?->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke permohonan ini.'
+            ], 403);
+        }
+
+        if ($permohonan->status_bayar !== 'LUNAS') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembayaran belum lunas. TTE Kuitansi hanya dapat diajukan setelah pembayaran terverifikasi.'
+            ], 422);
+        }
+
+        $permohonan->update([
+            'tte_kuitansi_requested'    => true,
+            'tte_kuitansi_requested_at' => now(),
+        ]);
+
+        // Notifikasi ke grup Bendahara
+        $bendaharaUserIds = \App\Models\Db1\SysUserGroup::where('group_id', \App\Enums\SysGroup::BENDAHARA->value)
+            ->pluck('user_id');
+
+        foreach ($bendaharaUserIds as $bendaharaId) {
+            \App\Models\Db1\SysUserNotif::create([
+                'user_id' => $bendaharaId,
+                'title'   => 'Permintaan TTE Kuitansi BSrE',
+                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Kuitansi Pembayaran ' . ($permohonan->kuitansi_number ?: $permohonan->no_permohonan),
+                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Permintaan TTE Kuitansi BSrE berhasil dikirim ke Bendahara.',
+            'data'    => [
+                'tte_kuitansi_requested'    => true,
+                'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,
+            ]
+        ]);
+    }
 }
 

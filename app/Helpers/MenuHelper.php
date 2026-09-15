@@ -6,9 +6,13 @@ if (!function_exists('isSubmenuOpen')) {
     function isSubmenuOpen($objMenu, $url): bool
     {
         if (count($objMenu->children) == 0 && $objMenu->controller != '#') {
-            $menuUrl = action($objMenu->controller);
-            if (($menuUrl == $url || Str::startsWith($url, $menuUrl))) {
-                return true;
+            try {
+                $menuUrl = action($objMenu->controller);
+                if (($menuUrl == $url || Str::startsWith($url, $menuUrl))) {
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                // Ignore missing parameters for parameterized actions
             }
         }
 

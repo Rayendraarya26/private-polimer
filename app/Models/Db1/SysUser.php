@@ -63,9 +63,28 @@ class SysUser extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function getPictureUrlAttribute(): ?string
+    {
+        if (empty($this->picture)) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Storage::disk('s3')->temporaryUrl($this->picture, now()->addWeek());
+        } catch (\Throwable $e) {
+            return asset('storage/' . $this->picture);
+        }
+    }
+
     public function isPegawai(): bool
     {
         return $this->sys_user_groups()->where('group_id', '!=', \App\Enums\SysGroup::PELANGGAN->value)->exists();
+    }
+
+    public function hasGroup(\App\Enums\SysGroup|string $group): bool
+    {
+        $groupId = $group instanceof \App\Enums\SysGroup ? $group->value : $group;
+        return $this->sys_user_groups()->where('group_id', $groupId)->exists();
     }
 
     public function sendPasswordResetNotification($token): void

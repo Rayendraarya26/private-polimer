@@ -13,6 +13,7 @@ class SysGroup extends Model
     protected $table = 'sys_group';
 
     protected $fillable = [
+        'id',
         'name',
         'desc',
         'is_active',

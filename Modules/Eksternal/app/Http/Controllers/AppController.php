@@ -12,10 +12,6 @@ class AppController extends Controller
 {
     public function index()
     {
-        if (session('group_selected') !== SysGroup::PELANGGAN->value) {
-            return redirect('/dashboard');
-        }
-
         return view('eksternal::app');
     }
 }

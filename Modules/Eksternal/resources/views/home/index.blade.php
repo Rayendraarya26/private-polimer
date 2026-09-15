@@ -39,11 +39,33 @@
         }
 
         main {
-            gap: rem;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
         }
 
         .section-wrapper {
-            max-width: 1440px
+            max-width: 1440px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            .section-wrapper {
+                padding-left: 2.5rem;
+                padding-right: 2.5rem;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .section-wrapper {
+                padding-left: 3.5rem;
+                padding-right: 3.5rem;
+            }
         }
 
         .navbar-nav {
@@ -150,7 +172,7 @@
             margin: 0;
             width: 100%;
             visibility: hidden;
-            overflow: visible !important;
+            overflow: hidden !important;
         }
 
         .slick-carousel-testimonials.slick-initialized {
@@ -160,6 +182,7 @@
         .slick-carousel-testimonials .slick-list {
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
 
         .slick-carousel-testimonials .slick-slide {
@@ -174,12 +197,12 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 20 !important;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             padding: 0 !important;
             border-radius: 50% !important;
-            background: rgba(20, 184, 166, 0.1) !important;
-            border: 2px solid rgba(20, 184, 166, 0.3) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid rgba(20, 184, 166, 0.5) !important;
             transition: all 0.3s ease;
             display: flex !important;
             align-items: center;
@@ -187,23 +210,23 @@
             cursor: pointer !important;
             pointer-events: auto !important;
             outline: none !important;
-            box-shadow: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
         }
 
         .slick-carousel-testimonials .slick-prev {
-            left: -70px;
+            left: 5px;
         }
 
         .slick-carousel-testimonials .slick-next {
-            right: -70px;
+            right: 5px;
         }
 
         .slick-carousel-testimonials .slick-prev:hover,
         .slick-carousel-testimonials .slick-next:hover,
         .slick-carousel-testimonials .slick-prev:focus,
         .slick-carousel-testimonials .slick-next:focus {
-            background: rgba(20, 184, 166, 0.2) !important;
-            border-color: rgba(20, 184, 166, 0.6) !important;
+            background: #14b8a6 !important;
+            border-color: #14b8a6 !important;
         }
 
         .slick-carousel-testimonials .slick-prev:before,
@@ -213,9 +236,9 @@
 
         .slick-carousel-testimonials .slick-prev svg,
         .slick-carousel-testimonials .slick-next svg {
-            width: 24px;
-            height: 24px;
-            opacity: 0.8;
+            width: 20px;
+            height: 20px;
+            opacity: 0.9;
             transition: opacity 0.3s ease;
             pointer-events: none;
         }
@@ -226,40 +249,22 @@
             pointer-events: none;
         }
 
-        .slick-carousel-testimonials .slick-prev:hover svg,
-        .slick-carousel-testimonials .slick-next:hover svg {
-            opacity: 1;
-        }
-
-        @media (max-width: 1024px) {
-            .slick-carousel-testimonials .slick-prev {
-                left: -60px;
-            }
-
-            .slick-carousel-testimonials .slick-next {
-                right: -60px;
-            }
+        .slick-carousel-testimonials .slick-prev:hover svg path,
+        .slick-carousel-testimonials .slick-next:hover svg path {
+            stroke: #ffffff !important;
         }
 
         @media (max-width: 768px) {
             .slick-carousel-testimonials .slick-prev,
             .slick-carousel-testimonials .slick-next {
-                width: 40px;
-                height: 40px;
-            }
-
-            .slick-carousel-testimonials .slick-prev {
-                left: -55px;
-            }
-
-            .slick-carousel-testimonials .slick-next {
-                right: -55px;
+                width: 36px;
+                height: 36px;
             }
 
             .slick-carousel-testimonials .slick-prev svg,
             .slick-carousel-testimonials .slick-next svg {
-                width: 20px;
-                height: 20px;
+                width: 16px;
+                height: 16px;
             }
         }
 
@@ -1211,7 +1216,7 @@
 
 @section('content')
     <nav class="navbar shadow fixed-top navbar-expand-lg navbar-light d-flex justify-content-center">
-        <div class="container-fluid w-100 section-wrapper m-0 p-0">
+        <div class="container-fluid w-100 section-wrapper">
             <a
                 class="navbar-brand logo-bg"
                 href="https://bbkkp.kemenperin.go.id"
@@ -1237,13 +1242,13 @@
                 class="collapse navbar-collapse p-4"
                 id="navbarNavDropdown"
             >
-                <ul class="navbar-nav fw-bold fs-1" style="gap: 0.1rem;">
+                <ul class="navbar-nav fw-bold fs-1 align-items-lg-center" style="gap: 0.1rem;">
                     <li class="nav-item">
                         <a
                             class="nav-link"
                             href="#our-services"
                         >
-                            Layanan Kami
+                            {{ __('home.nav.services') }}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1251,7 +1256,7 @@
                             class="nav-link"
                             href="#about-us"
                         >
-                            Tentang Kami
+                            {{ __('home.nav.about') }}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1259,20 +1264,39 @@
                             class="nav-link"
                             href="#contact-us"
                         >
-                            Hubungi Kami
+                            {{ __('home.nav.contact') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         @if(auth()->check())
-                            <a class="nav-link" href="{{ route('home') }}">
-                                Polimer
+                            <a class="nav-link" href="{{ auth()->user()->hasGroup(\App\Enums\SysGroup::PELANGGAN) ? url('/app/#/dashboard') : url('/app/#/admin/dashboard') }}">
+                                {{ __('home.nav.portal') }}
                             </a>
                         @else
                             <a class="nav-link" href="{{ route('auth.login') }}">
-                                Login
+                                {{ __('home.nav.login') }}
                             </a>
                         @endif
-
+                    </li>
+                    <li class="nav-item d-flex align-items-center ms-lg-3 my-2 my-lg-0">
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle px-3 py-2 rounded-pill d-flex align-items-center gap-2 fw-semibold" type="button" id="dropdownLang" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.95rem; border: 1.5px solid currentColor;">
+                                <i class="fas fa-globe"></i>
+                                <span>{{ strtoupper(app()->getLocale()) }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 mt-2" aria-labelledby="dropdownLang" style="min-width: 140px;">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 {{ app()->getLocale() == 'id' ? 'active fw-bold' : '' }}" href="{{ route('lang.switch', 'id') }}">
+                                        <span>🇮🇩</span> <span>Indonesia</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 {{ app()->getLocale() == 'en' ? 'active fw-bold' : '' }}" href="{{ route('lang.switch', 'en') }}">
+                                        <span>🇬🇧</span> <span>English</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -1287,6 +1311,8 @@
                             src="{{ $item['image_url'] }}"
                             class="banner-image-background"
                             data-parallax="true"
+                            loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                            decoding="async"
                         >
                         @if($item['title'] && $item['description'])
                             <div class="banner-card text-white d-flex flex-column gap-3">
@@ -1312,7 +1338,7 @@
         </section>
 
         <!-- Company Overview Section -->
-        <section class="company-overview-section w-100 d-flex justify-content-center">
+        <section class="company-overview-section w-100 d-flex justify-content-center overflow-hidden">
             <div class="w-100 section-wrapper d-flex flex-column">
                 <div class="company-overview-container">
                     <!-- Left Column: Logo & Description -->
@@ -1336,15 +1362,15 @@
 
         <section
             id='our-services'
-            class="w-100 d-flex justify-content-center py-5"
+            class="w-100 d-flex justify-content-center py-5 overflow-hidden"
         >
             <div class="w-100 section-wrapper">
                 <div class="services-section-wrapper">
                     <!-- Left Column: Title & Description -->
                     <div class="services-content-left">
-                        <h3 class="services-title">Layanan Kami</h3>
+                        <h3 class="services-title">{{ __('home.services.title') }}</h3>
                         <p class="services-description">
-                            JIS memiliki 13 jenis layanan jasa unggulan yang telah akreditasi dan sertifikasi untuk berbagai kebutuhan industri Anda
+                            {{ __('home.services.description') }}
                         </p>
                     </div>
 
@@ -1358,6 +1384,8 @@
                                             src="{{ $item['image_url'] }}"
                                             alt="{{ $item['name'] }}"
                                             class="service-card-image"
+                                            loading="lazy"
+                                            decoding="async"
                                         >
                                         <span class="service-card-number">{{ $loop->iteration }}</span>
                                     </div>
@@ -1371,7 +1399,7 @@
                                             {!! $item['description'] !!}
                                         </div>
                                         @if($charCount > 250)
-                                            <button class="read-more-btn" type="button">Baca Selengkapnya</button>
+                                            <button class="read-more-btn" type="button">{{ __('home.services.read_more') }}</button>
                                         @endif
                                     </div>
                                 </div>
@@ -1384,27 +1412,29 @@
 
         <!-- Registration Section -->
         <section
-            class="w-100 d-flex justify-content-center registration-section"
+            class="w-100 d-flex justify-content-center registration-section overflow-hidden"
         >
             <div class="w-100 d-flex justify-content-center">
                 <div class="section-wrapper d-flex justify-content-center">
                     <div class="text-center py-2 registration-content">
                         
-                        <div class="fs-2 fw-bold mb-4 text-white">Ada yang bisa kami bantu? </div>
+                        <div class="fs-2 fw-bold mb-4 text-white">{{ __('home.cta.title') }}</div>
                         <img
                             alt="Logo"
                             src="{{ asset('assets/media/logos/logo-polimer.png') }}"
                             style="width: 256px;"
                             class="d-block mx-auto mb-4"
+                            loading="lazy"
+                            decoding="async"
                         />
-                        <p class="text-white mt-4">Daftar sekarang untuk konsultasi gratis dan solusi terbaik untukftar sekarang untuk konsultasi gratis dan solusi terbaik untuk bisnis Anda</p>
+                        <p class="text-white mt-4">{{ __('home.cta.description') }}</p>
                         <br>
                         <div class="d-flex justify-content-center">
                             <a
                                 href="{{ route('auth.register') }}"
                                 class="btn btn-primary"
                             >
-                                Daftar Sekarang
+                                {{ __('home.cta.button') }}
                             </a>
                         </div>
                     </div>
@@ -1413,11 +1443,11 @@
         </section>
 
         <section
-            class="w-100 d-flex justify-content-center"
-            style="padding: 5rem;"
+            class="w-100 d-flex justify-content-center overflow-hidden"
+            style="padding: 4rem 0;"
         >
-            <div class="w-100 section-wrapper d-flex flex-column gap-5 py-5">
-                <div class="fs-1 fw-bold text-center">Mitra Kami</div>
+            <div class="w-100 section-wrapper d-flex flex-column gap-5 py-3">
+                <div class="fs-1 fw-bold text-center">{{ __('home.partners.title') }}</div>
                 <div class="slick-carousel-partners">
                     @foreach($partners as $item)
                         <div class="p-4 d-flex justify-content-center align-items-center h-100">
@@ -1425,6 +1455,8 @@
                                 src="{{ $item['image_url'] }}"
                                 class="w-50 rounded-3 mitra-logo"
                                 style="object-fit: contain;"
+                                loading="lazy"
+                                decoding="async"
                             >
                         </div>
                     @endforeach
@@ -1434,17 +1466,19 @@
         
         <section
             id="about-us"
-            class="w-100 d-flex justify-content-center"
+            class="w-100 d-flex justify-content-center overflow-hidden"
             style="padding: 4rem 0;"
         >
             <div class="w-100 section-wrapper">
-                <div class="w-100 row">
+                <div class="w-100 row mx-0 g-4">
                     <div class="col-12 d-flex flex-column align-items-center gap-5 pb-5">
-                        <div class="fs-1 fw-bold text-center">Tentang Kami</div>
+                        <div class="fs-1 fw-bold text-center">{{ __('home.about.title') }}</div>
                         <img
                             alt=""
                             class="w-50 w-lg-25"
                             src="{{ asset('assets/media/logos/logo-jis.png') }}"
+                            loading="lazy"
+                            decoding="async"
                         />
                     </div>
                     <div class="col-12 col-lg-6 d-flex flex-column gap-5">
@@ -1492,12 +1526,12 @@
         </section>
 
         <section
-            class="w-100 d-flex justify-content-center testimonials-section"
+            class="w-100 d-flex justify-content-center testimonials-section overflow-hidden"
         >
-            <div class="w-100 section-wrapper d-flex flex-column gap-5">
+            <div class="w-100 section-wrapper d-flex flex-column gap-5 position-relative">
                 <div class="testimonials-header text-center">
-                    <h3 class="services-title">Ulasan dan Komentar</h3>
-                    <p class="mb-0">Kepercayaan klien adalah prioritas kami. </br>Berikut pengalaman mereka bekerja dengan Jogja Industial Services</p>
+                    <h3 class="services-title">{{ __('home.testimonials.title') }}</h3>
+                    <p class="mb-0">{!! __('home.testimonials.subtitle') !!}</p>
                 </div>
                 <div class="slick-carousel-testimonials">
                     @foreach($testimonials as $index => $item)
@@ -1520,6 +1554,8 @@
                                         class="testimonial-avatar"
                                         alt="{{ $item['title'] }}"
                                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;"
+                                        loading="lazy"
+                                        decoding="async"
                                     >
                                 @else
                                     <div class="testimonial-avatar {{ $avatarClass }}">
@@ -1539,14 +1575,14 @@
 
         <section
             id="contact-us"
-            class="w-100 d-flex justify-content-center text-white"
-            style="padding: 2rem; background: linear-gradient(to right, #14b8a6, #0891b2);"
+            class="w-100 d-flex justify-content-center text-white overflow-hidden"
+            style="padding: 4rem 0; background: linear-gradient(to right, #14b8a6, #0891b2);"
         >
             <div class="w-100 section-wrapper">
-                <div class="w-100 row py-5">
+                <div class="w-100 row mx-0 py-3">
                     <div class="col-12 col-lg-7 d-flex flex-column gap-4">
-                        <div class="fs-4 fw-bold py-4">Waspadalah terhadap penipuan yang mengatasnamakan kami</div>
-                        <div class="fs-1 fw-bold">Hubungi Kami</div>
+                        <div class="fs-4 fw-bold py-4">{{ __('home.contact.warning') }}</div>
+                        <div class="fs-1 fw-bold">{{ __('home.contact.title') }}</div>
                         @if(session('success'))
                             <div class="alert alert-success">{{ session('success') }}</div>
                         @endif
@@ -1556,10 +1592,10 @@
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
                                     <label for="nama" class="form-label text-white">
-                                        Nama Lengkap <span class="required">*</span>
+                                        {{ __('home.contact.full_name') }} <span class="required">*</span>
                                     </label>
                                     <input type="text" required class="form-control" id="nama"
-                                           name="nama" placeholder="Masukkan Nama Lengkap"
+                                           name="nama" placeholder="{{ __('home.contact.placeholder_name') }}"
                                            value="{{ old('nama') }}">
                                     @error('nama')
                                     <div class="text-danger fw-bold">{{ $message }}</div>
@@ -1567,10 +1603,10 @@
                                 </div>
                                 <div class="w-100">
                                     <label for="email" class="form-label text-white">
-                                        Alamat Email <span class="required">*</span>
+                                        {{ __('home.contact.email') }} <span class="required">*</span>
                                     </label>
                                     <input type="email" required class="form-control" id="email"
-                                           name="email" placeholder="Masukkan Alamat Email"
+                                           name="email" placeholder="{{ __('home.contact.placeholder_email') }}"
                                            value="{{ old('email') }}">
                                     @error('email')
                                     <div class="text-danger fw-bold">{{ $message }}</div>
@@ -1580,10 +1616,10 @@
                             <div class="w-100 d-flex flex-column flex-lg-row gap-5">
                                 <div class="w-100">
                                     <label for="instansi" class="form-label text-white">
-                                        Nama Perusahaan / Instansi <span class="required">*</span>
+                                        {{ __('home.contact.company') }} <span class="required">*</span>
                                     </label>
                                     <input type="text" required class="form-control" id="instansi"
-                                           name="instansi" placeholder="Masukkan Nama Perusahaan / Instansi"
+                                           name="instansi" placeholder="{{ __('home.contact.placeholder_company') }}"
                                            value="{{ old('instansi') }}">
                                     @error('instansi')
                                     <div class="text-danger fw-bold">{{ $message }}</div>
@@ -1591,11 +1627,11 @@
                                 </div>
                                 <div class="w-100">
                                     <label for="telp" class="form-label text-white">
-                                        Nomor Telepon <span class="required">*</span>
+                                        {{ __('home.contact.phone') }} <span class="required">*</span>
                                     </label>
                                     <!-- <small class="text-light d-block mb-2">Gunakan awalan 62, contoh: 628123456789</small> -->
                                     <input type="text" required class="form-control" id="telp"
-                                           name="telp" placeholder="Masukkan Nomor Telepon"
+                                           name="telp" placeholder="{{ __('home.contact.placeholder_phone') }}"
                                            value="{{ old('telp') }}"
                                            inputmode="numeric">
                                     @error('telp')
@@ -1605,10 +1641,10 @@
                             </div>
                             <div class="w-100">
                                 <label for="pesan" class="for text-whitem-label">
-                                    Pesan <span class="required">*</span>
+                                    {{ __('home.contact.message') }} <span class="required">*</span>
                                 </label>
                                 <textarea class="form-control" required id="pesan" name="pesan"
-                                          placeholder="Tulis Pesan..." rows="3"
+                                          placeholder="{{ __('home.contact.placeholder_message') }}" rows="3"
                                 >{{ old('pesan') }}</textarea>
                                 @error('pesan')
                                 <div class="text-danger fw-bold">{{ $message }}</div>
@@ -1616,13 +1652,13 @@
                             </div>
                             <div class="w-100 d-flex justify-content-start">
                                 <button type="button" class="btn bg-tosca text-white" id="btnSubmitContactUs"
-                                >Kirim
+                                >{{ __('home.contact.send') }}
                                 </button>
                             </div>
                         </form>
                     </div>
                     <div class="col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center gap-5">
-                        <div class="fs-2 fw-bold py-4">Lokasi Kami</div>
+                        <div class="fs-2 fw-bold py-4">{{ __('home.contact.location') }}</div>
                         <img
                             alt=""
                             class="w-75"
@@ -1631,7 +1667,7 @@
                         <div class="w-100 w-lg-75 d-flex flex-column gap-3">
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-solid fa-location-dot pt-1 text-white"></i>
-                                <div>Jl. Sokonandi No. 9 Yogyakarta, Indonesia 55166</div>
+                                <div>{{ __('home.contact.address') }}</div>
                             </div>
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-solid fa-phone pt-1 text-white"></i>
@@ -1658,13 +1694,13 @@
                                 class="d-inline-flex gap-3 text-white"
                             >
                                 <i class="fa-solid fa-globe pt-1 text-white"></i>
-                                <div>Website</div>
+                                <div>{{ __('home.contact.website') }}</div>
                             </a>
                             <div class="d-inline-flex gap-3">
                                 <i class="fa-regular fa-clock pt-1 text-white"></i>
                                 <div>
-                                    <div>Senin - Jumat: 08:00 - 15:30</div>
-                                    <div>Sabtu, Minggu: Tutup</div>
+                                    <div>{{ __('home.contact.hours_weekday') }}</div>
+                                    <div>{{ __('home.contact.hours_weekend') }}</div>
                                 </div>
                             </div>
                             <div class="d-inline-flex align-items-center gap-3 pt-2">
@@ -1686,34 +1722,7 @@
         </section>
     </main>
     <footer class="w-100 text-center py-5">
-        <div class="w-100 d-flex justify-content-center align-items-center gap-5 mb-4">
-            <!-- <img
-                draggable="false"
-                class="footer-img"
-                src="{{ asset('assets/media/misc/berani-jujur-hebat.png') }}"
-            />
-            <img
-                draggable="false"
-                class="footer-img"
-                src="{{ asset('assets/media/misc/no-korupsi.png') }}"
-            />
-            <img
-                draggable="false"
-                class="footer-img"
-                src="{{ asset('assets/media/misc/no-gratifikasi.png') }}"
-            />
-            <img
-                draggable="false"
-                class="footer-img"
-                src="{{ asset('assets/media/misc/berakhlak.png') }}"
-            />
-            <img
-                draggable="false"
-                class="footer-img"
-                src="{{ asset('assets/media/misc/bangga-melayani-bangsa.png') }}"
-            /> -->
-        </div>
-        <p class="mb-0">&copy; {{ date('Y') }} Jogja Industrial Services - BBSPJIKKP.</p>
+        <p class="mb-0">&copy; {{ date('Y') }} {{ __('home.footer.copyright') }}</p>
     </footer>
 @endsection
 
@@ -1934,37 +1943,62 @@
             }
         });
 
-        window.addEventListener("scroll", (event) => {
-            const nav = document.querySelector('nav')
-            const logo = document.querySelector('img.logo')
-            if (this.scrollY > 200) {
-                nav.classList.add('bg-light')
-                logo.classList.add('scrolled')
+        // Navbar background transition on scroll
+        const updateNavbarScroll = () => {
+            const nav = document.querySelector('nav');
+            const logo = document.querySelector('img.logo');
+            const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+            
+            if (scrollPos > 40) {
+                if (nav && !nav.classList.contains('bg-light')) {
+                    nav.classList.add('bg-light');
+                }
+                if (logo && !logo.classList.contains('scrolled')) {
+                    logo.classList.add('scrolled');
+                }
             } else {
-                nav.classList.remove('bg-light')
-                logo.classList.remove('scrolled')
+                if (nav && nav.classList.contains('bg-light')) {
+                    nav.classList.remove('bg-light');
+                }
+                if (logo && logo.classList.contains('scrolled')) {
+                    logo.classList.remove('scrolled');
+                }
             }
-        });
+        };
+
+        // Initialize immediately on load and on scroll
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateNavbarScroll);
+        } else {
+            updateNavbarScroll();
+        }
+
+        // Optimized RAF Scroll handler for silky-smooth performance (60fps)
+        let isTicking = false;
+        window.addEventListener('scroll', () => {
+            if (!isTicking) {
+                window.requestAnimationFrame(() => {
+                    updateNavbarScroll();
+
+                    // Hardware-accelerated lightweight parallax
+                    const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+                    if (scrolled < window.innerHeight) {
+                        const bannerImages = document.querySelectorAll('.banner-image-background');
+                        bannerImages.forEach(img => {
+                            img.style.transform = `translate3d(0, ${scrolled * 0.2}px, 0)`;
+                        });
+                    }
+                    isTicking = false;
+                });
+                isTicking = true;
+            }
+        }, { passive: true });
   
         const initRecaptcha = async function () {
             const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'});
             const recaptchaInput = document.querySelector('[name="recaptcha"]')
             if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
         };
-
-        // Parallax effect untuk banner
-        window.addEventListener('scroll', () => {
-            const bannerImages = document.querySelectorAll('.banner-image-background');
-            bannerImages.forEach(img => {
-                const rect = img.getBoundingClientRect();
-                const scrolled = window.scrollY;
-                const yPos = scrolled * 1.5; // Adjust parallax speed (0.5 = slower)
-                
-                if (rect.top < window.innerHeight) {
-                    img.style.transform = `translateY(${yPos * 0.3}px)`;
-                }
-            });
-        });
 
         $(document).ready(function () {
             // Read More/Less functionality

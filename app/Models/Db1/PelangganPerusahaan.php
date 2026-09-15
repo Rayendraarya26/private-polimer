@@ -19,6 +19,7 @@ class PelangganPerusahaan extends Model
         'kab_id',
         'kec_id',
         'badan_hukum',
+        'jenis_perusahaan_id',
         'jenis',
         'pemilik',
         'pimpinan',

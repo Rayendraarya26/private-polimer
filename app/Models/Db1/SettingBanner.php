@@ -11,10 +11,15 @@ class SettingBanner extends Model
 
     protected $table = 'setting_banner';
     protected $fillable = [
-        'banner',
+        'id',
+        'order',
+        'description',
         'link',
-        'status',
-        'created_at',
-        'updated_at',
+        'image_path',
+        'start_at',
+        'end_at',
+        'is_active',
+        'created_by',
+        'updated_by',
     ];
 }

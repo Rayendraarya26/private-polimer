@@ -478,7 +478,11 @@
                             submitButton.disabled = true;
 
                             // regenerate recaptcha token
-                            await initRecaptcha();
+                            try {
+                                await initRecaptcha();
+                            } catch (e) {
+                                console.warn('reCAPTCHA init error:', e);
+                            }
 
                             const form = document.querySelector('#kt_sign_up_form')
                             const formData = new FormData(form)
@@ -524,9 +528,17 @@
             };
 
             const initRecaptcha = async function () {
-                const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
-                const recaptchaInput = document.querySelector('[name="recaptcha"]')
-                if (recaptchaInput) recaptchaInput.setAttribute('value', token || '')
+                @if(config('google.recaptcha.enabled'))
+                try {
+                    if (typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
+                        const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", { action: 'submit' });
+                        const recaptchaInput = document.querySelector('[name="recaptcha"]');
+                        if (recaptchaInput) recaptchaInput.setAttribute('value', token || '');
+                    }
+                } catch (err) {
+                    console.warn('reCAPTCHA execution error:', err);
+                }
+                @endif
             };
 
 

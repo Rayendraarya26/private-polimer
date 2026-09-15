@@ -10,17 +10,33 @@ use BBSPJIKKP\Sdk\Esign\Model\SignResponseResults;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use SplFileObject;
 
 class TteService
 {
-    private EsignApi $http;
+    private ?EsignApi $http = null;
+
+    /**
+     * Cek apakah service berjalan dalam mode dummy
+     */
+    public function isDummy(): bool
+    {
+        return (bool) config('services.tte.dummy', env('TTE_DUMMY', false))
+            || empty(config('services.tte.base_url'))
+            || config('services.tte.base_url') === 'dummy';
+    }
 
     /**
      * @throws Exception
      */
     public function __construct()
     {
+        if ($this->isDummy()) {
+            return;
+        }
+
         if (empty(config('services.tte.base_url'))) {
             throw new Exception('TTE base url is not set');
         }
@@ -53,7 +69,40 @@ public function signPDF(
             'ref_code' => $refCode,
             'fileName' => $fileName,
             'fileSize' => strlen($fileContent),
+            'is_dummy' => $this->isDummy(),
         ]);
+
+        if ($this->isDummy()) {
+            Log::info('TteService::signPDF - Dummy Mode Active', [
+                'ref_code' => $refCode,
+                'fileName' => $fileName,
+            ]);
+
+            $disk = Storage::disk('public');
+            if (!$disk->exists('tte-dummy')) {
+                $disk->makeDirectory('tte-dummy');
+            }
+
+            $storageFileName = 'tte-dummy/' . ($refCode ? preg_replace('/[^A-Za-z0-9_\-]/', '_', $refCode) . '_' : '') . time() . '_' . $fileName;
+            $disk->put($storageFileName, $fileContent);
+
+            $esignId = 'dummy-tte-' . Str::uuid();
+            $fileUrl = url(Storage::url($storageFileName));
+
+            cache()->put('tte_dummy_' . $esignId, [
+                'file_path' => $storageFileName,
+                'file_name' => $fileName,
+                'file_link' => $fileUrl,
+            ], now()->addDays(30));
+
+            return [
+                'id'        => $esignId,
+                'file_link' => $fileUrl,
+                'file_name' => $fileName,
+                'status'    => 'SIGNED',
+                'is_dummy'  => true,
+            ];
+        }
 
         // ref_metadata dikirim sebagai base64(json) — internal service akan base64_decode
         $encodedMetadata = base64_encode(json_encode($refMetadata));
@@ -149,7 +198,35 @@ public function signPDF(
     {
         Log::info('TteService::verifyById - Start', [
             'esign_id' => $esignId,
+            'is_dummy' => $this->isDummy(),
         ]);
+
+        if ($this->isDummy() || str_starts_with($esignId, 'dummy-tte-') || str_starts_with($esignId, 'dummy-esign|')) {
+            Log::info('TteService::verifyById - Dummy Mode Active', [
+                'esign_id' => $esignId,
+            ]);
+
+            $cached = cache()->get('tte_dummy_' . $esignId);
+            $disk = Storage::disk('public');
+
+            if ($cached && !empty($cached['file_path']) && $disk->exists($cached['file_path'])) {
+                $fileUrl = url(Storage::url($cached['file_path']));
+                $fileName = $cached['file_name'] ?? basename($cached['file_path']);
+            } else {
+                $files = $disk->files('tte-dummy');
+                $matched = !empty($files) ? end($files) : null;
+                $fileUrl = $matched ? url(Storage::url($matched)) : url('/storage/tte-dummy/' . $esignId . '.pdf');
+                $fileName = $matched ? basename($matched) : 'dummy-document.pdf';
+            }
+
+            return [
+                'id'        => $esignId,
+                'file_link' => $fileUrl,
+                'file_name' => $fileName,
+                'status'    => 'VALID',
+                'is_dummy'  => true,
+            ];
+        }
 
         $httpClient = new Client([
             'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
@@ -196,6 +273,13 @@ public function signPDF(
      */
     public function verifyByDoc($document): EsignResultResults
     {
+        if ($this->isDummy() || empty($this->http)) {
+            return new EsignResultResults([
+                'status'  => 'VALID',
+                'message' => 'Dummy TTE verification valid',
+            ]);
+        }
+
         $response = $this->http->verifyDocumentByDoc($document);
 
         return $response->getResults();

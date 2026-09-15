@@ -1,0 +1,16 @@
+{
+    "name": "Webhook",
+    "alias": "webhook",
+    "description": "Modul Integrasi Webhook dan API Bridge SIS - Polimer",
+    "keywords": [
+        "webhook",
+        "sis",
+        "integrasi"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\Webhook\\Providers\\WebhookServiceProvider",
+        "Modules\\Webhook\\Providers\\RouteServiceProvider"
+    ],
+    "files": []
+}

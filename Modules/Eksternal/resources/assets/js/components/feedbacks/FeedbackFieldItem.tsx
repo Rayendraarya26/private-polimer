@@ -1,155 +1,124 @@
-import { memo, useMemo } from "react"
+import React, { memo, useMemo } from "react"
 import { useFormContext } from "react-hook-form"
 import { FeedbackInputType, FeedbackStructure } from "../../types/feedbacks"
 import { FeedbackFormFields } from "../../hooks/feedback/useFeedback"
-import { Form } from "react-bootstrap"
-import styled from "styled-components"
 
 type Props = {
   level: number
   data: FeedbackStructure
 }
 
-const FormControlWrapper = styled.div`
-  width: 100%;
-  @media screen and (min-width: 768px) {
-    width: 50%;
-  }
-`
+const RATING_OPTIONS = [
+  { value: 20, label: "Sangat Kurang", color: "hover:border-rose-300 peer-checked:bg-rose-50 peer-checked:border-rose-500 peer-checked:text-rose-700" },
+  { value: 40, label: "Kurang", color: "hover:border-amber-300 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700" },
+  { value: 60, label: "Cukup", color: "hover:border-sky-300 peer-checked:bg-sky-50 peer-checked:border-sky-500 peer-checked:text-sky-700" },
+  { value: 80, label: "Baik", color: "hover:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:text-emerald-700" },
+  { value: 100, label: "Sangat Baik", color: "hover:border-brand-300 peer-checked:bg-brand-50 peer-checked:border-brand-600 peer-checked:text-brand-700" },
+]
 
 const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
   const {
     register,
     setValue,
-    // watch,
     getValues,
-    formState: {errors}
+    formState: { errors },
   } = useFormContext<FeedbackFormFields>()
 
   const fieldIndex = useMemo<number>(() => {
-    const fields = getValues('feedbacks')
-    return fields.findIndex(r => r.id === data.id)
-  }, [data])
+    const fields = getValues("feedbacks") || []
+    return fields.findIndex((r) => r.id === data.id)
+  }, [data, getValues])
 
-  const isInvalid = !!(errors?.feedbacks?.[fieldIndex]?.value?.message || '')
+  const isInvalid = !!(errors?.feedbacks?.[fieldIndex]?.value?.message || "")
 
   return (
-    <>
-      <div 
-        className="d-flex flex-column gap-2 mb-4"
-        style={{ paddingLeft: `${2 * level}rem` }}
-      >
-        <div className="w-full">
-          {data.question}
-        </div>
-        {data.input_type === FeedbackInputType.TEXTAREA && (
-          <FormControlWrapper>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Tulis..."
-              isInvalid={isInvalid}
-              required={data.required}
-              {...register(`feedbacks.${fieldIndex}.value`)}
-            />
-          </FormControlWrapper>
-        )}
-        {data.input_type === FeedbackInputType.NUMBER && (
-          <FormControlWrapper>
-            <Form.Control
-              type="number"
-              placeholder="Masukkan nilai"
-              isInvalid={isInvalid}
-              required={data.required}
-              {...register(`feedbacks.${fieldIndex}.value`)}
-            />
-          </FormControlWrapper>
-        )}
-        {data.input_type === FeedbackInputType.RANGE && (
-          <>
-            <div className="d-flex flex-column flex-lg-row gap-1 gap-lg-5">
-              <Form.Check
-                type='radio'
-                label="Sangat Kurang"
-                id={`radio-${data.id}-20`}
-                isInvalid={isInvalid}
-                required={data.required}
-                value={20}
-                onChange={e => 
-                  e.target.checked && 
-                    setValue(`feedbacks.${fieldIndex}.value`, 20, { shouldValidate: true })
-                }
-                name={`radio-${data.id}`}
-              />
-              <Form.Check
-                type='radio'
-                label="Kurang"
-                id={`radio-${data.id}-40`}
-                isInvalid={isInvalid}
-                required={data.required}
-                value={40}
-                onChange={e => 
-                  e.target.checked && 
-                    setValue(`feedbacks.${fieldIndex}.value`, 40, { shouldValidate: true })
-                }
-                name={`radio-${data.id}`}
-              />
-              <Form.Check
-                type='radio'
-                label="Cukup"
-                id={`radio-${data.id}-60`}
-                isInvalid={isInvalid}
-                required={data.required}
-                value={60}
-                onChange={e => 
-                  e.target.checked && 
-                    setValue(`feedbacks.${fieldIndex}.value`, 60, { shouldValidate: true })
-                }
-                name={`radio-${data.id}`}
-              />
-              <Form.Check
-                type='radio'
-                label="Baik"
-                id={`radio-${data.id}-80`}
-                isInvalid={isInvalid}
-                required={data.required}
-                value={80}
-                onChange={e => 
-                  e.target.checked && 
-                    setValue(`feedbacks.${fieldIndex}.value`, 80, { shouldValidate: true })
-                }
-                name={`radio-${data.id}`}
-              />
-              <Form.Check
-                type='radio'
-                label="Sangat Baik"
-                id={`radio-${data.id}-100`}
-                isInvalid={isInvalid}
-                required={data.required}
-                value={100}
-                onChange={e => 
-                  e.target.checked && 
-                    setValue(`feedbacks.${fieldIndex}.value`, 100, { shouldValidate: true })
-                }
-                name={`radio-${data.id}`}
-              />
-            </div>
-          </>
-        )}
-        {!!data.input_type && isInvalid && (
-          <small className="text-danger">
-            {errors?.feedbacks?.[fieldIndex]?.value?.message || ''}
-          </small>
-        )}
+    <div className="space-y-3" style={{ paddingLeft: `${level * 1.5}rem` }}>
+      {/* Question Title */}
+      <div className="text-xs font-bold text-slate-800 flex items-start gap-2">
+        <span>{data.question}</span>
+        {data.required && <span className="text-rose-500">*</span>}
       </div>
-      {(data?.child || []).map(r => (
-        <FeedbackFieldItem
-          key={r.id}
-          data={r}
-          level={level + 1}
-        />
+
+      {/* Input Types */}
+      {data.input_type === FeedbackInputType.TEXTAREA && (
+        <div className="w-full sm:w-3/4">
+          <textarea
+            rows={3}
+            placeholder="Tuliskan ulasan atau saran Anda di sini..."
+            required={data.required}
+            className={`w-full rounded-lg border bg-white p-3 text-xs text-slate-800 transition-colors focus:outline-none focus:ring-2 ${
+              isInvalid
+                ? "border-rose-400 focus:ring-rose-400 bg-rose-50/20"
+                : "border-slate-300 focus:ring-brand-500 focus:border-brand-500"
+            }`}
+            {...register(`feedbacks.${fieldIndex}.value`)}
+          />
+        </div>
+      )}
+
+      {data.input_type === FeedbackInputType.NUMBER && (
+        <div className="w-full sm:w-48">
+          <input
+            type="number"
+            placeholder="Masukkan skor nilai..."
+            required={data.required}
+            className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-xs text-slate-800 transition-colors focus:outline-none focus:ring-2 ${
+              isInvalid
+                ? "border-rose-400 focus:ring-rose-400 bg-rose-50/20"
+                : "border-slate-300 focus:ring-brand-500 focus:border-brand-500"
+            }`}
+            {...register(`feedbacks.${fieldIndex}.value`)}
+          />
+        </div>
+      )}
+
+      {data.input_type === FeedbackInputType.RANGE && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+          {RATING_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              className="relative flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50/80 cursor-pointer transition-all text-center select-none group"
+            >
+              <input
+                type="radio"
+                name={`radio-${data.id}`}
+                value={opt.value}
+                required={data.required}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setValue(`feedbacks.${fieldIndex}.value`, opt.value, { shouldValidate: true })
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <span className="text-xs font-semibold text-slate-700 peer-checked:font-bold transition-colors">
+                {opt.label}
+              </span>
+              <span className="text-[10px] text-slate-400 peer-checked:text-slate-600 mt-0.5">
+                (Skor {opt.value})
+              </span>
+              <div
+                className={`absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none transition-all ${opt.color}`}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+
+      {/* Validation Error Message */}
+      {!!data.input_type && isInvalid && (
+        <p className="text-[11px] font-medium text-rose-600">
+          {errors?.feedbacks?.[fieldIndex]?.value?.message || "Pertanyaan ini wajib diisi"}
+        </p>
+      )}
+
+      {/* Recursive Children Questions */}
+      {(data?.child || []).map((r) => (
+        <div key={r.id} className="pt-3 border-t border-slate-100">
+          <FeedbackFieldItem data={r} level={level + 1} />
+        </div>
       ))}
-    </>
+    </div>
   )
 }
 

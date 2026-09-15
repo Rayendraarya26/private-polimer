@@ -13,3 +13,7 @@ use Modules\Integration\Http\Controllers\IntegrationController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('integrasi/sync-manual-sis/{id}', [IntegrationController::class, 'syncManualSis']);
+});

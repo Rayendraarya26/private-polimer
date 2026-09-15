@@ -44,7 +44,7 @@ return [
             'throw' => false,
         ],
 
-        's3' => [
+        's3' => (env('AWS_ENABLED', false) && !empty(env('AWS_ACCESS_KEY_ID'))) ? [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
@@ -53,6 +53,13 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+        ] : [
+            // S3 dinonaktifkan: dialihkan ke storage lokal (public) tanpa menghapus kode asli
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
             'throw' => false,
         ],
 

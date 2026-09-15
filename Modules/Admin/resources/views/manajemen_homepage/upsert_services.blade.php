@@ -22,10 +22,13 @@
                 <div class="mb-2">
                     <label for="modal-file-image" class="form-label fw-semibold">Image Services</label>
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
-					<div v-if="mode === 'update'">
-						*silahkan kosong jika tidak ingin meng-update image
-						<input type="hidden" value="" id="modal-image"
-                           v-model="payload.image_path">
+					<div v-if="mode === 'update'" class="mt-2">
+						<span class="text-muted fs-8 d-block mb-1">* Silakan kosongkan jika tidak ingin meng-update image</span>
+						<input type="hidden" value="" id="modal-image" v-model="payload.image_path">
+						<div v-if="payload.image_url" class="p-2 border rounded bg-light d-inline-block mt-1">
+							<span class="d-block text-muted fs-9 mb-1 fw-semibold">Gambar Saat Ini:</span>
+							<img :src="payload.image_url" alt="Preview Image" style="max-height: 90px; max-width: 100%; border-radius: 6px; object-fit: contain;">
+						</div>
 					</div>
 				</div>
                 <div class="mb-2">

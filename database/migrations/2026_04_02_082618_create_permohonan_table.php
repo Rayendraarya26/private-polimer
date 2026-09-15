@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('id_pt_ins')->nullable()->index();
             $table->string('no_permohonan', 50)->unique();
             $table->boolean('is_split_bill')->default(false);
-            $table->enum('status_workflow', ['DRAFT','PERMOHONAN', 'REVISI','IN_REVIEW', 'PEMBAYARAN', 'PROCESS', 'DONE', 'DITOLAK'])->default('DRAFT')->index();
+            $table->string('status_workflow', 50)->default('DRAFT')->index();
             $table->enum('status_bayar', ['BELUM', 'LUNAS', 'BATAL'])->default('BELUM')->index();
             $table->text('catatan_admin')->nullable();
             $table->dateTimeTz('tgl_order')->nullable();

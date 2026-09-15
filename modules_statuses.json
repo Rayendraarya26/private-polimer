@@ -6,5 +6,6 @@
     "Home": true,
     "Integration": true,
     "Layanan": true,
-    "Permohonan": true
+    "Permohonan": true,
+    "Webhook": true
 }

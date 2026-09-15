@@ -1,19 +1,12 @@
+import React, { memo, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import useFeedback from "../../hooks/feedback/useFeedback"
-import { memo, useEffect } from "react"
 import { FormProvider } from "react-hook-form"
 import FeedbackFieldItem from "../../components/feedbacks/FeedbackFieldItem"
-import { Button, Card, Spinner } from "react-bootstrap"
-import styled from "styled-components"
-import { ArrowLeft } from "react-feather"
 import Head from "../../components/common/Head"
-
-const FallbackContainer = styled.div`
-  width: 100%;
-  height: 85dvh;
-  display: grid;
-  place-items: center;
-`
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
+import { Button } from "../../components/ui/Button"
+import { ArrowLeft, MessageSquareQuote, Send, Loader2, Star } from "lucide-react"
 
 const FeedbackDetailPage: React.FC = () => {
   const navigate = useNavigate()
@@ -23,65 +16,102 @@ const FeedbackDetailPage: React.FC = () => {
   useEffect(() => {
     if (uuid) {
       getFeedback(uuid)
-      rhf.setValue('uuid', uuid)
+      rhf.setValue("uuid", uuid)
     }
   }, [uuid])
 
   return (
-    <>
-      <Head title="Submit Feedback"/>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <Head title="Isi Survey Kepuasan Layanan (SKM)" />
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 mb-1">
+            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <span>Survey Kepuasan Masyarakat (SKM) BBKKP</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Formulir Evaluasi & Kepuasan Pelanggan
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Penilaian Anda sangat berharga untuk perbaikan kualitas layanan publik dan integritas balai.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/feedbacks")}
+          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          className="shrink-0"
+        >
+          Kembali ke Daftar
+        </Button>
+      </div>
+
       <FormProvider {...form}>
-        <Card>
-          <Card.Header className="bg-transparent">
-            <div className="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-2">
-              <Card.Title className="pt-2">
-                <div className="d-inline-flex align-items-center gap-2">
-                  <ArrowLeft 
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => navigate(-1)}
-                  />
-                  <div>Form Feedback</div>
+        <form onSubmit={onSubmit} className="space-y-6">
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-brand-50/60 to-white border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-brand-600 text-white shadow-xs">
+                  <MessageSquareQuote className="w-5 h-5" />
                 </div>
-              </Card.Title>
-            </div>
-          </Card.Header>
-          <Card.Body>
-            {loading && (
-              <FallbackContainer>
-                <Spinner 
-                  animation="border"
-                  variant="primary"
-                />
-              </FallbackContainer>
-            )}
-            <div>
-              {feedbacks.map(r => (
-                <FeedbackFieldItem
-                  key={r.id}
-                  level={0}
-                  data={r}
-                />
-              ))}
-            </div>
-          </Card.Body>
-          {feedbacks.length > 0 && (  
-            <Card.Footer>
-              <div className="w-100 d-flex justify-content-end">
-                <Button 
-                  type="button"
-                  variant="primary"
-                  disabled={submitting}
-                  onClick={onSubmit}
-                  size="lg"
-                >
-                  {submitting ? 'Memproses...' : 'Simpan Feedback'}
-                </Button>
+                <div>
+                  <CardTitle className="text-base">Kuesioner Indeks Kepuasan Masyarakat</CardTitle>
+                  <CardDescription>
+                    Silakan berikan tanggapan objektif sesuai pengalaman layanan yang telah Anda terima
+                  </CardDescription>
+                </div>
               </div>
-            </Card.Footer>
+            </CardHeader>
+
+            <CardContent className="p-6">
+              {loading ? (
+                <div className="w-full h-72 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                  <span className="text-xs font-medium text-slate-500">Memuat butir pertanyaan survey...</span>
+                </div>
+              ) : (
+                <div className="space-y-6 divide-y divide-slate-100">
+                  {feedbacks.map((r) => (
+                    <div key={r.id} className="pt-5 first:pt-0">
+                      <FeedbackFieldItem data={r} level={0} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Footer */}
+          {!loading && (
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/feedbacks")}
+                disabled={submitting}
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={submitting}
+                leftIcon={<Send className="w-4 h-4" />}
+                className="shadow-md"
+              >
+                Kirim Evaluasi & Feedback
+              </Button>
+            </div>
           )}
-        </Card>
+        </form>
       </FormProvider>
-    </>
+    </div>
   )
 }
 

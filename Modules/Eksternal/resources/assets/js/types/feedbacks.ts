@@ -14,13 +14,16 @@ export enum FeedbackItemStatusOrder {
   IN_REVIEW = 'review',
   DONE = 'selesai',
   DITOLAK = 'ditolak',
+  MENUNGGU_PERSETUJUAN = 'menunggu_persetujuan',
 }
 
 export type SertifikatItem = {
-  kode: string
-  nama: string
-  ref_code: string | null
+  kode?: string
+  nama?: string
+  ref_code?: string | null
   download_link: string
+  file_name?: string
+  nomor_sertifikat?: string
 }
 
 export type FeedbackItem = {

@@ -22,6 +22,17 @@ class NotifHelper
     }
 
 
+    public static function notify(string $userId, string $title, string $content, string $link): void
+    {
+        SysUserNotif::create([
+            'user_id' => $userId,
+            'title'   => $title,
+            'content' => $content,
+            'link'    => $link,
+            'is_read' => 'no',
+        ]);
+    }
+
     public static function notifyMany(array $userIds, string $title, string $content, string $link): void
     {
         foreach ($userIds as $uid) {

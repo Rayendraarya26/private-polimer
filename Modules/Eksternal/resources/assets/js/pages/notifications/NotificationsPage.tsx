@@ -1,31 +1,11 @@
-import { memo, useEffect } from "react"
+import React, { memo, useEffect } from "react"
+import { Bell, CheckCheck, Clock, Inbox, Loader2, Sparkles } from "lucide-react"
 import useNotifications from "../../hooks/useNotifications"
-import { Button, Card, CardBody, Spinner } from "react-bootstrap"
-import styled from "styled-components"
-import clsx from "clsx"
-import { Clock } from "react-feather"
 import { getDateDisplay } from "../../utils/date"
 import Head from "../../components/common/Head"
-
-const NotificationCard = styled(Card)`
-  text-decoration: none;
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-  &:hover {
-    cursor: pointer;
-    background-color: #dedcdc !important;
-  }
-  &.unread {
-    background-color: #fff0d5;
-    .title {
-      font-weight: 600;
-    }
-    p.content {
-      font-weight: 500;
-    }
-  }
-`
+import { Card, CardContent } from "../../components/ui/Card"
+import { Button } from "../../components/ui/Button"
+import { Badge } from "../../components/ui/Badge"
 
 const NotificationsPage: React.FC = () => {
   const {
@@ -44,55 +24,123 @@ const NotificationsPage: React.FC = () => {
   }, [page])
 
   return (
-    <div className="w-100 d-flex flex-column gap-4">
-      <Head title="Notifikasi"/>
-      <div className="w-100 d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2">
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <Head title="Pusat Notifikasi" />
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="fs-3 fw-semibold">Notifikasi</div>
-          <div style={{ fontSize: '0.85rem' }}>Menampilkan {data.length} dari {total} notifikasi</div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Bell className="w-6 h-6 text-brand-600" />
+            Pusat Notifikasi
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Menampilkan {data.length} dari total {total} pesan pemberitahuan sistem
+          </p>
         </div>
-        <div 
-          onClick={markAllAsRead}
-          style={{ cursor: 'pointer', fontSize: '0.85rem' }}
-          className="text-primary"
-        >
-          Tandai semua terbaca
-        </div>
+
+        {data.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<CheckCheck className="w-4 h-4 text-brand-600" />}
+            onClick={markAllAsRead}
+          >
+            Tandai Semua Terbaca
+          </Button>
+        )}
       </div>
-      <div className="w-100 d-flex flex-column gap-3">
-        {(data.length < 1 && loading) && (
-          <div className='w-100 py-5 d-flex'>
-            <Spinner
-              className="m-auto" 
-              animation="border"
-              variant="primary"
-            />
+
+      {/* Notifications List */}
+      <div className="space-y-3">
+        {data.length < 1 && loading && (
+          <div className="py-16 text-center">
+            <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+              <span className="text-xs">Memuat notifikasi...</span>
+            </div>
           </div>
         )}
-        {data.map(r => (
-          <a key={r.created_at} href={r.link} className="text-decoration-none">
-            <NotificationCard className={clsx(r.is_read === 'no' && 'unread')}>
-              <CardBody>
-                <div className="fs-4 mb-3 title">{r.title}</div>
-                <p className="fs-6 mb-3 content">{r.content}</p>
-                <p className="w-100 mb-0 d-flex align-items-center justify-content-end gap-1">
-                  <Clock size={16}/><div>{getDateDisplay(r.created_at, true)}</div>
-                </p>
-              </CardBody>
-            </NotificationCard>
-          </a>
-        ))}
-        {(total > 0 && page < totalPages) && (
-          <div className='w-100 d-flex justify-content-center'>
-            <Button 
-              type="button"
-              variant="primary"
-              className="d-inline-flex align-items-center gap-2"
-              disabled={loading}
-              onClick={() => setPage(c => c + 1)}
+
+        {data.length === 0 && !loading && (
+          <div className="py-16 text-center bg-white rounded-2xl border border-slate-200/80 shadow-card">
+            <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Inbox className="w-10 h-10 stroke-1 text-slate-300" />
+              <span className="text-sm font-semibold text-slate-700">Belum ada notifikasi</span>
+              <p className="text-xs text-slate-500 max-w-sm">
+                Setiap pembaruan status permohonan, tagihan invoice, atau penerbitan sertifikat akan muncul di sini.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {data.map((r) => {
+          const isUnread = r.is_read === "no"
+
+          return (
+            <a
+              key={r.created_at}
+              href={r.link}
+              className="block group transition-transform duration-150 hover:-translate-y-0.5"
             >
-              {loading && <Spinner size="sm"/>}
-              <div>Load More</div>
+              <Card
+                className={`transition-all duration-200 ${
+                  isUnread
+                    ? "bg-amber-50/40 border-amber-200/80 shadow-sm"
+                    : "hover:border-slate-300"
+                }`}
+              >
+                <CardContent className="p-4 sm:p-5 flex items-start gap-4">
+                  <div
+                    className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
+                      isUnread
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors"
+                    }`}
+                  >
+                    <Bell className="w-4 h-4" />
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4
+                        className={`text-sm tracking-tight truncate ${
+                          isUnread ? "font-bold text-slate-900" : "font-semibold text-slate-800"
+                        }`}
+                      >
+                        {r.title}
+                      </h4>
+
+                      {isUnread && (
+                        <Badge variant="warning" size="sm" dot>
+                          Baru
+                        </Badge>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-600 leading-relaxed">{r.content}</p>
+
+                    <div className="pt-2 flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{getDateDisplay(r.created_at, true)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </a>
+          )
+        })}
+
+        {total > 0 && page < totalPages && (
+          <div className="pt-4 flex justify-center">
+            <Button
+              variant="outline"
+              size="md"
+              disabled={loading}
+              onClick={() => setPage((c) => c + 1)}
+              isLoading={loading}
+            >
+              Muat Lebih Banyak
             </Button>
           </div>
         )}

@@ -203,7 +203,7 @@ class ManageUserController
 
         return Datatables::eloquent($data)
             ->editColumn('picture', function ($data) {
-                return Storage::disk('s3')->temporaryUrl($data->picture, now()->addHour());
+                return $data->picture_url;
             })
             ->addColumn('group_name', function ($item) {
                 return $item->sys_user_groups->map(function ($group) {

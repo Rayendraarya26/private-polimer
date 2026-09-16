@@ -36,23 +36,25 @@ interface ServiceItem {
 
 const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[] = [
   {
-    title: "1. Pengujian & Kalibrasi Laboratorium",
+    title: "1. Pengujian & Laboratorium Kalibrasi",
     desc: "Layanan pengujian mutu material kulit, karet, plastik dan kalibrasi peralatan standar industri.",
     items: [
       {
         id: "pengujian",
-        name: "Pengujian Laboratorium",
-        desc: "Uji kimia, fisika, dan mekanik untuk material polimer, kulit, karet, dan alas kaki.",
+        name: "Pengujian",
+        desc: "Menjamin mutu dan keandalan produk melalui pengujian sesuai standar nasional dan internasional",
         icon: <FlaskConical className="w-6 h-6 text-brand-600" />,
         badge: "Terakreditasi KAN",
+        route: "/permohonan/pengujian",
         isAvailable: true,
       },
       {
         id: "kalibrasi",
-        name: "Kalibrasi Instrumen",
+        name: "Kalibrasi",
         desc: "Kalibrasi alat ukur suhu, massa, tekanan, dan dimensi berstandar nasional.",
         icon: <Gauge className="w-6 h-6 text-emerald-600" />,
         badge: "LK-005-IDN",
+        route: "/permohonan/kalibrasi",
         isAvailable: true,
       },
       {
@@ -61,6 +63,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         desc: "Penyelenggara uji profisiensi antar-laboratorium pengujian industri.",
         icon: <Scale className="w-6 h-6 text-amber-600" />,
         badge: "PUP",
+        route: "/permohonan/profisiensi",
         isAvailable: false,
       },
       {
@@ -93,17 +96,42 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         badge: "BPJPH",
         isAvailable: false,
       },
-      {
-        id: "verifikasi",
-        name: "Verifikasi & Validasi",
-        desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
-        icon: <CheckCircle2 className="w-6 h-6 text-blue-600" />,
-        isAvailable: false,
-      },
+      // {
+      //   id: "verifikasi",
+      //   name: "Verifikasi & Validasi",
+      //   desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
+      //   icon: <CheckCircle2 className="w-6 h-6 text-blue-600" />,
+      //   isAvailable: false,
+      // },
     ],
   },
   {
-    title: "3. Lembaga Sertifikasi Profesi (LSP BBKKP)",
+    title: "3. Verifikasi dan Validasi",
+    desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
+    items: [
+      {
+        id: "tkdn",
+        name: "Tingkat Komponen Dalam Negeri (TKDN)",
+        desc: "Verifikasi dan validasi Tingkat Komponen Dalam Negeri (TKDN).",
+        icon: <Award className="w-6 h-6 text-indigo-600" />,
+        badge: "Terakreditasi KAN",
+        route: "/permohonan/tkdn",
+        isAvailable: true,
+      },
+      {
+        id: "grk",
+        name: "Emisi Gas Rumah Kaca (GRK)",
+        desc: "Verifikasi dan validasi emisi gas rumah kaca (GRK).",
+        icon: <Award className="w-6 h-6 text-indigo-600" />,
+        badge: "Terakreditasi KAN",
+        route: "/permohonan/grk",
+        isAvailable: true,
+      },
+
+    ],
+  },
+  {
+    title: "4. Lembaga Sertifikasi Profesi (LSP BBKKP)",
     desc: "Uji sertifikasi kompetensi profesi SDM industri terlisensi BNSP untuk perorangan dan delegasi perusahaan.",
     items: [
       {
@@ -118,7 +146,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "4. Pelatihan, Konsultasi & Rekayasa",
+    title: "5. Pelatihan, Konsultasi & Rekayasa",
     desc: "Program peningkatan SDM industri dan asistensi teknologi manufaktur.",
     items: [
       {

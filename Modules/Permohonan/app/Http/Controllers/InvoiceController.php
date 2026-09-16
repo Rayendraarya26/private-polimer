@@ -11,6 +11,7 @@ use App\Libraries\BniVaService;
 use App\Libraries\TteService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Db1\SysUser;
+use App\Models\Db1\SysUserNotif;
 use App\Enums\SysGroup;
 use App\Models\Db1\Pegawai;
 use App\Models\Db2\Permohonan;

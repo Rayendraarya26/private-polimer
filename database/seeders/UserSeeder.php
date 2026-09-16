@@ -25,6 +25,10 @@ class UserSeeder extends Seeder
             ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198706192009012001', 'nik' => '1290412412120932'],
             ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '199104282018012001', 'nik' => '0803202100007062'],
             ['name' => 'Bendahara', 'email' => 'bendahara@mailinator.com', 'password' => 'password', 'group' => SysGroup::BENDAHARA, 'nip' => '199203120101801001', 'nik' => '1234567890123452'],
+            ['name' => 'Ketua Tim Auditor', 'email' => 'auditor@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198703032012031003', 'nik' => '1234567890123453'],
+            ['name' => 'Anggota Tim Auditor', 'email' => 'auditor2@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198904042014042004', 'nik' => '1234567890123454'],
+            ['name' => 'Auditor Teknis Lapangan', 'email' => 'auditor3@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '199005052015051005', 'nik' => '1234567890123455'],
+            ['name' => 'Lead Auditor Sertifikasi', 'email' => 'lead_auditor@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198606062011011006', 'nik' => '1234567890123456'],
         ];
 
         foreach ($data as $item) {

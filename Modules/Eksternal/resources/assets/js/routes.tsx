@@ -20,6 +20,12 @@ const EditFormRouter = lazy(() => import('./components/input-service-requests/Ed
 const SertifikasiProfesiPage = lazy(() => import('./pages/service-requests/LSPPage'))
 const DetailPermohonanPage = lazy(() => import('./pages/service-requests/DetailPermohonanPage'))
 const SertifikasiPage = lazy(() => import('./pages/service-requests/SertifikasiPage'))
+const KalibrasiPage = lazy(() => import('./pages/service-requests/KalibrasiPage'))
+const GrkPage = lazy(() => import('./pages/service-requests/GrkPage'))
+const ProfisiensiPage = lazy(() => import('./pages/service-requests/ProfisiensiPage'))
+const PengujianPage = lazy(() => import('./pages/service-requests/PengujianPage'))
+const GrkVerifikasiPage = lazy(() => import('./pages/service-requests/grk/GrkVerifikasiPage'))
+const GrkValidasiPage = lazy(() => import('./pages/service-requests/grk/GrkValidasiPage'))
 
 const AppRoutes: React.FC = () => {
   return (
@@ -44,10 +50,18 @@ const AppRoutes: React.FC = () => {
           <Route index element={<PermohonanPage />} />
           <Route path="pelatihan" element={<PelatihanPage />} />
           <Route path="sertifikasi" element={<SertifikasiPage />} />
+          <Route path="kalibrasi" element={<KalibrasiPage />} />
+          <Route path="profisiensi" element={<ProfisiensiPage />} />
+          <Route path="pengujian" element={<PengujianPage />} />
           <Route path="sertifikasi-industri" element={<SertifikasiPage />} />
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
           <Route path="detail/:id" element={<DetailPermohonanPage />} />
           <Route path="edit/:id" element={<EditFormRouter />} />
+          <Route path="grk">
+            <Route index element={<GrkPage />} />
+            <Route path="verifikasi" element={<GrkVerifikasiPage />} />
+            <Route path="validasi" element={<GrkValidasiPage />} />
+          </Route>
         </Route>
         <Route path="/service-requests">
           <Route index element={<PermohonanPage />} />
@@ -56,6 +70,7 @@ const AppRoutes: React.FC = () => {
           <Route path="sertifikasi" element={<SertifikasiPage />} />
           <Route path="sertifikasi-industri" element={<SertifikasiPage />} />
           <Route path="sertifikasi-profesi" element={<SertifikasiProfesiPage />} />
+          <Route path="kalibrasi" element={<KalibrasiPage />} />
           <Route path=":id" element={<DetailPermohonanPage />} />
         </Route>
 

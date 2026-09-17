@@ -69,6 +69,7 @@
                         str_starts_with($kode, 'REG') => 'Pelatihan Reguler',
                         str_starts_with($kode, 'UMK') => 'Pelatihan UMK',
                         str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'Sertifikasi Industri',
+                        str_starts_with($kode, 'GRK') => 'Validasi & Verifikasi GRK',
                         default                        => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                     };
 
@@ -240,13 +241,15 @@
                     {{-- Panel data tiap peserta --}}
                     @foreach($detailItems as $idx => $detailItem)
                         @php
-                            $form     = $detailItem->formable ?? $permohonan->formSertifikasi?->first();
+                            $form     = $detailItem->formable ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
                             $viewName = match(true) {
                                 str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                 str_starts_with($kode, 'REG') => 'pelatihan',
                                 str_starts_with($kode, 'UMK') => 'pelatihan',
                                 str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'sertifikasi-industri',
+                                str_starts_with($kode, 'GRK') => 'grk-verifikasi',
                                 ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
+                                ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                 default                        => 'default'
                             };
                         @endphp

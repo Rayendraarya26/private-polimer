@@ -102,7 +102,7 @@
 
 
         {{-- Tabel tarif --}}
-        <form action="{{ route('permohonan.pembayaran.simpan-tarif', $permohonan->id_pt_ins) }}"
+        <form action="{{ route('permohonan.pembayaran.simpan-tarif', $permohonan->id_pt_ins ?: $permohonan->id) }}"
               method="POST" id="formTarifTogether">
             @csrf
             <input type="hidden" name="billing_type" value="together">

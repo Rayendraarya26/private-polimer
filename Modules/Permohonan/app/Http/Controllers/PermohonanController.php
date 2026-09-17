@@ -275,12 +275,18 @@ class PermohonanController extends Controller
             'creator',
             'pelanggan',
             'formSertifikasi',
+            'formGrkVerifikasi.emisi',
+            'formGrkVerifikasi.dokumen',
         ])->findOrFail($id);
 
 
         $detail = $request->query('d', 'overview');
         $detailPermohonan = $permohonan->detailPermohonan->first();
-        $form = $detailPermohonan?->formable;
+        $form = $detailPermohonan?->formable ?? $permohonan->formGrkVerifikasi?->first();
+
+        if ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
+            $form->loadMissing(['emisi', 'dokumen']);
+        }
 
 
         $isPerorangan = $permohonan->pelanggan?->jenis_pelanggan

@@ -128,6 +128,8 @@ class PermohonanController extends Controller
                 if (str_starts_with($item->no_permohonan, 'CERT')) $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
                 elseif (str_starts_with($item->no_permohonan, 'LSP')) $layananNama = 'Sertifikasi Profesi (LSP)';
                 elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN')) $layananNama = 'Bimtek / Pelatihan';
+                elseif (str_starts_with($item->no_permohonan, 'VAL')) $layananNama = 'Validasi Gas Rumah Kaca (GRK)';
+                elseif (str_starts_with($item->no_permohonan, 'GRK')) $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
                 else $layananNama = 'Layanan BBKKP';
             }
 
@@ -138,6 +140,10 @@ class PermohonanController extends Controller
                 $komoditi = $form->masalah_materi ?? $form->hal_dipelajari ?? 'Bimbingan Teknis & Pelatihan';
             } elseif ($form instanceof \App\Models\Db2\FormLsp) {
                 $komoditi = $form->jenis_produk ?? $form->jabatan ?? 'Sertifikasi Kompetensi BNSP';
+            } elseif ($form instanceof \App\Models\Db2\FormGrkValidasi) {
+                $komoditi = $form->merek_sample ?: 'Validasi Proyek GRK';
+            } elseif ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
+                $komoditi = $form->merek_sample ?: 'Verifikasi Emisi GRK';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -443,6 +449,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formLsp && $permohonan->formLsp->isNotEmpty()) {
                 $formData = $permohonan->formLsp->first();
                 $formableType = \App\Models\Db2\FormLsp::class;
+            } elseif ($permohonan->formGrkVerifikasi && $permohonan->formGrkVerifikasi->isNotEmpty()) {
+                $formData = $permohonan->formGrkVerifikasi->first();
+                $formableType = \App\Models\Db2\FormGrkVerifikasi::class;
             }
         }
 
@@ -454,6 +463,8 @@ class PermohonanController extends Controller
                 $formData->load(['peserta']);
             } elseif ($formData instanceof \App\Models\Db2\FormLsp && method_exists($formData, 'peserta')) {
                 $formData->load(['peserta']);
+            } elseif ($formData instanceof \App\Models\Db2\FormGrkVerifikasi) {
+                $formData->load(['emisi', 'dokumen']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure

@@ -22,6 +22,8 @@ use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
 use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
 use Modules\Eksternal\Http\Controllers\Api\LksClientController;
+use Modules\Eksternal\Http\Controllers\Api\GrkController;
+use Modules\Eksternal\Http\Controllers\Api\GrkValidasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -154,8 +156,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('pembayaran')->group(function () {
             Route::get('/', [PembayaranController::class, 'index']);
             Route::get('/{id}/invoice', [PembayaranController::class, 'previewInvoice']);
-            Route::get('/{id}/stream-invoice', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamInvoice']);
-            Route::get('/{id}/stream-kuitansi', [\Modules\Eksternal\Http\Controllers\Api\PembayaranController::class, 'streamKuitansi']);
+            Route::get('/{id}/stream-invoice', [PembayaranController::class, 'streamInvoice']);
+            Route::get('/{id}/stream-kuitansi', [PembayaranController::class, 'streamKuitansi']);
         });
         Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
         Route::post('/pelatihan', [PelatihanController::class, 'store']);
@@ -195,6 +197,14 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('lks-client')->group(function () {
             Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
             Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
+        });
+
+        Route::prefix('grk')->group(function () {
+            Route::get('/skema', [GrkController::class, 'getSkema']);
+            Route::post('/verifikasi', [GrkController::class, 'store']);
+            Route::get('/verifikasi/{id}', [GrkController::class, 'show']);
+            Route::post('/validasi', [GrkValidasiController::class, 'store']);
+            Route::get('/validasi/{id}', [GrkValidasiController::class, 'show']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

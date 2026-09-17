@@ -253,6 +253,9 @@ class DashboardController extends Controller
             } elseif (str_starts_with($item->no_permohonan, 'TRN')) {
                 $layananNama = $layananNama ?: 'Bimtek & Pelatihan Industri';
                 $jenisLayanan = 'Pelatihan';
+            } elseif (str_starts_with($item->no_permohonan, 'GRK')) {
+                $layananNama = $layananNama ?: 'Gas Rumah Kaca';
+                $jenisLayanan = 'Validasi & Verifikasi';
             }
 
             $slaInfo = $deadlines[$idx] ?? ['text' => '2 hari lagi', 'hours' => 48];

@@ -25,11 +25,13 @@ class PelatihanController extends Controller
             return response()->json(['success' => false, 'message' => 'Jenis layanan tidak ditemukan'], 404);
         }
 
-        $skema = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
+        $
+         = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
             ->select('id', 'lingkup', 'kapabilitas')
             ->get();
 
-        return response()->json(['success' => true, 'results' => $skema]);
+        return response()->json(['success' => true, 'results' => $
+    ]);
     }
 
     public function store(Request $request): JsonResponse

@@ -29,6 +29,13 @@ class MasterJenisLayananSeeder extends Seeder
                 'is_active'     => true,
             ]
         );
+        $validasiVerifikasi = MasterJenisLayanan::firstOrCreate(
+            ['slug' => Str::slug('Validasi & Verifikasi')],
+            [
+                'jenis_layanan' => 'Validasi & Verifikasi',
+                'is_active'     => true,
+            ]
+        );
         $lingkupLsp = [
             [
                 'jenis_layanan_id' => $lsp->id,
@@ -62,6 +69,21 @@ class MasterJenisLayananSeeder extends Seeder
             ],
         ];
         foreach ($lingkupPelatihan as $item) {
+            MasterLingkupLayanan::firstOrCreate(
+                ['jenis_layanan_id' => $item['jenis_layanan_id'], 'slug' => $item['slug']],
+                $item
+            );
+        }
+        $lingkupVV = [
+            [
+                'jenis_layanan_id' => $validasiVerifikasi->id,
+                'lingkup'          => 'Gas Rumah Kaca',
+                'kapabilitas'      => true,
+                'slug'             => Str::slug('GRK'),
+                'is_active'        => true,
+            ],
+        ];
+        foreach ($lingkupVV as $item) {
             MasterLingkupLayanan::firstOrCreate(
                 ['jenis_layanan_id' => $item['jenis_layanan_id'], 'slug' => $item['slug']],
                 $item

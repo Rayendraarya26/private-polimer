@@ -57,18 +57,18 @@ class Permohonan extends Model
     ];
 
     protected $casts = [
-        'harga_permohonan'          => 'float',
-        'tgl_order'                 => 'datetime',
-        'va_expired_at'             => 'datetime',
-        'invoice_generated_at'      => 'datetime',
-        'kuitansi_generated_at'     => 'datetime',
-        'tte_invoice_requested'     => 'boolean',
-        'tte_invoice_requested_at'  => 'datetime',
-        'tte_kuitansi_requested'    => 'boolean',
+        'harga_permohonan' => 'float',
+        'tgl_order' => 'datetime',
+        'va_expired_at' => 'datetime',
+        'invoice_generated_at' => 'datetime',
+        'kuitansi_generated_at' => 'datetime',
+        'tte_invoice_requested' => 'boolean',
+        'tte_invoice_requested_at' => 'datetime',
+        'tte_kuitansi_requested' => 'boolean',
         'tte_kuitansi_requested_at' => 'datetime',
-        'total_harga'               => 'decimal:2',
-        'feedback_json'             => 'array',
-        'file_attachment'           => 'array',
+        'total_harga' => 'decimal:2',
+        'feedback_json' => 'array',
+        'file_attachment' => 'array',
     ];
 
     public function detailPembayaran()
@@ -99,6 +99,16 @@ class Permohonan extends Model
     public function formSertifikasi()
     {
         return $this->hasMany(FormSertifikasi::class);
+    }
+
+    public function formGrkVerifikasi()
+    {
+        return $this->hasMany(FormGrkVerifikasi::class);
+    }
+
+    public function formGrkValidasi()
+    {
+        return $this->hasMany(FormGrkValidasi::class);
     }
 
     public function sertifikasi()
@@ -136,23 +146,23 @@ class Permohonan extends Model
     public function pelanggan()
     {
         return $this->hasOneThrough(
-            Pelanggan::class,   
-            SysUser::class,     
-            'id',              
-            'user_id',         
-            'created_by',     
-            'id'               
+            Pelanggan::class,
+            SysUser::class,
+            'id',
+            'user_id',
+            'created_by',
+            'id'
         );
     }
 
 
-    public function trackingLogs() : HasMany
+    public function trackingLogs(): HasMany
     {
         return $this->hasMany(PermohonanTrackingLog::class)->orderBy('created_at', 'asc');
     }
 
 
-    public function penawaranBiaya() : HasOne
+    public function penawaranBiaya(): HasOne
     {
         return $this->hasOne(PermohonanPenawaranBiaya::class, 'permohonan_id')->latestOfMany();
     }
@@ -168,19 +178,19 @@ class Permohonan extends Model
         }
 
         return (object) [
-            'total_nominal'        => (float) $this->harga_permohonan,
+            'total_nominal' => (float) $this->harga_permohonan,
             'file_surat_penawaran' => $this->file_surat_penawaran,
-            'status_persetujuan'   => match (strtolower($this->status_penawaran ?? '')) {
+            'status_persetujuan' => match (strtolower($this->status_penawaran ?? '')) {
                 'setuju' => 'DISETUJUI',
-                'tolak'  => 'DITOLAK',
+                'tolak' => 'DITOLAK',
                 'proses' => 'MENUNGGU',
-                default  => 'MENUNGGU',
+                default => 'MENUNGGU',
             },
-            'alasan_penolakan'     => $this->catatan_penawaran,
+            'alasan_penolakan' => $this->catatan_penawaran,
         ];
     }
 
-    public function integrationLog()  : HasMany
+    public function integrationLog(): HasMany
     {
         return $this->hasMany(IntegrationLog::class, 'permohonan_id')->orderBy('created_at', 'desc');
     }

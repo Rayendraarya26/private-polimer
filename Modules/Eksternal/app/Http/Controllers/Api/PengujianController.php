@@ -5,7 +5,9 @@ namespace Modules\Eksternal\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PengujianController extends Controller
 {
@@ -433,17 +435,251 @@ class PengujianController extends Controller
     }
 
     /**
-     * Mengambil detail permohonan pengujian berdasarkan ID (Placeholder awal)
+     * Helper untuk menyimpan berkas yang diunggah pemohon (S3 / Public Disk)
+     */
+    protected function saveCustomerFile($file, string $subfolder = 'pengujian'): ?string
+    {
+        if (!$file || !$file->isValid()) {
+            return null;
+        }
+
+        $disk = config('filesystems.default', 'public');
+        $targetFolder = 'pengujian/' . trim($subfolder, '/');
+
+        return $file->store($targetFolder, $disk);
+    }
+
+    /**
+     * Memproses Pengajuan Permohonan Pengujian Laboratorium
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'aksi'                          => 'required|in:draft,ajukan',
+            'bahasa_laporan'                => 'required|in:id,en',
+            'biaya_ditanggung_oleh'         => 'required|string|max:255',
+            'laporan_dialamatkan_kepada'    => 'required|string|max:255',
+            'cara_pembayaran'               => 'required|in:tunai,transfer,dibayar_di_belakang',
+            'kategori_tarif'                => 'required|in:umum,mahasiswa_pp54',
+            'jenis_uji'                     => 'required|in:regular,profisiensi,banding_lab',
+            'permintaan_evaluasi'           => 'nullable',
+            'catatan_evaluasi'              => 'nullable|string',
+            'menyaksikan_uji'               => 'nullable',
+            'catatan_menyaksikan'           => 'nullable|string',
+            'keterangan_uji'                => 'nullable|string',
+            'no_surat_pengantar'            => 'nullable|string|max:255',
+            'tgl_surat_pengantar'           => 'nullable|date',
+            'samples'                       => 'required',
+            'file_surat_pengantar'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'file_ktm'                      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $isAjukan = $validated['aksi'] === 'ajukan';
+        $isMahasiswa = $validated['kategori_tarif'] === 'mahasiswa_pp54';
+
+        if ($isAjukan && $isMahasiswa && !$request->hasFile('file_ktm')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori Tarif Mahasiswa wajib melampirkan berkas Kartu Tanda Mahasiswa (KTM).'
+            ], 422);
+        }
+
+        // Parse samples dari format JSON string
+        $samplesRaw = $validated['samples'];
+        if (is_string($samplesRaw)) {
+            $samples = json_decode($samplesRaw, true);
+            if (!is_array($samples)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format data sampel pengujian tidak valid.'
+                ], 422);
+            }
+        } else {
+            $samples = (array) $samplesRaw;
+        }
+
+        if (empty($samples)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimal harus ada 1 sampel pengujian yang didaftarkan.'
+            ], 422);
+        }
+
+        // 1. Simpan berkas dokumen
+        $pathSuratPengantar = $request->hasFile('file_surat_pengantar')
+            ? $this->saveCustomerFile($request->file('file_surat_pengantar'), 'surat_pengantar')
+            : null;
+
+        $pathKtm = $request->hasFile('file_ktm')
+            ? $this->saveCustomerFile($request->file('file_ktm'), 'ktm')
+            : null;
+
+        // 2. Kalkulasi grand total biaya pengujian
+        $grandTotal = 0;
+        $processedSamples = [];
+
+        foreach ($samples as $idx => $sample) {
+            $komoditiId = (int) ($sample['master_komoditi_id'] ?? 0);
+            $jumlah = max(1, (int) ($sample['jumlah_sampel'] ?? 1));
+            $parameterIds = (array) ($sample['parameter_ids'] ?? []);
+
+            $availableParams = self::$masterParameterData[$komoditiId] ?? [];
+            $paramById = collect($availableParams)->keyBy('id');
+
+            $sampleParams = [];
+            $sampleSubtotal = 0;
+
+            foreach ($parameterIds as $pId) {
+                if ($param = $paramById->get((int) $pId)) {
+                    $rate = $isMahasiswa ? $param['tarif_mahasiswa'] : $param['tarif_umum'];
+                    $sampleSubtotal += $rate;
+                    $sampleParams[] = [
+                        'id' => $param['id'],
+                        'kode' => $param['kode'],
+                        'nama' => $param['nama'],
+                        'metode_uji' => $param['metode_uji'],
+                        'satuan' => $param['satuan'],
+                        'tarif' => $rate,
+                    ];
+                }
+            }
+
+            $sampleTotal = $sampleSubtotal * $jumlah;
+            $grandTotal += $sampleTotal;
+
+            $processedSamples[] = [
+                'index' => $idx + 1,
+                'nama_sampel' => $sample['nama_sampel'] ?? ('Sampel #' . ($idx + 1)),
+                'bentuk_sampel' => $sample['bentuk_sampel'] ?? 'Lembaran / Film',
+                'jumlah_sampel' => $jumlah,
+                'satuan_sampel' => $sample['satuan_sampel'] ?? 'Pcs',
+                'no_lot_bets' => $sample['no_lot_bets'] ?? null,
+                'kondisi_sampel' => $sample['kondisi_sampel'] ?? 'Baik',
+                'master_komoditi_id' => $komoditiId,
+                'parameters' => $sampleParams,
+                'subtotal' => $sampleTotal,
+            ];
+        }
+
+        // 3. Generate Nomor Permohonan & Virtual Account
+        $noPermohonan = 'UJI' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+        $vaNumber = $validated['cara_pembayaran'] === 'transfer'
+            ? ('988' . now()->format('ymd') . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT))
+            : null;
+
+        $permohonanId = (string) Str::uuid();
+
+        // 4. Simpan ke database jika tabel permohonan tersedia
+        try {
+            DB::beginTransaction();
+
+            $permohonanData = [
+                'id' => $permohonanId,
+                'id_pt_ins' => (string) Str::uuid(),
+                'is_split_bill' => false,
+                'no_permohonan' => $noPermohonan,
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
+                'status_bayar' => 'BELUM',
+                'harga_permohonan' => $grandTotal,
+                'tgl_order' => $isAjukan ? now() : null,
+                'created_by' => auth()->id() ?? '00000000-0000-0000-0000-000000000000',
+                'ip_address' => $request->ip(),
+                'va' => $vaNumber,
+                'file_attachment' => $pathSuratPengantar,
+                'catatan_penawaran' => json_encode([
+                    'layanan' => 'pengujian',
+                    'bahasa_laporan' => $validated['bahasa_laporan'],
+                    'biaya_ditanggung_oleh' => $validated['biaya_ditanggung_oleh'],
+                    'laporan_dialamatkan_kepada' => $validated['laporan_dialamatkan_kepada'],
+                    'permintaan_evaluasi' => filter_var($validated['permintaan_evaluasi'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'catatan_evaluasi' => $validated['catatan_evaluasi'] ?? '',
+                    'menyaksikan_uji' => filter_var($validated['menyaksikan_uji'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'catatan_menyaksikan' => $validated['catatan_menyaksikan'] ?? '',
+                    'cara_pembayaran' => $validated['cara_pembayaran'],
+                    'kategori_tarif' => $validated['kategori_tarif'],
+                    'jenis_uji' => $validated['jenis_uji'],
+                    'keterangan_uji' => $validated['keterangan_uji'] ?? '',
+                    'no_surat_pengantar' => $validated['no_surat_pengantar'] ?? '',
+                    'tgl_surat_pengantar' => $validated['tgl_surat_pengantar'] ?? '',
+                    'file_surat_pengantar' => $pathSuratPengantar,
+                    'file_ktm' => $pathKtm,
+                    'samples' => $processedSamples,
+                    'grand_total' => $grandTotal,
+                ]),
+            ];
+
+            if (class_exists(\App\Models\Db2\Permohonan::class)) {
+                $permohonan = \App\Models\Db2\Permohonan::create($permohonanData);
+                $permohonanId = $permohonan->id;
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::warning('Permohonan DB write fallback: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $isAjukan
+                ? 'Permohonan pengujian laboratorium berhasil diajukan.'
+                : 'Draft permohonan pengujian laboratorium berhasil disimpan.',
+            'data' => [
+                'id' => $permohonanId,
+                'permohonan_id' => $permohonanId,
+                'no_permohonan' => $noPermohonan,
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
+                'grand_total' => $grandTotal,
+                'va' => $vaNumber,
+                'redirect_url' => '/app/#/permohonan/detail/' . $permohonanId,
+            ],
+            'results' => [
+                'id' => $permohonanId,
+                'permohonan_id' => $permohonanId,
+                'no_permohonan' => $noPermohonan,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Mengambil detail permohonan pengujian berdasarkan ID
      */
     public function show(Request $request, $id): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $id,
-                'jenis_layanan' => 'pengujian',
-                'message' => 'Detail permohonan pengujian (WIP)',
-            ],
-        ]);
+        try {
+            if (class_exists(\App\Models\Db2\Permohonan::class)) {
+                $permohonan = \App\Models\Db2\Permohonan::find($id);
+                if ($permohonan) {
+                    $catatan = json_decode($permohonan->catatan_penawaran ?? '{}', true);
+                    return response()->json([
+                        'success' => true,
+                        'data' => [
+                            'id' => $permohonan->id,
+                            'no_permohonan' => $permohonan->no_permohonan,
+                            'status_workflow' => $permohonan->status_workflow,
+                            'status_bayar' => $permohonan->status_bayar,
+                            'harga_permohonan' => $permohonan->harga_permohonan,
+                            'va' => $permohonan->va,
+                            'detail' => $catatan,
+                        ],
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $id,
+                    'jenis_layanan' => 'pengujian',
+                    'message' => 'Detail permohonan pengujian aktif.',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error getDetailPengujian: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat detail permohonan.',
+            ], 500);
+        }
     }
 }

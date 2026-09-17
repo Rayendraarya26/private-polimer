@@ -201,6 +201,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('pengujian')->group(function () {
             Route::get('/master-komoditi', [PengujianController::class, 'getMasterKomoditi']);
             Route::get('/komoditi/{id}/parameters', [PengujianController::class, 'getParametersByKomoditi']);
+            Route::post('/permohonan', [PengujianController::class, 'store']);
             Route::get('/{id}', [PengujianController::class, 'show']);
         });
 

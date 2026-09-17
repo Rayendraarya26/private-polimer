@@ -200,6 +200,21 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
         });
 
+        Route::prefix('pengujian')->group(function () {
+            Route::get('/master-komoditi', [PengujianController::class, 'getMasterKomoditi']);
+            Route::get('/komoditi/{id}/parameters', [PengujianController::class, 'getParametersByKomoditi']);
+            Route::post('/permohonan', [PengujianController::class, 'store']);
+            Route::get('/{id}', [PengujianController::class, 'show']);
+        });
+
+        Route::prefix('grk')->group(function () {
+            Route::get('/skema', [GrkController::class, 'getSkema']);
+            Route::post('/verifikasi', [GrkController::class, 'store']);
+            Route::get('/verifikasi/{id}', [GrkController::class, 'show']);
+            Route::post('/validasi', [GrkValidasiController::class, 'store']);
+            Route::get('/validasi/{id}', [GrkValidasiController::class, 'show']);
+        });
+
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);
     });
 

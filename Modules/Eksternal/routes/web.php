@@ -22,6 +22,7 @@ use Modules\Eksternal\Http\Controllers\Api\PelatihanController;
 use Modules\Eksternal\Http\Controllers\Api\PembayaranController;
 use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
 use Modules\Eksternal\Http\Controllers\Api\LksClientController;
+use Modules\Eksternal\Http\Controllers\Api\PengujianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -195,6 +196,12 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('lks-client')->group(function () {
             Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
             Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
+        });
+
+        Route::prefix('pengujian')->group(function () {
+            Route::get('/master-komoditi', [PengujianController::class, 'getMasterKomoditi']);
+            Route::get('/komoditi/{id}/parameters', [PengujianController::class, 'getParametersByKomoditi']);
+            Route::get('/{id}', [PengujianController::class, 'show']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

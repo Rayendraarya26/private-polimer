@@ -110,16 +110,24 @@ export const FormPengujianWizard: React.FC = () => {
       formData.append("aksi", aksi)
       formData.append("bahasa_laporan", sharedData.bahasa_laporan)
       formData.append("tanggal_permohonan", sharedData.tanggal_permohonan)
+      formData.append("diajukan_oleh", sharedData.diajukan_oleh || "")
+      formData.append("biaya_sama_dengan_pemohon", sharedData.biaya_sama_dengan_pemohon ? "1" : "0")
       formData.append("biaya_ditanggung_oleh", sharedData.biaya_ditanggung_oleh)
+      formData.append("alamat_sama_dengan_pemohon", sharedData.alamat_sama_dengan_pemohon ? "1" : "0")
       formData.append("laporan_dialamatkan_kepada", sharedData.laporan_dialamatkan_kepada)
+      formData.append("keterangan_permintaan", sharedData.keterangan_permintaan || "")
+
+      formData.append("kategori_tarif", sharedData.kategori_tarif)
+      formData.append("cara_pembayaran", sharedData.cara_pembayaran)
       formData.append("permintaan_evaluasi", sharedData.permintaan_evaluasi ? "1" : "0")
       formData.append("catatan_evaluasi", sharedData.catatan_evaluasi || "")
       formData.append("menyaksikan_uji", sharedData.menyaksikan_uji ? "1" : "0")
       formData.append("catatan_menyaksikan", sharedData.catatan_menyaksikan || "")
-      formData.append("cara_pembayaran", sharedData.cara_pembayaran)
-      formData.append("kategori_tarif", sharedData.kategori_tarif)
-      formData.append("jenis_uji", sharedData.jenis_uji)
-      formData.append("keterangan_uji", sharedData.keterangan_uji || "")
+
+      formData.append("tanggal_bapc", sharedData.tanggal_bapc || "")
+      formData.append("no_bapc", sharedData.no_bapc || "")
+      formData.append("no_sample", sharedData.no_sample || "")
+      formData.append("merek_kode", sharedData.merek_kode || "")
       formData.append("no_surat_pengantar", sharedData.no_surat_pengantar || "")
       formData.append("tgl_surat_pengantar", sharedData.tgl_surat_pengantar || "")
 
@@ -257,6 +265,9 @@ export const FormPengujianWizard: React.FC = () => {
           samples={samples}
           setSamples={setSamples}
           kategoriTarif={sharedData.kategori_tarif}
+          setKategoriTarif={(kategori) =>
+            setSharedData((prev) => ({ ...prev, kategori_tarif: kategori }))
+          }
           onNext={goNext}
           onBack={goBack}
         />

@@ -19,8 +19,8 @@ return new class extends Migration
                 $table->uuid('referensi_sertifikasi_id')->nullable()->index()->comment('ID sertifikat acuan jika perpanjangan atau surveilans');
                 
                 // Profil Perusahaan Pemohon
-                $table->string('nama_perusahaan');
-                $table->text('alamat_kantor');
+                $table->string('nama_perusahaan')->nullable();
+                $table->text('alamat_kantor')->nullable();
                 $table->string('kontak_person')->nullable();
                 $table->string('no_telp')->nullable();
                 $table->string('no_whatsapp')->nullable();

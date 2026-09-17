@@ -1,13 +1,17 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import {
   Trash2,
-  Sliders,
   Layers,
   FlaskConical,
-  X,
+  Search,
+  CheckSquare,
+  Square,
   Sparkles,
   Tag,
-  Package,
+  Loader2,
+  AlertCircle,
+  HelpCircle,
+  ShieldCheck,
 } from "lucide-react"
 import {
   BentukSampel,
@@ -18,10 +22,10 @@ import {
   MasterParameterUji,
   PengujianSampleItem,
 } from "../../../../types/pengujian"
+import { useParametersByKomoditiQuery } from "../../../../hooks/queries/usePengujianQuery"
 import { Input } from "../../../ui/Input"
 import { Button } from "../../../ui/Button"
 import { Badge } from "../../../ui/Badge"
-import { ParameterSelector } from "./ParameterSelector"
 import { formatRupiah } from "./CostEstimationSummary"
 
 interface SampleCardItemProps {
@@ -56,10 +60,28 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
   onUpdate,
   onDelete,
 }) => {
-  const [isParamModalOpen, setIsParamModalOpen] = useState(false)
+  const [paramSearch, setParamSearch] = useState("")
   const isMahasiswa = kategoriTarif === "mahasiswa_pp54"
-
   const subtotal = calculateSampleSubtotal(sample, kategoriTarif)
+
+  // Ambil data parameter untuk komoditas yang dipilih
+  const {
+    data: parameterList = [],
+    isLoading: loadingParams,
+    isError: errorParams,
+  } = useParametersByKomoditiQuery(sample.master_komoditi_id)
+
+  // Filter parameter berdasarkan pencarian
+  const filteredParameters = useMemo(() => {
+    if (!paramSearch.trim()) return parameterList
+    const q = paramSearch.toLowerCase()
+    return parameterList.filter(
+      (p) =>
+        p.nama.toLowerCase().includes(q) ||
+        p.metode_uji.toLowerCase().includes(q) ||
+        p.kode.toLowerCase().includes(q)
+    )
+  }, [parameterList, paramSearch])
 
   const handleKomoditiChange = (komoditiIdStr: string) => {
     const id = komoditiIdStr ? parseInt(komoditiIdStr, 10) : null
@@ -68,21 +90,34 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
       ...sample,
       master_komoditi_id: id,
       komoditi_nama: selected ? selected.nama : "",
-      selected_parameters: [], // Reset parameters jika komoditas diganti
+      selected_parameters: [], // Reset checklist jika ganti komoditas
+    })
+    setParamSearch("")
+  }
+
+  const toggleParameter = (param: MasterParameterUji) => {
+    const exists = sample.selected_parameters.some((p) => p.id === param.id)
+    const newSelected = exists
+      ? sample.selected_parameters.filter((p) => p.id !== param.id)
+      : [...sample.selected_parameters, param]
+
+    onUpdate({
+      ...sample,
+      selected_parameters: newSelected,
     })
   }
 
-  const handleRemoveParameter = (paramId: number) => {
+  const handleSelectAllParams = () => {
     onUpdate({
       ...sample,
-      selected_parameters: sample.selected_parameters.filter((p) => p.id !== paramId),
+      selected_parameters: [...parameterList],
     })
   }
 
-  const handleApplyParameters = (newParams: MasterParameterUji[]) => {
+  const handleDeselectAllParams = () => {
     onUpdate({
       ...sample,
-      selected_parameters: newParams,
+      selected_parameters: [],
     })
   }
 
@@ -99,7 +134,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               {sample.nama_sampel || `Sampel #${index + 1} (Nama belum diisi)`}
             </h4>
             <p className="text-[11px] text-slate-500">
-              {sample.komoditi_nama || "Komoditas belum dipilih"} • {sample.selected_parameters.length} parameter uji
+              {sample.komoditi_nama || "Komoditas belum dipilih"} • {sample.selected_parameters.length} parameter uji dicentang
             </p>
           </div>
         </div>
@@ -128,7 +163,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
       </div>
 
       {/* Sample Body Fields */}
-      <div className="p-6 space-y-5">
+      <div className="p-6 space-y-6">
         {/* Row 1: Nama Sampel & Komoditas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -152,7 +187,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               <select
                 value={sample.master_komoditi_id || ""}
                 onChange={(e) => handleKomoditiChange(e.target.value)}
-                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer"
+                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer font-medium"
               >
                 <option value="">-- Pilih Komoditas Pengujian --</option>
                 {komoditiList.map((kmd) => (
@@ -163,12 +198,12 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               </select>
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
-              Menentukan daftar parameter uji dan metode laboratorium yang relevan
+              Pilih ruang lingkup komoditas untuk menampilkan daftar parameter uji laboratorium
             </p>
           </div>
         </div>
 
-        {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi */}
+        {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi Fisik */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {/* Bentuk Fisik */}
           <div>
@@ -188,7 +223,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             </select>
           </div>
 
-          {/* Jumlah / Volume */}
+          {/* Jumlah */}
           <div>
             <Input
               label="Jumlah"
@@ -220,20 +255,10 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             </select>
           </div>
 
-          {/* Nomor Lot / Bets */}
+          {/* Kondisi Fisik Awal */}
           <div>
-            <Input
-              label="No. Lot / Bets"
-              placeholder="LOT-2026-X (opsional)"
-              value={sample.no_lot_bets}
-              onChange={(e) => onUpdate({ ...sample, no_lot_bets: e.target.value })}
-            />
-          </div>
-
-          {/* Kondisi Fisik Sampel */}
-          <div className="col-span-2 sm:col-span-1">
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Kondisi Fisik
+              Kondisi Fisik Awal
             </label>
             <select
               value={sample.kondisi_sampel}
@@ -247,86 +272,177 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               ))}
             </select>
           </div>
+
+          {/* Nomor Lot / Bets */}
+          <div className="col-span-2 sm:col-span-1">
+            <Input
+              label="No. Lot / Bets"
+              placeholder="LOT-2026-X (opsional)"
+              value={sample.no_lot_bets}
+              onChange={(e) => onUpdate({ ...sample, no_lot_bets: e.target.value })}
+            />
+          </div>
         </div>
 
-        {/* Row 3: Parameter Uji Section */}
-        <div className="pt-2 border-t border-slate-100 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {/* Row 3: DAFTAR PARAMETER UJI (INLINE CHECKBOX SELECTOR) */}
+        <div className="pt-3 border-t border-slate-200/80 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-brand-600" />
-                Parameter Uji yang Dipilih ({sample.selected_parameters.length})
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-brand-600" />
+                Daftar Parameter Uji & Metode Acuan Standar
               </span>
-              <p className="text-[11px] text-slate-500">
-                Pilih metode pengujian yang akan dilakukan di laboratorium untuk sampel ini.
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Centang checkbox parameter yang akan diuji di laboratorium untuk sampel ini.
               </p>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!sample.master_komoditi_id}
-              onClick={() => setIsParamModalOpen(true)}
-              leftIcon={<Sliders className="w-3.5 h-3.5 text-brand-600" />}
-              className="text-xs"
-            >
-              {!sample.master_komoditi_id
-                ? "Pilih Komoditas Dahulu"
-                : sample.selected_parameters.length === 0
-                ? "+ Pilih Parameter Uji"
-                : "Ubah Parameter Uji"}
-            </Button>
+            {sample.master_komoditi_id && parameterList.length > 0 && (
+              <Badge variant="primary" size="sm" className="self-start sm:self-auto">
+                {sample.selected_parameters.length} dari {parameterList.length} Parameter Dicentang
+              </Badge>
+            )}
           </div>
 
-          {/* Selected Parameters Chips */}
-          {sample.selected_parameters.length === 0 ? (
-            <div className="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400">
-              Belum ada parameter uji yang dipilih untuk sampel ini.
+          {/* State 1: Belum Pilih Komoditas */}
+          {!sample.master_komoditi_id && (
+            <div className="p-6 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 text-center space-y-2">
+              <Layers className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-bold text-slate-700">Komoditas Belum Dipilih</p>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                Silakan pilih <strong>Komoditas / Ruang Lingkup Lab</strong> pada pilihan di atas untuk memunculkan daftar parameter uji dan metode acuan yang tersedia.
+              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {sample.selected_parameters.map((param) => {
-                const rate = isMahasiswa ? param.tarif_mahasiswa : param.tarif_umum
-                return (
-                  <div
-                    key={param.id}
-                    className="p-2.5 rounded-lg bg-brand-50/50 border border-brand-200/80 flex items-center justify-between gap-2 text-xs text-slate-800"
+          )}
+
+          {/* State 2: Komoditas Terpilih */}
+          {sample.master_komoditi_id && (
+            <div className="space-y-3">
+              {/* Toolbar Pencarian & Aksi Cepat */}
+              <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                <div className="relative flex-1">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama parameter atau metode acuan (misal: SNI, ASTM, Kuat Tarik)..."
+                    value={paramSearch}
+                    onChange={(e) => setParamSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllParams}
+                    className="text-[11px] py-1 px-2.5 h-7"
                   >
-                    <div className="min-w-0">
-                      <p className="font-bold truncate text-slate-900">{param.nama}</p>
-                      <p className="text-[10px] text-slate-500">
-                        {param.metode_uji} • {formatRupiah(rate)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveParameter(param.id)}
-                      className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                      title="Hapus parameter ini"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )
-              })}
+                    Pilih Semua
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeselectAllParams}
+                    className="text-[11px] py-1 px-2.5 h-7"
+                  >
+                    Batal Semua
+                  </Button>
+                </div>
+              </div>
+
+              {/* Loading State */}
+              {loadingParams && (
+                <div className="flex items-center justify-center py-8 text-xs text-slate-500 gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
+                  <span>Memuat parameter pengujian laboratorium...</span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {errorParams && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Gagal memuat parameter uji komoditas. Silakan coba kembali.</span>
+                </div>
+              )}
+
+              {/* Empty Search Result */}
+              {!loadingParams && !errorParams && filteredParameters.length === 0 && (
+                <div className="p-6 text-center text-xs text-slate-400">
+                  <HelpCircle className="w-6 h-6 mx-auto mb-1 text-slate-300" />
+                  <span>Parameter dengan kata kunci "{paramSearch}" tidak ditemukan.</span>
+                </div>
+              )}
+
+              {/* Checkbox List Grid */}
+              {!loadingParams && !errorParams && filteredParameters.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+                  {filteredParameters.map((param) => {
+                    const isChecked = sample.selected_parameters.some((p) => p.id === param.id)
+                    const rate = isMahasiswa ? param.tarif_mahasiswa : param.tarif_umum
+
+                    return (
+                      <div
+                        key={param.id}
+                        onClick={() => toggleParameter(param)}
+                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 select-none ${
+                          isChecked
+                            ? "bg-brand-50/70 border-brand-500 shadow-2xs"
+                            : "bg-white border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className="pt-0.5 shrink-0 text-brand-600">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}} // Handled by parent div onClick
+                              className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 cursor-pointer pointer-events-none"
+                            />
+                          </div>
+
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-xs font-bold text-slate-900 leading-snug">
+                                {param.nama}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono bg-slate-100 text-slate-600 border border-slate-200">
+                                {param.kode}
+                              </span>
+                            </div>
+
+                            {/* METODE UJI BAKU (OTOMATIS MENYESUAIKAN PARAMETER) */}
+                            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                              <span className="font-semibold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded text-[10.5px]">
+                                Metode: {param.metode_uji}
+                              </span>
+                              {param.satuan && (
+                                <span className="text-slate-400">• Satuan: {param.satuan}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-xs font-extrabold text-brand-700 block">
+                            {formatRupiah(rate)}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {isMahasiswa ? "Tarif Mahasiswa" : "Tarif PNBP"}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
-
-      {/* Parameter Selector Modal */}
-      {isParamModalOpen && (
-        <ParameterSelector
-          isOpen={isParamModalOpen}
-          onClose={() => setIsParamModalOpen(false)}
-          komoditiId={sample.master_komoditi_id}
-          komoditiNama={sample.komoditi_nama || ""}
-          selectedParameters={sample.selected_parameters}
-          onSelectParameters={handleApplyParameters}
-          kategoriTarif={kategoriTarif}
-        />
-      )}
     </div>
   )
 }

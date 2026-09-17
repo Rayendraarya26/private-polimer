@@ -7,7 +7,6 @@ import {
   Building2,
   GraduationCap,
   CreditCard,
-  FlaskConical,
   CheckCircle2,
   AlertCircle,
   ArrowLeft,
@@ -15,12 +14,16 @@ import {
   Loader2,
   X,
   ShieldCheck,
+  Eye,
+  Info,
   Sparkles,
+  Tag,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import {
   calculateGrandTotal,
   calculateSampleSubtotal,
+  CaraPembayaran,
   PengujianSampleItem,
   PengujianSharedData,
 } from "../../../types/pengujian"
@@ -96,6 +99,14 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
   const handleTriggerSubmit = (aksi: "draft" | "ajukan") => {
     if (aksi === "ajukan") {
+      if (sharedData.permintaan_evaluasi && !sharedData.catatan_evaluasi.trim()) {
+        toast.error("Silakan tuliskan acuan standar spesifikasi untuk evaluasi kesesuaian")
+        return
+      }
+      if (sharedData.menyaksikan_uji && !sharedData.catatan_menyaksikan.trim()) {
+        toast.error("Silakan tuliskan perkiraan tanggal hadir dan nama personil yang akan menyaksikan pengujian")
+        return
+      }
       if (isMahasiswa && !sharedData.file_ktm) {
         toast.error("Anda memilih Tarif Mahasiswa. Wajib mengunggah berkas Kartu Tanda Mahasiswa (KTM)")
         return
@@ -109,7 +120,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* Step Header */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs">
         <div className="flex items-center gap-3">
@@ -118,21 +129,311 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900">
-              Tahap 4: Dokumen Pendukung & Konfirmasi Akhir
+              Tahap 4: Tambahan, Pembayaran & Konfirmasi Akhir
             </h2>
             <p className="text-xs text-slate-500">
-              Lengkapi berkas surat pengantar atau KTM, tinjau ringkasan pesanan uji, dan setujui
-              pernyataan integritas.
+              Tentukan preferensi evaluasi, kehadiran di lab, metode pembayaran, unggah berkas pendukung, dan tinjau ringkasan pesanan uji.
             </p>
           </div>
         </div>
       </div>
 
-      {/* 1. UPLOAD BERKAS PENDUKUNG */}
+      {/* 1. DATA TAMBAHAN BAPC & SAMPEL (OPSIONAL) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+          <Tag className="w-4 h-4 text-brand-600" />
+          1. Data Tambahan BAPC & Penomoran Sampel (Opsional)
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Tanggal BAPC */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+              Tanggal BAPC (Opsional)
+            </label>
+            <div className="relative flex items-center">
+              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <input
+                type="date"
+                value={sharedData.tanggal_bapc}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    tanggal_bapc: e.target.value,
+                  }))
+                }
+                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+          </div>
+
+          {/* Nomor BAPC */}
+          <div>
+            <Input
+              label="Nomor BAPC (Opsional)"
+              placeholder="Nomor BAPC jika ada"
+              value={sharedData.no_bapc}
+              onChange={(e) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  no_bapc: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          {/* Nomor Sample */}
+          <div>
+            <Input
+              label="Nomor Sample (Opsional)"
+              placeholder="Contoh: SMPL-2026-001"
+              value={sharedData.no_sample}
+              onChange={(e) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  no_sample: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          {/* Merek / Kode */}
+          <div>
+            <Input
+              label="Merek / Kode (Opsional)"
+              placeholder="Merek atau kode spesimen"
+              value={sharedData.merek_kode}
+              onChange={(e) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  merek_kode: e.target.value,
+                }))
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 2. EVALUASI KESESUAIAN & KEHADIRAN DI LABORATORIUM */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+          <Sparkles className="w-4 h-4 text-brand-600" />
+          2. Evaluasi Kesesuaian & Kehadiran di Laboratorium
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Permintaan Evaluasi / Pernyataan Kesesuaian */}
+          <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div>
+              <label className="text-xs font-bold text-slate-800 block">
+                Permintaan Evaluasi / Pernyataan Kesesuaian <span className="text-rose-500">*</span>
+              </label>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Apakah hasil pengujian memerlukan evaluasi status kesesuaian (lulus/tidak lulus) terhadap standar acuan?
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 pt-1">
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="permintaan_evaluasi"
+                  checked={sharedData.permintaan_evaluasi === true}
+                  onChange={() =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      permintaan_evaluasi: true,
+                    }))
+                  }
+                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                />
+                <span>Ya, butuh evaluasi</span>
+              </label>
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="permintaan_evaluasi"
+                  checked={sharedData.permintaan_evaluasi === false}
+                  onChange={() =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      permintaan_evaluasi: false,
+                      catatan_evaluasi: "",
+                    }))
+                  }
+                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                />
+                <span>Tidak (Hanya data numerik)</span>
+              </label>
+            </div>
+
+            {sharedData.permintaan_evaluasi && (
+              <div className="pt-2 animate-in fade-in-50 duration-200">
+                <textarea
+                  rows={2}
+                  placeholder="Sebutkan acuan standar (Contoh: Evaluasi terhadap ambang batas SNI 06-4965-1999 Kelas A)..."
+                  value={sharedData.catatan_evaluasi}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      catatan_evaluasi: e.target.value,
+                    }))
+                  }
+                  className="w-full text-xs rounded-lg border border-brand-300 p-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Pilihan Menyaksikan Pengujian */}
+          <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div>
+              <label className="text-xs font-bold text-slate-800 block flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5 text-brand-600" />
+                Pilihan Menyaksikan Pengujian <span className="text-rose-500">*</span>
+              </label>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Apakah perwakilan instansi Anda ingin hadir langsung di laboratorium saat proses pengujian berlangsung?
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 pt-1">
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="menyaksikan_uji"
+                  checked={sharedData.menyaksikan_uji === true}
+                  onChange={() =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      menyaksikan_uji: true,
+                    }))
+                  }
+                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                />
+                <span>Ya, ingin hadir</span>
+              </label>
+              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
+                <input
+                  type="radio"
+                  name="menyaksikan_uji"
+                  checked={sharedData.menyaksikan_uji === false}
+                  onChange={() =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      menyaksikan_uji: false,
+                      catatan_menyaksikan: "",
+                    }))
+                  }
+                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                />
+                <span>Tidak hadir</span>
+              </label>
+            </div>
+
+            {sharedData.menyaksikan_uji && (
+              <div className="pt-2 space-y-2 animate-in fade-in-50 duration-200">
+                <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800 flex items-start gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span>Wajib mematuhi SOP K3 Laboratorium BBSPJIKKP dan mengenakan APD standar balai.</span>
+                </div>
+                <textarea
+                  rows={2}
+                  placeholder="Sebutkan perkiraan tanggal hadir & nama personil perwakilan yang akan datang..."
+                  value={sharedData.catatan_menyaksikan}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      catatan_menyaksikan: e.target.value,
+                    }))
+                  }
+                  className="w-full text-xs rounded-lg border border-brand-300 p-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. METODE PEMBAYARAN */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+          <CreditCard className="w-4 h-4 text-brand-600" />
+          3. Tata Cara Pembayaran PNBP
+        </h3>
+
+        <div className="space-y-3">
+          <label className="block text-xs font-bold text-slate-800">
+            Pilih Metode Pembayaran <span className="text-rose-500">*</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              {
+                id: "transfer" as CaraPembayaran,
+                title: "Transfer BNI VA",
+                desc: "Nomor Virtual Account terbit otomatis & verifikasi pembayaran real-time",
+              },
+              {
+                id: "tunai" as CaraPembayaran,
+                title: "Tunai di Loket",
+                desc: "Pembayaran langsung di loket kasir PTSP BBSPJIKKP Yogyakarta",
+              },
+              {
+                id: "dibayar_di_belakang" as CaraPembayaran,
+                title: "Dibayar di Belakang",
+                desc: "Khusus instansi rekanan dengan perjanjian kerja sama resmi (MoU/PKS)",
+              },
+            ].map((method) => {
+              const isSelected = sharedData.cara_pembayaran === method.id
+              return (
+                <div
+                  key={method.id}
+                  onClick={() =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      cara_pembayaran: method.id,
+                    }))
+                  }
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    isSelected
+                      ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
+                      : "bg-white border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-900">{method.title}</span>
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" />}
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-snug">{method.desc}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {sharedData.cara_pembayaran === "dibayar_di_belakang" && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2 animate-in fade-in-50 duration-200 mt-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-amber-950">Ketentuan Pembayaran di Belakang:</p>
+                <p className="text-[11px] text-amber-800">
+                  Permohonan akan diverifikasi oleh bagian Pemasaran & Kerjasama BBSPJIKKP untuk memastikan
+                  keabsahan masa berlaku dokumen MoU / PKS instansi Anda sebelum pengerjaan uji dimulai.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 4. UNGGAH BERKAS PERSYARATAN */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
           <Upload className="w-4 h-4 text-brand-600" />
-          1. Unggah Surat Pengantar & Dokumen Persyaratan
+          4. Unggah Surat Pengantar & Dokumen Persyaratan
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -177,7 +478,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* File Surat Pengantar */}
           <div className="md:col-span-2 space-y-2">
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Unggah Berkas Surat Pengantar (PDF/Gambar, Max 5MB)
+              Unggah Berkas Surat Pengantar (PDF/Gambar, Maks. 5MB)
             </label>
             {sharedData.file_surat_pengantar ? (
               <div className="p-3.5 rounded-xl bg-brand-50/70 border border-brand-200 flex items-center justify-between gap-3 text-xs">
@@ -278,20 +579,20 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 2. RINGKASAN PERMOHONAN (ORDER REVIEW) */}
+      {/* 5. RINGKASAN PERMOHONAN (ORDER REVIEW) */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-brand-600" />
-            2. Ringkasan Formulir Pengujian Laboratorium
+            5. Ringkasan Formulir Pengujian Laboratorium
           </h3>
           <Badge variant="primary" size="sm">
-            {samples.length} Sampel Uji
+            {samples.length} Sampel Terdaftar
           </Badge>
         </div>
 
         {/* Info Grid Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs">
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
               Bahasa Laporan
@@ -312,28 +613,36 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              Metode Bayar
+              Metode Pembayaran
             </span>
             <span className="font-bold text-slate-800 uppercase">
-              {sharedData.cara_pembayaran.replace("_", " ")}
+              {sharedData.cara_pembayaran.replace(/_/g, " ")}
             </span>
           </div>
 
-          <div className="col-span-2 sm:col-span-3 p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+          <div className="col-span-2 sm:col-span-3 p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                Penanggung Jawab Biaya
+                Pemohon Terdaftar
               </span>
-              <span className="font-semibold text-slate-700">
-                {sharedData.biaya_ditanggung_oleh}
+              <span className="font-semibold text-slate-800">
+                {sharedData.diajukan_oleh || "-"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                Alamat Pengiriman LHU
+                Penanggung Jawab Biaya
               </span>
-              <span className="font-semibold text-slate-700">
-                {sharedData.laporan_dialamatkan_kepada}
+              <span className="font-semibold text-slate-800">
+                {sharedData.biaya_ditanggung_oleh || "-"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                Alamat Tujuan LHU
+              </span>
+              <span className="font-semibold text-slate-800">
+                {sharedData.laporan_dialamatkan_kepada || "-"}
               </span>
             </div>
           </div>
@@ -369,7 +678,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                       return (
                         <div key={p.id} className="flex items-center justify-between text-[11px] text-slate-600">
                           <span>
-                            • {p.nama} <span className="text-slate-400">({p.metode_uji})</span>
+                            • {p.nama} <span className="text-brand-700 font-medium font-mono">({p.metode_uji})</span>
                           </span>
                           <span className="font-mono">{formatRupiah(rate)}</span>
                         </div>
@@ -383,7 +692,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
 
         {/* Grand Total Banner */}
-        <div className="p-4 rounded-xl bg-brand-900 text-white flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-brand-900 text-white flex items-center justify-between shadow-xs">
           <div>
             <span className="text-xs text-brand-200 font-semibold block uppercase tracking-wider">
               Total Estimasi Biaya Pengujian:
@@ -396,11 +705,11 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 3. PERNYATAAN & INTEGRITAS */}
+      {/* 6. PERNYATAAN & INTEGRITAS */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-600" />
-          3. Pernyataan & Persetujuan Ketentuan Layanan
+          6. Pernyataan & Persetujuan Ketentuan Layanan
         </h3>
 
         <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -417,9 +726,9 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           />
           <span className="text-xs text-slate-700 leading-relaxed">
             Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar
-            milik instansi/perorangan pemohon dan dalam kondisi yang layak untuk dilakukan pengujian.
+            milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium.
             Saya bersedia mematuhi seluruh prosedur keselamatan, syarat dan ketentuan pengujian
-            laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang ditetapkan.
+            laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku.
           </span>
         </label>
       </div>
@@ -433,7 +742,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="px-5 py-2.5 font-semibold text-xs"
         >
-          Kembali ke Parameter Uji
+          Kembali ke Contoh Uji
         </Button>
 
         <div className="flex items-center gap-3">

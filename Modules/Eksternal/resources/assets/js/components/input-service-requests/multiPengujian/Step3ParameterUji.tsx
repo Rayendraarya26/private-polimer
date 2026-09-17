@@ -4,9 +4,8 @@ import {
   Plus,
   ArrowRight,
   ArrowLeft,
-  AlertCircle,
-  HelpCircle,
-  Layers,
+  GraduationCap,
+  CheckCircle2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import {
@@ -18,11 +17,13 @@ import { useMasterKomoditiQuery } from "../../../hooks/queries/usePengujianQuery
 import { SampleCardItem } from "./components/SampleCardItem"
 import { CostEstimationSummary } from "./components/CostEstimationSummary"
 import { Button } from "../../ui/Button"
+import { Badge } from "../../ui/Badge"
 
 interface Step3ParameterUjiProps {
   samples: PengujianSampleItem[]
   setSamples: React.Dispatch<React.SetStateAction<PengujianSampleItem[]>>
   kategoriTarif: KategoriTarif
+  setKategoriTarif: (kategori: KategoriTarif) => void
   onNext: () => void
   onBack: () => void
 }
@@ -31,6 +32,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
   samples,
   setSamples,
   kategoriTarif,
+  setKategoriTarif,
   onNext,
   onBack,
 }) => {
@@ -75,7 +77,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
         return
       }
       if (!s.selected_parameters || s.selected_parameters.length === 0) {
-        toast.error(`Sampel #${i + 1}: Minimal 1 parameter uji wajib dipilih`)
+        toast.error(`Sampel #${i + 1}: Minimal centang 1 parameter uji laboratorium`)
         return
       }
       if (!s.jumlah_sampel || s.jumlah_sampel < 1) {
@@ -88,7 +90,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* Step Header */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -101,8 +103,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
                 Tahap 3: Pendaftaran Sampel & Parameter Uji
               </h2>
               <p className="text-xs text-slate-500">
-                Daftarkan satu atau beberapa sampel uji, tentukan spesifikasi fisik, dan pilih
-                parameter uji laboratorium yang diinginkan.
+                Pilih komoditas, centang parameter uji dengan metode acuan standar, dan tentukan jumlah sampel.
               </p>
             </div>
           </div>
@@ -117,6 +118,64 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
           >
             Tambah Sampel Lainnya
           </Button>
+        </div>
+      </div>
+
+      {/* Kategori Tarif Selector Banner */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-800">
+            Kategori Tarif PNBP Pengujian:
+          </label>
+          <span className="text-[11px] text-slate-500">
+            Tarif parameter uji akan otomatis menyesuaikan dengan kategori di bawah
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div
+            onClick={() => setKategoriTarif("umum")}
+            className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+              kategoriTarif === "umum"
+                ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
+                : "bg-white border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-slate-900">Tarif Umum (Standard)</span>
+              {kategoriTarif === "umum" && (
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500 leading-snug">
+              Berlaku untuk industri, perusahaan BUMN/swasta, institusi litbang, dan pemohon perorangan.
+            </p>
+          </div>
+
+          <div
+            onClick={() => setKategoriTarif("mahasiswa_pp54")}
+            className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+              kategoriTarif === "mahasiswa_pp54"
+                ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
+                : "bg-white border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-brand-600" />
+                Tarif Mahasiswa (PP RI No. 54)
+              </span>
+              {kategoriTarif === "mahasiswa_pp54" && (
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500 leading-snug">
+              Diskon tarif pendidikan khusus untuk penelitian skripsi/tugas akhir mahasiswa aktif.
+            </p>
+            <Badge variant="warning" size="sm" className="mt-1.5 text-[10px]">
+              Wajib Unggah KTM pada Tahap 4
+            </Badge>
+          </div>
         </div>
       </div>
 

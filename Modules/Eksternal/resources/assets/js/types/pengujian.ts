@@ -6,20 +6,19 @@
 export type BahasaLaporan = "id" | "en"
 export type CaraPembayaran = "tunai" | "transfer" | "dibayar_di_belakang"
 export type KategoriTarif = "umum" | "mahasiswa_pp54"
-export type JenisUji = "regular" | "profisiensi" | "banding_lab"
 
 export type BentukSampel =
-  | "Serbuk"
-  | "Butiran / Granul"
   | "Lembaran / Film"
+  | "Butiran / Granul"
+  | "Serbuk"
   | "Cairan"
   | "Barang Jadi"
   | "Lainnya"
 
-export type KondisiSampel = "Baik" | "Rusak" | "Tersegel" | "Terbuka"
+export type KondisiSampel = "Baik" | "Tersegel" | "Terbuka" | "Rusak"
 
 /**
- * Model Master Parameter Uji (Metode, Satuan, & Tarif PNBP)
+ * Model Master Parameter Uji (Metode Acuan Standar, Satuan, & Tarif PNBP)
  */
 export interface MasterParameterUji {
   id: number
@@ -60,6 +59,11 @@ export interface PengujianSampleItem {
   kondisi_sampel: string
   master_komoditi_id: number | null
   komoditi_nama?: string
+  metode_uji?: string
+  satuan_tarif?: string
+  pembawa_contoh?: string
+  pengambilan_contoh?: string
+  tgl_penerimaan_contoh?: string
   selected_parameters: MasterParameterUji[]
   foto_sampel: File | null
   foto_sampel_preview?: string
@@ -75,23 +79,43 @@ export interface PengujianSharedData {
 
   // Step 2: Data Permintaan & Administrasi
   tanggal_permohonan: string
+  diajukan_oleh: string
+  biaya_sama_dengan_pemohon: boolean
   biaya_ditanggung_oleh: string
+  alamat_sama_dengan_pemohon: boolean
   laporan_dialamatkan_kepada: string
+  keterangan_permintaan: string
+
+  // Global / Step 3: Kategori Tarif
+  kategori_tarif: KategoriTarif
+
+  // Step 4: Tambahan, Evaluasi, Menyaksikan, Pembayaran, Berkas & Konfirmasi
+  tanggal_bapc: string
+  no_bapc: string
+  no_sample: string
+  merek_kode: string
   permintaan_evaluasi: boolean
   catatan_evaluasi: string
   menyaksikan_uji: boolean
   catatan_menyaksikan: string
   cara_pembayaran: CaraPembayaran
-  kategori_tarif: KategoriTarif
-  jenis_uji: JenisUji
-  keterangan_uji: string
 
-  // Step 4: Tambahan Berkas & Konfirmasi
   no_surat_pengantar: string
   tgl_surat_pengantar: string
   file_surat_pengantar: File | null
   file_ktm: File | null // Wajib jika kategori_tarif === 'mahasiswa_pp54'
   setuju_syarat: boolean
+}
+
+/**
+ * Format tanggal hari ini dalam format YYYY-MM-DD
+ */
+export const getTodayDateString = (): string => {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, "0")
+  const dd = String(today.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
 }
 
 /**
@@ -107,6 +131,11 @@ export const emptyPengujianSample = (id: number): PengujianSampleItem => ({
   kondisi_sampel: "Baik",
   master_komoditi_id: null,
   komoditi_nama: "",
+  metode_uji: "",
+  satuan_tarif: "Per Parameter",
+  pembawa_contoh: "",
+  pengambilan_contoh: "Diserahkan oleh Pelanggan",
+  tgl_penerimaan_contoh: getTodayDateString(),
   selected_parameters: [],
   foto_sampel: null,
   foto_sampel_preview: undefined,
@@ -114,32 +143,30 @@ export const emptyPengujianSample = (id: number): PengujianSampleItem => ({
 })
 
 /**
- * Format tanggal hari ini dalam format YYYY-MM-DD
- */
-export const getTodayDateString = (): string => {
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, "0")
-  const dd = String(today.getDate()).padStart(2, "0")
-  return `${yyyy}-${mm}-${dd}`
-}
-
-/**
  * Nilai inisialisasi awal formulir data bersama
  */
 export const initialPengujianSharedData: PengujianSharedData = {
   bahasa_laporan: "id",
   tanggal_permohonan: getTodayDateString(),
+  diajukan_oleh: "",
+  biaya_sama_dengan_pemohon: true,
   biaya_ditanggung_oleh: "",
+  alamat_sama_dengan_pemohon: true,
   laporan_dialamatkan_kepada: "",
+  keterangan_permintaan: "",
+
+  kategori_tarif: "umum",
+
+  tanggal_bapc: "",
+  no_bapc: "",
+  no_sample: "",
+  merek_kode: "",
   permintaan_evaluasi: false,
   catatan_evaluasi: "",
   menyaksikan_uji: false,
   catatan_menyaksikan: "",
   cara_pembayaran: "transfer",
-  kategori_tarif: "umum",
-  jenis_uji: "regular",
-  keterangan_uji: "",
+
   no_surat_pengantar: "",
   tgl_surat_pengantar: "",
   file_surat_pengantar: null,

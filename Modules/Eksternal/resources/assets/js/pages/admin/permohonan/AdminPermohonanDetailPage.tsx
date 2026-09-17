@@ -45,7 +45,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true)
   const [activeTab, setActiveTab] = useState<
-    "overview" | "komoditas" | "pabrik" | "dokumen" | "keuangan" | "tte" | "integrasi"
+    "overview" | "komoditas" | "pabrik" | "dokumen" | "keuangan" | "tte" | "integrasi" | "grk_emisi" | "grk_dokumen"
   >("overview")
 
   const [permohonan, setPermohonan] = useState<any>(null)
@@ -169,11 +169,18 @@ export const AdminPermohonanDetailPage: React.FC = () => {
   const alamat = formData?.alamat_kantor || formData?.alamat_instansi || formData?.alamat || "-"
   const kontakPic = formData?.kontak_person || formData?.nama_pic || formData?.nama_lengkap || permohonan?.creator?.name || "-"
   const phone = formData?.no_whatsapp || formData?.no_telp || formData?.no_hp || permohonan?.creator?.no_hp || "-"
-  const email = formData?.email || permohonan?.creator?.email || "-"
-  const layananName = lingkup?.lingkup || (noOrder.startsWith("CERT") ? "Sertifikasi Produk & Sistem (LSPro)" : "Layanan BBKKP")
+  const layananName = lingkup?.lingkup || (
+    noOrder.startsWith("CERT") ? "Sertifikasi Produk & Sistem (LSPro)" :
+    noOrder.startsWith("VAL") ? "Validasi Gas Rumah Kaca (GRK)" :
+    noOrder.startsWith("GRK") ? "Verifikasi Gas Rumah Kaca (GRK)" :
+    "Layanan BBKKP"
+  )
 
   const items = formData?.items || []
   const pabriks = formData?.pabrik || []
+  const isGrk = noOrder.startsWith("GRK") || noOrder.startsWith("VAL") || String(permohonan?.formable_type || "").toLowerCase().includes("grk") || formData?.merek_sample !== undefined
+  const grkEmisiList = formData?.emisi || formData?.emisi_items || []
+  const grkDokumenList = formData?.dokumen || formData?.dokumen_items || []
   const pembayarans = permohonan?.pembayaran || rawPermohonan?.detail_pembayaran || []
   const totalBiaya = pembayarans.reduce((acc: number, curr: any) => acc + Number(curr.subtotal || 0), 0)
 
@@ -355,6 +362,34 @@ export const AdminPermohonanDetailPage: React.FC = () => {
             </button>
           )}
 
+          {isGrk && grkEmisiList.length > 0 && (
+            <button
+              onClick={() => setActiveTab("grk_emisi")}
+              className={`whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-xs rounded-t-lg transition-colors flex items-center gap-1.5 ${
+                activeTab === "grk_emisi"
+                  ? "border-brand-600 text-brand-600 bg-brand-50/50"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Rincian Emisi Scope 1-6 ({grkEmisiList.length})</span>
+            </button>
+          )}
+
+          {isGrk && grkDokumenList.length > 0 && (
+            <button
+              onClick={() => setActiveTab("grk_dokumen")}
+              className={`whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-xs rounded-t-lg transition-colors flex items-center gap-1.5 ${
+                activeTab === "grk_dokumen"
+                  ? "border-brand-600 text-brand-600 bg-brand-50/50"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+              }`}
+            >
+              <FileCheck2 className="w-4 h-4" />
+              <span>Dokumen Persyaratan ({grkDokumenList.length})</span>
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab("keuangan")}
             className={`whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-xs rounded-t-lg transition-colors flex items-center gap-1.5 ${
@@ -474,6 +509,72 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Informasi GRK Tambahan jika Permohonan GRK */}
+            {isGrk && (
+              <Card>
+                <CardHeader className="pb-3 border-b border-slate-100">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    <span>Parameter Verifikasi Gas Rumah Kaca (GRK)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 font-medium">Merek / Sampel Diajukan:</span>
+                    <p className="font-bold text-slate-800 mt-0.5">{formData?.merek_sample || "-"}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Acuan Standar / Regulasi:</span>
+                    <p className="font-bold text-emerald-700 mt-0.5">{formData?.acuan_peraturan || "ISO 14064-1 / ISO 14064-3"}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Kriteria Verifikasi:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.kriteria_verifikasi || "ISO 14064-1"}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Tingkat Jaminan (Assurance):</span>
+                    <p className="font-bold text-brand-700 mt-0.5 capitalize">{formData?.tingkat_jaminan || "Reasonable"} Assurance</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Batasan Organisasi:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5 capitalize">{formData?.organization_boundary || "Internal"}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Ambang Materialitas:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.materialitas_tipe === "custom" ? (formData?.materialitas_custom || "-") : "Standar Default (5%)"}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Periode Pemantauan Emisi:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">
+                      {formData?.periode_mulai || "-"} s.d. {formData?.periode_selesai || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Total Akumulasi Emisi:</span>
+                    <p className="font-extrabold text-emerald-700 text-sm mt-0.5">
+                      {Number(formData?.total_emisi_ton_co2e || 0).toLocaleString("id-ID", { maximumFractionDigits: 4 })} ton CO₂e
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Fasilitas / Lokasi Produksi:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_fasilitas || 1} Site / Lokasi</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-medium">Jumlah Karyawan:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_karyawan ? `${formData.jumlah_karyawan} Orang` : "-"}</p>
+                  </div>
+                  <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="text-slate-500 font-medium">Keterlibatan Konsultan:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">
+                      {formData?.use_konsultan
+                        ? `Menggunakan Jasa Konsultan: ${formData?.konsultan_nama || "-"} (${formData?.konsultan_institusi || "-"})`
+                        : "Pelaksanaan Mandiri (Tanpa Konsultan Eksternal)"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Timeline & Quick Status Right Column */}
@@ -582,6 +683,147 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TAB CONTENT: GRK Emisi */}
+      {activeTab === "grk_emisi" && (
+        <Card>
+          <CardHeader className="pb-3 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>Rincian Inventarisasi Emisi Gas Rumah Kaca (Scope 1 s.d. 6)</span>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Daftar subkategori sumber emisi langsung dan tidak langsung yang dilaporkan pemohon.
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] text-slate-400 block">Total Emisi Akumulatif</span>
+                <span className="text-base font-extrabold text-emerald-700">
+                  {Number(formData?.total_emisi_ton_co2e || 0).toLocaleString("id-ID", { maximumFractionDigits: 4 })} ton CO₂e
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px] uppercase">
+                  <tr>
+                    <th className="px-4 py-3 text-center w-16">Status</th>
+                    <th className="px-4 py-3 w-28">Kode Subkategori</th>
+                    <th className="px-4 py-3">Subkategori Emisi</th>
+                    <th className="px-4 py-3">Sumber Emisi</th>
+                    <th className="px-4 py-3 text-right w-36">Jumlah (ton CO₂e)</th>
+                    <th className="px-4 py-3">Justifikasi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {Object.entries(
+                    grkEmisiList.reduce((acc: any, curr: any) => {
+                      const group = curr.kategori_nama || curr.kategori_id || "Kategori Emisi";
+                      if (!acc[group]) acc[group] = [];
+                      acc[group].push(curr);
+                      return acc;
+                    }, {})
+                  ).map(([category, items]: [string, any], gIdx: number) => (
+                    <React.Fragment key={gIdx}>
+                      <tr className="bg-slate-100/90 font-bold text-slate-800 border-t border-b border-slate-200">
+                        <td colSpan={6} className="px-4 py-2.5">
+                          <span className="text-brand-700 font-bold">{category}</span>
+                        </td>
+                      </tr>
+                      {items.map((em: any, idx: number) => (
+                        <tr key={idx} className={em.is_checked ? "bg-emerald-50/30 hover:bg-emerald-50/60" : "hover:bg-slate-50/50"}>
+                          <td className="px-4 py-3 text-center">
+                            <Badge variant={em.is_checked ? "success" : "secondary"}>
+                              {em.is_checked ? "Ada" : "Tidak"}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-semibold text-slate-900">
+                            {em.subkategori_code || em.code || "-"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-slate-800">{em.subkategori_nama || em.nama || "-"}</p>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">{em.sumber || "-"}</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">
+                            {em.jumlah ? Number(em.jumlah).toLocaleString("id-ID", { maximumFractionDigits: 4 }) : "-"}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 italic text-[11px]">{em.justifikasi || "-"}</td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TAB CONTENT: GRK Dokumen */}
+      {activeTab === "grk_dokumen" && (
+        <Card>
+          <CardHeader className="pb-3 border-b border-slate-100">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileCheck2 className="w-4 h-4 text-brand-600" />
+              <span>Dokumen Persyaratan Validasi / Verifikasi GRK ({grkDokumenList.length} Dokumen)</span>
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Verifikasi kelengkapan dokumen inventarisasi emisi, prosedur pemantauan, dan sertifikat kalibrasi alat ukur.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px] uppercase">
+                  <tr>
+                    <th className="px-4 py-3 text-center w-12">No</th>
+                    <th className="px-4 py-3">Nama Dokumen Persyaratan</th>
+                    <th className="px-4 py-3 w-36">Status Ketersediaan</th>
+                    <th className="px-4 py-3">Keterangan / Nomor Dokumen</th>
+                    <th className="px-4 py-3 text-center w-28">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {grkDokumenList.map((dok: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 text-center text-slate-400">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-slate-800">{dok.nama_dokumen || dok.title || "-"}</p>
+                        <span className="text-[11px] font-mono text-slate-400">Kode: {dok.kode_dokumen || dok.id || "-"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={dok.status_ketersediaan === "TERSEDIA" ? "success" : "secondary"}>
+                          {dok.status_ketersediaan === "TERSEDIA" ? "Tersedia" : "Tidak Tersedia"}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{dok.keterangan || "-"}</td>
+                      <td className="px-4 py-3 text-center">
+                        {dok.file_path ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => window.open(`/storage/${dok.file_path}`, "_blank")}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                            Buka
+                          </Button>
+                        ) : (
+                          <span className="text-slate-400 text-[11px]">Lampiran Fisik</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}

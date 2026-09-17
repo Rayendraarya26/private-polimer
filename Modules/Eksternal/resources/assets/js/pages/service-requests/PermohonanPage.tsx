@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Sparkles,
   Info,
+  Sprout,
+  MapPinPen,  
 } from "lucide-react"
 import { useProfileStatus } from "../../hooks/usePermohonan"
 import Head from "../../components/common/Head"
@@ -113,16 +115,16 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         id: "tkdn",
         name: "Tingkat Komponen Dalam Negeri (TKDN)",
         desc: "Verifikasi dan validasi Tingkat Komponen Dalam Negeri (TKDN).",
-        icon: <Award className="w-6 h-6 text-indigo-600" />,
+        icon: <MapPinPen className="w-6 h-6 text-indigo-600" />,
         badge: "Terakreditasi KAN",
-        route: "/permohonan/tkdn",
-        isAvailable: true,
+        // route: "/permohonan/tkdn",
+        isAvailable: false,
       },
       {
         id: "grk",
         name: "Emisi Gas Rumah Kaca (GRK)",
         desc: "Verifikasi dan validasi emisi gas rumah kaca (GRK).",
-        icon: <Award className="w-6 h-6 text-indigo-600" />,
+        icon: <Sprout className="w-6 h-6 text-teal-600"  />,
         badge: "Terakreditasi KAN",
         route: "/permohonan/grk",
         isAvailable: true,
@@ -192,7 +194,7 @@ const PermohonanPage: React.FC = () => {
       if (service.route) {
         navigate(service.route)
       } else {
-        toast(`Layanan formulir ${service.name} segera tersedia di portal!`, {
+        toast(`Layanan ${service.name} segera tersedia di portal!`, {
           icon: <Info className="w-4 h-4 text-brand-600 shrink-0" />,
         })
       }

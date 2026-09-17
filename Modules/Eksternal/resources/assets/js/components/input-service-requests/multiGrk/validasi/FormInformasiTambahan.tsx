@@ -1,0 +1,180 @@
+// components/input-service-requests/multiGrk/Step2TambahanDanDokumen.tsx
+import React from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
+import { Building, FileText, Info } from "lucide-react"
+import { GrkValidasiFormData } from "../../../../types/grk"
+
+interface Props {
+    formData: GrkValidasiFormData
+    setFormData: React.Dispatch<React.SetStateAction<GrkValidasiFormData>>
+}
+
+export const FormInformasiTambahan: React.FC<Props> = ({ formData, setFormData }) => {
+    const {
+        useKonsultan = "",
+        konsultanNama = "",
+        konsultanInstitusi = "",
+        isShareExternal = "",
+        pihakEksternal = "",
+    } = formData
+
+    const handleChange = (field: keyof GrkValidasiFormData, value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+        }))
+    }
+
+    const setUseKonsultan = (val: string) => handleChange("useKonsultan", val)
+    const setKonsultanNama = (val: string) => handleChange("konsultanNama", val)
+    const setKonsultanInstitusi = (val: string) => handleChange("konsultanInstitusi", val)
+    const setIsShareExternal = (val: string) => handleChange("isShareExternal", val)
+    const setPihakEksternal = (val: string) => handleChange("pihakEksternal", val)
+
+    return (
+        <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building className="w-4 h-4 text-brand-600" />
+                Informasi Tambahan
+              </CardTitle>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-6 space-y-6">
+          <div className="space-y-6">
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-800">
+                Apakah perusahaan telah melibatkan konsultan untuk inventarisasi dan pelaporan emisi GRK? <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                  <input
+                    type="radio"
+                    name="use_konsultan"
+                    value="ya"
+                    id="konsultan_ya"
+                    checked={useKonsultan === "ya"}
+                    onChange={(e) => setUseKonsultan(e.target.value)}
+                    className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Ya</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                  <input
+                    type="radio"
+                    name="use_konsultan"
+                    value="tidak"
+                    id="konsultan_tidak"
+                    checked={useKonsultan === "tidak"}
+                    onChange={(e) => setUseKonsultan(e.target.value)}
+                    className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Tidak</span>
+                </label>
+              </div>
+            </div>
+
+            {useKonsultan === "ya" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-1 animate-in fade-in-50 duration-200">
+                <div className="space-y-2">
+                  <label htmlFor="konsultan_nama" className="block text-sm font-semibold text-slate-800">
+                    Nama Konsultan <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="konsultan_nama"
+                    name="konsultan_nama"
+                    value={konsultanNama}
+                    onChange={(e) => setKonsultanNama(e.target.value)}
+                    placeholder="Nama Konsultan"
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="konsultan_institusi" className="block text-sm font-semibold text-slate-800">
+                    Institusi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="konsultan_institusi"
+                    name="konsultan_institusi"
+                    value={konsultanInstitusi}
+                    onChange={(e) => setKonsultanInstitusi(e.target.value)}
+                    placeholder="Institusi"
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-800">
+                Apakah perusahaan membagikan informasi GRK ke pihak eksternal. <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                  <input
+                    type="radio"
+                    name="isShareExternal"
+                    value="ya"
+                    id="isShareExternalTidak"
+                    checked={isShareExternal === "ya"}
+                    onChange={(e) => setIsShareExternal(e.target.value)}
+                    className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Ya</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                  <input
+                    type="radio"
+                    name="isShareExternal"
+                    value="tidak"
+                    id="isShareExternalYa"
+                    checked={isShareExternal === "tidak"}
+                    onChange={(e) => setIsShareExternal(e.target.value)}
+                    className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Tidak</span>
+                </label>
+              </div>
+            </div>
+
+            {isShareExternal === "ya" && (
+              <div className="grid grid-cols-1 gap-x-8 gap-y-4 pt-1 animate-in fade-in-50 duration-200">
+                <div className="space-y-2">
+                  <label htmlFor="pihak_eksternal" className="block text-sm font-semibold text-slate-800">
+                    Pihak External <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="pihak_eksternal"
+                    name="pihak_eksternal"
+                    value={pihakEksternal}
+                    onChange={(e) => setPihakEksternal(e.target.value)}
+                    placeholder="Pihak External"
+                    className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                  />
+                </div>
+
+              </div>
+            )}
+
+          </div>
+        </CardContent>
+      </Card>
+        
+    )
+}
+
+export default FormInformasiTambahan

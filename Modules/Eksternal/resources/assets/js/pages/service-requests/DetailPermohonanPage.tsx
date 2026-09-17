@@ -273,7 +273,11 @@ export const DetailPermohonanPage: React.FC = () => {
         ? "Sertifikasi Profesi (LSP)"
         : noOrder.startsWith("REG") || noOrder.startsWith("TRN")
           ? "Bimbingan Teknis & Pelatihan"
-          : "Layanan BBSPJIKKP")
+          : noOrder.startsWith("VAL")
+            ? "Validasi Gas Rumah Kaca (GRK)"
+            : noOrder.startsWith("GRK")
+              ? "Verifikasi Gas Rumah Kaca (GRK)"
+              : "Layanan BBSPJIKKP")
 
   // Parse Items / Komoditas
   const parseItems = () => {

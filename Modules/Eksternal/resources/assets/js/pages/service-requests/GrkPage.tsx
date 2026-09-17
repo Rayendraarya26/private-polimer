@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
 import { Button } from "../../components/ui/Button"
-import { GraduationCap, ArrowLeft, CheckCircle2, Sparkles, Loader2, Users, CheckCheck, ShieldCheck } from "lucide-react"
+import { GraduationCap, ArrowLeft, ArrowRight, Sparkles, Loader2, Users, CheckCheck, ShieldCheck } from "lucide-react"
 import FormPelatihanWizard from "../../components/input-service-requests/multiPelatihan/FormPelatihanWizard"
 import { usePelatihanSkemaQuery } from "../../hooks/queries/useMasterQuery"
 
@@ -28,7 +28,7 @@ const PelatihanPage: React.FC = () => {
             <span>Lembaga Validasi Verifikasi (LVV) BBKKP</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Pendaftaran Bimbingan Teknis & Pelatihan
+            Emisi Gas Rumah Kaca (GRK)
           </h1>
 
         </div>
@@ -67,12 +67,16 @@ const PelatihanPage: React.FC = () => {
             {/* Radio Button 1 (Verifikasi) */}
             <Link to="/permohonan/grk/verifikasi" className="relative cursor-pointer group w-full md:w-1/2 max-w-[450px]">
               <div className="w-full h-full rounded-2xl border-2 border-slate-200 bg-white p-6 sm:p-8 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:border-brand-300 hover:shadow-md peer-checked:border-brand-600 peer-checked:bg-brand-50/80 peer-checked:shadow-brand-100 peer-checked:shadow-lg">
-                <div className="w-16 h-16 smf:w-20 sm:h-20 rounded-2xl bg-brand-50 group-hover:bg-brand-100/70 peer-checked:bg-brand-100 flex items-center justify-center transition-all">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-brand-50 group-hover:bg-brand-100/70 peer-checked:bg-brand-100 flex items-center justify-center transition-all">
                   <ShieldCheck className="w-10 h-10 sm:w-12 sm:h-12 text-brand-600 stroke-[2.2]" />
                 </div>
                 <div className="text-center">
                   <p className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Verifikasi</p>
-                  {/* <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Pemeriksaan & konfirmasi data historis GRK</p> */}
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Pemeriksaan dan penilaian terhadap informasi emisi GRK untuk memastikan data dan laporan memenuhi persyaratan yang berlaku.</p>
+                </div>
+                <div className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-brand-600 group-hover:text-brand-700">
+                  <span>Ajukan Permohonan</span>
+                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </Link>
@@ -85,7 +89,11 @@ const PelatihanPage: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <p className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Validasi</p>
-                  {/* <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Penilaian & konfirmasi proyeksi masa depan GRK</p> */}
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Penilaian terhadap rencana, metodologi, dan pernyataan emisi GRK untuk memastikan kesesuaian sebelum pelaksanaan kegiatan.</p>
+                </div>
+                <div className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-brand-600 group-hover:text-brand-700">
+                  <span>Ajukan Permohonan</span>
+                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </Link>

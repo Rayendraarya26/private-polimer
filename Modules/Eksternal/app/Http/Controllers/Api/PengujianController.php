@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Modules\Eksternal\Services\MasterPengujianService;
 
 class PengujianController extends Controller
 {
@@ -383,16 +384,51 @@ class PengujianController extends Controller
     public function getMasterKomoditi(Request $request): JsonResponse
     {
         try {
-            $komoditiList = array_map(function ($kmd) {
-                $params = self::$masterParameterData[$kmd['id']] ?? [];
-                $kmd['parameters_count'] = count($params);
-                return $kmd;
-            }, self::$masterKomoditiData);
+            // 1. Try fetching from SIL database (Sistem Informasi Laboratorium — source of truth for pengujian)
+            $komoditiList = null;
+            try {
+                $silConn = DB::connection('sil');
+
+                // Attempt known table structures in SIL
+                // SIL may use 'master_komoditi' with columns komodt_id, komodt_nama, komodt_sni
+                $silRows = $silConn
+                    ->table('master_komoditi')
+                    ->orderBy('komodt_id')
+                    ->get();
+
+                if ($silRows->isNotEmpty()) {
+                    $komoditiList = $silRows->map(function ($row) {
+                        $id = $row->komodt_id ?? $row->id ?? 0;
+                        $nama = $row->komodt_nama ?? $row->nama ?? $row->nama_komoditi ?? '';
+                        $sni = $row->komodt_sni ?? $row->nomor_sni ?? null;
+                        $params = self::$masterParameterData[$id] ?? [];
+                        return [
+                            'id'               => (int) $id,
+                            'kode'             => 'KMD-' . $id,
+                            'nama'             => $nama,
+                            'nomor_sni'        => $sni,
+                            'ruang_lingkup'    => $nama,
+                            'is_active'        => true,
+                            'parameters_count' => count($params),
+                        ];
+                    })->values()->toArray();
+
+                    Log::info('getMasterKomoditi: loaded ' . count($komoditiList) . ' rows from SIL database.');
+                }
+            } catch (\Throwable $silEx) {
+                Log::warning('getMasterKomoditi SIL fallback: ' . $silEx->getMessage());
+            }
+
+            // 2. Fallback to PP54 CSV/Master data if SIL is unavailable
+            if (empty($komoditiList)) {
+                $komoditiList = MasterPengujianService::getMasterKomoditi();
+                Log::info('getMasterKomoditi: SIL unavailable, loaded ' . count($komoditiList) . ' items from PP54 Master data.');
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Daftar komoditas pengujian laboratorium berhasil dimuat.',
-                'data' => $komoditiList,
+                'data'    => $komoditiList,
                 'results' => $komoditiList,
             ]);
         } catch (\Throwable $e) {
@@ -400,7 +436,7 @@ class PengujianController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memuat master komoditi pengujian.',
-                'data' => [],
+                'data'    => [],
                 'results' => [],
             ], 500);
         }
@@ -413,22 +449,56 @@ class PengujianController extends Controller
     {
         try {
             $komoditiId = (int) $id;
-            $parameters = self::$masterParameterData[$komoditiId] ?? [];
+
+            // 1. Try SIL database if available
+            $parameters = null;
+            try {
+                $silConn = DB::connection('sil');
+                $silParams = $silConn->table('master_parameter')
+                    ->where('komodt_id', $komoditiId)
+                    ->get();
+                if ($silParams->isNotEmpty()) {
+                    $parameters = $silParams->map(function ($row) {
+                        $rate = (int) ($row->tarif ?? $row->tarif_umum ?? 0);
+                        return [
+                            'id'              => (int) ($row->param_id ?? $row->id),
+                            'komoditi_id'     => (int) ($row->komodt_id ?? 0),
+                            'kode'            => $row->param_kode ?? ('PAR-' . ($row->param_id ?? $row->id)),
+                            'nama'            => $row->param_nama ?? $row->nama ?? '',
+                            'metode_uji'      => $row->metode_uji ?? 'SNI / Standar PP 54 Th 2021',
+                            'satuan'          => $row->satuan ?? 'Per Parameter',
+                            'tarif_umum'      => $rate,
+                            'tarif_mahasiswa' => (int) round($rate * 0.5),
+                            'is_active'       => true,
+                        ];
+                    })->values()->toArray();
+                }
+            } catch (\Throwable $e) {
+                // SIL not available, proceed to fallback
+            }
+
+            // 2. Fallback to MasterPengujianService (Tarif PP 54 CSV/JSON)
+            if (empty($parameters)) {
+                $parameters = MasterPengujianService::getParametersByKomoditi($komoditiId);
+                if (empty($parameters)) {
+                    $parameters = self::$masterParameterData[$komoditiId] ?? [];
+                }
+            }
 
             return response()->json([
-                'success' => true,
-                'message' => 'Daftar parameter uji berhasil dimuat.',
+                'success'     => true,
+                'message'     => 'Daftar parameter uji berhasil dimuat.',
                 'komoditi_id' => $komoditiId,
-                'total' => count($parameters),
-                'data' => $parameters,
-                'results' => $parameters,
+                'total'       => count($parameters),
+                'data'        => $parameters,
+                'results'     => $parameters,
             ]);
         } catch (\Throwable $e) {
             Log::error('Error getParametersByKomoditi: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memuat parameter uji komoditas.',
-                'data' => [],
+                'data'    => [],
                 'results' => [],
             ], 500);
         }
@@ -530,7 +600,10 @@ class PengujianController extends Controller
             $jumlah = max(1, (int) ($sample['jumlah_sampel'] ?? 1));
             $parameterIds = (array) ($sample['parameter_ids'] ?? []);
 
-            $availableParams = self::$masterParameterData[$komoditiId] ?? [];
+            $availableParams = MasterPengujianService::getParametersByKomoditi($komoditiId);
+            if (empty($availableParams)) {
+                $availableParams = self::$masterParameterData[$komoditiId] ?? [];
+            }
             $paramById = collect($availableParams)->keyBy('id');
 
             $sampleParams = [];

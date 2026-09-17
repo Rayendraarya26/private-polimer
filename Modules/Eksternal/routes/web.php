@@ -24,6 +24,7 @@ use Modules\Eksternal\Http\Controllers\Api\SertifikasiController;
 use Modules\Eksternal\Http\Controllers\Api\LksClientController;
 use Modules\Eksternal\Http\Controllers\Api\GrkController;
 use Modules\Eksternal\Http\Controllers\Api\GrkValidasiController;
+use Modules\Eksternal\Http\Controllers\Api\PengujianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -197,14 +198,6 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('lks-client')->group(function () {
             Route::get('/{permohonanId}', [LksClientController::class, 'getLksList']);
             Route::post('/{lksId}/perbaikan', [LksClientController::class, 'submitPerbaikanLks']);
-        });
-
-        Route::prefix('grk')->group(function () {
-            Route::get('/skema', [GrkController::class, 'getSkema']);
-            Route::post('/verifikasi', [GrkController::class, 'store']);
-            Route::get('/verifikasi/{id}', [GrkController::class, 'show']);
-            Route::post('/validasi', [GrkValidasiController::class, 'store']);
-            Route::get('/validasi/{id}', [GrkValidasiController::class, 'show']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

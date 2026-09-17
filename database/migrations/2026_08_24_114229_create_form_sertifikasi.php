@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('form_sertifikasi')) {
+            return;
+        }
         Schema::create('form_sertifikasi', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('permohonan_id')->constrained('permohonan')->cascadeOnDelete();

@@ -13,6 +13,11 @@ return new class extends Migration
     {
         $menuId = 'a2b5a915-5fe1-4e55-9d1a-3fff7ade3529'; // Menu: Billing Pembayaran
 
+        // Skip on fresh install — menu data is created by MenuSeeder (runs after migrations)
+        if (!DB::table('sys_menu')->where('id', $menuId)->exists()) {
+            return;
+        }
+
         // 1. Actions to ensure in sys_menu_action
         $actions = [
             'index' => 'Modules\Permohonan\Http\Controllers\BillingPembayaranController@index',

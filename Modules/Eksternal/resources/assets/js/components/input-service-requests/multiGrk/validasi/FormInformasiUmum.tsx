@@ -30,7 +30,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
             <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Verifikasi GRK<span className="text-red-500">*</span>
                         </label>
                         <input
@@ -41,12 +41,12 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, merekSample: e.target.value }))
                             }
-                            className="w-full md:max-w-[calc(50%-1rem)] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800"
+                            className="w-full md:max-w-[calc(50%-1rem)] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Acuan Peraturan <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -57,13 +57,13 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, acuan: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
 
                     <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Ruang Lingkup yang Diajukan <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -75,14 +75,14 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, keterangan: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
 
 
                     <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Uraian mengenai penawaran yang dikehendaki<span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -93,7 +93,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, uraianKebutuhan: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 

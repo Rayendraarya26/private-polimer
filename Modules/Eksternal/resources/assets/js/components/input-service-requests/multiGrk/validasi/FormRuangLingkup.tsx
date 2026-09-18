@@ -42,8 +42,8 @@ export const FormRuangLingkup: React.FC<Props> = ({
             <CardContent className="pt-6 space-y-6">
                 <div className="space-y-6">
                     {/* Batasan Proyek */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Batasan Proyek <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -55,18 +55,18 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, batasanProyek: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
                         />
                     </div>
 
                     {/* Jenis Proyek GRK */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jenis Proyek GRK <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
                             <label
-                                className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
                             >
                                 <input
                                     type="checkbox"
@@ -77,11 +77,11 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     onChange={() => handleCheckboxArrayToggle("jenisProyekGrk", "Pengurangan Emisi GRK")}
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                 />
-                                <span className="text-sm font-medium text-slate-700">Pengurangan Emisi GRK</span>
+                                <span className="text-xs font-medium text-slate-700">Pengurangan Emisi GRK</span>
                             </label>
 
                             <label
-                                className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
                             >
                                 <input
                                     type="checkbox"
@@ -92,7 +92,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     onChange={() => handleCheckboxArrayToggle("jenisProyekGrk", "Peningkatan Serapan GRK")}
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                 />
-                                <span className="text-sm font-medium text-slate-700">Peningkatan Serapan GRK</span>
+                                <span className="text-xs font-medium text-slate-700">Peningkatan Serapan GRK</span>
                             </label>
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
 
                     {/* Input Periode Waktu */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Periode Waktu <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -115,7 +115,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeMulai: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                             <input
                                 type={formData.periodeSelesai ? "date" : "text"}
@@ -129,14 +129,14 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeSelesai: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-800 mb-2">
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
                                 Kriteria Verifikasi <span className="text-red-500">*</span>
                             </label>
                             <div className="space-y-3 pt-1">
@@ -155,7 +155,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         }
                                         className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                     />
-                                    <label htmlFor="14064-2" className="ms-2.5 text-sm font-medium text-slate-700 cursor-pointer">
+                                    <label htmlFor="14064-2" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
                                         14064-2
                                     </label>
                                 </div>
@@ -176,7 +176,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                             }
                                             className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                         />
-                                        <label htmlFor="lainnya" className="ms-2.5 text-sm font-medium text-slate-700 cursor-pointer">
+                                        <label htmlFor="lainnya" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
                                             Lainnya
                                         </label>
                                     </div>
@@ -192,7 +192,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                         kriteriaLainnyaText: e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                             />
                                         </div>
                                     )}
@@ -201,7 +201,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-800 mb-2">
+                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
                                 Jumlah Karyawan <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -211,14 +211,14 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, jumlahKaryawan: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
 
                     {/* Sumber/Source GRK */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Sumber/Source, Penyerap/Sink, dan/atau Penampung/Reservoir (SSR) GRK yang dikuantifikasi (Sebutkan) <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -230,13 +230,13 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, ssrKuantifikasi: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* 4. Jenis Emisi/Serapan GRK */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jenis Emisi/Serapan GRK <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-3">
@@ -250,7 +250,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             ].map((gas) => (
                                 <label
                                     key={gas.id}
-                                    className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
                                 >
                                     <input
                                         type="checkbox"
@@ -271,8 +271,8 @@ export const FormRuangLingkup: React.FC<Props> = ({
 
 
                     {/* Jumlah Emisi Serapan Proyek */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jumlah Emisi/Serapan GRK Proyek (kgCO2eq)<span className="text-red-500">*</span>
                         </label>
                         <div className="max-w-xl space-y-2">
@@ -288,14 +288,14 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiProyek: e.target.value,
                                     }))
                                 }
-                                className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
                     
                     {/* Jumlah Emisi/Serapan GRK Baseline */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jumlah Emisi/Serapan GRK Baseline (kgCO2eq)<span className="text-red-500">*</span>
                         </label>
                         <div className="max-w-xl space-y-2">
@@ -311,19 +311,19 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiBaseline: e.target.value,
                                     }))
                                 }
-                                className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
                     
                     
                     {/* 7. Materialitas (materiality) */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Materialitas (materiality) <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
-                            <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.materialitas === "default" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -338,12 +338,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-xs font-medium">
                                     ≤ 5% (jika tidak ditetapkan oleh program)
                                 </span>
                             </label>
 
-                            <div className="flex flex-wrap items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white hover:border-brand-300 transition-colors shadow-xs">
+                            <div className={`flex flex-wrap items-center gap-2 px-4 py-1.5 rounded-xl border transition-all shadow-xs ${formData.materialitas === "program" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -358,7 +358,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
                                 />
-                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
+                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 text-xs font-medium cursor-pointer">
                                     <span>≤</span>
                                     <input
                                         type="text"
@@ -377,7 +377,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                 materialitas: "program",
                                             }))
                                         }
-                                        className="w-24 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                     />
                                     <span>% (jika ditetapkan oleh program)</span>
                                 </label>

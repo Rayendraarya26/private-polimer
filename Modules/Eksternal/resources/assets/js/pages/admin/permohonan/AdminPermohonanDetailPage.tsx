@@ -169,6 +169,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
   const alamat = formData?.alamat_kantor || formData?.alamat_instansi || formData?.alamat || "-"
   const kontakPic = formData?.kontak_person || formData?.nama_pic || formData?.nama_lengkap || permohonan?.creator?.name || "-"
   const phone = formData?.no_whatsapp || formData?.no_telp || formData?.no_hp || permohonan?.creator?.no_hp || "-"
+  const email = formData?.email || permohonan?.creator?.email || permohonan?.user?.email || "-"
   const layananName = lingkup?.lingkup || (
     noOrder.startsWith("CERT") ? "Sertifikasi Produk & Sistem (LSPro)" :
     noOrder.startsWith("VAL") ? "Validasi Gas Rumah Kaca (GRK)" :

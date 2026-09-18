@@ -43,7 +43,7 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
                         <table className="w-full border-collapse text-left text-sm">
                             <tbody className="divide-y divide-slate-200">
                                 <tr className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors">
-                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top font-semibold text-slate-800">
+                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top text-xs font-bold text-slate-800">
                                         <div className="flex justify-between items-start">
                                             <span>Perubahan pada Laporan</span>
                                             <span className="text-slate-400 font-normal">:</span>
@@ -57,9 +57,9 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
                                                 name="perubahan_laporan"
                                                 checked={pernyataanPerubahan}
                                                 onChange={(e) => handleCheckboxChange("pernyataanPerubahan", e.target.checked)}
-                                                className="mt-1 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
+                                                className="mt-0.5 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
                                             />
-                                            <span className="text-sm text-slate-700 leading-relaxed">
+                                            <span className="text-xs text-slate-700 leading-relaxed">
                                                 Setelah Laporan*) diterbitkan, kami <strong className="font-bold text-slate-900">tidak akan</strong> meminta diadakannya perubahan pada laporan mengenai tanda-tanda contoh maupun alamat peminta Sertifikasi.
                                             </span>
                                         </label>
@@ -67,7 +67,7 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
                                 </tr>
 
                                 <tr className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors">
-                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top font-semibold text-slate-800">
+                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top text-xs font-bold text-slate-800">
                                         <div className="flex justify-between items-start">
                                             <span>Pernyataan Pemohon</span>
                                             <span className="text-slate-400 font-normal">:</span>
@@ -81,9 +81,9 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
                                                 name="pernyataan_pemohon"
                                                 checked={pernyataanPemohon}
                                                 onChange={(e) => handleCheckboxChange("pernyataanPemohon", e.target.checked)}
-                                                className="mt-1 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
+                                                className="mt-0.5 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
                                             />
-                                            <span className="text-sm text-slate-700 leading-relaxed">
+                                            <span className="text-xs text-slate-700 leading-relaxed">
                                                 Kami telah mengisi data dengan benar, agar digunakan sebagaimana mestinya.
                                             </span>
                                         </label>

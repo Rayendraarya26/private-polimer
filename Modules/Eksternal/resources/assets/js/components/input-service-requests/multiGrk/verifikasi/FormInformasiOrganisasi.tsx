@@ -50,7 +50,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     {/* Input Nama Pemilik */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Nama Pemilik <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -60,13 +60,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPemilik: e.target.value }))
                             }
-                            className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* Input Nama Pimpinan */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Nama Pimpinan <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -76,13 +76,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPimpinan: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* Input Nama Penanggung Jawab Program */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Nama Penanggung Jawab Program <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -92,13 +92,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPj: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* Input Jumlah Fasilitas */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jumlah Fasilitas <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -108,13 +108,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, jumlahFasilitas: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* Kriteria Verifikasi */}
                     <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Kriteria Verifikasi <span className="text-red-500">*</span>
                         </label>
                         <div className="space-y-3 pt-1">
@@ -133,7 +133,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <label htmlFor="14064-1" className="ms-2.5 text-sm font-medium text-slate-700 cursor-pointer">
+                                <label htmlFor="14064-1" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
                                     14064-1
                                 </label>
                             </div>
@@ -154,7 +154,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                         }
                                         className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                     />
-                                    <label htmlFor="lainnya" className="ms-2.5 text-sm font-medium text-slate-700 cursor-pointer">
+                                    <label htmlFor="lainnya" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
                                         Lainnya
                                     </label>
                                 </div>
@@ -170,7 +170,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                                     kriteriaLainnyaText: e.target.value,
                                                 }))
                                             }
-                                            className="w-full md:w-1/2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                            className="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                         />
                                     </div>
                                 )}
@@ -180,7 +180,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
 
                     {/* Input Periode Pelaporan */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Periode Pelaporan <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeMulai: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                             <input
                                 type={formData.periodeSelesai ? "date" : "text"}
@@ -210,14 +210,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeSelesai: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
 
                     {/* Input Jumlah Karyawan */}
                     <div>
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jumlah Karyawan <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -227,13 +227,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, jumlahKaryawan: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
                     {/* Input Deskripsi Aktivitas Perusahaan */}
                     <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-800 mb-2">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Deskripsi aktivitas perusahaan <span className="text-red-500">*</span>
                         </label>
                         <textarea
@@ -243,7 +243,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, deskripsiAktivitas: e.target.value }))
                             }
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 

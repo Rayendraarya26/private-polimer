@@ -54,7 +54,7 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                 </CardHeader>
 
                 <CardContent className="pt-6 space-y-4">
-                    <p className="text-sm font-medium text-slate-700">
+                    <p className="text-xs font-medium text-slate-700">
                         Dokumen Dapat di upload setelah kajian permohonan.
                     </p>
 
@@ -67,7 +67,7 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                         <table className="w-full border-collapse text-left">
                             <thead>
                                 <tr className="bg-slate-100/90 text-slate-800 font-bold border-b border-slate-200">
-                                    <th colSpan={2} className="px-5 py-3 text-sm font-bold text-slate-800">
+                                    <th colSpan={2} className="px-5 py-3 text-xs font-bold text-slate-800">
                                         Dokumen
                                     </th>
                                 </tr>
@@ -75,11 +75,11 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                             <tbody className="divide-y divide-slate-200">
                                 {dokumenItems.map((item) => (
                                     <tr key={item.id} className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors">
-                                        <td className="px-5 py-4 w-[40%] align-top text-sm font-medium text-slate-800 leading-relaxed">
+                                        <td className="px-5 py-4 w-[40%] align-top text-xs font-medium text-slate-800 leading-relaxed">
                                             {item.title}
                                         </td>
                                         <td className="px-5 py-4 w-[60%] align-top space-y-1.5">
-                                            <label className="block text-xs font-semibold text-slate-700">
+                                            <label className="block text-xs font-bold text-slate-800 mb-1.5">
                                                 Keterangan
                                             </label>
                                             <textarea
@@ -89,7 +89,7 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                                                 value={item.keterangan}
                                                 onChange={(e) => handleDokumenChange(item.id, e.target.value)}
                                                 placeholder="Sebutkan nomor dokumen atau berikan keterangan tidak ada"
-                                                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-y shadow-xs"
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
                                             />
                                         </td>
                                     </tr>

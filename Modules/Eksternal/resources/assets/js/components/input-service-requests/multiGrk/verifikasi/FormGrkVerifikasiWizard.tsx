@@ -349,7 +349,7 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                     variant="outline"
                     onClick={handleBack}
                     disabled={isSubmitting}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-slate-700"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     {currentStep === 0 ? "Batal" : "Sebelumnya"}
@@ -359,7 +359,7 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                     <Button
                         type="button"
                         onClick={handleNext}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
                     >
                         Selanjutnya
                         <ArrowRight className="w-4 h-4" />
@@ -369,7 +369,7 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                         type="button"
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
                     >
                         {isSubmitting ? (
                             <>

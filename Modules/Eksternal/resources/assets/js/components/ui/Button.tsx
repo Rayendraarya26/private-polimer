@@ -26,23 +26,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] whitespace-nowrap';
+      'inline-flex items-center justify-center font-medium transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] whitespace-nowrap';
 
     const variants = {
       primary:
-        'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow focus:ring-brand-500',
+        'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow active:bg-brand-800',
       secondary:
-        'bg-slate-100 hover:bg-slate-200 text-slate-800 focus:ring-slate-400',
+        'bg-slate-100 hover:bg-slate-200 text-slate-800 active:bg-slate-300',
       outline:
-        'border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 focus:ring-brand-500 shadow-sm',
+        'border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-700 active:bg-slate-100',
       ghost:
-        'bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900 focus:ring-slate-400',
+        'bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900',
       danger:
-        'bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:shadow focus:ring-rose-500',
+        'bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:shadow active:bg-rose-800',
       success:
-        'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow focus:ring-emerald-500',
+        'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow active:bg-emerald-800',
       link:
-        'bg-transparent text-brand-600 hover:text-brand-700 hover:underline p-0 h-auto focus:ring-0',
+        'bg-transparent text-brand-600 hover:text-brand-700 hover:underline p-0 h-auto',
     };
 
     const sizes = {

@@ -98,12 +98,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
             <CardContent className="pt-6 space-y-6">
                 <div className="space-y-6">
                     {/* 1. Batasan Organisasi */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Batasan Organisasi (Organization boundary) <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
-                            <label className="flex items-center gap-3 p-3 px-4 rounded-lg border border-slate-200 bg-white hover:border-brand-400 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-3 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.organizationBoundary === "internal" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="organization_boundary"
@@ -118,11 +118,11 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
-                                    Pendekatan Kendali <span className="text-xs text-slate-500 font-normal">(operational control)</span>
+                                <span className="text-xs font-medium">
+                                    Pendekatan Kendali <span className="text-[11px] text-slate-500 font-normal">(operational control)</span>
                                 </span>
                             </label>
-                            <label className="flex items-center gap-3 p-3 px-4 rounded-lg border border-slate-200 bg-white hover:border-brand-400 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-3 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.organizationBoundary === "external" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="organization_boundary"
@@ -137,16 +137,16 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
-                                    Pendekatan Saham <span className="text-xs text-slate-500 font-normal">(equity share control)</span>
+                                <span className="text-xs font-medium">
+                                    Pendekatan Saham <span className="text-[11px] text-slate-500 font-normal">(equity share control)</span>
                                 </span>
                             </label>
                         </div>
                     </div>
 
                     {/* 2. Batasan Pelaporan */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Batasan Pelaporan (Reporting boundary) <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 p-4 rounded-xl border border-slate-200/80 bg-slate-50/40">
@@ -160,7 +160,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             ].map((cat) => (
                                 <label
                                     key={cat.id}
-                                    className="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-all shadow-xs"
+                                    className="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-all shadow-xs"
                                 >
                                     <input
                                         type="checkbox"
@@ -180,15 +180,15 @@ export const FormRuangLingkup: React.FC<Props> = ({
                     </div>
 
                     {/* 3. Jenis Inventarisasi GRK */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jenis Inventarisasi GRK <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
                             {["Emisi GRK", "Serapan GRK"].map((item) => (
                                 <label
                                     key={item}
-                                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                    className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
                                 >
                                     <input
                                         type="checkbox"
@@ -199,15 +199,15 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         onChange={() => handleCheckboxArrayToggle("jenisInventarisasi", item)}
                                         className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                     />
-                                    <span className="text-sm font-medium text-slate-700">{item}</span>
+                                    <span className="text-xs font-medium text-slate-700">{item}</span>
                                 </label>
                             ))}
                         </div>
                     </div>
 
                     {/* 4. Jenis Emisi/Serapan GRK */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jenis Emisi/Serapan GRK <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-3">
@@ -221,7 +221,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             ].map((gas) => (
                                 <label
                                     key={gas.id}
-                                    className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
                                 >
                                     <input
                                         type="checkbox"
@@ -241,15 +241,15 @@ export const FormRuangLingkup: React.FC<Props> = ({
                     </div>
 
                     {/* 5. Metodologi Pengumpulan Data */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Metodologi Pengumpulan Data <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
                             {["Sistem Manual", "Sistem Terkomputerisasi", "Kombinasi"].map((metode) => (
                                 <label
                                     key={metode}
-                                    className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                    className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.metodologiPengumpulan === metode ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}
                                 >
                                     <input
                                         type="radio"
@@ -265,15 +265,15 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         }
                                         className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                     />
-                                    <span className="text-sm font-medium text-slate-700">{metode}</span>
+                                    <span className="text-xs font-medium">{metode}</span>
                                 </label>
                             ))}
                         </div>
                     </div>
 
                     {/* 6. Tingkat Transfer Data */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Tingkat Transfer Data <span className="text-red-500">*</span>
                         </label>
                         <div className="max-w-xl space-y-2">
@@ -287,7 +287,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         tingkatTransferData: e.target.value,
                                     }))
                                 }
-                                className="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors text-slate-800 shadow-xs"
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                             <div className="flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200/80 px-3.5 py-2 text-xs text-sky-800">
                                 <Info className="w-4 h-4 text-sky-600 shrink-0" />
@@ -297,12 +297,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                     </div>
 
                     {/* 7. Materialitas (materiality) */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Materialitas (materiality) <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
-                            <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.materialitas === "default" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -317,12 +317,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-xs font-medium">
                                     ≤ 5% (jika tidak ditetapkan oleh program)
                                 </span>
                             </label>
 
-                            <div className="flex flex-wrap items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white hover:border-brand-300 transition-colors shadow-xs">
+                            <div className={`flex flex-wrap items-center gap-2 px-4 py-1.5 rounded-xl border transition-all shadow-xs ${formData.materialitas === "program" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -337,7 +337,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
                                 />
-                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">
+                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 text-xs font-medium cursor-pointer">
                                     <span>≤</span>
                                     <input
                                         type="text"
@@ -356,7 +356,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                 materialitas: "program",
                                             }))
                                         }
-                                        className="w-24 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                     />
                                     <span>% (jika ditetapkan oleh program)</span>
                                 </label>
@@ -365,12 +365,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                     </div>
 
                     {/* 8. Tingkat Jaminan (level of assurance) */}
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-800">
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Tingkat Jaminan (level of assurance) <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-4">
-                            <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.tingkatJaminan === "reasonable" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="tingkat_jaminan"
@@ -385,12 +385,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-xs font-medium">
                                     Tingkat wajar (reasonable level)
                                 </span>
                             </label>
 
-                            <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs">
+                            <label className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.tingkatJaminan === "limited" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="tingkat_jaminan"
@@ -405,7 +405,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-sm font-medium text-slate-700">
+                                <span className="text-xs font-medium">
                                     Tingkat terbatas (limited level)
                                 </span>
                             </label>
@@ -414,7 +414,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
 
                     {/* Kategori dan Sub Kategori Emisi & Serapan GRK */}
                     <div className="w-full space-y-3 pt-4 border-t border-slate-100">
-                        <label className="block text-sm font-semibold text-slate-800">
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Kategori dan Sub Kategori Emisi & Serapan GRK <span className="text-red-500">*</span>
                         </label>
 
@@ -480,9 +480,9 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                                 handleSubKategoriChange(group.id, item.id, "sumber", e.target.value)
                                                             }
                                                             placeholder={item.checked ? "Sumber emisi/serapan" : ""}
-                                                            className={`w-full rounded border px-2.5 py-1.5 text-xs transition-colors ${item.checked
-                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                                                                : "border-slate-200 bg-slate-100/70 text-slate-400 cursor-not-allowed"
+                                                            className={`w-full rounded-xl border px-3 py-1.5 text-xs transition-colors ${item.checked
+                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0"
+                                                                : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
                                                                 }`}
                                                         />
                                                     </td>
@@ -496,9 +496,9 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                                 handleSubKategoriChange(group.id, item.id, "jumlah", e.target.value)
                                                             }
                                                             placeholder={item.checked ? "0.00" : ""}
-                                                            className={`w-full rounded border px-2.5 py-1.5 text-xs transition-colors ${item.checked
-                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                                                                : "border-slate-200 bg-slate-100/70 text-slate-400 cursor-not-allowed"
+                                                            className={`w-full rounded-xl border px-3 py-1.5 text-xs transition-colors ${item.checked
+                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0"
+                                                                : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
                                                                 }`}
                                                         />
                                                     </td>
@@ -511,9 +511,9 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                                 handleSubKategoriChange(group.id, item.id, "justifikasi", e.target.value)
                                                             }
                                                             placeholder={item.checked ? "Justifikasi" : ""}
-                                                            className={`w-full rounded border px-2.5 py-1.5 text-xs transition-colors ${item.checked
-                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                                                                : "border-slate-200 bg-slate-100/70 text-slate-400 cursor-not-allowed"
+                                                            className={`w-full rounded-xl border px-3 py-1.5 text-xs transition-colors ${item.checked
+                                                                ? "border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0"
+                                                                : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
                                                                 }`}
                                                         />
                                                     </td>

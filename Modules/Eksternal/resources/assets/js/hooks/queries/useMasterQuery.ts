@@ -3,6 +3,7 @@ import api from "../../utils/api"
 import { getSkemalsp } from "../../services/lsp"
 import { getSkemaPelatihan } from "../../services/pelatihan"
 import { getSkemaSertifikasi } from "../../services/sertifikasi"
+import { getMasterKalibrasi } from "../../services/kalibrasi"
 import { regionService } from "../../services/region-service"
 
 /**
@@ -133,4 +134,15 @@ export function useDistrictsQuery(regencyId?: string | number) {
     enabled: Boolean(regencyId),
     staleTime: 1000 * 60 * 60 * 24,
   })
+}
+
+export function useMasterKalibrasiQuery() {
+  return useQuery({
+    queryKey: ["master", "kalibrasi"],
+    queryFn: async () => {
+        return await getMasterKalibrasi()
+      },
+      staleTime: 1000 * 60 * 30,
+  })
+    
 }

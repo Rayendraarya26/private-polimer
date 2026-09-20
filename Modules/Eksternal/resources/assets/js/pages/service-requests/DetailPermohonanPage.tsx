@@ -31,6 +31,7 @@ import {
   FileCode2,
   Eye,
   Upload,
+  Award,
 } from "lucide-react"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card"
@@ -39,6 +40,11 @@ import { Button } from "../../components/ui/Button"
 import { usePembayaran } from "../../hooks/usePembayaran"
 import api from "../../utils/api"
 import toast from "react-hot-toast"
+import {
+  PupDetailPermohonanTab,
+  PupDetailLaboratoriumTab,
+  PupDetailKomitmenTab,
+} from "../../components/detail-service-requests/PupDetailSection"
 
 const workflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen" },
@@ -46,6 +52,38 @@ const workflowSteps = [
   { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Persetujuan Tarif" },
   { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Kuitansi" },
   { key: "PROCESS", label: "Audit & Sertifikat", desc: "Penjadwalan & SNI" },
+]
+
+const pupWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pendaftaran", desc: "Formulir & Pilihan Skema" },
+  { key: "KAJIAN_TEKNIS", label: "Verifikasi Berkas", desc: "Review Teknis Panitia UP" },
+  { key: "PEMBAYARAN", label: "Pembayaran PNBP", desc: "Invoice & Virtual Account" },
+  { key: "PROCESS", label: "Sirkulasi Artefak", desc: "Distribusi & Kalibrasi" },
+  { key: "DONE", label: "Evaluasi En", desc: "Laporan Hasil & Nilai En" },
+]
+
+const pelatihanWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pendaftaran", desc: "Formulir & Peserta" },
+  { key: "KAJIAN_TEKNIS", label: "Verifikasi", desc: "Kajian Kebutuhan Bimtek" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Estimasi Biaya" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Pelaksanaan", desc: "Bimtek & E-Sertifikat" },
+]
+
+const lspWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pendaftaran", desc: "Formulir & Portofolio" },
+  { key: "KAJIAN_TEKNIS", label: "Pra-Asesmen", desc: "Verifikasi Berkas APL" },
+  { key: "PENAWARAN_BIAYA", label: "Biaya Asesmen", desc: "Tarif Uji Kompetensi" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Uji Kompetensi", desc: "Asesmen & Sertifikat BNSP" },
+]
+
+const grkWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Data Proyek & Emisi" },
+  { key: "KAJIAN_TEKNIS", label: "Kajian Awal", desc: "Metodologi & Lingkup" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Biaya Verifikasi" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Validasi/Verifikasi", desc: "Audit Emisi & Laporan Opini" },
 ]
 
 type TabKey = "permohonan" | "perusahaan" | "dokumen" | "biaya" | "jadwal_audit"
@@ -271,18 +309,84 @@ export const DetailPermohonanPage: React.FC = () => {
       ? "Sertifikasi Produk & Sistem (LSPro)"
       : noOrder.startsWith("LSP")
         ? "Sertifikasi Profesi (LSP)"
-        : noOrder.startsWith("REG") || noOrder.startsWith("TRN")
+        : noOrder.startsWith("REG") || noOrder.startsWith("TRN") || noOrder.startsWith("UMK")
           ? "Bimbingan Teknis & Pelatihan"
           : noOrder.startsWith("VAL")
             ? "Validasi Gas Rumah Kaca (GRK)"
             : noOrder.startsWith("GRK")
               ? "Verifikasi Gas Rumah Kaca (GRK)"
-              : "Layanan BBSPJIKKP")
+              : noOrder.startsWith("PUP")
+                ? "Penyelenggara Uji Profisiensi (PUP)"
+                : noOrder.startsWith("KAL") || noOrder.startsWith("CAL")
+                  ? "Kalibrasi"
+                  : noOrder.startsWith("UJI") || noOrder.startsWith("TEST")
+                    ? "Pengujian Laboratorium"
+                    : "Layanan BBSPJIKKP")
+
+  // Deteksi Tipe / Lingkup Permohonan Secara Akurat (Strict)
+  const isPup = Boolean(
+    noOrder.startsWith("PUP") ||
+    permohonan?.formable_type?.includes("FormPup") ||
+    Boolean(formData?.nama_lab_kalibrasi) ||
+    (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0) ||
+    (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0)
+  )
+
+  const isLsp = Boolean(
+    !isPup && (
+      noOrder.startsWith("LSP") ||
+      permohonan?.formable_type?.includes("FormLsp") ||
+      lingkup?.slug?.includes("lsp")
+    )
+  )
+
+  const isPelatihan = Boolean(
+    !isPup && !isLsp && (
+      noOrder.startsWith("REG") ||
+      noOrder.startsWith("TRN") ||
+      noOrder.startsWith("UMK") ||
+      permohonan?.formable_type?.includes("FormPelatihan") ||
+      lingkup?.slug?.includes("pelatihan")
+    )
+  )
+
+  const isGrk = Boolean(
+    !isPup && !isLsp && !isPelatihan && (
+      noOrder.startsWith("VAL") ||
+      noOrder.startsWith("GRK") ||
+      permohonan?.formable_type?.includes("FormGrk") ||
+      lingkup?.slug?.includes("grk")
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk)
+
+  const formPupData = isPup
+    ? (formData?.nama_lab_kalibrasi
+        ? formData
+        : (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0
+            ? permohonan.form_pup[0]
+            : (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0
+                ? permohonan.formPup[0]
+                : formData)))
+    : null
+
+  const activeWorkflowSteps = isPup
+    ? pupWorkflowSteps
+    : isPelatihan
+      ? pelatihanWorkflowSteps
+      : isLsp
+        ? lspWorkflowSteps
+        : isGrk
+          ? grkWorkflowSteps
+          : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
     let raw: any[] = []
-    if (Array.isArray(formData?.items) && formData.items.length > 0) {
+    if (isPup && Array.isArray(formPupData?.items) && formPupData.items.length > 0) {
+      raw = formPupData.items
+    } else if (Array.isArray(formData?.items) && formData.items.length > 0) {
       raw = formData.items
     } else if (formData?.komoditas_json) {
       raw = Array.isArray(formData.komoditas_json)
@@ -314,11 +418,11 @@ export const DetailPermohonanPage: React.FC = () => {
       }
       return {
         id: it.id || index,
-        nama_produk: it.nama_produk || it.nama_komoditi || it.komoditi_nama || it.nama || it.komoditi || "Produk Terdaftar",
-        standar_sni_iso: it.standar_sni_iso || it.sni || it.standar_sni || it.standar || null,
-        merk_dagang: it.merk_dagang || it.merk || it.merek || null,
-        tipe_jenis: it.tipe_jenis || it.tipe || it.jenis || null,
-        estimasi_tarif: it.estimasi_tarif || it.tarif || it.biaya || 0,
+        nama_produk: it.nama_produk || it.nama_skema || it.nama_komoditi || it.komoditi_nama || it.nama || it.komoditi || "Produk Terdaftar",
+        standar_sni_iso: it.standar_sni_iso || it.metode_kalibrasi_acuan || it.sni || it.standar_sni || it.standar || null,
+        merk_dagang: it.merk_dagang || it.kode_skema || it.merk || it.merek || null,
+        tipe_jenis: it.tipe_jenis || (it.is_in_situ ? "In Situ (Yogyakarta)" : null) || it.tipe || it.jenis || null,
+        estimasi_tarif: it.estimasi_tarif || it.tarif_pnbp || it.tarif || it.biaya || 0,
       }
     })
   }
@@ -527,15 +631,37 @@ export const DetailPermohonanPage: React.FC = () => {
     permohonan?.pembayaran ||
     permohonan?.detailPembayaran
 
-  const rincianList = Array.isArray(rawRincian)
+  const parsedRincian = Array.isArray(rawRincian)
     ? rawRincian
     : typeof rawRincian === "string"
       ? JSON.parse(rawRincian || "[]")
       : []
 
+  const rincianList = (() => {
+    if (parsedRincian.length > 0) return parsedRincian
+    if (isPup && Array.isArray(formPupData?.items) && formPupData.items.length > 0) {
+      const items = formPupData.items.map((it: any) => ({
+        nama_item: `Skema PUP: ${it.nama_skema}`,
+        qty: 1,
+        subtotal: Number(it.biaya || 0),
+      }))
+      if (Number(formPupData?.diskon_nominal) > 0) {
+        items.push({
+          nama_item: formPupData?.catatan_diskon || "Paket Hemat Diskon Bundling PUP 2025",
+          qty: 1,
+          subtotal: -Number(formPupData.diskon_nominal),
+        })
+      }
+      return items
+    }
+    return []
+  })()
+
   const totalBiayaPenawaran = Number(
     penawaran?.total_nominal ||
     penawaran?.total_biaya ||
+    permohonan?.biaya ||
+    formPupData?.total_biaya_bersih ||
     permohonan?.harga_permohonan ||
     permohonan?.total_harga ||
     (rincianList.length > 0
@@ -643,6 +769,97 @@ export const DetailPermohonanPage: React.FC = () => {
 
   // Riwayat Timeline Tracking (seperti di SIS)
   const getTimelineEvents = () => {
+    if (isPup) {
+      if (trackingLogs && trackingLogs.length > 0) {
+        return trackingLogs.map((log: any) => ({
+          date: formatIndoDate(log.created_at, true),
+          title: log.judul || "Pembaruan Status Uji Profisiensi",
+          message: log.deskripsi || "-",
+          type: log.milestone_code === "REVISI" ? "revisi" : "sukses",
+          badgeText: log.milestone_code === "PERMOHONAN_MASUK" ? "Diajukan" : (isLunas && log.milestone_code === "LUNAS" ? "Lunas" : "Selesai"),
+        }))
+      }
+
+      const pupEvents: Array<{
+        date: string
+        title: string
+        message: string
+        type: "informasi" | "revisi" | "sukses" | "menunggu"
+        badgeText: string
+      }> = []
+
+      // 1. Pendaftaran Diajukan
+      pupEvents.push({
+        date: formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true),
+        title: "Pendaftaran Uji Profisiensi Diajukan",
+        message: `Pendaftaran kepesertaan Uji Profisiensi #${noOrder} telah berhasil diajukan oleh ${formPupData?.nama_lab_kalibrasi || namaPemohon}.`,
+        type: "sukses",
+        badgeText: "Diajukan",
+      })
+
+      // 2. Verifikasi Berkas
+      if (status === "REVISI" || permohonan?.catatan_admin) {
+        pupEvents.push({
+          date: formatIndoDate(permohonan?.updated_at, true),
+          title: "Verifikasi Berkas Teknis (Perlu Perbaikan)",
+          message: permohonan?.catatan_admin
+            ? `Catatan Panitia UP: "${permohonan.catatan_admin}". Mohon perbaiki formulir data laboratorium atau metode acuan.`
+            : "Terdapat data permohonan yang memerlukan perbaikan dari pemohon.",
+          type: "revisi",
+          badgeText: "Perlu Revisi",
+        })
+      } else if (currentStepIdx >= 1) {
+        pupEvents.push({
+          date: formatIndoDate(permohonan?.updated_at, true),
+          title: "Verifikasi Kelayakan Berkas & Kesesuaian Skema",
+          message: "Panitia Uji Profisiensi BBSPJIKKP meninjau kesiapan metode kalibrasi dan kelengkapan peralatan peserta.",
+          type: currentStepIdx > 1 ? "sukses" : "informasi",
+          badgeText: currentStepIdx > 1 ? "Terverifikasi" : "Sedang Berjalan",
+        })
+      }
+
+      // 3. Pembayaran PNBP
+      if (isSiapBayar || currentStepIdx >= 2) {
+        pupEvents.push({
+          date: formatIndoDate(permohonan?.tgl_lunas || permohonan?.invoice_generated_at || permohonan?.updated_at, true),
+          title: "Penerbitan Tagihan PNBP & Pembayaran",
+          message: isLunas
+            ? "Pembayaran tagihan PNBP telah terverifikasi LUNAS. Kuitansi resmi telah diterbitkan."
+            : permohonan?.va
+              ? `Tagihan PNBP telah diterbitkan dengan Virtual Account (${permohonan.va}). Menunggu pembayaran peserta.`
+              : "Kode billing / Virtual Account tagihan PNBP sedang disiapkan oleh Bendahara Penerimaan.",
+          type: isLunas ? "sukses" : "informasi",
+          badgeText: isLunas ? "Lunas" : "Menunggu Pembayaran",
+        })
+      }
+
+      // 4. Sirkulasi Artefak
+      if (isLunas || currentStepIdx >= 3) {
+        pupEvents.push({
+          date: formatIndoDate(permohonan?.updated_at, true),
+          title: "Sirkulasi & Distribusi Artefak Uji Profisiensi",
+          message: isDone
+            ? "Artefak kalibrasi telah selesai disirkulasikan dan dikembalikan ke BBSPJIKKP."
+            : "Panitia Uji Profisiensi mempersiapkan jadwal pengiriman artefak kalibrasi sesuai rute sirkulasi laboratorium peserta.",
+          type: isDone ? "sukses" : "informasi",
+          badgeText: isDone ? "Selesai" : "Persiapan Sirkulasi",
+        })
+      }
+
+      // 5. Evaluasi Hasil & Laporan Nilai En
+      if (isDone) {
+        pupEvents.push({
+          date: formatIndoDate(permohonan?.updated_at, true),
+          title: "Laporan Akhir Uji Profisiensi & Evaluasi Nilai En",
+          message: "Laporan Hasil Evaluasi Nilai En resmi dan Sertifikat Keikutsertaan Uji Profisiensi telah diterbitkan.",
+          type: "sukses",
+          badgeText: "Selesai",
+        })
+      }
+
+      return pupEvents
+    }
+
     const events: Array<{
       date: string
       title: string
@@ -654,8 +871,8 @@ export const DetailPermohonanPage: React.FC = () => {
     // 1. Pengajuan
     events.push({
       date: formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true),
-      title: "Permohonan Sertifikasi Diajukan",
-      message: `Formulir permohonan sertifikasi (${noOrder}) dan dokumen persyaratan awal telah berhasil diajukan oleh ${namaPemohon}.`,
+      title: `Permohonan ${layananName} Diajukan`,
+      message: `Formulir permohonan ${layananName} (${noOrder}) dan dokumen persyaratan awal telah berhasil diajukan oleh ${namaPemohon}.`,
       type: "sukses",
       badgeText: "Selesai",
     })
@@ -675,7 +892,7 @@ export const DetailPermohonanPage: React.FC = () => {
       events.push({
         date: formatIndoDate(permohonan?.updated_at, true),
         title: "Kajian Teknis & Verifikasi Kelayakan Dokumen",
-        message: "Tim Verifikator LSPro dan Tim Penilai Kelayakan Teknis (PJT) meninjau kelengkapan berkas persyaratan dan ruang lingkup sertifikasi.",
+        message: `Tim Verifikator dan Tim Penilai Teknis meninjau kelengkapan berkas persyaratan dan ruang lingkup ${layananName}.`,
         type: currentStepIdx > 1 ? "sukses" : "informasi",
         badgeText: currentStepIdx > 1 ? "Selesai" : "Sedang Berjalan",
       })
@@ -922,7 +1139,7 @@ export const DetailPermohonanPage: React.FC = () => {
 
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 relative">
-            {workflowSteps.map((step, idx) => {
+            {activeWorkflowSteps.map((step, idx) => {
               const isPast = idx < currentStepIdx || (isDone && idx <= currentStepIdx)
               const isCurrent = idx === currentStepIdx && !isDone
               const isStepPendingApproval = isCurrent && isPendingApproval && idx === 2
@@ -1059,9 +1276,9 @@ export const DetailPermohonanPage: React.FC = () => {
         )}
       </Card>
 
-      {/* TAB NAVIGATION (Model Grid Responsif - Tidak Perlu Scroll) */}
+      {/* TAB NAVIGATION (Model Grid Responsif - Menyesuaikan Jenis Layanan) */}
       <div className="bg-slate-100/80 p-2 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className={`grid grid-cols-2 sm:grid-cols-3 ${isSertifikasi ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-2`}>
           <button
             type="button"
             onClick={() => setActiveTab("permohonan")}
@@ -1072,11 +1289,21 @@ export const DetailPermohonanPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 truncate">
               <Package className="w-4 h-4 shrink-0" />
-              <span className="truncate">Data Permohonan</span>
+              <span className="truncate">
+                {isPup
+                  ? "Skema & Artefak UP"
+                  : isPelatihan
+                    ? "Data Pelatihan & Peserta"
+                    : isLsp
+                      ? "Skema & Calon Asesi"
+                      : isGrk
+                        ? "Data Proyek GRK"
+                        : "Data Permohonan"}
+              </span>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
-              {items.length > 0 ? items.length : 1}
+              {isPup ? (formPupData?.items?.length || 1) : (items.length > 0 ? items.length : 1)}
             </span>
           </button>
 
@@ -1090,9 +1317,15 @@ export const DetailPermohonanPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 truncate">
               <Building2 className="w-4 h-4 shrink-0" />
-              <span className="truncate">Data Perusahaan</span>
+              <span className="truncate">
+                {isPup
+                  ? "Data Laboratorium"
+                  : isPelatihan
+                    ? "Data Instansi / Peserta"
+                    : "Data Perusahaan"}
+              </span>
             </div>
-            {pabriks.length > 0 && (
+            {!isPup && !isPelatihan && pabriks.length > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "perusahaan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                 {pabriks.length} Pabrik
@@ -1110,11 +1343,11 @@ export const DetailPermohonanPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 truncate">
               <Layers className="w-4 h-4 shrink-0" />
-              <span className="truncate">Berkas Dokumen</span>
+              <span className="truncate">{isPup ? "Komitmen Pemohon" : "Berkas Dokumen"}</span>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "dokumen" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
-              {Object.keys(docs).length + (pernyataanFile ? 1 : 0)}
+              {isPup ? "Disetujui" : Object.keys(docs).length + (pernyataanFile ? 1 : 0)}
             </span>
           </button>
 
@@ -1137,377 +1370,618 @@ export const DetailPermohonanPage: React.FC = () => {
             ) : null}
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("jadwal_audit")}
-            className={`w-full flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === "jadwal_audit"
-              ? "bg-brand-600 text-white shadow-xs"
-              : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/70"
-              }`}
-          >
-            <div className="flex items-center gap-2 truncate">
-              <Calendar className="w-4 h-4 shrink-0" />
-              <span className="truncate">Jadwal & Tim Audit</span>
-            </div>
-
-          </button>
+          {isSertifikasi && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("jadwal_audit")}
+              className={`w-full flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl font-bold text-xs transition-all ${activeTab === "jadwal_audit"
+                ? "bg-brand-600 text-white shadow-xs"
+                : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/70"
+                }`}
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Calendar className="w-4 h-4 shrink-0" />
+                <span className="truncate">Jadwal & Tim Audit</span>
+              </div>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Content (Full Width) */}
       <div className="w-full space-y-6">
-        {/* TAB 1: DATA PERMOHONAN & PRODUK */}
+        {/* TAB 1: DATA PERMOHONAN */}
         {activeTab === "permohonan" && (
-          <div className="space-y-6 animate-in fade-in-50 duration-200">
-            {/* Ringkasan Parameter Pengajuan */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <FileText className="w-4 h-4 text-brand-600" />
-                  Parameter & Skema Pengajuan
-                </CardTitle>
-                <Badge variant="outline">{layananName}</Badge>
-              </CardHeader>
-              <CardContent className="p-5 pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
-                    <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Jenis / Tipe Permohonan:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">
-                      {formData?.tipe_pengajuan || formData?.jenis_pengajuan || "Sertifikasi Baru (Awal)"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Tanggal Pengajuan:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">
-                      {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Skema / Lingkup Layanan:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">{layananName}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Daftar Komoditi / Produk */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <Package className="w-4 h-4 text-brand-600" />
-                  Rincian Komoditi & Produk ({items.length > 0 ? items.length : 1} Item)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-4">
-                {items.length > 0 ? (
-                  <div className="space-y-3">
-                    {items.map((item: any, idx: number) => (
-                      <div
-                        key={item.id || idx}
-                        className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[10px]">
-                              {idx + 1}
-                            </span>
-                            <span className="font-bold text-slate-900 text-sm">{item.nama_produk}</span>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2.5 mt-2 pl-7 text-slate-500">
-                            {item.standar_sni_iso && (
-                              <span className="bg-brand-50 text-brand-700 px-2 py-0.5 rounded-md border border-brand-200 font-semibold text-[11px]">
-                                Standar SNI/ISO: {item.standar_sni_iso}
-                              </span>
-                            )}
-                            {item.merk_dagang && (
-                              <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
-                                Merek: <b>{item.merk_dagang}</b>
-                              </span>
-                            )}
-                            {item.tipe_jenis && (
-                              <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
-                                Tipe: {item.tipe_jenis}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {item.estimasi_tarif > 0 && (
-                          <div className="text-right pl-7 sm:pl-0 shrink-0">
-                            <span className="text-[11px] text-slate-400 block">Estimasi Tarif:</span>
-                            <span className="font-bold text-slate-900">
-                              Rp {Number(item.estimasi_tarif).toLocaleString("id-ID")}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
-                    <p className="font-bold text-slate-800">
-                      {formData?.nama_layanan || formData?.nama_skema || "Permohonan Layanan"}
-                    </p>
-                    <p className="text-slate-500 mt-0.5">
-                      Jenis Pengajuan: {formData?.tipe_pengajuan || formData?.jenis_pengajuan || "BARU"}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Ringkasan Kuesioner Kelayakan Teknis jika ada */}
-            {formData?.kuesioner_kelayakan && (
+          isPup ? (
+            <PupDetailPermohonanTab
+              permohonan={permohonan}
+              formPup={formPupData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : isPelatihan ? (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
               <Card className="rounded-2xl border-slate-200 shadow-soft">
-                <CardHeader className="border-b border-slate-100 pb-3">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                    <FileSpreadsheet className="w-4 h-4 text-brand-600" />
-                    Kuesioner Kelayakan & Asesmen Mandiri
+                    <FileText className="w-4 h-4 text-brand-600" />
+                    Parameter & Skema Bimbingan Teknis
                   </CardTitle>
+                  <Badge variant="outline">{layananName}</Badge>
                 </CardHeader>
-                <CardContent className="p-5 pt-4 text-xs space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className="text-slate-400 block font-medium">Sistem Manajemen Mutu yang Diterapkan:</span>
+                <CardContent className="p-5 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
+                      <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Tanggal Pendaftaran:</span>
                       <span className="font-semibold text-slate-800 mt-0.5 block">
-                        {formData.kuesioner_kelayakan.sistem_mutu || "ISO 9001 / Terintegrasi"}
+                        {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
                       </span>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className="text-slate-400 block font-medium">Lembaga Penerbit Sertifikat Mutu:</span>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Fokus / Bidang Industri:</span>
                       <span className="font-semibold text-slate-800 mt-0.5 block">
-                        {formData.kuesioner_kelayakan.lembaga_sertifikasi_mutu || "-"}
+                        {formData?.jenis_produk || "Bimbingan Teknis & Pelatihan Industri"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Instansi / Asal Peserta:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.nama_instansi || namaPemohon}
+                      </span>
+                    </div>
+                    {formData?.masalah_materi && (
+                      <div className="sm:col-span-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200 mt-1">
+                        <span className="text-slate-500 font-bold block mb-1 text-[11px] uppercase tracking-wider">
+                          Masalah / Kebutuhan Materi yang Dihadapi:
+                        </span>
+                        <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{formData.masalah_materi}</p>
+                      </div>
+                    )}
+                    {formData?.hal_dipelajari && (
+                      <div className="sm:col-span-2 p-3.5 bg-brand-50/50 rounded-xl border border-brand-200/60 mt-1">
+                        <span className="text-brand-900 font-bold block mb-1 text-[11px] uppercase tracking-wider">
+                          Hal Khusus yang Ingin Dipelajari:
+                        </span>
+                        <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{formData.hal_dipelajari}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Data Peserta Pelatihan */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Users className="w-4 h-4 text-brand-600" />
+                    Data Peserta Bimbingan Teknis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nama Lengkap Peserta:</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block text-sm">{formData?.nama_lengkap || namaPemohon}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">NIK:</span>
+                      <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{formData?.nik_peserta || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Jenis Kelamin:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.gender || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Tempat / Tgl Lahir:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.tempat_lahir || "-"}, {formData?.tanggal_lahir ? formatIndoDate(formData.tanggal_lahir) : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Pendidikan Terakhir:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pendidikan || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Kontak WhatsApp:</span>
+                      <span className="font-semibold text-brand-700 mt-0.5 block">{formData?.whatsapp || phone}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Email:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.email || email}</span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-slate-400 block font-medium">Pengalaman Kerja:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pengalaman_kerja || "-"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : isLsp ? (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Award className="w-4 h-4 text-brand-600" />
+                    Skema Sertifikasi Profesi (LSP BBSPJIKKP)
+                  </CardTitle>
+                  <Badge variant="outline">BNSP</Badge>
+                </CardHeader>
+                <CardContent className="p-5 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
+                      <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Tanggal Pengajuan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Skema / Bidang Sertifikasi:</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block">
+                        {formData?.jenis_produk || "Sertifikasi Kompetensi Profesi"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Jabatan Pekerjaan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.jabatan || "-"}
                       </span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+
+              {/* Data Calon Asesi */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <UserCheck className="w-4 h-4 text-brand-600" />
+                    Data Calon Asesi BNSP
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nama Lengkap Asesi:</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block text-sm">{formData?.nama_lengkap || namaPemohon}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">NIK:</span>
+                      <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{formData?.nik_peserta || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Kewarganegaraan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.kewarganegaraan || "Indonesia"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Tempat / Tgl Lahir:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.tempat_lahir || "-"}, {formData?.tanggal_lahir ? formatIndoDate(formData.tanggal_lahir) : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Pendidikan Terakhir:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pendidikan || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Kontak WhatsApp:</span>
+                      <span className="font-semibold text-brand-700 mt-0.5 block">{formData?.whatsapp || phone}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : isGrk ? (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <FileSpreadsheet className="w-4 h-4 text-brand-600" />
+                    Informasi Proyek Gas Rumah Kaca (GRK)
+                  </CardTitle>
+                  <Badge variant="outline">{layananName}</Badge>
+                </CardHeader>
+                <CardContent className="p-5 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
+                      <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nama Proyek / Unit:</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block">{formData?.merek_sample || "Proyek GRK"}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Periode Inventarisasi:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.periode_mulai || "-"} s/d {formData?.periode_selesai || "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Total Emisi Diestimasi:</span>
+                      <span className="font-bold text-brand-700 mt-0.5 block">
+                        {formData?.total_emisi_ton_co2e ? `${Number(formData.total_emisi_ton_co2e).toLocaleString("id-ID")} ton CO2e` : "-"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
+              {/* Ringkasan Parameter Pengajuan */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <FileText className="w-4 h-4 text-brand-600" />
+                    Parameter & Skema Pengajuan
+                  </CardTitle>
+                  <Badge variant="outline">{layananName}</Badge>
+                </CardHeader>
+                <CardContent className="p-5 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
+                      <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Jenis / Tipe Permohonan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formData?.tipe_pengajuan || formData?.jenis_pengajuan || "Sertifikasi Baru (Awal)"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Tanggal Pengajuan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Skema / Lingkup Layanan:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{layananName}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daftar Komoditi / Produk */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Package className="w-4 h-4 text-brand-600" />
+                    Rincian Komoditi & Produk ({items.length > 0 ? items.length : 1} Item)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4">
+                  {items.length > 0 ? (
+                    <div className="space-y-3">
+                      {items.map((item: any, idx: number) => (
+                        <div
+                          key={item.id || idx}
+                          className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[10px]">
+                                {idx + 1}
+                              </span>
+                              <span className="font-bold text-slate-900 text-sm">{item.nama_produk}</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2.5 mt-2 pl-7 text-slate-500">
+                              {item.standar_sni_iso && (
+                                <span className="bg-brand-50 text-brand-700 px-2 py-0.5 rounded-md border border-brand-200 font-semibold text-[11px]">
+                                  Standar SNI/ISO: {item.standar_sni_iso}
+                                </span>
+                              )}
+                              {item.merk_dagang && (
+                                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
+                                  Merek: <b>{item.merk_dagang}</b>
+                                </span>
+                              )}
+                              {item.tipe_jenis && (
+                                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
+                                  Tipe: {item.tipe_jenis}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {item.estimasi_tarif > 0 && (
+                            <div className="text-right pl-7 sm:pl-0 shrink-0">
+                              <span className="text-[11px] text-slate-400 block">Estimasi Tarif:</span>
+                              <span className="font-bold text-slate-900">
+                                Rp {Number(item.estimasi_tarif).toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                      <p className="font-bold text-slate-800">
+                        {formData?.nama_layanan || formData?.nama_skema || "Permohonan Layanan"}
+                      </p>
+                      <p className="text-slate-500 mt-0.5">
+                        Jenis Pengajuan: {formData?.tipe_pengajuan || formData?.jenis_pengajuan || "BARU"}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Ringkasan Kuesioner Kelayakan Teknis jika ada */}
+              {formData?.kuesioner_kelayakan && (
+                <Card className="rounded-2xl border-slate-200 shadow-soft">
+                  <CardHeader className="border-b border-slate-100 pb-3">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                      <FileSpreadsheet className="w-4 h-4 text-brand-600" />
+                      Kuesioner Kelayakan & Asesmen Mandiri
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-4 text-xs space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-slate-400 block font-medium">Sistem Manajemen Mutu yang Diterapkan:</span>
+                        <span className="font-semibold text-slate-800 mt-0.5 block">
+                          {formData.kuesioner_kelayakan.sistem_mutu || "ISO 9001 / Terintegrasi"}
+                        </span>
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-slate-400 block font-medium">Lembaga Penerbit Sertifikat Mutu:</span>
+                        <span className="font-semibold text-slate-800 mt-0.5 block">
+                          {formData.kuesioner_kelayakan.lembaga_sertifikasi_mutu || "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )
         )}
 
         {/* TAB 2: DATA PERUSAHAAN & PABRIK */}
         {activeTab === "perusahaan" && (
-          <div className="space-y-6 animate-in fade-in-50 duration-200">
-            {/* Profil & Identitas Legal Perusahaan */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <Building2 className="w-4 h-4 text-brand-600" />
-                  Identitas & Legalitas Perusahaan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-4 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-400 block font-medium">Nama Perusahaan / Pemohon:</span>
-                    <span className="font-bold text-slate-900 text-sm mt-0.5 block">{namaPemohon}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nomor Pokok Wajib Pajak (NPWP):</span>
-                    <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{npwp}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nomor Induk Berusaha (NIB):</span>
-                    <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{nib}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nomor Akta Pendirian:</span>
-                    <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{noAkta}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Total Tenaga Kerja Tetap:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">{totalKaryawan} Orang</span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-400 block font-medium">Alamat Kantor Pusat / Operasional:</span>
-                    <span className="font-medium text-slate-700 mt-0.5 block bg-slate-50 p-2.5 rounded-lg border border-slate-200/70">
-                      {alamat}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pimpinan & Penanggung Jawab Teknis */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <Users className="w-4 h-4 text-brand-600" />
-                  Pimpinan & Kontak Person (PIC)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-4 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nama Pimpinan / Direktur Utama:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">{namaPimpinan}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nama Wakil Manajemen (MR):</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">{wakilManajemen}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Penanggung Jawab Permohonan (PIC):</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 block">{pic}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Nomor WhatsApp / Telepon:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      {phone}
-                    </span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-400 block font-medium">Alamat Email Resmi:</span>
-                    <span className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      {email}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Daftar Pabrik & Fasilitas Produksi */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <Factory className="w-4 h-4 text-brand-600" />
-                  Lokasi Pabrik & Fasilitas Produksi ({pabriks.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-5 pt-4 space-y-3">
-                {pabriks.length > 0 ? (
-                  pabriks.map((pabrik: any, idx: number) => (
-                    <div key={pabrik.id || idx} className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs text-xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[10px]">
-                            {idx + 1}
-                          </span>
-                          {pabrik.nama_pabrik || pabrik.nama || "Pabrik Utama"}
-                        </div>
-                        {pabrik.status_pabrik && (
-                          <Badge variant="outline">{pabrik.status_pabrik}</Badge>
-                        )}
-                      </div>
-                      <div className="text-slate-600 flex items-start gap-1.5 pl-7">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                        <span>{pabrik.alamat_pabrik || pabrik.alamat || "-"}</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pl-7 pt-1 text-slate-500">
-                        {pabrik.kontak_pabrik && <div>Kontak: {pabrik.kontak_pabrik}</div>}
-                        {pabrik.telepon_pabrik && <div>Telp: {pabrik.telepon_pabrik}</div>}
-                        {pabrik.luas_pabrik && <div>Luas: {pabrik.luas_pabrik} m²</div>}
-                      </div>
+          isPup ? (
+            <PupDetailLaboratoriumTab
+              permohonan={permohonan}
+              formPup={formPupData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
+              {/* Profil & Identitas Legal Perusahaan */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Building2 className="w-4 h-4 text-brand-600" />
+                    Identitas & Legalitas Perusahaan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="sm:col-span-2">
+                      <span className="text-slate-400 block font-medium">Nama Perusahaan / Pemohon:</span>
+                      <span className="font-bold text-slate-900 text-sm mt-0.5 block">{namaPemohon}</span>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-slate-500 italic">Data pabrik mengacu pada alamat kantor operasional pemohon.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Pokok Wajib Pajak (NPWP):</span>
+                      <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{npwp}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Induk Berusaha (NIB):</span>
+                      <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{nib}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor Akta Pendirian:</span>
+                      <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{noAkta}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Total Tenaga Kerja Tetap:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{totalKaryawan} Orang</span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-slate-400 block font-medium">Alamat Kantor Pusat / Operasional:</span>
+                      <span className="font-medium text-slate-700 mt-0.5 block bg-slate-50 p-2.5 rounded-lg border border-slate-200/70">
+                        {alamat}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Pimpinan & Penanggung Jawab Teknis */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Users className="w-4 h-4 text-brand-600" />
+                    Pimpinan & Kontak Person (PIC)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nama Pimpinan / Direktur Utama:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{namaPimpinan}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nama Wakil Manajemen (MR):</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{wakilManajemen}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Penanggung Jawab Permohonan (PIC):</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">{pic}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Nomor WhatsApp / Telepon:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        {phone}
+                      </span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-slate-400 block font-medium">Alamat Email Resmi:</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-400" />
+                        {email}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daftar Pabrik & Fasilitas Produksi */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <Factory className="w-4 h-4 text-brand-600" />
+                    Lokasi Pabrik & Fasilitas Produksi ({pabriks.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-5 pt-4 space-y-3">
+                  {pabriks.length > 0 ? (
+                    pabriks.map((pabrik: any, idx: number) => (
+                      <div key={pabrik.id || idx} className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs text-xs space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[10px]">
+                              {idx + 1}
+                            </span>
+                            {pabrik.nama_pabrik || pabrik.nama || "Pabrik Utama"}
+                          </div>
+                          {pabrik.status_pabrik && (
+                            <Badge variant="outline">{pabrik.status_pabrik}</Badge>
+                          )}
+                        </div>
+                        <div className="text-slate-600 flex items-start gap-1.5 pl-7">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                          <span>{pabrik.alamat_pabrik || pabrik.alamat || "-"}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pl-7 pt-1 text-slate-500">
+                          {pabrik.kontak_pabrik && <div>Kontak: {pabrik.kontak_pabrik}</div>}
+                          {pabrik.telepon_pabrik && <div>Telp: {pabrik.telepon_pabrik}</div>}
+                          {pabrik.luas_pabrik && <div>Luas: {pabrik.luas_pabrik} m²</div>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-500 italic">Data pabrik mengacu pada alamat kantor operasional pemohon.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )
         )}
 
-        {/* TAB 3: BERKAS & DOKUMEN PERSYARATAN */}
+        {/* TAB 3: BERKAS PERSYARATAN & DOKUMEN PENDUKUNG */}
         {activeTab === "dokumen" && (
-          <div className="space-y-6 animate-in fade-in-50 duration-200">
-            {/* Surat Pernyataan Persetujuan LS (Jika Diterbitkan oleh Operator LS) */}
-            {pernyataanFile && (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800">
-                    <ShieldCheck className="w-5 h-5" />
+          isPup ? (
+            <PupDetailKomitmenTab
+              permohonan={permohonan}
+              formPup={formPupData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : (
+            <div className="space-y-6 animate-in fade-in-50 duration-200">
+              {/* Surat Pernyataan Persetujuan LS (Jika Diterbitkan oleh Operator LS) */}
+              {pernyataanFile && (
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-soft flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-950">Surat Pernyataan Persetujuan LS (Resmi)</h4>
+                      <p className="text-xs text-emerald-800 mt-0.5">
+                        Dokumen persetujuan resmi telah diterbitkan oleh Operator Lembaga Sertifikasi (SIS).
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-emerald-950">Surat Pernyataan Persetujuan LS (Resmi)</h4>
-                    <p className="text-xs text-emerald-800 mt-0.5">
-                      Dokumen persetujuan resmi telah diterbitkan oleh Operator Lembaga Sertifikasi (SIS).
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-xs shrink-0"
-                  leftIcon={<Eye className="w-3.5 h-3.5" />}
-                  onClick={() =>
-                    openPdfDoc(
-                      getFileUrl(pernyataanFile),
-                      "Surat Pernyataan Persetujuan LS",
-                      `Persetujuan-LS-${permohonan?.no_permohonan || id}.pdf`
-                    )
-                  }
-                >
-                  Buka Dokumen Persetujuan
-                </Button>
-              </div>
-            )}
-
-            {/* Daftar Berkas Persyaratan */}
-            <Card className="rounded-2xl border-slate-200 shadow-soft">
-              <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                  <FileCheck2 className="w-4 h-4 text-brand-600" />
-                  Berkas Persyaratan Permohonan Sertifikasi
-                </CardTitle>
-                <span className="text-xs text-slate-500 font-medium">
-                  {Object.keys(docs).length} Dokumen Terunggah
-                </span>
-              </CardHeader>
-              <CardContent className="p-5 pt-4">
-                {Object.keys(docs).length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {Object.entries(docs).map(([key, val]: [string, any]) => {
-                      if (!val || typeof val !== "string") return null
-                      const docTitle = getDocLabel(key)
-                      return (
-                        <div
-                          key={key}
-                          className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-brand-50/40 hover:border-brand-300 transition-all flex items-center justify-between text-xs group"
-                        >
-                          <div className="flex items-center gap-2.5 truncate">
-                            <div className="p-2 rounded-lg bg-white border border-slate-200 text-brand-600 shrink-0">
-                              <FileText className="w-4 h-4" />
-                            </div>
-                            <div className="truncate">
-                              <span className="font-semibold text-slate-800 block truncate">{docTitle}</span>
-                              <span className="text-[10px] text-slate-400 block truncate">Format: Berkas Digital (PDF/Doc)</span>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 group-hover:text-brand-600 group-hover:border-brand-200 transition-all shrink-0 ml-2"
-                            onClick={() =>
-                              openPdfDoc(
-                                getFileUrl(val),
-                                docTitle,
-                                `${key}-${permohonan?.no_permohonan || id}.pdf`
-                              )
-                            }
-                            title="Buka Pratinjau Berkas"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-all shadow-xs shrink-0"
+                    leftIcon={<Eye className="w-3.5 h-3.5" />}
+                    onClick={() =>
+                      openPdfDoc(
+                        getFileUrl(pernyataanFile),
+                        "Surat Pernyataan Persetujuan LS",
+                        `Persetujuan-LS-${permohonan?.no_permohonan || id}.pdf`
                       )
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-6 text-center text-slate-400">
-                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p className="text-xs italic">Belum ada dokumen persyaratan yang diunggah.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    }
+                  >
+                    Buka Dokumen Persetujuan
+                  </Button>
+                </div>
+              )}
+
+              {/* Daftar Berkas Persyaratan */}
+              <Card className="rounded-2xl border-slate-200 shadow-soft">
+                <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                    <FileCheck2 className="w-4 h-4 text-brand-600" />
+                    Berkas Persyaratan Permohonan Sertifikasi
+                  </CardTitle>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {Object.keys(docs).length} Dokumen Terunggah
+                  </span>
+                </CardHeader>
+                <CardContent className="p-5 pt-4">
+                  {Object.keys(docs).length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {Object.entries(docs).map(([key, val]: [string, any]) => {
+                        if (!val || typeof val !== "string") return null
+                        const docTitle = getDocLabel(key)
+                        return (
+                          <div
+                            key={key}
+                            className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-brand-50/40 hover:border-brand-300 transition-all flex items-center justify-between text-xs group"
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <div className="p-2 rounded-lg bg-white border border-slate-200 text-brand-600 shrink-0">
+                                <FileText className="w-4 h-4" />
+                              </div>
+                              <div className="truncate">
+                                <span className="font-semibold text-slate-800 block truncate">{docTitle}</span>
+                                <span className="text-[10px] text-slate-400 block truncate">Format: Berkas Digital (PDF/Doc)</span>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 group-hover:text-brand-600 group-hover:border-brand-200 transition-all shrink-0 ml-2"
+                              onClick={() =>
+                                openPdfDoc(
+                                  getFileUrl(val),
+                                  docTitle,
+                                  `${key}-${permohonan?.no_permohonan || id}.pdf`
+                                )
+                              }
+                              title="Buka Pratinjau Berkas"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-slate-400">
+                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-xs italic">Belum ada dokumen persyaratan yang diunggah.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )
         )}
 
         {/* TAB 4: PENAWARAN BIAYA & TAGIHAN (DEDICATED TAB) */}
@@ -1521,31 +1995,48 @@ export const DetailPermohonanPage: React.FC = () => {
               totalBiayaPenawaran > 0 ||
               rincianList.length > 0 ||
               permohonan?.file_surat_penawaran ||
-              permohonan?.harga_permohonan
+              permohonan?.harga_permohonan ||
+              isPup
             ) ? (
               <Card className="rounded-2xl shadow-soft overflow-hidden border border-slate-200 bg-white">
                 <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${isPenawaranDisetujui ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>
+                    <div className={`p-2.5 rounded-xl ${isPenawaranDisetujui || isPup ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>
                       <CreditCard className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">
-                        Surat Penawaran Biaya Layanan Sertifikasi
+                        {isPup
+                          ? "Rincian Tagihan Biaya Uji Profisiensi"
+                          : isPelatihan
+                            ? "Penawaran Biaya Bimbingan Teknis & Pelatihan"
+                            : isLsp
+                              ? "Penawaran Biaya Sertifikasi Profesi (LSP)"
+                              : isGrk
+                                ? "Penawaran Biaya Validasi & Verifikasi GRK"
+                                : "Surat Penawaran Biaya Layanan Sertifikasi"}
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {isPendingApproval
-                          ? "Tim Marketing telah menerbitkan estimasi biaya definitif. Mohon tinjau dan berikan persetujuan Anda."
-                          : isPenawaranDisetujui
-                            ? "Penawaran biaya telah disetujui. Menunggu atau telah diterbitkan tagihan resmi."
-                            : "Penawaran biaya dalam peninjauan oleh Marketing."}
+                        {isPup
+                          ? "Rincian tarif PNBP resmi keikutsertaan Uji Profisiensi Kalibrasi Tahun 2025 sesuai skema terpilih."
+                          : isPelatihan
+                            ? "Rincian tarif dan estimasi biaya bimbingan teknis / pelatihan industri."
+                            : isLsp
+                              ? "Rincian biaya uji kompetensi dan sertifikasi profesi BNSP."
+                              : isGrk
+                                ? "Rincian estimasi biaya penugasan validator/verifikator gas rumah kaca."
+                                : isPendingApproval
+                                  ? "Tim Marketing telah menerbitkan estimasi biaya definitif. Mohon tinjau dan berikan persetujuan Anda."
+                                  : isPenawaranDisetujui
+                                    ? "Penawaran biaya telah disetujui. Menunggu atau telah diterbitkan tagihan resmi."
+                                    : "Penawaran biaya dalam peninjauan oleh Marketing."}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
                       variant={
-                        isPenawaranDisetujui
+                        isPup || isPenawaranDisetujui
                           ? "success"
                           : isPenawaranDitolak
                             ? "danger"
@@ -1554,18 +2045,33 @@ export const DetailPermohonanPage: React.FC = () => {
                               : "neutral"
                       }
                     >
-                      {isPenawaranDisetujui
-                        ? "Telah Disetujui"
-                        : isPenawaranDitolak
-                          ? "Ditolak / Negosiasi"
-                          : isPendingApproval
-                            ? "Menunggu Persetujuan"
-                            : "Dalam Proses"}
+                      {isPup
+                        ? "Tarif PNBP Ditetapkan"
+                        : isPenawaranDisetujui
+                          ? "Telah Disetujui"
+                          : isPenawaranDitolak
+                            ? "Ditolak / Negosiasi"
+                            : isPendingApproval
+                              ? "Menunggu Persetujuan"
+                              : "Dalam Proses"}
                     </Badge>
                   </div>
                 </div>
 
                 <CardContent className="p-5 space-y-4">
+                  {/* Banner Diskon Bundling jika ada */}
+                  {isPup && Number(formPupData?.diskon_nominal) > 0 && (
+                    <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900">
+                      <div className="flex items-center gap-2">
+                        <span>
+                          <strong>Paket Diskon Bundling Spesial:</strong> Anda mendapatkan potongan biaya sebesar <strong>Rp {Number(formPupData.diskon_nominal).toLocaleString("id-ID")}</strong> untuk pendaftaran paket Centrifuge + Overhead Stirrer.
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold text-[10px] shrink-0">
+                        Hemat Rp {Number(formPupData.diskon_nominal).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 shadow-xs">
                       <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
@@ -1634,12 +2140,12 @@ export const DetailPermohonanPage: React.FC = () => {
                                 Qty: {item.qty || item.kuantitas || 1}
                               </span>
                             </div>
-                            <span className="font-mono font-bold text-slate-800">
-                              Rp{" "}
-                              {Number(
+                            <span className={`font-mono font-bold ${Number(item.subtotal || item.harga_satuan || 0) < 0 ? "text-emerald-600" : "text-slate-800"}`}>
+                              {Number(item.subtotal || item.harga_satuan || 0) < 0 ? "-Rp " : "Rp "}
+                              {Math.abs(Number(
                                 item.subtotal ||
                                 (item.nominal || item.harga_satuan || 0) * (item.qty || item.kuantitas || 1)
-                              ).toLocaleString("id-ID")}
+                              )).toLocaleString("id-ID")}
                             </span>
                           </div>
                         ))}

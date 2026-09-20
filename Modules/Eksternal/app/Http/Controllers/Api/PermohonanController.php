@@ -418,6 +418,8 @@ class PermohonanController extends Controller
             'formSertifikasi',
             'formPelatihan',
             'formLsp',
+            'formPup.items',
+            'trackingLogs',
         ]);
 
         if (!$isPegawai && $user) {

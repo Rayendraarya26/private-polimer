@@ -111,6 +111,11 @@ class Permohonan extends Model
         return $this->hasMany(FormGrkValidasi::class);
     }
 
+    public function formPup()
+    {
+        return $this->hasMany(FormPup::class);
+    }
+
     public function sertifikasi()
     {
         return $this->hasMany(\App\Models\Db1\PelangganSertifikasi::class, 'permohonan_id');

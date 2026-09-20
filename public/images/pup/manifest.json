@@ -1,0 +1,198 @@
+[
+  {
+    "slug": "termometer_gelas",
+    "title": "Termometer Gelas",
+    "filename": "termometer_gelas.png",
+    "size": "424x332",
+    "path": "/images/pup/termometer_gelas.png"
+  },
+  {
+    "slug": "termometer_digital_1",
+    "title": "Termometer Digital 1",
+    "filename": "termometer_digital_1.png",
+    "size": "424x332",
+    "path": "/images/pup/termometer_digital_1.png"
+  },
+  {
+    "slug": "termometer_digital_2",
+    "title": "Termometer Digital 2",
+    "filename": "termometer_digital_2.png",
+    "size": "424x332",
+    "path": "/images/pup/termometer_digital_2.png"
+  },
+  {
+    "slug": "termometer_radiasi",
+    "title": "Termometer Radiasi",
+    "filename": "termometer_radiasi.png",
+    "size": "424x332",
+    "path": "/images/pup/termometer_radiasi.png"
+  },
+  {
+    "slug": "thermohygrometer",
+    "title": "Thermohygrometer",
+    "filename": "thermohygrometer.png",
+    "size": "424x332",
+    "path": "/images/pup/thermohygrometer.png"
+  },
+  {
+    "slug": "autoclave",
+    "title": "Autoclave",
+    "filename": "autoclave.png",
+    "size": "424x332",
+    "path": "/images/pup/autoclave.png"
+  },
+  {
+    "slug": "oven",
+    "title": "Oven",
+    "filename": "oven.png",
+    "size": "424x332",
+    "path": "/images/pup/oven.png"
+  },
+  {
+    "slug": "climatic_chamber",
+    "title": "Climatic Chamber",
+    "filename": "climatic_chamber.png",
+    "size": "424x332",
+    "path": "/images/pup/climatic_chamber.png"
+  },
+  {
+    "slug": "timbangan_analitik",
+    "title": "Timbangan Analitik",
+    "filename": "timbangan_analitik.png",
+    "size": "424x332",
+    "path": "/images/pup/timbangan_analitik.png"
+  },
+  {
+    "slug": "timbangan_elektronik",
+    "title": "Timbangan Elektronik",
+    "filename": "timbangan_elektronik.png",
+    "size": "424x332",
+    "path": "/images/pup/timbangan_elektronik.png"
+  },
+  {
+    "slug": "pipet_volume",
+    "title": "Pipet Volume",
+    "filename": "pipet_volume.png",
+    "size": "424x332",
+    "path": "/images/pup/pipet_volume.png"
+  },
+  {
+    "slug": "pipet_ukur",
+    "title": "Pipet Ukur",
+    "filename": "pipet_ukur.png",
+    "size": "424x332",
+    "path": "/images/pup/pipet_ukur.png"
+  },
+  {
+    "slug": "labu_ukur_1",
+    "title": "Labu Ukur 1",
+    "filename": "labu_ukur_1.png",
+    "size": "424x332",
+    "path": "/images/pup/labu_ukur_1.png"
+  },
+  {
+    "slug": "labu_ukur_2",
+    "title": "Labu Ukur 2",
+    "filename": "labu_ukur_2.png",
+    "size": "424x332",
+    "path": "/images/pup/labu_ukur_2.png"
+  },
+  {
+    "slug": "buret",
+    "title": "Buret",
+    "filename": "buret.png",
+    "size": "424x332",
+    "path": "/images/pup/buret.png"
+  },
+  {
+    "slug": "gelas_ukur",
+    "title": "Gelas Ukur",
+    "filename": "gelas_ukur.png",
+    "size": "424x332",
+    "path": "/images/pup/gelas_ukur.png"
+  },
+  {
+    "slug": "mikropipet",
+    "title": "Mikropipet",
+    "filename": "mikropipet.png",
+    "size": "424x332",
+    "path": "/images/pup/mikropipet.png"
+  },
+  {
+    "slug": "pressure_gauge_pneumatik",
+    "title": "Pressure Gauge Pneumatik",
+    "filename": "pressure_gauge_pneumatik.png",
+    "size": "424x332",
+    "path": "/images/pup/pressure_gauge_pneumatik.png"
+  },
+  {
+    "slug": "pressure_gauge_hidrolik",
+    "title": "Pressure Gauge Hidrolik",
+    "filename": "pressure_gauge_hidrolik.png",
+    "size": "424x332",
+    "path": "/images/pup/pressure_gauge_hidrolik.png"
+  },
+  {
+    "slug": "digital_caliper",
+    "title": "Digital Caliper",
+    "filename": "digital_caliper.png",
+    "size": "424x332",
+    "path": "/images/pup/digital_caliper.png"
+  },
+  {
+    "slug": "digital_outside_micrometer_1",
+    "title": "Digital Outside Micrometer 1",
+    "filename": "digital_outside_micrometer_1.png",
+    "size": "424x332",
+    "path": "/images/pup/digital_outside_micrometer_1.png"
+  },
+  {
+    "slug": "digital_outside_micrometer_2",
+    "title": "Digital Outside Micrometer 2",
+    "filename": "digital_outside_micrometer_2.png",
+    "size": "424x332",
+    "path": "/images/pup/digital_outside_micrometer_2.png"
+  },
+  {
+    "slug": "dial_thickness_gauge",
+    "title": "Dial Thickness Gauge",
+    "filename": "dial_thickness_gauge.png",
+    "size": "424x332",
+    "path": "/images/pup/dial_thickness_gauge.png"
+  },
+  {
+    "slug": "stopwatch_digital",
+    "title": "Stopwatch Digital",
+    "filename": "stopwatch_digital.png",
+    "size": "424x332",
+    "path": "/images/pup/stopwatch_digital.png"
+  },
+  {
+    "slug": "centrifuge",
+    "title": "Centrifuge",
+    "filename": "centrifuge.png",
+    "size": "424x332",
+    "path": "/images/pup/centrifuge.png"
+  },
+  {
+    "slug": "overhead_stirrer",
+    "title": "Overhead Stirrer",
+    "filename": "overhead_stirrer.png",
+    "size": "424x332",
+    "path": "/images/pup/overhead_stirrer.png"
+  },
+  {
+    "slug": "spektrofotometer_uv_vis",
+    "title": "Spektrofotometer UV-Vis",
+    "filename": "spektrofotometer_uv_vis.png",
+    "size": "424x332",
+    "path": "/images/pup/spektrofotometer_uv_vis.png"
+  },
+  {
+    "slug": "termometer_digital_3",
+    "title": "Termometer Digital 3",
+    "filename": "termometer_digital_3.png",
+    "size": "424x332",
+    "path": "/images/pup/termometer_digital_3.png"
+  }
+]

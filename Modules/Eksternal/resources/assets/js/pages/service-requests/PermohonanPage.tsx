@@ -66,7 +66,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         icon: <Scale className="w-6 h-6 text-amber-600" />,
         badge: "PUP",
         route: "/permohonan/profisiensi",
-        isAvailable: false,
+        isAvailable: true,
       },
       {
         id: "bahanacuan",

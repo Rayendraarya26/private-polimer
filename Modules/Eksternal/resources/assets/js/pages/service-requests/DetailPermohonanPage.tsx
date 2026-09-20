@@ -647,7 +647,7 @@ export const DetailPermohonanPage: React.FC = () => {
       }))
       if (Number(formPupData?.diskon_nominal) > 0) {
         items.push({
-          nama_item: formPupData?.catatan_diskon || "Paket Hemat Diskon Bundling PUP 2025",
+          nama_item: formPupData?.catatan_diskon || "Paket Hemat Diskon Bundling PUP",
           qty: 1,
           subtotal: -Number(formPupData.diskon_nominal),
         })
@@ -2018,7 +2018,7 @@ export const DetailPermohonanPage: React.FC = () => {
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {isPup
-                          ? "Rincian tarif PNBP resmi keikutsertaan Uji Profisiensi Kalibrasi Tahun 2025 sesuai skema terpilih."
+                          ? "Rincian tarif PNBP resmi keikutsertaan Uji Profisiensi Kalibrasi sesuai skema terpilih."
                           : isPelatihan
                             ? "Rincian tarif dan estimasi biaya bimbingan teknis / pelatihan industri."
                             : isLsp

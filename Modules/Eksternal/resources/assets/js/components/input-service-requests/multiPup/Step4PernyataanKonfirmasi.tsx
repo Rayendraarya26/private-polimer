@@ -204,7 +204,7 @@ export const Step4PernyataanKonfirmasi: React.FC<Step4Props> = ({ formData, onCh
                   Pernyataan Kepatuhan Proposal & Pelunasan Pembayaran <span className="text-rose-500">*</span>
                 </span>
                 <p className="text-slate-600 text-[11px] leading-relaxed">
-                  Dengan ditandatanganinya formulir pendaftaran ini, kami menyatakan telah membaca dan memahami proposal uji profisiensi BBSPJIKKP tahun 2025 serta bersedia mengikuti kegiatan uji profisiensi BBSPJIKKP sesuai kesepakatan dan melunasi biaya pendaftaran sesuai ketentuan.
+                  Dengan ditandatanganinya formulir pendaftaran ini, kami menyatakan telah membaca dan memahami proposal uji profisiensi BBSPJIKKP serta bersedia mengikuti kegiatan uji profisiensi BBSPJIKKP sesuai kesepakatan dan melunasi biaya pendaftaran sesuai ketentuan.
                 </p>
               </div>
             </label>

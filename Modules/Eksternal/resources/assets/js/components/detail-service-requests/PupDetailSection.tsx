@@ -52,7 +52,7 @@ export const PupDetailPermohonanTab: React.FC<PupDetailSectionProps> = ({
               <span>Penyelenggara Uji Profisiensi Kalibrasi (LK-005-IDN)</span>
             </div>
             <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Program Uji Profisiensi (PUP) Tahun 2025
+              Program Penyelenggara Uji Profisiensi (PUP)
             </h3>
             <p className="text-xs text-brand-100/90 max-w-2xl leading-relaxed">
               Diselenggarakan oleh BBSPJIKKP Yogyakarta sesuai SNI ISO/IEC 17043 untuk menjamin keabsahan dan unjuk kerja laboratorium kalibrasi peserta.
@@ -493,12 +493,12 @@ export const PupDetailKomitmenTab: React.FC<PupDetailSectionProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h5 className="font-bold text-emerald-950 text-xs">
-                  Persetujuan Proposal Program Uji Profisiensi BBSPJIKKP 2025
+                  Persetujuan Proposal Program Uji Profisiensi BBSPJIKKP
                 </h5>
                 <Badge variant="success">Telah Disetujui</Badge>
               </div>
               <p className="text-slate-600 leading-relaxed">
-                Laboratorium peserta telah membaca, memahami, dan menyetujui seluruh ketentuan operasional, biaya PNBP, dan alur sirkulasi artefak yang tercantum dalam Proposal Penyelenggaraan Uji Profisiensi BBSPJIKKP Tahun 2025.
+                Laboratorium peserta telah membaca, memahami, dan menyetujui seluruh ketentuan operasional, biaya PNBP, dan alur sirkulasi artefak yang tercantum dalam Proposal Penyelenggaraan Uji Profisiensi BBSPJIKKP.
               </p>
             </div>
           </div>

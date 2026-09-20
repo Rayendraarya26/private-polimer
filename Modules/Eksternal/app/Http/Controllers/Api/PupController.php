@@ -372,7 +372,7 @@ class PupController extends Controller
         return response()->json([
             'success' => true,
             'results' => [
-                'periode' => '2025',
+                'periode' => (string) date('Y'),
                 'diskon_bundling' => [
                     'skema_terkait' => ['centrifuge', 'overhead_stirrer'],
                     'nominal'       => 1000000,
@@ -449,15 +449,16 @@ class PupController extends Controller
 
             // 3. Simpan Header Permohonan
             $permohonan = Permohonan::create([
-                'id'              => (string) Str::uuid(),
-                'id_pt_ins'       => $user?->id_pt_ins ?? null,
-                'no_permohonan'   => $noPermohonan,
-                'is_split_bill'   => false,
-                'status_workflow' => 'PERMOHONAN',
-                'status_bayar'    => 'BELUM',
-                'tgl_order'       => now(),
-                'created_by'      => $userId,
-                'ip_address'      => $request->ip(),
+                'id'               => (string) Str::uuid(),
+                'id_pt_ins'        => $user?->id_pt_ins ?? null,
+                'no_permohonan'    => $noPermohonan,
+                'is_split_bill'    => false,
+                'status_workflow'  => 'PERMOHONAN',
+                'status_bayar'     => 'BELUM',
+                'tgl_order'        => now(),
+                'harga_permohonan' => $totalBiayaBersih,
+                'created_by'       => $userId,
+                'ip_address'       => $request->ip(),
             ]);
 
             // 4. Simpan Data Form PUP
@@ -499,7 +500,7 @@ class PupController extends Controller
             }
 
             // 6. Hubungkan ke Detail Permohonan (Polymorphic Entity Core Polimer)
-            $lingkup = MasterLingkupLayanan::where('slug', 'up-kalibrasi-2025')
+            $lingkup = MasterLingkupLayanan::where('slug', 'LIKE', '%up-kalibrasi%')
                 ->orWhere('lingkup', 'LIKE', '%Uji Profisiensi%')
                 ->first();
 

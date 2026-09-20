@@ -136,7 +136,7 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
           </div>
           <div className="space-y-1 text-xs">
             <h4 className="font-bold text-amber-900 flex items-center gap-1.5">
-              <span>Promo Diskon Bundling Spesial 2025</span>
+              <span>Promo Diskon Bundling Spesial</span>
               {isBundleEligible && (
                 <span className="px-2 py-0.5 bg-emerald-600 text-white rounded-md text-[10px] uppercase tracking-wider font-bold">
                   Aktif (-Rp 1.000.000)

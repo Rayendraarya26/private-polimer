@@ -10,7 +10,7 @@ const ProfisiensiPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
-      <Head title="Pendaftaran Uji Profisiensi Kalibrasi 2025" />
+      <Head title="Pendaftaran Uji Profisiensi Kalibrasi" />
 
       {/* Header & Tombol Kembali */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -20,7 +20,7 @@ const ProfisiensiPage: React.FC = () => {
             <span>Penyelenggara Uji Profisiensi BBSPJIKKP (PUP-018-IDN / LK-005-IDN)</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Pendaftaran Uji Profisiensi Kalibrasi Tahun 2025
+            Pendaftaran Uji Profisiensi Kalibrasi
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
             Kegiatan uji banding antar-laboratorium kalibrasi terakreditasi KAN untuk menjamin mutu, keabsahan hasil, dan ketertelusuran pengukuran artefak industri secara nasional.
@@ -47,7 +47,7 @@ const ProfisiensiPage: React.FC = () => {
           </div>
           <div className="space-y-0.5 text-xs">
             <h4 className="font-bold text-slate-800 flex items-center gap-2">
-              <span>Program Uji Profisiensi Kalibrasi Periode 2025</span>
+              <span>Program Penyelenggara Uji Profisiensi (PUP) Kalibrasi</span>
               <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-extrabold text-[10px]">
                 PUP Terakreditasi
               </span>

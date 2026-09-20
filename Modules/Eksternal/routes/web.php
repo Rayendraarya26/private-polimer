@@ -26,6 +26,7 @@ use Modules\Eksternal\Http\Controllers\Api\GrkController;
 use Modules\Eksternal\Http\Controllers\Api\GrkValidasiController;
 use Modules\Eksternal\Http\Controllers\Api\PengujianController;
 use Modules\Eksternal\Http\Controllers\Api\KalibrasiController;
+use Modules\Eksternal\Http\Controllers\Api\PupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -218,6 +219,12 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
 
         Route::prefix('kalibrasi')->group(function () {
             Route::get('/master', [KalibrasiController::class, 'getMasterKalibrasi']);
+        });
+
+        Route::prefix('pup')->group(function () {
+            Route::get('/skema', [PupController::class, 'getSkema']);
+            Route::post('/', [PupController::class, 'store']);
+            Route::get('/{id}', [PupController::class, 'show']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

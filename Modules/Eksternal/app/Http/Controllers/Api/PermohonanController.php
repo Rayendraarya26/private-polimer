@@ -130,6 +130,7 @@ class PermohonanController extends Controller
                 elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN')) $layananNama = 'Bimtek / Pelatihan';
                 elseif (str_starts_with($item->no_permohonan, 'VAL')) $layananNama = 'Validasi Gas Rumah Kaca (GRK)';
                 elseif (str_starts_with($item->no_permohonan, 'GRK')) $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
+                elseif (str_starts_with($item->no_permohonan, 'PUP')) $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
                 else $layananNama = 'Layanan BBKKP';
             }
 
@@ -144,6 +145,8 @@ class PermohonanController extends Controller
                 $komoditi = $form->merek_sample ?: 'Validasi Proyek GRK';
             } elseif ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
                 $komoditi = $form->merek_sample ?: 'Verifikasi Emisi GRK';
+            } elseif ($form instanceof \App\Models\Db2\FormPup) {
+                $komoditi = $form->items?->pluck('nama_skema')->implode(', ') ?: 'Uji Profisiensi Kalibrasi';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -452,6 +455,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formGrkVerifikasi && $permohonan->formGrkVerifikasi->isNotEmpty()) {
                 $formData = $permohonan->formGrkVerifikasi->first();
                 $formableType = \App\Models\Db2\FormGrkVerifikasi::class;
+            } elseif ($permohonan->formPup && $permohonan->formPup->isNotEmpty()) {
+                $formData = $permohonan->formPup->first();
+                $formableType = \App\Models\Db2\FormPup::class;
             }
         }
 
@@ -465,6 +471,8 @@ class PermohonanController extends Controller
                 $formData->load(['peserta']);
             } elseif ($formData instanceof \App\Models\Db2\FormGrkVerifikasi) {
                 $formData->load(['emisi', 'dokumen']);
+            } elseif ($formData instanceof \App\Models\Db2\FormPup) {
+                $formData->load(['items']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure

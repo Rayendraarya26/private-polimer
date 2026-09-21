@@ -46,6 +46,10 @@ import {
   PupDetailLaboratoriumTab,
   PupDetailKomitmenTab,
 } from "../../components/detail-service-requests/PupDetailSection"
+import {
+  KalibrasiDetailPermohonanTab,
+  KalibrasiDetailPelangganTab,
+} from "../../components/detail-service-requests/KalibrasiDetailSection"
 
 const workflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen" },
@@ -85,6 +89,15 @@ const grkWorkflowSteps = [
   { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Biaya Verifikasi" },
   { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
   { key: "PROCESS", label: "Validasi/Verifikasi", desc: "Audit Emisi & Laporan Opini" },
+]
+
+const kalibrasiWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Daftar Alat" },
+  { key: "KAJIAN_TEKNIS", label: "Kajian Teknis", desc: "Review Kemampuan Labkal" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Estimasi Biaya PNBP" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Pelaksanaan Kalibrasi", desc: "Pengukuran & Kalibrasi" },
+  { key: "DONE", label: "Sertifikat Terbit", desc: "Sertifikat Kalibrasi Resmi" },
 ]
 
 type TabKey = "permohonan" | "perusahaan" | "dokumen" | "biaya" | "jadwal_audit"
@@ -335,8 +348,8 @@ export const DetailPermohonanPage: React.FC = () => {
               ? "Verifikasi Gas Rumah Kaca (GRK)"
               : noOrder.startsWith("PUP")
                 ? "Penyelenggara Uji Profisiensi (PUP)"
-                : noOrder.startsWith("KAL") || noOrder.startsWith("CAL")
-                  ? "Kalibrasi"
+                : noOrder.includes("LABKAL") || noOrder.startsWith("KLB") || noOrder.startsWith("KAL") || noOrder.startsWith("CAL")
+                  ? "Kalibrasi Alat"
                   : noOrder.startsWith("UJI") || noOrder.startsWith("TEST")
                     ? "Pengujian Laboratorium"
                     : "Layanan BBSPJIKKP")
@@ -377,7 +390,20 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk)
+  const isKalibrasi = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && (
+      noOrder.includes("LABKAL") ||
+      noOrder.startsWith("KLB") ||
+      noOrder.startsWith("KAL") ||
+      noOrder.startsWith("CAL") ||
+      permohonan?.formable_type?.includes("FormKalibrasi") ||
+      Boolean(formData?.hasil_kalibrasi_untuk) ||
+      (Array.isArray(permohonan?.form_kalibrasi) && permohonan.form_kalibrasi.length > 0) ||
+      (Array.isArray(permohonan?.formKalibrasi) && permohonan.formKalibrasi.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi)
 
   const formPupData = isPup
     ? (formData?.nama_lab_kalibrasi
@@ -389,6 +415,16 @@ export const DetailPermohonanPage: React.FC = () => {
                 : formData)))
     : null
 
+  const formKalibrasiData = isKalibrasi
+    ? (formData?.hasil_kalibrasi_untuk
+        ? formData
+        : (Array.isArray(permohonan?.form_kalibrasi) && permohonan.form_kalibrasi.length > 0
+            ? permohonan.form_kalibrasi[0]
+            : (Array.isArray(permohonan?.formKalibrasi) && permohonan.formKalibrasi.length > 0
+                ? permohonan.formKalibrasi[0]
+                : formData)))
+    : null
+
   const activeWorkflowSteps = isPup
     ? pupWorkflowSteps
     : isPelatihan
@@ -397,7 +433,9 @@ export const DetailPermohonanPage: React.FC = () => {
         ? lspWorkflowSteps
         : isGrk
           ? grkWorkflowSteps
-          : workflowSteps
+          : isKalibrasi
+            ? kalibrasiWorkflowSteps
+            : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -1416,6 +1454,12 @@ export const DetailPermohonanPage: React.FC = () => {
               formPup={formPupData}
               formatIndoDate={formatIndoDate}
             />
+          ) : isKalibrasi ? (
+            <KalibrasiDetailPermohonanTab
+              permohonan={permohonan}
+              formKalibrasi={formKalibrasiData}
+              formatIndoDate={formatIndoDate}
+            />
           ) : isPelatihan ? (
             <div className="space-y-6 animate-in fade-in-50 duration-200">
               <Card className="rounded-2xl border-slate-200 shadow-soft">
@@ -1771,6 +1815,12 @@ export const DetailPermohonanPage: React.FC = () => {
             <PupDetailLaboratoriumTab
               permohonan={permohonan}
               formPup={formPupData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : isKalibrasi ? (
+            <KalibrasiDetailPelangganTab
+              permohonan={permohonan}
+              formKalibrasi={formKalibrasiData}
               formatIndoDate={formatIndoDate}
             />
           ) : (

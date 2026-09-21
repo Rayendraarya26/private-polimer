@@ -219,6 +219,8 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
 
         Route::prefix('kalibrasi')->group(function () {
             Route::get('/master', [KalibrasiController::class, 'getMasterKalibrasi']);
+            Route::post('/', [KalibrasiController::class, 'store']);
+            Route::get('/{id}', [KalibrasiController::class, 'show']);
         });
 
         Route::prefix('pup')->group(function () {

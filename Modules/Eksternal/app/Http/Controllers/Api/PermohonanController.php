@@ -131,6 +131,7 @@ class PermohonanController extends Controller
                 elseif (str_starts_with($item->no_permohonan, 'VAL')) $layananNama = 'Validasi Gas Rumah Kaca (GRK)';
                 elseif (str_starts_with($item->no_permohonan, 'GRK')) $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
                 elseif (str_starts_with($item->no_permohonan, 'PUP')) $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
+                elseif (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB')) $layananNama = 'Kalibrasi Alat';
                 else $layananNama = 'Layanan BBKKP';
             }
 
@@ -147,6 +148,8 @@ class PermohonanController extends Controller
                 $komoditi = $form->merek_sample ?: 'Verifikasi Emisi GRK';
             } elseif ($form instanceof \App\Models\Db2\FormPup) {
                 $komoditi = $form->items?->pluck('nama_skema')->implode(', ') ?: 'Uji Profisiensi Kalibrasi';
+            } elseif ($form instanceof \App\Models\Db2\FormKalibrasi) {
+                $komoditi = $form->alatList?->pluck('nama_alat')->implode(', ') ?: 'Jasa Kalibrasi Alat';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -419,6 +422,8 @@ class PermohonanController extends Controller
             'formPelatihan',
             'formLsp',
             'formPup.items',
+            'formKalibrasi.alatList.nomorSeriList',
+            'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
             'trackingLogs',
         ]);
 
@@ -460,6 +465,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formPup && $permohonan->formPup->isNotEmpty()) {
                 $formData = $permohonan->formPup->first();
                 $formableType = \App\Models\Db2\FormPup::class;
+            } elseif ($permohonan->formKalibrasi && $permohonan->formKalibrasi->isNotEmpty()) {
+                $formData = $permohonan->formKalibrasi->first();
+                $formableType = \App\Models\Db2\FormKalibrasi::class;
             }
         }
 
@@ -475,6 +483,8 @@ class PermohonanController extends Controller
                 $formData->load(['emisi', 'dokumen']);
             } elseif ($formData instanceof \App\Models\Db2\FormPup) {
                 $formData->load(['items']);
+            } elseif ($formData instanceof \App\Models\Db2\FormKalibrasi) {
+                $formData->load(['alatList.nomorSeriList', 'alatList.kalibrasiItems.masterKalibrasi']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure

@@ -8,7 +8,7 @@ import {
 import { MasterKomoditi, MasterParameterUji } from "../../types/pengujian"
 
 /**
- * Hook TanStack Query untuk Daftar Master Komoditas Pengujian
+ * Hook TanStack Query untuk Daftar Master Komoditas Pengujian (Cached 24 Jam)
  */
 export function useMasterKomoditiQuery() {
   return useQuery<MasterKomoditi[]>({
@@ -16,22 +16,26 @@ export function useMasterKomoditiQuery() {
     queryFn: async () => {
       return await getMasterKomoditiPengujian()
     },
-    staleTime: 1000 * 60 * 30, // 30 menit caching master data
+    staleTime: 1000 * 60 * 60 * 24, // 24 jam caching master komoditi
+    gcTime: 1000 * 60 * 60 * 24,
   })
 }
 
 /**
- * Hook TanStack Query untuk Daftar Parameter Uji per Komoditas
+ * Hook TanStack Query untuk Daftar Parameter Uji per Komoditas (Cached 24 Jam)
  */
 export function useParametersByKomoditiQuery(komoditiId?: number | null) {
+  const normalizedId = komoditiId ? Number(komoditiId) : undefined
+
   return useQuery<MasterParameterUji[]>({
-    queryKey: ["pengujian", "parameters", komoditiId],
+    queryKey: ["pengujian", "parameters", normalizedId],
     queryFn: async () => {
-      if (!komoditiId) return []
-      return await getParametersByKomoditi(komoditiId)
+      if (!normalizedId) return []
+      return await getParametersByKomoditi(normalizedId)
     },
-    enabled: Boolean(komoditiId),
-    staleTime: 1000 * 60 * 30, // 30 menit caching
+    enabled: Boolean(normalizedId),
+    staleTime: 1000 * 60 * 60 * 24, // 24 jam caching per komoditas
+    gcTime: 1000 * 60 * 60 * 24,
   })
 }
 

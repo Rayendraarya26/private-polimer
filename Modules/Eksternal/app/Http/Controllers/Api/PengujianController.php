@@ -5,6 +5,7 @@ namespace Modules\Eksternal\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -384,55 +385,53 @@ class PengujianController extends Controller
     public function getMasterKomoditi(Request $request): JsonResponse
     {
         try {
-            // 1. Try fetching from SIL database (Sistem Informasi Laboratorium — source of truth for pengujian)
-            $komoditiList = null;
-            try {
-                $silConn = DB::connection('sil');
+            // Cache komoditas pengujian selama 24 jam (86400 detik) untuk performa instan
+            $komoditiList = Cache::remember('sil_master_komoditas_list', 86400, function () {
+                // 1. Try fetching from SIL database (Sistem Informasi Laboratorium — source of truth for pengujian)
+                try {
+                    $silConn = DB::connection('sil');
 
-                // Real SIL table: master_komoditas & master_parameter_komoditas (Bahasa Indonesia: bahasas_id = 1)
-                $silRows = $silConn
-                    ->table('master_komoditas as k')
-                    ->leftJoin('master_parameter_komoditas as pk', 'k.id_komoditas', '=', 'pk.komoditas_id')
-                    ->where('k.bahasas_id', 1)
-                    ->select(
-                        'k.id_komoditas',
-                        'k.kode_komoditas',
-                        'k.nama_komoditas',
-                        'k.waktu_jam_komoditas',
-                        'k.spm',
-                        DB::raw('COUNT(DISTINCT pk.parameters_id) as parameters_count')
-                    )
-                    ->groupBy('k.id_komoditas', 'k.kode_komoditas', 'k.nama_komoditas', 'k.waktu_jam_komoditas', 'k.spm')
-                    ->orderBy('k.nama_komoditas')
-                    ->get();
+                    // Real SIL table: master_komoditas & master_parameter_komoditas (Bahasa Indonesia: bahasas_id = 1)
+                    $silRows = $silConn
+                        ->table('master_komoditas as k')
+                        ->leftJoin('master_parameter_komoditas as pk', 'k.id_komoditas', '=', 'pk.komoditas_id')
+                        ->where('k.bahasas_id', 1)
+                        ->select(
+                            'k.id_komoditas',
+                            'k.kode_komoditas',
+                            'k.nama_komoditas',
+                            'k.waktu_jam_komoditas',
+                            'k.spm',
+                            DB::raw('COUNT(DISTINCT pk.parameters_id) as parameters_count')
+                        )
+                        ->groupBy('k.id_komoditas', 'k.kode_komoditas', 'k.nama_komoditas', 'k.waktu_jam_komoditas', 'k.spm')
+                        ->orderBy('k.nama_komoditas')
+                        ->get();
 
-                if ($silRows->isNotEmpty()) {
-                    $komoditiList = $silRows->map(function ($row) {
-                        $id = (int) $row->id_komoditas;
-                        $nama = $row->nama_komoditas ?? '';
-                        return [
-                            'id'               => $id,
-                            'kode'             => $row->kode_komoditas ?? ('KMD-' . $id),
-                            'nama'             => $nama,
-                            'ruang_lingkup'    => $nama,
-                            'waktu_jam'        => (int) ($row->waktu_jam_komoditas ?? 0),
-                            'spm'              => (int) ($row->spm ?? 0),
-                            'is_active'        => true,
-                            'parameters_count' => (int) ($row->parameters_count ?? 0),
-                        ];
-                    })->values()->toArray();
-
-                    Log::info('getMasterKomoditi: loaded ' . count($komoditiList) . ' rows from SIL database.');
+                    if ($silRows->isNotEmpty()) {
+                        Log::info('getMasterKomoditi: cached ' . count($silRows) . ' rows from SIL database.');
+                        return $silRows->map(function ($row) {
+                            $id = (int) $row->id_komoditas;
+                            $nama = $row->nama_komoditas ?? '';
+                            return [
+                                'id'               => $id,
+                                'kode'             => $row->kode_komoditas ?? ('KMD-' . $id),
+                                'nama'             => $nama,
+                                'ruang_lingkup'    => $nama,
+                                'waktu_jam'        => (int) ($row->waktu_jam_komoditas ?? 0),
+                                'spm'              => (int) ($row->spm ?? 0),
+                                'is_active'        => true,
+                                'parameters_count' => (int) ($row->parameters_count ?? 0),
+                            ];
+                        })->values()->toArray();
+                    }
+                } catch (\Throwable $silEx) {
+                    Log::warning('getMasterKomoditi SIL fallback: ' . $silEx->getMessage());
                 }
-            } catch (\Throwable $silEx) {
-                Log::warning('getMasterKomoditi SIL fallback: ' . $silEx->getMessage());
-            }
 
-            // 2. Fallback to SIL Master JSON / PP54 Master data if SIL connection is unavailable
-            if (empty($komoditiList)) {
-                $komoditiList = MasterPengujianService::getMasterKomoditi();
-                Log::info('getMasterKomoditi: SIL connection unavailable, loaded ' . count($komoditiList) . ' items from fallback data.');
-            }
+                // 2. Fallback to SIL Master JSON / PP54 Master data if SIL connection is unavailable
+                return MasterPengujianService::getMasterKomoditi();
+            });
 
             return response()->json([
                 'success' => true,
@@ -459,52 +458,54 @@ class PengujianController extends Controller
         try {
             $komoditiId = (int) $id;
 
-            // 1. Try SIL database (master_parameters & master_parameter_komoditas)
-            $parameters = null;
-            try {
-                $silConn = DB::connection('sil');
-                $silParams = $silConn->table('master_parameters as p')
-                    ->join('master_parameter_komoditas as pk', 'p.id_parameters', '=', 'pk.parameters_id')
-                    ->where('pk.komoditas_id', $komoditiId)
-                    ->where('p.bahasas_id', 1)
-                    ->select(
-                        'p.id_parameters',
-                        'p.kode_parameters',
-                        'p.nama_parameters',
-                        'p.waktu_jam_parameters',
-                        'p.satuan_tarifs_id'
-                    )
-                    ->distinct()
-                    ->orderBy('p.nama_parameters')
-                    ->get();
+            // Cache parameter uji per komoditas selama 24 jam untuk respon instan
+            $parameters = Cache::remember("sil_parameters_komoditi_{$komoditiId}", 86400, function () use ($komoditiId) {
+                // 1. Try SIL database (master_parameters & master_parameter_komoditas)
+                try {
+                    $silConn = DB::connection('sil');
+                    $silParams = $silConn->table('master_parameters as p')
+                        ->join('master_parameter_komoditas as pk', 'p.id_parameters', '=', 'pk.parameters_id')
+                        ->where('pk.komoditas_id', $komoditiId)
+                        ->where('p.bahasas_id', 1)
+                        ->select(
+                            'p.id_parameters',
+                            'p.kode_parameters',
+                            'p.nama_parameters',
+                            'p.waktu_jam_parameters',
+                            'p.satuan_tarifs_id'
+                        )
+                        ->distinct()
+                        ->orderBy('p.nama_parameters')
+                        ->get();
 
-                if ($silParams->isNotEmpty()) {
-                    $parameters = $silParams->map(function ($row) use ($komoditiId) {
-                        return [
-                            'id'              => (int) $row->id_parameters,
-                            'komoditi_id'     => $komoditiId,
-                            'kode'            => $row->kode_parameters ?? ('PAR-' . $row->id_parameters),
-                            'nama'            => $row->nama_parameters ?? '',
-                            'metode_uji'      => 'SNI / Standar Metode Uji Balai',
-                            'satuan'          => 'Per Parameter',
-                            'waktu_jam'       => (int) ($row->waktu_jam_parameters ?? 0),
-                            'tarif_umum'      => 0,
-                            'tarif_mahasiswa' => 0,
-                            'is_active'       => true,
-                        ];
-                    })->values()->toArray();
+                    if ($silParams->isNotEmpty()) {
+                        return $silParams->map(function ($row) use ($komoditiId) {
+                            return [
+                                'id'              => (int) $row->id_parameters,
+                                'komoditi_id'     => $komoditiId,
+                                'kode'            => $row->kode_parameters ?? ('PAR-' . $row->id_parameters),
+                                'nama'            => $row->nama_parameters ?? '',
+                                'metode_uji'      => 'SNI / Standar Metode Uji Balai',
+                                'satuan'          => 'Per Parameter',
+                                'waktu_jam'       => (int) ($row->waktu_jam_parameters ?? 0),
+                                'tarif_umum'      => 0,
+                                'tarif_mahasiswa' => 0,
+                                'is_active'       => true,
+                            ];
+                        })->values()->toArray();
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('getParametersByKomoditi SIL error: ' . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning('getParametersByKomoditi SIL error: ' . $e->getMessage());
-            }
 
-            // 2. Fallback to MasterPengujianService (JSON fallback)
-            if (empty($parameters)) {
-                $parameters = MasterPengujianService::getParametersByKomoditi($komoditiId);
-                if (empty($parameters)) {
-                    $parameters = self::$masterParameterData[$komoditiId] ?? [];
+                // 2. Fallback to MasterPengujianService (JSON fallback)
+                $fallback = MasterPengujianService::getParametersByKomoditi($komoditiId);
+                if (!empty($fallback)) {
+                    return $fallback;
                 }
-            }
+
+                return self::$masterParameterData[$komoditiId] ?? [];
+            });
 
             return response()->json([
                 'success'     => true,

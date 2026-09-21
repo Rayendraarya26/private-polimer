@@ -61,6 +61,16 @@ const PrivateLayout: React.FC = () => {
         },
         staleTime: 1000 * 60 * 10,
       })
+
+      // Master Komoditas Pengujian Laboratorium (SIL)
+      queryClient.prefetchQuery({
+        queryKey: ["pengujian", "masterKomoditi"],
+        queryFn: async () => {
+          const { data } = await api.get("/eksternal/pengujian/master-komoditi")
+          return data?.results || data?.data || []
+        },
+        staleTime: 1000 * 60 * 60 * 24,
+      })
     }
 
     const resize = () => dispatch(setWindowWidth(window.innerWidth))

@@ -34,6 +34,10 @@ class MasterPengujianService
      */
     protected static function getJsonSourcePath(): string
     {
+        $silJson = base_path('database/data/master_pengujian_sil.json');
+        if (file_exists($silJson)) {
+            return $silJson;
+        }
         return base_path('database/data/master_pengujian_pp54.json');
     }
 

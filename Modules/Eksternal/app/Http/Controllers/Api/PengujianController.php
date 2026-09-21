@@ -389,27 +389,36 @@ class PengujianController extends Controller
             try {
                 $silConn = DB::connection('sil');
 
-                // Attempt known table structures in SIL
-                // SIL may use 'master_komoditi' with columns komodt_id, komodt_nama, komodt_sni
+                // Real SIL table: master_komoditas & master_parameter_komoditas (Bahasa Indonesia: bahasas_id = 1)
                 $silRows = $silConn
-                    ->table('master_komoditi')
-                    ->orderBy('komodt_id')
+                    ->table('master_komoditas as k')
+                    ->leftJoin('master_parameter_komoditas as pk', 'k.id_komoditas', '=', 'pk.komoditas_id')
+                    ->where('k.bahasas_id', 1)
+                    ->select(
+                        'k.id_komoditas',
+                        'k.kode_komoditas',
+                        'k.nama_komoditas',
+                        'k.waktu_jam_komoditas',
+                        'k.spm',
+                        DB::raw('COUNT(DISTINCT pk.parameters_id) as parameters_count')
+                    )
+                    ->groupBy('k.id_komoditas', 'k.kode_komoditas', 'k.nama_komoditas', 'k.waktu_jam_komoditas', 'k.spm')
+                    ->orderBy('k.nama_komoditas')
                     ->get();
 
                 if ($silRows->isNotEmpty()) {
                     $komoditiList = $silRows->map(function ($row) {
-                        $id = $row->komodt_id ?? $row->id ?? 0;
-                        $nama = $row->komodt_nama ?? $row->nama ?? $row->nama_komoditi ?? '';
-                        $sni = $row->komodt_sni ?? $row->nomor_sni ?? null;
-                        $params = self::$masterParameterData[$id] ?? [];
+                        $id = (int) $row->id_komoditas;
+                        $nama = $row->nama_komoditas ?? '';
                         return [
-                            'id'               => (int) $id,
-                            'kode'             => 'KMD-' . $id,
+                            'id'               => $id,
+                            'kode'             => $row->kode_komoditas ?? ('KMD-' . $id),
                             'nama'             => $nama,
-                            'nomor_sni'        => $sni,
                             'ruang_lingkup'    => $nama,
+                            'waktu_jam'        => (int) ($row->waktu_jam_komoditas ?? 0),
+                            'spm'              => (int) ($row->spm ?? 0),
                             'is_active'        => true,
-                            'parameters_count' => count($params),
+                            'parameters_count' => (int) ($row->parameters_count ?? 0),
                         ];
                     })->values()->toArray();
 
@@ -419,10 +428,10 @@ class PengujianController extends Controller
                 Log::warning('getMasterKomoditi SIL fallback: ' . $silEx->getMessage());
             }
 
-            // 2. Fallback to PP54 CSV/Master data if SIL is unavailable
+            // 2. Fallback to SIL Master JSON / PP54 Master data if SIL connection is unavailable
             if (empty($komoditiList)) {
                 $komoditiList = MasterPengujianService::getMasterKomoditi();
-                Log::info('getMasterKomoditi: SIL unavailable, loaded ' . count($komoditiList) . ' items from PP54 Master data.');
+                Log::info('getMasterKomoditi: SIL connection unavailable, loaded ' . count($komoditiList) . ' items from fallback data.');
             }
 
             return response()->json([
@@ -450,34 +459,46 @@ class PengujianController extends Controller
         try {
             $komoditiId = (int) $id;
 
-            // 1. Try SIL database if available
+            // 1. Try SIL database (master_parameters & master_parameter_komoditas)
             $parameters = null;
             try {
                 $silConn = DB::connection('sil');
-                $silParams = $silConn->table('master_parameter')
-                    ->where('komodt_id', $komoditiId)
+                $silParams = $silConn->table('master_parameters as p')
+                    ->join('master_parameter_komoditas as pk', 'p.id_parameters', '=', 'pk.parameters_id')
+                    ->where('pk.komoditas_id', $komoditiId)
+                    ->where('p.bahasas_id', 1)
+                    ->select(
+                        'p.id_parameters',
+                        'p.kode_parameters',
+                        'p.nama_parameters',
+                        'p.waktu_jam_parameters',
+                        'p.satuan_tarifs_id'
+                    )
+                    ->distinct()
+                    ->orderBy('p.nama_parameters')
                     ->get();
+
                 if ($silParams->isNotEmpty()) {
-                    $parameters = $silParams->map(function ($row) {
-                        $rate = (int) ($row->tarif ?? $row->tarif_umum ?? 0);
+                    $parameters = $silParams->map(function ($row) use ($komoditiId) {
                         return [
-                            'id'              => (int) ($row->param_id ?? $row->id),
-                            'komoditi_id'     => (int) ($row->komodt_id ?? 0),
-                            'kode'            => $row->param_kode ?? ('PAR-' . ($row->param_id ?? $row->id)),
-                            'nama'            => $row->param_nama ?? $row->nama ?? '',
-                            'metode_uji'      => $row->metode_uji ?? 'SNI / Standar PP 54 Th 2021',
-                            'satuan'          => $row->satuan ?? 'Per Parameter',
-                            'tarif_umum'      => $rate,
-                            'tarif_mahasiswa' => (int) round($rate * 0.5),
+                            'id'              => (int) $row->id_parameters,
+                            'komoditi_id'     => $komoditiId,
+                            'kode'            => $row->kode_parameters ?? ('PAR-' . $row->id_parameters),
+                            'nama'            => $row->nama_parameters ?? '',
+                            'metode_uji'      => 'SNI / Standar Metode Uji Balai',
+                            'satuan'          => 'Per Parameter',
+                            'waktu_jam'       => (int) ($row->waktu_jam_parameters ?? 0),
+                            'tarif_umum'      => 0,
+                            'tarif_mahasiswa' => 0,
                             'is_active'       => true,
                         ];
                     })->values()->toArray();
                 }
             } catch (\Throwable $e) {
-                // SIL not available, proceed to fallback
+                Log::warning('getParametersByKomoditi SIL error: ' . $e->getMessage());
             }
 
-            // 2. Fallback to MasterPengujianService (Tarif PP 54 CSV/JSON)
+            // 2. Fallback to MasterPengujianService (JSON fallback)
             if (empty($parameters)) {
                 $parameters = MasterPengujianService::getParametersByKomoditi($komoditiId);
                 if (empty($parameters)) {

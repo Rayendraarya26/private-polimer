@@ -288,6 +288,10 @@ class PermohonanController extends Controller
             $form->loadMissing(['emisi', 'dokumen']);
         }
 
+        if ($form instanceof \App\Models\Db2\FormKalibrasi) {
+            $form->loadMissing(['alatList.nomorSeriList', 'alatList.kalibrasiItems']);
+        }
+
 
         $isPerorangan = $permohonan->pelanggan?->jenis_pelanggan
             === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;

@@ -89,5 +89,38 @@ class MasterJenisLayananSeeder extends Seeder
                 $item
             );
         }
+
+        // Layanan Kalibrasi
+        $kalibrasi = MasterJenisLayanan::firstOrCreate(
+            ['slug' => Str::slug('Kalibrasi')],
+            [
+                'jenis_layanan' => 'Kalibrasi',
+                'is_active'     => true,
+            ]
+        );
+
+        $lingkupKalibrasi = [
+            [
+                'jenis_layanan_id' => $kalibrasi->id,
+                'lingkup'          => 'Laboratorium Kalibrasi (LABKAL)',
+                'kapabilitas'      => true,
+                'slug'             => Str::slug('Laboratorium Kalibrasi (LABKAL)'),
+                'is_active'        => true,
+            ],
+            [
+                'jenis_layanan_id' => $kalibrasi->id,
+                'lingkup'          => 'Kalibrasi',
+                'kapabilitas'      => true,
+                'slug'             => Str::slug('Kalibrasi'),
+                'is_active'        => true,
+            ],
+        ];
+
+        foreach ($lingkupKalibrasi as $item) {
+            MasterLingkupLayanan::firstOrCreate(
+                ['jenis_layanan_id' => $item['jenis_layanan_id'], 'slug' => $item['slug']],
+                $item
+            );
+        }
     }
 }

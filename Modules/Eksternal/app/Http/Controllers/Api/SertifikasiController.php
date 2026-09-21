@@ -364,8 +364,8 @@ class SertifikasiController extends Controller
             $createdPermohonans = [];
 
             // 1. Simpan berkas dokumen teknis ke storage (S3 / Local)
-            $pathKuesioner = $request->hasFile('file_kuesioner') 
-                ? $this->saveCustomerFile($request->file('file_kuesioner'), 'kuesioner') 
+            $pathKuesioner = $request->hasFile('file_kuesioner')
+                ? $this->saveCustomerFile($request->file('file_kuesioner'), 'kuesioner')
                 : ($request->hasFile('file_berkas_gabungan') ? $this->saveCustomerFile($request->file('file_berkas_gabungan'), 'kuesioner') : null);
             $pathManualMutu = $request->hasFile('file_manual_mutu') ? $this->saveCustomerFile($request->file('file_manual_mutu'), 'manual_mutu') : null;
             $pathProsesProduksi = $request->hasFile('file_proses_produksi') ? $this->saveCustomerFile($request->file('file_proses_produksi'), 'proses_produksi') : null;
@@ -407,8 +407,8 @@ class SertifikasiController extends Controller
                 $lingkupId = $itemPengajuan['lingkup_id'] ?? $itemPengajuan['skema_id'] ?? null;
                 $lingkup = $lingkupId ? MasterLingkupLayanan::find($lingkupId) : null;
 
-                // Format No Permohonan: CERT / SRT + YYYYMMDD + 5 Random Numeric
-                $noPermohonan = 'CERT' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+                // Format No Permohonan: SRT-YYYY-NNNNN
+                $noPermohonan = 'SRT-' . now()->format('Y') . '-' . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
 
                 // A. Record Tabel Utama: Permohonan
                 $permohonan = Permohonan::create([
@@ -791,14 +791,16 @@ class SertifikasiController extends Controller
                         'status_persetujuan' => 'DISETUJUI',
                         'responded_at' => now(),
                     ];
-                    if ($hasColumnStatus) $updatePenawaran['status'] = 'DISETUJUI';
-                    if ($hasColumnCatatanRespon) $updatePenawaran['catatan_respon'] = $catatan;
+                    if ($hasColumnStatus)
+                        $updatePenawaran['status'] = 'DISETUJUI';
+                    if ($hasColumnCatatanRespon)
+                        $updatePenawaran['catatan_respon'] = $catatan;
                     $penawaran->update($updatePenawaran);
                 }
 
                 $permohonan->update([
                     'status_penawaran' => 'setuju',
-                    'status_workflow'  => 'PEMBAYARAN', // Siap diterbitkan Invoice oleh Bendahara
+                    'status_workflow' => 'PEMBAYARAN', // Siap diterbitkan Invoice oleh Bendahara
                 ]);
 
                 PermohonanTrackingLog::create([
@@ -824,16 +826,19 @@ class SertifikasiController extends Controller
                         'status_persetujuan' => 'DITOLAK',
                         'responded_at' => now(),
                     ];
-                    if ($hasColumnStatus) $updatePenawaran['status'] = 'DITOLAK';
-                    if ($hasColumnCatatanRespon) $updatePenawaran['catatan_respon'] = $catatan;
-                    if ($hasColumnAlasanPenolakan) $updatePenawaran['alasan_penolakan'] = $catatan;
+                    if ($hasColumnStatus)
+                        $updatePenawaran['status'] = 'DITOLAK';
+                    if ($hasColumnCatatanRespon)
+                        $updatePenawaran['catatan_respon'] = $catatan;
+                    if ($hasColumnAlasanPenolakan)
+                        $updatePenawaran['alasan_penolakan'] = $catatan;
                     $penawaran->update($updatePenawaran);
                 }
 
                 $permohonan->update([
-                    'status_penawaran'  => 'tolak',
+                    'status_penawaran' => 'tolak',
                     'catatan_penawaran' => $catatan,
-                    'status_workflow'   => 'PENAWARAN_BIAYA', // Dikembalikan ke Marketing
+                    'status_workflow' => 'PENAWARAN_BIAYA', // Dikembalikan ke Marketing
                 ]);
 
                 PermohonanTrackingLog::create([
@@ -948,8 +953,8 @@ class SertifikasiController extends Controller
     public function approveTemuanTahap1(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'status'         => 'nullable|string|in:setuju,revisi',
-            'catatan'        => 'nullable|string|max:2000',
+            'status' => 'nullable|string|in:setuju,revisi',
+            'catatan' => 'nullable|string|max:2000',
             'file_perbaikan' => 'nullable|file|max:20480', // Maks 20MB
         ]);
 
@@ -980,13 +985,13 @@ class SertifikasiController extends Controller
                 }
 
                 $currentAttachments[] = [
-                    'kode'        => 'PERBAIKAN_TAHAP_1',
-                    'nama'        => 'Berkas Tindak Lanjut Perbaikan Temuan Tahap 1 (' . $fileName . ')',
-                    'file_url'    => $fileUrl,
-                    'path'        => $filePath,
+                    'kode' => 'PERBAIKAN_TAHAP_1',
+                    'nama' => 'Berkas Tindak Lanjut Perbaikan Temuan Tahap 1 (' . $fileName . ')',
+                    'file_url' => $fileUrl,
+                    'path' => $filePath,
                     'uploaded_at' => now()->toIso8601String(),
-                    'actor'       => auth()->user()?->name ?? 'Pelanggan',
-                    'created_at'  => now()->toIso8601String(),
+                    'actor' => auth()->user()?->name ?? 'Pelanggan',
+                    'created_at' => now()->toIso8601String(),
                 ];
 
                 $permohonan->update([
@@ -996,17 +1001,17 @@ class SertifikasiController extends Controller
 
             // Catat log timeline di Polimer
             PermohonanTrackingLog::create([
-                'id'             => (string) Str::uuid(),
-                'permohonan_id'  => $permohonan->id,
-                'sumber'         => 'POLIMER',
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
                 'milestone_code' => 'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
-                'judul'          => 'Tindak Lanjut & Perbaikan Temuan Tahap 1 Dikirim',
-                'deskripsi'      => $catatan ? "Catatan Pemohon: {$catatan}" : 'Pelanggan telah menyetujui catatan temuan dokumen dan mengirimkan berkas perbaikan.',
-                'metadata'       => [
+                'judul' => 'Tindak Lanjut & Perbaikan Temuan Tahap 1 Dikirim',
+                'deskripsi' => $catatan ? "Catatan Pemohon: {$catatan}" : 'Pelanggan telah menyetujui catatan temuan dokumen dan mengirimkan berkas perbaikan.',
+                'metadata' => [
                     'actor_name' => auth()->user()?->name ?? 'Pelanggan',
-                    'file_url'   => $fileUrl,
-                    'file_name'  => $fileName,
-                    'status'     => $status,
+                    'file_url' => $fileUrl,
+                    'file_name' => $fileName,
+                    'status' => $status,
                 ],
             ]);
 
@@ -1015,16 +1020,16 @@ class SertifikasiController extends Controller
             // Kirim bridging callback ke SIS
             $bridgingService = app(SisSyncBridgingService::class);
             $bridgeRes = $bridgingService->syncApproveTemuanTahap1ToSis($permohonan, [
-                'status'              => $status,
-                'catatan'             => $catatan,
-                'file_perbaikan_url'  => $fileUrl,
+                'status' => $status,
+                'catatan' => $catatan,
+                'file_perbaikan_url' => $fileUrl,
                 'file_perbaikan_name' => $fileName,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Persetujuan dan berkas perbaikan temuan Tahap 1 berhasil dikirim ke Tim Auditor.',
-                'data'    => [
+                'data' => [
                     'sis_sync' => $bridgeRes,
                 ],
             ]);
@@ -1062,7 +1067,7 @@ class SertifikasiController extends Controller
                 ])
                 ->orWhere(function ($q) use ($permohonan) {
                     $q->where('permohonan_id', $permohonan->id)
-                      ->where('catatan', 'like', '%menyetujui temuan%');
+                        ->where('catatan', 'like', '%menyetujui temuan%');
                 })
                 ->delete();
 
@@ -1087,9 +1092,9 @@ class SertifikasiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Riwayat & hasil Audit Tahap 1 untuk permohonan {$permohonan->no_permohonan} berhasil di-rollback.",
-                'data'    => [
-                    'permohonan_id'   => $permohonan->id,
-                    'no_permohonan'   => $permohonan->no_permohonan,
+                'data' => [
+                    'permohonan_id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
                     'status_workflow' => $permohonan->status_workflow,
                 ],
             ]);

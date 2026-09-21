@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   ArrowLeft,
   AlertTriangle,
@@ -91,6 +92,7 @@ type TabKey = "permohonan" | "perusahaan" | "dokumen" | "biaya" | "jadwal_audit"
 export const DetailPermohonanPage: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { openInvoice, openKuitansi, openLhu, onDownloadCertificate, openPdfDoc, PdfPreviewModal } = usePembayaran()
 
   const [loading, setLoading] = useState<boolean>(true)
@@ -147,7 +149,16 @@ export const DetailPermohonanPage: React.FC = () => {
   const fetchData = async () => {
     if (!id) return
     try {
-      setLoading(true)
+      const cached = queryClient.getQueryData<any>(["permohonanDetail", id])
+      if (cached) {
+        setPermohonan(cached.permohonan)
+        setFormData(cached.formData)
+        setLingkup(cached.lingkup)
+        setLoading(false)
+      } else {
+        setLoading(true)
+      }
+
       let detailData: any = null
       let formDetail: any = null
 
@@ -174,10 +185,17 @@ export const DetailPermohonanPage: React.FC = () => {
       }
 
       if (detailData) {
+        const finalForm = formDetail || detailData?.form_data
+        const finalLingkup = detailData?.lingkup_layanan
         setPermohonan(detailData)
-        setFormData(formDetail || detailData?.form_data)
-        setLingkup(detailData?.lingkup_layanan)
-      } else {
+        setFormData(finalForm)
+        setLingkup(finalLingkup)
+        queryClient.setQueryData(["permohonanDetail", id], {
+          permohonan: detailData,
+          formData: finalForm,
+          lingkup: finalLingkup,
+        })
+      } else if (!cached) {
         toast.error("Data permohonan tidak ditemukan")
       }
     } catch (err: any) {

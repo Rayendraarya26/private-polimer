@@ -19,7 +19,7 @@ import toast from "react-hot-toast"
 import api from "../../utils/api"
 import { getDateDisplay } from "../../utils/date"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
-import useDashboard from "../../hooks/useDashboard"
+import { useDashboardStatsQuery, useSlidersQuery } from "../../hooks/queries/useDashboardQuery"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
 import usePelatihan from "../../hooks/service-requests/usePelatihan"
 import { useLSP } from "../../hooks/service-requests/useLSP"
@@ -36,13 +36,10 @@ const currentYear = new Date().getFullYear()
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const { openLhu, openInvoice, fetchAndOpenPdf, PdfPreviewModal } = usePembayaran()
-  const {
-    loading,
-    statisticData,
-    sliders,
-    getStatisticData,
-    getSliders,
-  } = useDashboard()
+
+  const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
+  const { data: sliders = [] } = useSlidersQuery()
+  const { data: statisticData, isLoading: loadingStatistic } = useDashboardStatsQuery(selectedStatisticYear)
 
   const { deletePelatihan } = usePelatihan()
   const { deleteLSP } = useLSP()
@@ -50,31 +47,15 @@ const DashboardPage: React.FC = () => {
   const {
     loading: loadingHistory,
     data,
-    page,
     total,
-    totalPages,
     status,
     getFeedbacks,
-    setPage,
     changeStatus,
   } = useFeedbacks({ useLoadMore: true })
 
   const [modalFile, setModalFile] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
-  const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
-
-  useEffect(() => {
-    getSliders()
-  }, [])
-
-  useEffect(() => {
-    getFeedbacks()
-  }, [page, status])
-
-  useEffect(() => {
-    getStatisticData(selectedStatisticYear)
-  }, [selectedStatisticYear])
 
   // Auto rotate banner carousel
   useEffect(() => {
@@ -258,7 +239,7 @@ const DashboardPage: React.FC = () => {
             <Calendar className="w-4 h-4 text-slate-400" />
             <select
               value={selectedStatisticYear}
-              disabled={loading.statistic}
+              disabled={loadingStatistic}
               onChange={(e) => setSelectedStatisticYear(parseInt(e.target.value))}
               className="text-xs font-semibold bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
             >

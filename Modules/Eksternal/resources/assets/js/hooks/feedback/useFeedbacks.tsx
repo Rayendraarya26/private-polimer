@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import useDebounceValue from "../useDebounceValue"
-import { getErrorMessage } from "../../utils/error"
-import toast from "react-hot-toast"
 import { getAllFeedbacks } from "../../services/feedbacks"
 import { FeedbackItem, FeedbackItemStatusOrder } from "../../types/feedbacks"
 
@@ -12,47 +11,65 @@ type Options = {
 }
 
 export default (options?: Options) => {
-  const [loading, setLoading] = useState<boolean>(false)
-  const [data, setData] = useState<FeedbackItem[]>([])
   const [page, setPage] = useState<number>(1)
   const [rows] = useState<number>(options?.defaultRowSize || 20)
-  const [total, setTotal] = useState<number>(0)
   const [search, setSearch] = useState<string>('')
   const [status, setStatus] = useState<FeedbackItemStatusOrder | undefined>(options?.defaultStatus || undefined)
   const debouncedSearch = useDebounceValue<string>(search, 500)
+  const [accumulatedData, setAccumulatedData] = useState<FeedbackItem[]>([])
 
+  // Reset page dan accumulated data saat filter search / status berubah
   useEffect(() => {
-    setData([])
-    setTotal(0)
+    setPage(1)
+    setAccumulatedData([])
   }, [debouncedSearch, status])
 
-  const getFeedbacks = useCallback(
-    async () => {
-      try {
-        if (page === 1) setData([])
-        setLoading(true)
-        const results = await getAllFeedbacks({
-          page,
-          rows,
-          ...(search ? {search} : {}),
-          ...(status ? {status} : {})
-        })
-        setData(current => {
-          if (options?.useLoadMore) {
-            if (page === 1) return results.data || []
-            return [...current, ...results.data]
-          }
-          return results.data || []
-        })
-        setTotal(results.total || 0)
-      } catch (error) {
-        toast.error(getErrorMessage(error))
-      } finally {
-        setLoading(false)
-      }
+  const {
+    data: queryResult,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["feedbacks", { page, rows, search: debouncedSearch, status }],
+    queryFn: async () => {
+      const results = await getAllFeedbacks({
+        page,
+        rows,
+        ...(debouncedSearch ? { search: debouncedSearch } : {}),
+        ...(status ? { status } : {}),
+      })
+      return results || { data: [], total: 0 }
     },
-    [page, rows, search, status, options]
-  )
+    staleTime: 1000 * 60 * 3, // Cache 3 menit
+    gcTime: 1000 * 60 * 15,
+  })
+
+  // Akumulasi data untuk infinite scroll / load more
+  useEffect(() => {
+    if (!queryResult?.data) return
+    if (!options?.useLoadMore || page === 1) {
+      setAccumulatedData(queryResult.data)
+    } else {
+      setAccumulatedData((prev) => {
+        const existingIds = new Set(prev.map((item) => item.id))
+        const newItems = queryResult.data.filter((item) => !existingIds.has(item.id))
+        return [...prev, ...newItems]
+      })
+    }
+  }, [queryResult?.data, page, options?.useLoadMore])
+
+  const data = useMemo(() => {
+    if (options?.useLoadMore && page > 1) {
+      return accumulatedData
+    }
+    return queryResult?.data || accumulatedData || []
+  }, [options?.useLoadMore, page, accumulatedData, queryResult?.data])
+
+  const total = queryResult?.total ?? 0
+
+  const getFeedbacks = useCallback(async () => {
+    await refetch()
+  }, [refetch])
 
   const changeSearch = useCallback((value: string) => {
     setSearch(value)
@@ -64,13 +81,18 @@ export default (options?: Options) => {
     setStatus(value)
   }, [])
 
+  const setData = useCallback((updater: React.SetStateAction<FeedbackItem[]>) => {
+    setAccumulatedData(updater)
+  }, [])
+
   return {
-    loading,
+    loading: isLoading && data.length === 0,
+    isFetching,
     data,
     search,
     total,
     page,
-    totalPages: useMemo(() => Math.ceil(total/rows), [total, rows]),
+    totalPages: useMemo(() => Math.ceil(total / (rows || 1)), [total, rows]),
     setPage,
     rows,
     debouncedSearch,
@@ -78,6 +100,6 @@ export default (options?: Options) => {
     getFeedbacks,
     changeSearch,
     changeStatus,
-    setData
+    setData,
   }
 }

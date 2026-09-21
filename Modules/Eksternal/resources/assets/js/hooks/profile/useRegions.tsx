@@ -18,7 +18,7 @@ const useRegions = (provId?: string | null, kabId?: string | null) => {
 
   // Query Kabupaten (Cached by provId for 24 Hours)
   const regenciesQuery = useQuery<RegionBase[]>({
-    queryKey: ["regions", "regencies", provId],
+    queryKey: ["regions", "regencies", provId ? String(provId) : undefined],
     queryFn: async () => {
       if (!provId) return []
       return await regionService.getRegencies(provId)
@@ -30,7 +30,7 @@ const useRegions = (provId?: string | null, kabId?: string | null) => {
 
   // Query Kecamatan (Cached by kabId for 24 Hours)
   const districtsQuery = useQuery<RegionBase[]>({
-    queryKey: ["regions", "districts", kabId],
+    queryKey: ["regions", "districts", kabId ? String(kabId) : undefined],
     queryFn: async () => {
       if (!kabId) return []
       return await regionService.getDistricts(kabId)

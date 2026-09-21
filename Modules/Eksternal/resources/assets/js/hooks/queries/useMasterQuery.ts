@@ -82,7 +82,7 @@ export function usePelatihanSkemaQuery() {
  */
 export function useProvincesQuery() {
   return useQuery({
-    queryKey: ["master", "provinces"],
+    queryKey: ["regions", "provinces"],
     queryFn: async () => {
       try {
         const response = await api.get("/eksternal/regions/provinces")
@@ -93,12 +93,13 @@ export function useProvincesQuery() {
       }
     },
     staleTime: 1000 * 60 * 60 * 24, // 24 jam untuk provinsi
+    gcTime: 1000 * 60 * 60 * 24,
   })
 }
 
 export function useRegenciesQuery(provinceId?: string | number) {
   return useQuery({
-    queryKey: ["master", "regencies", provinceId],
+    queryKey: ["regions", "regencies", provinceId ? String(provinceId) : undefined],
     queryFn: async () => {
       if (!provinceId) return []
       try {
@@ -113,12 +114,13 @@ export function useRegenciesQuery(provinceId?: string | number) {
     },
     enabled: Boolean(provinceId),
     staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
   })
 }
 
 export function useDistrictsQuery(regencyId?: string | number) {
   return useQuery({
-    queryKey: ["master", "districts", regencyId],
+    queryKey: ["regions", "districts", regencyId ? String(regencyId) : undefined],
     queryFn: async () => {
       if (!regencyId) return []
       try {
@@ -133,6 +135,7 @@ export function useDistrictsQuery(regencyId?: string | number) {
     },
     enabled: Boolean(regencyId),
     staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
   })
 }
 

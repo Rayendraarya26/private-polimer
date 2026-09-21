@@ -28,16 +28,10 @@ const FeedbacksPage: React.FC = () => {
     page,
     total,
     totalPages,
-    getFeedbacks,
     changeSearch,
     setPage,
     search: query,
-    debouncedSearch,
   } = useFeedbacks({ useLoadMore: true, defaultStatus: FeedbackItemStatusOrder.DONE })
-
-  useEffect(() => {
-    getFeedbacks()
-  }, [debouncedSearch, page])
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">

@@ -2,7 +2,19 @@ import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../../ui/Button"
-import { ArrowLeft, ArrowRight, Send, Loader2 } from "lucide-react"
+import {
+    ArrowLeft,
+    ArrowRight,
+    Send,
+    Loader2,
+    UserCog,
+    Building,
+    ClipboardList,
+    FileText,
+    Info,
+    CheckCircle,
+    Check,
+} from "lucide-react"
 import api from "../../../../utils/api"
 import { GrkVerifikasiFormData, INITIAL_DOKUMEN_ITEMS, INITIAL_EMISI_CATEGORIES } from "../../../../types/grk"
 import { FormInformasiUmum } from "./FormInformasiUmum"
@@ -12,9 +24,17 @@ import { FormDokumen } from "./FormDokumen"
 import { FormInformasiTambahan } from "./FormInformasiTambahan"
 import { FormPernyataan } from "./FormPernyataan"
 
-
 const STORAGE_KEY = "DRAFT_GRK_VERIFIKASI"
 const TOTAL_STEPS = 6
+
+const STEPS = [
+    { id: 0, title: "Informasi Umum", icon: UserCog, desc: "Data pemohon & organisasi" },
+    { id: 1, title: "Informasi Organisasi", icon: Building, desc: "Detail kontak & alamat" },
+    { id: 2, title: "Ruang Lingkup", icon: ClipboardList, desc: "Batasan & kategori emisi" },
+    { id: 3, title: "Dokumen", icon: FileText, desc: "Upload file dokumen" },
+    { id: 4, title: "Informasi Tambahan", icon: Info, desc: "Konsultan & pihak eksternal" },
+    { id: 5, title: "Pernyataan", icon: CheckCircle, desc: "Persetujuan & pengajuan" },
+]
 
 const INITIAL_FORM_DATA: GrkVerifikasiFormData = {
     merekSample: "",
@@ -317,7 +337,56 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {STEPS.map((s, idx) => {
+                        const Icon = s.icon
+                        const isActive = currentStep === idx
+                        const isDone = currentStep > idx
+
+                        return (
+                            <button
+                                type="button"
+                                key={s.id}
+                                onClick={() => {
+                                    if (idx <= currentStep) {
+                                        setCurrentStep(idx)
+                                        window.scrollTo({ top: 0, behavior: "smooth" })
+                                    }
+                                }}
+                                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${isActive
+                                    ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20"
+                                    : isDone
+                                        ? "bg-slate-50 border border-slate-200 hover:bg-slate-100/70 cursor-pointer"
+                                        : "bg-slate-50/50 border border-slate-200/50 opacity-60 cursor-not-allowed"
+                                    }`}
+                            >
+                                <div
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${isDone
+                                        ? "bg-emerald-600 text-white shadow-xs"
+                                        : isActive
+                                            ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
+                                            : "bg-slate-200 text-slate-600"
+                                        }`}
+                                >
+                                    {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                                </div>
+
+                                <div className="min-w-0">
+                                    <span className="text-[10px] font-bold tracking-wider uppercase block text-slate-500">
+                                        Langkah {idx + 1}
+                                    </span>
+                                    <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
+                                    <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
+                                </div>
+                            </button>
+                        )
+                    })}
+                </div>
+            </div>
+
+            <div className="space-y-6">
             <div className={currentStep === 0 ? "block" : "hidden"}>
                 <FormInformasiUmum formData={formData} setFormData={setFormData} />
             </div>
@@ -386,6 +455,7 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                 )}
             </div>
         </div>
+        </>
     )
 }
 

@@ -408,7 +408,7 @@ class SertifikasiController extends Controller
                 $lingkup = $lingkupId ? MasterLingkupLayanan::find($lingkupId) : null;
 
                 // Format No Permohonan: SRT-YYYY-NNNNN
-                $noPermohonan = 'SRT-' . now()->format('Y') . '-' . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+                $noPermohonan = 'CERT-' . now()->format('Y') . '-' . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
 
                 // A. Record Tabel Utama: Permohonan
                 $permohonan = Permohonan::create([

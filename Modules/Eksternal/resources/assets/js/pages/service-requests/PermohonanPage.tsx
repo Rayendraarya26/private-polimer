@@ -18,7 +18,7 @@ import {
   Sparkles,
   Info,
   Sprout,
-  MapPinPen,  
+  MapPinPen,
 } from "lucide-react"
 import { useProfileStatus } from "../../hooks/usePermohonan"
 import Head from "../../components/common/Head"
@@ -124,7 +124,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         id: "grk",
         name: "Emisi Gas Rumah Kaca (GRK)",
         desc: "Verifikasi dan validasi emisi gas rumah kaca (GRK).",
-        icon: <Sprout className="w-6 h-6 text-teal-600"  />,
+        icon: <Sprout className="w-6 h-6 text-teal-600" />,
         badge: "Terakreditasi KAN",
         route: "/permohonan/grk",
         isAvailable: true,
@@ -206,7 +206,7 @@ const PermohonanPage: React.FC = () => {
       <Head title="Pengajuan Permohonan Layanan" />
 
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden">
+      {/* <div className="bg-brand-600 rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl space-y-2">
@@ -221,7 +221,42 @@ const PermohonanPage: React.FC = () => {
             Balai Besar Kulit, Karet, dan Plastik menyediakan layanan pengujian terakreditasi, kalibrasi presisi, sertifikasi produk SNI, bimtek, dan sertifikasi profesi.
           </p>
         </div>
+      </div> */}
+
+      {/* Header Section */}
+      <div
+        className="rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden bg-cover bg-center min-h-[190px] sm:h-[200px] flex items-center"
+        style={{ backgroundImage: "url('/images/gedung-jis/NrAV6m9zWfjfwYhrKiHWopInSH8RHYOCG8K5a2Aq.png')" }}
+      >
+        {/* Overlay gelap transparan */}
+        <div className="absolute inset-0 bg-brand-900/75 backdrop-blur-[1px]" />
+
+        {/* Logo Brand Resmi di Kanan Atas */}
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-7 z-20 flex items-center gap-2.5 sm:gap-4">
+          <img
+            src="/assets/media/logos/logo-jis-white.png"
+            alt="Logo JIS"
+            className="h-7 sm:h-8 md:h-9 w-auto max-w-[100px] sm:max-w-[130px] object-contain drop-shadow"
+          />
+          <div className="h-5 sm:h-6 w-px bg-white/30" aria-hidden="true" />
+          <img
+            src="/assets/media/logos/logo-kemenperin.png"
+            alt="Logo Kemenperin"
+            className="h-6 sm:h-7 md:h-8 w-auto max-w-[110px] sm:max-w-[140px] object-contain drop-shadow brightness-0 invert opacity-95"
+          />
+        </div>
+
+        {/* Konten Teks di Tengah Vertikal */}
+        <div className="relative z-10 max-w-xl lg:max-w-2xl space-y-1.5 sm:space-y-2 pt-6 sm:pt-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            Pilih Jenis Layanan
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+            Balai Besar Kulit, Karet, dan Plastik menyediakan layanan pengujian terakreditasi, kalibrasi presisi, sertifikasi produk SNI, bimtek, dan sertifikasi profesi.
+          </p>
+        </div>
       </div>
+
 
       {/* Service Categories */}
       <div className="space-y-8">
@@ -243,7 +278,7 @@ const PermohonanPage: React.FC = () => {
                     }`}
                 >
                   <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-~2">
                       <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-brand-50 group-hover:border-brand-100 transition-colors">
                         {service.icon}
                       </div>

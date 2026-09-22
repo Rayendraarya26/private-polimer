@@ -120,6 +120,8 @@ class PermohonanController extends Controller
             $namaPemohon = $form?->nama_perusahaan 
                 ?? $form?->nama_lengkap 
                 ?? $form?->nama_peserta 
+                ?? $form?->diajukan_oleh
+                ?? $form?->biaya_ditanggung_oleh
                 ?? $item->creator?->name 
                 ?? '-';
 
@@ -132,6 +134,7 @@ class PermohonanController extends Controller
                 elseif (str_starts_with($item->no_permohonan, 'GRK')) $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
                 elseif (str_starts_with($item->no_permohonan, 'PUP')) $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
                 elseif (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB')) $layananNama = 'Kalibrasi Alat';
+                elseif (str_starts_with($item->no_permohonan, 'UJI')) $layananNama = 'Pengujian Laboratorium';
                 else $layananNama = 'Layanan BBKKP';
             }
 
@@ -150,6 +153,8 @@ class PermohonanController extends Controller
                 $komoditi = $form->items?->pluck('nama_skema')->implode(', ') ?: 'Uji Profisiensi Kalibrasi';
             } elseif ($form instanceof \App\Models\Db2\FormKalibrasi) {
                 $komoditi = $form->alatList?->pluck('nama_alat')->implode(', ') ?: 'Jasa Kalibrasi Alat';
+            } elseif ($form instanceof \App\Models\Db2\FormPengujian) {
+                $komoditi = $form->samples?->pluck('nama_sampel')->implode(', ') ?: 'Uji Mutu Laboratorium';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;

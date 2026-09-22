@@ -50,6 +50,9 @@ import {
   KalibrasiDetailPermohonanTab,
   KalibrasiDetailPelangganTab,
 } from "../../components/detail-service-requests/KalibrasiDetailSection"
+import {
+  PengujianDetailPermohonanTab,
+} from "../../components/detail-service-requests/PengujianDetailSection"
 
 const workflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen" },
@@ -98,6 +101,15 @@ const kalibrasiWorkflowSteps = [
   { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
   { key: "PROCESS", label: "Pelaksanaan Kalibrasi", desc: "Pengukuran & Kalibrasi" },
   { key: "DONE", label: "Sertifikat Terbit", desc: "Sertifikat Kalibrasi Resmi" },
+]
+
+const pengujianWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Daftar Sampel" },
+  { key: "KAJIAN_TEKNIS", label: "Kajian Teknis", desc: "Kaji Ulang Permintaan Lab" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Estimasi Biaya PNBP" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Pengujian Lab", desc: "Pengujian Fisika & Kimia" },
+  { key: "DONE", label: "LHU Terbit", desc: "Laporan Hasil Uji (LHU) Resmi" },
 ]
 
 type TabKey = "permohonan" | "perusahaan" | "dokumen" | "biaya" | "jadwal_audit"
@@ -403,7 +415,18 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi)
+  const isPengujian = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && (
+      noOrder.startsWith("UJI") ||
+      noOrder.startsWith("TEST") ||
+      permohonan?.formable_type?.includes("FormPengujian") ||
+      lingkup?.slug?.includes("pengujian") ||
+      (Array.isArray(permohonan?.form_pengujian) && permohonan.form_pengujian.length > 0) ||
+      (Array.isArray(permohonan?.formPengujian) && permohonan.formPengujian.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian)
 
   const formPupData = isPup
     ? (formData?.nama_lab_kalibrasi
@@ -425,6 +448,16 @@ export const DetailPermohonanPage: React.FC = () => {
                 : formData)))
     : null
 
+  const formPengujianData = isPengujian
+    ? (Array.isArray(formData?.samples)
+        ? formData
+        : (Array.isArray(permohonan?.form_pengujian) && permohonan.form_pengujian.length > 0
+            ? permohonan.form_pengujian[0]
+            : (Array.isArray(permohonan?.formPengujian) && permohonan.formPengujian.length > 0
+                ? permohonan.formPengujian[0]
+                : formData)))
+    : null
+
   const activeWorkflowSteps = isPup
     ? pupWorkflowSteps
     : isPelatihan
@@ -435,7 +468,9 @@ export const DetailPermohonanPage: React.FC = () => {
           ? grkWorkflowSteps
           : isKalibrasi
             ? kalibrasiWorkflowSteps
-            : workflowSteps
+            : isPengujian
+              ? pengujianWorkflowSteps
+              : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -1346,20 +1381,22 @@ export const DetailPermohonanPage: React.FC = () => {
             <div className="flex items-center gap-2 truncate">
               <Package className="w-4 h-4 shrink-0" />
               <span className="truncate">
-                {isPup
-                  ? "Skema & Artefak UP"
-                  : isPelatihan
-                    ? "Data Pelatihan & Peserta"
-                    : isLsp
-                      ? "Skema & Calon Asesi"
-                      : isGrk
-                        ? "Data Proyek GRK"
-                        : "Data Permohonan"}
+                {isPengujian
+                  ? "Sampel & Parameter Uji"
+                  : isPup
+                    ? "Skema & Artefak UP"
+                    : isPelatihan
+                      ? "Data Pelatihan & Peserta"
+                      : isLsp
+                        ? "Skema & Calon Asesi"
+                        : isGrk
+                          ? "Data Proyek GRK"
+                          : "Data Permohonan"}
               </span>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
-              {isPup ? (formPupData?.items?.length || 1) : (items.length > 0 ? items.length : 1)}
+              {isPengujian ? (formPengujianData?.samples?.length || 1) : isPup ? (formPupData?.items?.length || 1) : (items.length > 0 ? items.length : 1)}
             </span>
           </button>
 
@@ -1448,7 +1485,13 @@ export const DetailPermohonanPage: React.FC = () => {
       <div className="w-full space-y-6">
         {/* TAB 1: DATA PERMOHONAN */}
         {activeTab === "permohonan" && (
-          isPup ? (
+          isPengujian ? (
+            <PengujianDetailPermohonanTab
+              permohonan={permohonan}
+              formPengujian={formPengujianData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : isPup ? (
             <PupDetailPermohonanTab
               permohonan={permohonan}
               formPup={formPupData}

@@ -11,7 +11,7 @@ class FormPengujianSample extends Model
     use HasUuids, SoftDeletes;
 
     protected $table = 'form_pengujian_sample';
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected $casts = [
         'jumlah_sampel' => 'integer',

@@ -8,9 +8,11 @@ use App\Models\Db2\FormPengujian;
 use App\Models\Db2\FormPengujianSample;
 use App\Models\Db2\FormPengujianSampleParameter;
 use App\Models\Db2\MasterLingkupLayanan;
+use App\Models\Db2\MasterJenisLayanan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -548,6 +550,56 @@ class PengujianController extends Controller
     }
 
     /**
+     * Resolve parameter map from SIL database, MasterPengujianService, or local fallback
+     */
+    protected function resolveParametersMap($komoditiId, array $parameterIds = [])
+    {
+        $allParams = collect();
+
+        // 1. Check SIL database directly for matching parameter IDs
+        if (!empty($parameterIds)) {
+            try {
+                $silRows = DB::connection('sil')->table('master_parameters')
+                    ->whereIn('id_parameters', $parameterIds)
+                    ->where('bahasas_id', 1)
+                    ->get();
+
+                foreach ($silRows as $row) {
+                    $allParams->put((int) $row->id_parameters, [
+                        'id'              => (int) $row->id_parameters,
+                        'kode'            => $row->kode_parameters ?? ('PAR-' . $row->id_parameters),
+                        'nama'            => $row->nama_parameters ?? '',
+                        'metode_uji'      => 'SNI / Standar Metode Uji Balai',
+                        'satuan'          => 'Per Parameter',
+                        'tarif_umum'      => 0,
+                        'tarif_mahasiswa' => 0,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('resolveParametersMap SIL error: ' . $e->getMessage());
+            }
+        }
+
+        // 2. Check MasterPengujianService
+        $serviceParams = MasterPengujianService::getParametersByKomoditi($komoditiId);
+        foreach ($serviceParams as $p) {
+            if (!$allParams->has((int) $p['id'])) {
+                $allParams->put((int) $p['id'], $p);
+            }
+        }
+
+        // 3. Check static masterParameterData fallback
+        $staticParams = self::$masterParameterData[$komoditiId] ?? [];
+        foreach ($staticParams as $p) {
+            if (!$allParams->has((int) $p['id'])) {
+                $allParams->put((int) $p['id'], $p);
+            }
+        }
+
+        return $allParams;
+    }
+
+    /**
      * Memproses Pengajuan Permohonan Pengujian Laboratorium
      */
     public function store(Request $request): JsonResponse
@@ -573,7 +625,7 @@ class PengujianController extends Controller
             'no_sample'                     => 'nullable|string|max:255',
             'merek_kode'                    => 'nullable|string|max:255',
             'no_surat_pengantar'            => 'nullable|string|max:255',
-            'tgl_surat_pengantar'           => 'nullable|date',
+            'tgl_surat_pengantar'           => 'nullable',
             'samples'                       => 'required',
             'file_surat_pengantar'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'file_ktm'                      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -628,27 +680,50 @@ class PengujianController extends Controller
             $jumlah = max(1, (int) ($sample['jumlah_sampel'] ?? 1));
             $parameterIds = (array) ($sample['parameter_ids'] ?? []);
 
-            $availableParams = MasterPengujianService::getParametersByKomoditi($komoditiId);
-            if (empty($availableParams)) {
-                $availableParams = self::$masterParameterData[$komoditiId] ?? [];
-            }
-            $paramById = collect($availableParams)->keyBy('id');
-
             $sampleParams = [];
             $sampleSubtotal = 0;
 
-            foreach ($parameterIds as $pId) {
-                if ($param = $paramById->get((int) $pId)) {
-                    $rate = $isMahasiswa ? $param['tarif_mahasiswa'] : $param['tarif_umum'];
+            // 1. Jika frontend mengirimkan array objek parameter lengkap
+            if (!empty($sample['parameters']) && is_array($sample['parameters'])) {
+                foreach ($sample['parameters'] as $p) {
+                    $rate = (float) ($p['tarif'] ?? ($isMahasiswa ? ($p['tarif_mahasiswa'] ?? 0) : ($p['tarif_umum'] ?? 0)));
                     $sampleSubtotal += $rate;
                     $sampleParams[] = [
-                        'id' => $param['id'],
-                        'kode' => $param['kode'],
-                        'nama' => $param['nama'],
-                        'metode_uji' => $param['metode_uji'],
-                        'satuan' => $param['satuan'],
-                        'tarif' => $rate,
+                        'id'         => $p['id'] ?? null,
+                        'kode'       => $p['kode'] ?? ('PAR-' . ($p['id'] ?? '')),
+                        'nama'       => $p['nama'] ?? 'Parameter Uji',
+                        'metode_uji' => $p['metode_uji'] ?? 'SNI / Standar Metode Uji Lab',
+                        'satuan'     => $p['satuan'] ?? 'Per Parameter',
+                        'tarif'      => $rate,
                     ];
+                }
+            } else {
+                // 2. Resolve parameter dari SIL database / cache / service
+                $paramMap = $this->resolveParametersMap($komoditiId, $parameterIds);
+                foreach ($parameterIds as $pId) {
+                    $param = $paramMap->get((int) $pId);
+                    if ($param) {
+                        $rate = (float) ($isMahasiswa ? ($param['tarif_mahasiswa'] ?? 0) : ($param['tarif_umum'] ?? 0));
+                        $sampleSubtotal += $rate;
+                        $sampleParams[] = [
+                            'id'         => $param['id'],
+                            'kode'       => $param['kode'] ?? ('PAR-' . $param['id']),
+                            'nama'       => $param['nama'] ?? 'Parameter Uji',
+                            'metode_uji' => $param['metode_uji'] ?? 'SNI / Standar Metode Uji Lab',
+                            'satuan'     => $param['satuan'] ?? 'Per Parameter',
+                            'tarif'      => $rate,
+                        ];
+                    } else {
+                        // Fallback jika ID belum terpetakan
+                        $sampleParams[] = [
+                            'id'         => (int) $pId,
+                            'kode'       => 'PAR-' . $pId,
+                            'nama'       => 'Parameter Uji #' . $pId,
+                            'metode_uji' => 'SNI / Standar Metode Uji Lab',
+                            'satuan'     => 'Per Parameter',
+                            'tarif'      => 0,
+                        ];
+                    }
                 }
             }
 
@@ -656,16 +731,16 @@ class PengujianController extends Controller
             $grandTotal += $sampleTotal;
 
             $processedSamples[] = [
-                'index' => $idx + 1,
-                'nama_sampel' => $sample['nama_sampel'] ?? ('Sampel #' . ($idx + 1)),
-                'bentuk_sampel' => $sample['bentuk_sampel'] ?? 'Lembaran / Film',
-                'jumlah_sampel' => $jumlah,
-                'satuan_sampel' => $sample['satuan_sampel'] ?? 'Pcs',
-                'no_lot_bets' => $sample['no_lot_bets'] ?? null,
-                'kondisi_sampel' => $sample['kondisi_sampel'] ?? 'Baik',
+                'index'              => $idx + 1,
+                'nama_sampel'        => $sample['nama_sampel'] ?? ('Sampel #' . ($idx + 1)),
+                'bentuk_sampel'      => $sample['bentuk_sampel'] ?? 'Lembaran / Film',
+                'jumlah_sampel'      => $jumlah,
+                'satuan_sampel'      => $sample['satuan_sampel'] ?? 'Pcs',
+                'no_lot_bets'        => $sample['no_lot_bets'] ?? null,
+                'kondisi_sampel'     => $sample['kondisi_sampel'] ?? 'Baik',
                 'master_komoditi_id' => $komoditiId,
-                'parameters' => $sampleParams,
-                'subtotal' => $sampleTotal,
+                'parameters'         => $sampleParams,
+                'subtotal'           => $sampleTotal,
             ];
         }
 
@@ -675,22 +750,26 @@ class PengujianController extends Controller
             ? ('988' . now()->format('ymd') . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT))
             : null;
 
+        $user = $request->user() ?? auth()->user() ?? \Illuminate\Support\Facades\Auth::user();
+        $userId = $user?->id ?? auth()->id() ?? \App\Models\Db1\SysUser::first()?->id;
+        $idPtIns = $user?->id_pt_ins ?? null;
+
         $permohonanId = (string) Str::uuid();
 
-        // 4. Simpan ke database jika tabel permohonan tersedia
+        // 4. Simpan ke database
         try {
             DB::beginTransaction();
 
             $permohonanData = [
                 'id' => $permohonanId,
-                'id_pt_ins' => (string) Str::uuid(),
+                'id_pt_ins' => $idPtIns,
                 'is_split_bill' => false,
                 'no_permohonan' => $noPermohonan,
                 'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
                 'harga_permohonan' => $grandTotal,
                 'tgl_order' => $isAjukan ? now() : null,
-                'created_by' => auth()->id() ?? '00000000-0000-0000-0000-000000000000',
+                'created_by' => $userId,
                 'ip_address' => $request->ip(),
                 'va' => $vaNumber,
                 'file_attachment' => $pathSuratPengantar,
@@ -784,22 +863,50 @@ class PengujianController extends Controller
             }
 
             // 7. Daftarkan Relasi ke Detail Permohonan (Polymorphic)
-            $lingkup = MasterLingkupLayanan::where('slug', 'LIKE', '%pengujian%')
+            $lingkup = MasterLingkupLayanan::where('slug', 'pengujian')
                 ->orWhere('lingkup', 'LIKE', '%pengujian%')
                 ->first();
 
+            if (!$lingkup) {
+                $jenisLayanan = MasterJenisLayanan::where('slug', 'pengujian')
+                    ->orWhere('jenis_layanan', 'LIKE', '%pengujian%')
+                    ->first();
+
+                if (!$jenisLayanan) {
+                    $jenisLayanan = MasterJenisLayanan::create([
+                        'id' => (string) Str::uuid(),
+                        'jenis_layanan' => 'Pengujian',
+                        'slug' => 'pengujian',
+                        'is_active' => true,
+                    ]);
+                }
+
+                $lingkup = MasterLingkupLayanan::create([
+                    'id' => (string) Str::uuid(),
+                    'jenis_layanan_id' => $jenisLayanan->id,
+                    'lingkup' => 'Laboratorium Pengujian (LABUJI)',
+                    'slug' => 'laboratorium-pengujian-labuji',
+                    'kapabilitas' => true,
+                    'is_active' => true,
+                ]);
+            }
+
             DetailPermohonan::create([
                 'id'                 => (string) Str::uuid(),
-                'permohonan_id'      => $permohonanId,
+                'permohonan_id'      => $permohonan->id,
                 'formable_id'        => $formPengujian->id,
                 'formable_type'      => FormPengujian::class,
-                'lingkup_layanan_id' => $lingkup?->id,
+                'lingkup_layanan_id' => $lingkup->id,
             ]);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Permohonan Pengujian DB write error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan permohonan pengujian: ' . $e->getMessage(),
+            ], 500);
         }
 
         return response()->json([

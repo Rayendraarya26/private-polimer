@@ -148,6 +148,14 @@ export const FormPengujianWizard: React.FC = () => {
         kondisi_sampel: s.kondisi_sampel,
         master_komoditi_id: s.master_komoditi_id,
         parameter_ids: s.selected_parameters.map((p) => p.id),
+        parameters: s.selected_parameters.map((p) => ({
+          id: p.id,
+          kode: p.kode,
+          nama: p.nama,
+          metode_uji: p.metode_uji,
+          satuan: p.satuan,
+          tarif: sharedData.kategori_tarif === "mahasiswa_pp54" ? p.tarif_mahasiswa : p.tarif_umum,
+        })),
       }))
       formData.append("samples", JSON.stringify(serializedSamples))
 

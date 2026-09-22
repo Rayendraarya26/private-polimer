@@ -11,7 +11,7 @@ class FormPengujianSampleParameter extends Model
     use HasUuids, SoftDeletes;
 
     protected $table = 'form_pengujian_sample_parameter';
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected $casts = [
         'tarif' => 'decimal:2',

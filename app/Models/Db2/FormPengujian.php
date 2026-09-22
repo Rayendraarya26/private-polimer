@@ -11,7 +11,7 @@ class FormPengujian extends Model
     use HasUuids, SoftDeletes;
 
     protected $table = 'form_pengujian';
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected $casts = [
         'biaya_sama_dengan_pemohon'  => 'boolean',

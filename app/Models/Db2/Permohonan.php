@@ -20,6 +20,7 @@ class Permohonan extends Model
     protected $guarded = ['id'];
 
     protected $fillable = [
+        'id',
         'no_permohonan',
         'id_pt_ins',
         'is_split_bill',

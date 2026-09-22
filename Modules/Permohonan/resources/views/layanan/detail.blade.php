@@ -146,8 +146,9 @@
                                 <div class="px-4 py-3 border-end flex-fill">
                                     <div class="text-uppercase text-muted mb-1" style="font-size:10px;letter-spacing:.06em">Total
                                         Tagihan</div>
-                                    <div class="fw-semibold" style="font-size:13px;
-                                                    {{ $totalTagihan > 0 ? 'color:#1d4ed8' : 'color:#94a3b8' }}">
+                                    <div class="fw-semibold"
+                                        style="font-size:13px;
+                                                                            {{ $totalTagihan > 0 ? 'color:#1d4ed8' : 'color:#94a3b8' }}">
                                         {{ $totalTagihan > 0
                     ? 'Rp ' . number_format($totalTagihan, 0, ',', '.')
                     : '— belum diisi' }}
@@ -174,8 +175,9 @@
 
                             {{-- Daftar peserta dalam grup (together & > 1) — tanpa checkbox, hanya info --}}
                             @if(!$isSplit && $grupPermohonan->count() > 1)
-                                <div class="px-4 py-2" style="background:#fafbfc;border-bottom:1px solid #e2e8f0;
-                                                    font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8">
+                                <div class="px-4 py-2"
+                                    style="background:#fafbfc;border-bottom:1px solid #e2e8f0;
+                                                                                    font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8">
                                     Peserta dalam satu tagihan ini
                                 </div>
                                 @foreach($grupPermohonan as $gp)
@@ -194,10 +196,13 @@
                                         ];
                                         $gpSw = $gpSwMap[$gp->status_workflow] ?? ['#f1f5f9', '#475569', $gp->status_workflow];
                                     @endphp
-                                    <div class="d-flex align-items-center px-4 py-2" style="border-bottom:1px solid #f1f5f9;
-                                                            background:{{ $isAktif ? '#eff6ff' : '#fff' }}">
-                                        <div class="me-3 rounded-circle flex-shrink-0" style="width:6px;height:6px;
-                                                                background:{{ $isAktif ? '#3b82f6' : '#cbd5e1' }}"></div>
+                                    <div class="d-flex align-items-center px-4 py-2"
+                                        style="border-bottom:1px solid #f1f5f9;
+                                                                                                    background:{{ $isAktif ? '#eff6ff' : '#fff' }}">
+                                        <div class="me-3 rounded-circle flex-shrink-0"
+                                            style="width:6px;height:6px;
+                                                                                                        background:{{ $isAktif ? '#3b82f6' : '#cbd5e1' }}">
+                                        </div>
                                         <span class="text-muted me-3" style="font-size:12px;min-width:170px">
                                             {{ $gp->no_permohonan }}
                                         </span>
@@ -223,11 +228,13 @@
                             @if($detailItems->count() > 1)
                                 <div class="d-flex border-bottom overflow-auto px-3 pt-2" style="background:#fff;gap:0">
                                     @foreach($detailItems as $idx => $di)
-                                        <button type="button" class="peserta-tab-btn btn btn-link text-decoration-none px-3 py-2 border-0
-                                                               {{ $idx === 0 ? 'fw-semibold' : 'text-muted' }}"
+                                        <button type="button"
+                                            class="peserta-tab-btn btn btn-link text-decoration-none px-3 py-2 border-0
+                                                                                                       {{ $idx === 0 ? 'fw-semibold' : 'text-muted' }}"
                                             style="border-radius:0;font-size:13px;white-space:nowrap;
-                                                               color:{{ $idx === 0 ? '#1d4ed8' : '' }};
-                                                               border-bottom:{{ $idx === 0 ? '2px solid #3b82f6' : '2px solid transparent' }}" onclick="switchPeserta({{ $idx }}, this)">
+                                                                                                       color:{{ $idx === 0 ? '#1d4ed8' : '' }};
+                                                                                                       border-bottom:{{ $idx === 0 ? '2px solid #3b82f6' : '2px solid transparent' }}"
+                                            onclick="switchPeserta({{ $idx }}, this)">
                                             {{ $di->formable?->nama_lengkap ?? $di->lingkupLayanan?->lingkup ?? 'Layanan ' . ($idx + 1) }}
                                         </button>
                                     @endforeach
@@ -248,6 +255,8 @@
                                         str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
                                         ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
                                         ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
+                                        str_starts_with($kode, 'PUP') => 'uji-profisiensi',
+                                        str_starts_with($kode, 'UJI') => 'pengujian',
                                         default => 'default'
                                     };
                                 @endphp

@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react"
 import Swal from "sweetalert2"
+import axios from "axios"
 import api from "../utils/api"
 import { Button } from "../components/ui/Button"
 

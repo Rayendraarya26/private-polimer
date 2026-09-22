@@ -2,6 +2,12 @@
 
 namespace Modules\Eksternal\Http\Controllers\Api;
 
+use App\Models\Db2\Permohonan;
+use App\Models\Db2\DetailPermohonan;
+use App\Models\Db2\FormPengujian;
+use App\Models\Db2\FormPengujianSample;
+use App\Models\Db2\FormPengujianSampleParameter;
+use App\Models\Db2\MasterLingkupLayanan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -714,15 +720,86 @@ class PengujianController extends Controller
                 ]),
             ];
 
-            if (class_exists(\App\Models\Db2\Permohonan::class)) {
-                $permohonan = \App\Models\Db2\Permohonan::create($permohonanData);
-                $permohonanId = $permohonan->id;
+            $permohonan = Permohonan::create($permohonanData);
+            $permohonanId = $permohonan->id;
+
+            // 5. Simpan ke Tabel Header Form Pengujian
+            $formPengujian = FormPengujian::create([
+                'id'                         => (string) Str::uuid(),
+                'permohonan_id'              => $permohonanId,
+                'bahasa_laporan'             => $validated['bahasa_laporan'],
+                'diajukan_oleh'              => $validated['diajukan_oleh'] ?? null,
+                'biaya_sama_dengan_pemohon'  => filter_var($validated['biaya_sama_dengan_pemohon'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'biaya_ditanggung_oleh'      => $validated['biaya_ditanggung_oleh'],
+                'alamat_sama_dengan_pemohon' => filter_var($validated['alamat_sama_dengan_pemohon'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'laporan_dialamatkan_kepada' => $validated['laporan_dialamatkan_kepada'],
+                'keterangan_permintaan'      => $validated['keterangan_permintaan'] ?? null,
+                'cara_pembayaran'            => $validated['cara_pembayaran'],
+                'kategori_tarif'             => $validated['kategori_tarif'],
+                'jenis_uji'                  => $validated['jenis_uji'] ?? null,
+                'permintaan_evaluasi'        => filter_var($validated['permintaan_evaluasi'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'catatan_evaluasi'           => $validated['catatan_evaluasi'] ?? null,
+                'menyaksikan_uji'            => filter_var($validated['menyaksikan_uji'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'catatan_menyaksikan'        => $validated['catatan_menyaksikan'] ?? null,
+                'tanggal_bapc'               => $validated['tanggal_bapc'] ?? null,
+                'no_bapc'                    => $validated['no_bapc'] ?? null,
+                'no_sample'                  => $validated['no_sample'] ?? null,
+                'merek_kode'                 => $validated['merek_kode'] ?? null,
+                'no_surat_pengantar'         => $validated['no_surat_pengantar'] ?? null,
+                'tgl_surat_pengantar'        => !empty($validated['tgl_surat_pengantar']) ? $validated['tgl_surat_pengantar'] : null,
+                'file_surat_pengantar'       => $pathSuratPengantar,
+                'file_ktm'                   => $pathKtm,
+                'total_estimasi_biaya'       => $grandTotal,
+            ]);
+
+            // 6. Simpan Rincian Sampel & Parameter Uji
+            foreach ($processedSamples as $sample) {
+                $sampleRecord = FormPengujianSample::create([
+                    'id'                 => (string) Str::uuid(),
+                    'form_pengujian_id'  => $formPengujian->id,
+                    'urutan'             => $sample['index'] ?? 1,
+                    'nama_sampel'        => $sample['nama_sampel'] ?? 'Sampel',
+                    'bentuk_sampel'      => $sample['bentuk_sampel'] ?? null,
+                    'jumlah_sampel'      => $sample['jumlah_sampel'] ?? 1,
+                    'satuan_sampel'      => $sample['satuan_sampel'] ?? 'Pcs',
+                    'no_lot_bets'        => $sample['no_lot_bets'] ?? null,
+                    'kondisi_sampel'     => $sample['kondisi_sampel'] ?? 'Baik',
+                    'master_komoditi_id' => $sample['master_komoditi_id'] ?? null,
+                    'subtotal'           => $sample['subtotal'] ?? 0,
+                ]);
+
+                $params = $sample['parameters'] ?? [];
+                foreach ($params as $param) {
+                    FormPengujianSampleParameter::create([
+                        'id'                      => (string) Str::uuid(),
+                        'form_pengujian_sample_id'=> $sampleRecord->id,
+                        'master_parameter_id'     => $param['id'] ?? null,
+                        'kode_parameter'          => $param['kode'] ?? null,
+                        'nama_parameter'          => $param['nama'] ?? '',
+                        'metode_uji'              => $param['metode_uji'] ?? null,
+                        'satuan'                  => $param['satuan'] ?? null,
+                        'tarif'                   => $param['tarif'] ?? 0,
+                    ]);
+                }
             }
+
+            // 7. Daftarkan Relasi ke Detail Permohonan (Polymorphic)
+            $lingkup = MasterLingkupLayanan::where('slug', 'LIKE', '%pengujian%')
+                ->orWhere('lingkup', 'LIKE', '%pengujian%')
+                ->first();
+
+            DetailPermohonan::create([
+                'id'                 => (string) Str::uuid(),
+                'permohonan_id'      => $permohonanId,
+                'formable_id'        => $formPengujian->id,
+                'formable_type'      => FormPengujian::class,
+                'lingkup_layanan_id' => $lingkup?->id,
+            ]);
 
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::warning('Permohonan DB write fallback: ' . $e->getMessage());
+            Log::error('Permohonan Pengujian DB write error: ' . $e->getMessage());
         }
 
         return response()->json([
@@ -753,23 +830,27 @@ class PengujianController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            if (class_exists(\App\Models\Db2\Permohonan::class)) {
-                $permohonan = \App\Models\Db2\Permohonan::find($id);
-                if ($permohonan) {
-                    $catatan = json_decode($permohonan->catatan_penawaran ?? '{}', true);
-                    return response()->json([
-                        'success' => true,
-                        'data' => [
-                            'id' => $permohonan->id,
-                            'no_permohonan' => $permohonan->no_permohonan,
-                            'status_workflow' => $permohonan->status_workflow,
-                            'status_bayar' => $permohonan->status_bayar,
-                            'harga_permohonan' => $permohonan->harga_permohonan,
-                            'va' => $permohonan->va,
-                            'detail' => $catatan,
-                        ],
-                    ]);
-                }
+            $permohonan = Permohonan::find($id);
+            if ($permohonan) {
+                $formPengujian = FormPengujian::with(['samples.parameters'])
+                    ->where('permohonan_id', $id)
+                    ->first();
+
+                $catatan = json_decode($permohonan->catatan_penawaran ?? '{}', true);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $permohonan->id,
+                        'no_permohonan' => $permohonan->no_permohonan,
+                        'status_workflow' => $permohonan->status_workflow,
+                        'status_bayar' => $permohonan->status_bayar,
+                        'harga_permohonan' => $permohonan->harga_permohonan,
+                        'va' => $permohonan->va,
+                        'form_pengujian' => $formPengujian,
+                        'detail' => $catatan,
+                    ],
+                ]);
             }
 
             return response()->json([

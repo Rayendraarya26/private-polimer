@@ -424,6 +424,7 @@ class PermohonanController extends Controller
             'formPup.items',
             'formKalibrasi.alatList.nomorSeriList',
             'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
+            'formPengujian.samples.parameters',
             'trackingLogs',
         ]);
 
@@ -468,6 +469,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formKalibrasi && $permohonan->formKalibrasi->isNotEmpty()) {
                 $formData = $permohonan->formKalibrasi->first();
                 $formableType = \App\Models\Db2\FormKalibrasi::class;
+            } elseif ($permohonan->formPengujian && $permohonan->formPengujian->isNotEmpty()) {
+                $formData = $permohonan->formPengujian->first();
+                $formableType = \App\Models\Db2\FormPengujian::class;
             }
         }
 
@@ -485,6 +489,8 @@ class PermohonanController extends Controller
                 $formData->load(['items']);
             } elseif ($formData instanceof \App\Models\Db2\FormKalibrasi) {
                 $formData->load(['alatList.nomorSeriList', 'alatList.kalibrasiItems.masterKalibrasi']);
+            } elseif ($formData instanceof \App\Models\Db2\FormPengujian) {
+                $formData->load(['samples.parameters']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure

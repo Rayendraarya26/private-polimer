@@ -103,10 +103,11 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
       {
         id: "halal",
         name: "Pemeriksaan Halal (LPH)",
-        desc: "Lembaga Pemeriksa Halal untuk produk barang gunaan kulit dan kimia industri.",
-        icon: <ShieldCheck className="w-6 h-6 text-teal-600" />,
+        desc: "Lembaga Pemeriksa Halal (LPH BBSPJIKKP) untuk jalur Reguler dan fasilitasi Self Declare SEHATI BPJPH.",
+        icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
         badge: "BPJPH",
-        isAvailable: false,
+        route: "/permohonan/halal",
+        isAvailable: true,
       },
       // {
       //   id: "verifikasi",

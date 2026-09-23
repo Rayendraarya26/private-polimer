@@ -289,6 +289,7 @@ class HalalController extends Controller
 
             return response()->json([
                 'success' => true,
+                'status' => 'success',
                 'message' => 'Permohonan sertifikasi halal berhasil diajukan!',
                 'data' => [
                     'id' => $permohonan->id,

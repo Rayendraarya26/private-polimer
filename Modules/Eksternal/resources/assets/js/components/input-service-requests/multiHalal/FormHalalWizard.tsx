@@ -284,17 +284,16 @@ export const FormHalalWizard: React.FC = () => {
       const response = await submitPermohonanHalal(payload)
       toast.dismiss(loadingToast)
 
-      if (response.status === "success") {
-        toast.success(response.message || "Permohonan Sertifikasi Halal berhasil diajukan!")
-        localStorage.removeItem(STORAGE_KEY)
-        const permohonanId = response.data?.id
-        if (permohonanId) {
-          navigate(`/permohonan/detail/${permohonanId}`)
-        } else {
-          navigate("/permohonan")
+      if (response?.success || response?.status === "success") {
+        toast.success(response?.message || "Permohonan Sertifikasi Halal berhasil diajukan!")
+        try {
+          localStorage.removeItem(STORAGE_KEY)
+        } catch (e) {
+          console.error("Gagal menghapus draf storage:", e)
         }
+        navigate("/dashboard")
       } else {
-        toast.error(response.message || "Terjadi kesalahan saat memproses permohonan.")
+        toast.error(response?.message || "Terjadi kesalahan saat memproses permohonan.")
       }
     } catch (error: any) {
       toast.dismiss(loadingToast)

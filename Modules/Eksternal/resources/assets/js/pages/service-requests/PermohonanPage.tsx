@@ -187,9 +187,10 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
       },
       {
         id: "miniplant",
-        name: "Miniplant & Prototyping",
+        name: "Miniplant",
         desc: "Pemanfaatan fasilitas pilot plant BBKKP untuk trial batch produksi dan cetakan.",
         icon: <Factory className="w-6 h-6 text-slate-600" />,
+        route: "/permohonan/miniplant",
         isAvailable: false,
       },
     ],

@@ -229,7 +229,7 @@ export const Step4PernyataanKonfirmasi: React.FC<Step4PernyataanKonfirmasiProps>
             <li>
               Salinan resmi Sertifikat Hasil Inspeksi akan dikirimkan kepada{" "}
               <strong className="text-slate-900 font-semibold">
-                {dataPenerima.penerima_hasil_nama || "Perum BULOG"}
+                {dataPenerima.penerima_hasil_nama || "instansi penerima hasil"}
               </strong>{" "}
               sebagai tembusan pelaporan.
             </li>

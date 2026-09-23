@@ -105,18 +105,16 @@ export const Step2PenerimaDanTujuan: React.FC<Step2PenerimaDanTujuanProps> = ({
             {/* Bahasa Indonesia */}
             <div
               onClick={() => handleSelectBahasa("indonesia")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${
-                dataPelaksanaan.bahasa_laporan === "indonesia"
+              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataPelaksanaan.bahasa_laporan === "indonesia"
                   ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
                   : "border-slate-300 hover:border-slate-400 bg-white"
-              }`}
+                }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
-                  dataPelaksanaan.bahasa_laporan === "indonesia"
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataPelaksanaan.bahasa_laporan === "indonesia"
                     ? "bg-brand-600 border-brand-600 text-white"
                     : "border-slate-300 bg-white"
-                }`}
+                  }`}
               >
                 {dataPelaksanaan.bahasa_laporan === "indonesia" && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
@@ -139,18 +137,16 @@ export const Step2PenerimaDanTujuan: React.FC<Step2PenerimaDanTujuanProps> = ({
             {/* Bahasa Inggris */}
             <div
               onClick={() => handleSelectBahasa("inggris")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${
-                dataPelaksanaan.bahasa_laporan === "inggris"
+              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataPelaksanaan.bahasa_laporan === "inggris"
                   ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
                   : "border-slate-300 hover:border-slate-400 bg-white"
-              }`}
+                }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
-                  dataPelaksanaan.bahasa_laporan === "inggris"
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataPelaksanaan.bahasa_laporan === "inggris"
                     ? "bg-brand-600 border-brand-600 text-white"
                     : "border-slate-300 bg-white"
-                }`}
+                  }`}
               >
                 {dataPelaksanaan.bahasa_laporan === "inggris" && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
@@ -217,7 +213,7 @@ export const Step2PenerimaDanTujuan: React.FC<Step2PenerimaDanTujuanProps> = ({
               </label>
               <textarea
                 rows={2}
-                placeholder="Contoh: Jln. Jenderal Gatot Subroto Kav. 49, Jakarta Selatan"
+                placeholder="Contoh: Jl. Industri Raya Blok C3 No. 12, Kel. Pasir Jaya, Kec. Jatiuwung, Kota Tangerang, Banten"
                 className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 value={dataPenerima.penerima_hasil_alamat}
                 onChange={(e) =>

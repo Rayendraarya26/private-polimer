@@ -47,11 +47,11 @@ export const InspeksiDetailPermohonanTab: React.FC<InspeksiDetailSectionProps> =
               <span>Lembaga Inspeksi BBSPJIKKP (Balai Besar Kulit, Karet dan Plastik)</span>
             </div>
             <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Jasa Inspeksi Karung Plastik Beras Bantuan Pangan
+              {formInspeksi?.komoditas ? `Jasa Inspeksi ${formInspeksi.komoditas}` : "Jasa Inspeksi Kemasan Karung Plastik"}
             </h3>
             <p className="text-xs text-brand-100/90 max-w-2xl leading-relaxed">
               Pemeriksaan mutu kuantitas & kualitas kemasan pangan on-site sesuai standar teknis resmi
-              BBSPJIKKP dan Perum BULOG.
+              BBSPJIKKP.
             </p>
           </div>
 
@@ -96,13 +96,13 @@ export const InspeksiDetailPermohonanTab: React.FC<InspeksiDetailSectionProps> =
               <div>
                 <span className="text-slate-400 block">Komoditas:</span>
                 <span className="font-semibold text-slate-800 mt-0.5 block">
-                  {formInspeksi?.komoditas || "Karung Plastik"}
+                  {formInspeksi?.komoditas || "-"}
                 </span>
               </div>
               <div>
                 <span className="text-slate-400 block">Kapasitas Karung:</span>
                 <span className="font-semibold text-slate-800 mt-0.5 block">
-                  {formInspeksi?.kapasitas_karung || "10 kg"}
+                  {formInspeksi?.kapasitas_karung || "-"}
                 </span>
               </div>
             </div>
@@ -218,7 +218,7 @@ export const InspeksiDetailPermohonanTab: React.FC<InspeksiDetailSectionProps> =
             <div>
               <span className="text-slate-400 block">Nama Instansi / Lembaga:</span>
               <span className="font-bold text-slate-900 text-sm block mt-0.5 text-brand-700">
-                {formInspeksi?.penerima_hasil_nama || "Perum BULOG"}
+                {formInspeksi?.penerima_hasil_nama || "-"}
               </span>
             </div>
             <div>

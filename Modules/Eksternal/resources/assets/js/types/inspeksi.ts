@@ -68,13 +68,13 @@ export const initialInspeksiFormData = (): InspeksiFormData => ({
   dataPermohonan: {
     no_surat_pemohon: "",
     tgl_surat_pemohon: getTodayDateString(),
-    tujuan_inspeksi: "Membuktikan mampu produksi kemasan beras bantuan pangan",
+    tujuan_inspeksi: "",
   },
   dataSpesifikasi: {
     jenis_inspeksi: ["kuantitas", "kualitas"],
-    komoditas: "Karung Plastik Beras Bantuan Pangan",
-    kapasitas_karung: "10 kg",
-    spesifikasi_dimensi: "Kemasan beras 10kg, dimensi dan gramatur sesuai standar kemasan pangan",
+    komoditas: "",
+    kapasitas_karung: "",
+    spesifikasi_dimensi: "",
     jumlah_partai_lot: 1,
   },
   dataPelaksanaan: {
@@ -83,8 +83,8 @@ export const initialInspeksiFormData = (): InspeksiFormData => ({
     bahasa_laporan: "indonesia",
   },
   dataPenerima: {
-    penerima_hasil_nama: "Perum BULOG",
-    penerima_hasil_alamat: "Jl. Jenderal Gatot Subroto Kav. 49, Jakarta Selatan",
+    penerima_hasil_nama: "",
+    penerima_hasil_alamat: "",
     penerima_hasil_email: "",
   },
   dataBiaya: {

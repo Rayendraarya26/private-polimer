@@ -146,18 +146,16 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             {/* Opsi 1: Inspeksi Kuantitas */}
             <div
               onClick={() => handleJenisToggle("kuantitas")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${
-                dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
-                  ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
-                  : "border-slate-300 hover:border-slate-400 bg-white"
-              }`}
+              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
+                ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
+                : "border-slate-300 hover:border-slate-400 bg-white"
+                }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
-                  dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
-                    ? "bg-brand-600 border-brand-600 text-white"
-                    : "border-slate-300 bg-white"
-                }`}
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
+                  ? "bg-brand-600 border-brand-600 text-white"
+                  : "border-slate-300 bg-white"
+                  }`}
               >
                 {dataSpesifikasi.jenis_inspeksi.includes("kuantitas") && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
@@ -175,18 +173,16 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             {/* Opsi 2: Inspeksi Kualitas */}
             <div
               onClick={() => handleJenisToggle("kualitas")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${
-                dataSpesifikasi.jenis_inspeksi.includes("kualitas")
-                  ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
-                  : "border-slate-300 hover:border-slate-400 bg-white"
-              }`}
+              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataSpesifikasi.jenis_inspeksi.includes("kualitas")
+                ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
+                : "border-slate-300 hover:border-slate-400 bg-white"
+                }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
-                  dataSpesifikasi.jenis_inspeksi.includes("kualitas")
-                    ? "bg-brand-600 border-brand-600 text-white"
-                    : "border-slate-300 bg-white"
-                }`}
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataSpesifikasi.jenis_inspeksi.includes("kualitas")
+                  ? "bg-brand-600 border-brand-600 text-white"
+                  : "border-slate-300 bg-white"
+                  }`}
               >
                 {dataSpesifikasi.jenis_inspeksi.includes("kualitas") && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
@@ -259,8 +255,9 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
                   }))
                 }
               >
-                <option value="10 kg">10 kg (Standar Banpang)</option>
+                <option value="">-- Pilih Kapasitas Karung --</option>
                 <option value="5 kg">5 kg</option>
+                <option value="10 kg">10 kg</option>
                 <option value="20 kg">20 kg</option>
                 <option value="25 kg">25 kg</option>
                 <option value="50 kg">50 kg</option>
@@ -271,11 +268,11 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Rincian Dimensi & Spesifikasi Karung yang Diminta
+              Rincian Dimensi & Spesifikasi Karung yang Diminta <span className="text-slate-400 font-normal">(opsional)</span>
             </label>
             <textarea
               rows={3}
-              placeholder="Lengkapi dengan dimensi panjang x lebar, anyaman/mesh, gramatur, jahitan, atau benang kuran yang diminta..."
+              placeholder="Contoh: Kemasan beras 10kg, dimensi 30 cm x 45 cm, anyaman 10x10, gramatur dan jahitan sesuai spesifikasi..."
               className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               value={dataSpesifikasi.spesifikasi_dimensi}
               onChange={(e) =>
@@ -362,7 +359,7 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
               </label>
               <textarea
                 rows={2}
-                placeholder="Contoh: PT Karunia Plastindo Abadi - Jl. Raya Narogong Km 23.5, Desa Dayeuh, Kec. Cileungsi, Kab. Bogor, Jawa Barat"
+                placeholder="Contoh: PT Cahaya Abadi Sentosa - Jl. Raya Solo-Sragen Km. 7, Desa Jaten, Kec. Jaten, Kab. Karanganyar, Jawa Tengah"
                 className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 value={dataPelaksanaan.lokasi_inspeksi}
                 onChange={(e) =>

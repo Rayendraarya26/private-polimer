@@ -30,7 +30,7 @@ const STORAGE_KEY = "DRAFT_PERMOHONAN_INSPEKSI"
 
 const STEPS = [
   { id: 0, title: "Spesifikasi & Rencana", icon: PackageCheck, desc: "Data karung & tanggal inspeksi" },
-  { id: 1, title: "Tujuan & Penerima", icon: Target, desc: "Bahasa & instansi Bulog" },
+  { id: 1, title: "Tujuan & Penerima", icon: Target, desc: "Bahasa & instansi penerima" },
   { id: 2, title: "Biaya & Pemohon", icon: Wallet, desc: "Penanggung biaya & kontak PIC" },
   { id: 3, title: "Berkas & Pernyataan", icon: ShieldCheck, desc: "Upload surat & persetujuan" },
 ]
@@ -64,11 +64,28 @@ export const FormInspeksiWizard: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved)
         if (parsed.formData) {
-          return {
+          const loaded = {
             ...initial,
             ...parsed.formData,
             file_surat_permohonan: null, // File tidak dapat diserialisasi ke localStorage
           }
+          // Bersihkan sisa nilai mock hardcoded dari draft sebelumnya jika ada
+          if (loaded.dataSpesifikasi?.komoditas === "Karung Plastik Beras Bantuan Pangan") {
+            loaded.dataSpesifikasi.komoditas = ""
+          }
+          if (loaded.dataSpesifikasi?.spesifikasi_dimensi === "Kemasan beras 10kg, dimensi dan gramatur sesuai standar kemasan pangan") {
+            loaded.dataSpesifikasi.spesifikasi_dimensi = ""
+          }
+          if (loaded.dataPermohonan?.tujuan_inspeksi === "Membuktikan mampu produksi kemasan beras bantuan pangan") {
+            loaded.dataPermohonan.tujuan_inspeksi = ""
+          }
+          if (loaded.dataPenerima?.penerima_hasil_nama === "Perum BULOG") {
+            loaded.dataPenerima.penerima_hasil_nama = ""
+          }
+          if (loaded.dataPenerima?.penerima_hasil_alamat === "Jl. Jenderal Gatot Subroto Kav. 49, Jakarta Selatan") {
+            loaded.dataPenerima.penerima_hasil_alamat = ""
+          }
+          return loaded
         }
       }
     } catch (e) {
@@ -191,12 +208,7 @@ export const FormInspeksiWizard: React.FC = () => {
         }
 
         toast.success(res.message || "Permohonan inspeksi berhasil dikirim!")
-        const permohonanId = res.data?.id
-        if (permohonanId) {
-          navigate(`/permohonan/detail/${permohonanId}`)
-        } else {
-          navigate("/permohonan")
-        }
+        navigate("/dashboard")
       } else {
         toast.error(res?.message || "Gagal mengajukan permohonan inspeksi")
       }

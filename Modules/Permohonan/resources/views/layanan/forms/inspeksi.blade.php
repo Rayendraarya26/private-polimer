@@ -50,9 +50,9 @@
             <div class="insp-stat-card border-start border-4 border-primary">
                 <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Komoditas Objek</span>
                 <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 13px;">
-                    {{ $form->komoditas ?? 'Karung Plastik' }}
+                    {{ $form->komoditas ?: '-' }}
                 </h6>
-                <small class="text-muted">Kapasitas: {{ $form->kapasitas_karung ?? '10 kg' }}</small>
+                <small class="text-muted">Kapasitas: {{ $form->kapasitas_karung ?: '-' }}</small>
             </div>
         </div>
 
@@ -80,9 +80,9 @@
             <div class="insp-stat-card border-start border-4 border-warning">
                 <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Penerima Hasil</span>
                 <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 13px;">
-                    {{ $form->penerima_hasil_nama ?? 'Perum BULOG' }}
+                    {{ $form->penerima_hasil_nama ?: '-' }}
                 </h6>
-                <small class="text-muted">Tujuan: {{ Str::limit($form->tujuan_inspeksi ?? 'Bantuan Pangan', 25) }}</small>
+                <small class="text-muted">Tujuan: {{ Str::limit($form->tujuan_inspeksi ?: '-', 25) }}</small>
             </div>
         </div>
     </div>
@@ -112,13 +112,13 @@
             <div class="detail-insp-row">
                 <div class="detail-insp-label">Komoditas Karung</div>
                 <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->komoditas ?? 'Karung Plastik Beras Bantuan Pangan' }}</div>
+                <div class="detail-insp-value fw-semibold">{{ $form->komoditas ?: '-' }}</div>
             </div>
 
             <div class="detail-insp-row">
                 <div class="detail-insp-label">Kapasitas Karung</div>
                 <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->kapasitas_karung ?? '10 kg' }}</div>
+                <div class="detail-insp-value fw-semibold">{{ $form->kapasitas_karung ?: '-' }}</div>
             </div>
 
             <div class="detail-insp-row">
@@ -220,7 +220,7 @@
             <div class="detail-insp-row">
                 <div class="detail-insp-label">Nama Lembaga / Instansi</div>
                 <div>:</div>
-                <div class="detail-insp-value fw-bold text-dark">{{ $form->penerima_hasil_nama ?? 'Perum BULOG' }}</div>
+                <div class="detail-insp-value fw-bold text-dark">{{ $form->penerima_hasil_nama ?: '-' }}</div>
             </div>
 
             <div class="detail-insp-row">

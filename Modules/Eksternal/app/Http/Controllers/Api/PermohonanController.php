@@ -159,7 +159,7 @@ class PermohonanController extends Controller
             } elseif ($form instanceof \App\Models\Db2\FormPengujian) {
                 $komoditi = $form->samples?->pluck('nama_sampel')->implode(', ') ?: 'Uji Mutu Laboratorium';
             } elseif ($form instanceof \App\Models\Db2\FormInspeksi) {
-                $komoditi = $form->komoditas ?: 'Karung Plastik Beras Bantuan Pangan';
+                $komoditi = $form->komoditas ?: 'Jasa Inspeksi Kemasan';
             } elseif ($form instanceof \App\Models\Db2\FormHalal) {
                 $komoditi = ($form->jalur_pendaftaran === 'self_declare' ? 'Self Declare (SEHATI)' : 'Reguler (Audit LPH)') . ' - ' . ($form->nama_usaha ?: 'Sertifikasi Halal');
             }

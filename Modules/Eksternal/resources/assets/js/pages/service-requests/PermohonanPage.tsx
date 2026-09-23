@@ -19,6 +19,7 @@ import {
   Info,
   Sprout,
   MapPinPen,
+  PackageCheck,
 } from "lucide-react"
 import { useProfileStatus } from "../../hooks/usePermohonan"
 import Head from "../../components/common/Head"
@@ -57,6 +58,15 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         icon: <Gauge className="w-6 h-6 text-emerald-600" />,
         badge: "LK-005-IDN",
         route: "/permohonan/kalibrasi",
+        isAvailable: true,
+      },
+      {
+        id: "inspeksi",
+        name: "Inspeksi Teknis & Karung Plastik",
+        desc: "Inspeksi kuantitas dan kualitas kemasan karung beras bantuan pangan (Banpang) Perum BULOG.",
+        icon: <PackageCheck className="w-6 h-6 text-blue-600" />,
+        badge: "Banpang BULOG",
+        route: "/permohonan/inspeksi",
         isAvailable: true,
       },
       {

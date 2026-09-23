@@ -53,6 +53,19 @@ import {
 import {
   PengujianDetailPermohonanTab,
 } from "../../components/detail-service-requests/PengujianDetailSection"
+import {
+  InspeksiDetailPermohonanTab,
+  InspeksiDetailPelangganTab,
+} from "../../components/detail-service-requests/InspeksiDetailSection"
+
+const inspeksiWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen Karung" },
+  { key: "KAJIAN_TEKNIS", label: "Kajian Teknis", desc: "Review Tim Inspektur" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Estimasi Biaya" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Pelaksanaan Inspeksi", desc: "Pemeriksaan Lapangan" },
+  { key: "DONE", label: "Laporan Terbit", desc: "Sertifikat Hasil Inspeksi" },
+]
 
 const workflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen" },
@@ -415,8 +428,20 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isPengujian = Boolean(
+  const isInspeksi = Boolean(
     !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && (
+      noOrder.includes("INSP") ||
+      noOrder.startsWith("INS") ||
+      permohonan?.formable_type?.includes("FormInspeksi") ||
+      lingkup?.slug?.includes("inspeksi") ||
+      Boolean(formData?.penerima_hasil_nama) ||
+      (Array.isArray(permohonan?.form_inspeksi) && permohonan.form_inspeksi.length > 0) ||
+      (Array.isArray(permohonan?.formInspeksi) && permohonan.formInspeksi.length > 0)
+    )
+  )
+
+  const isPengujian = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isInspeksi && (
       noOrder.startsWith("UJI") ||
       noOrder.startsWith("TEST") ||
       permohonan?.formable_type?.includes("FormPengujian") ||
@@ -426,7 +451,7 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian)
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi)
 
   const formPupData = isPup
     ? (formData?.nama_lab_kalibrasi
@@ -445,6 +470,16 @@ export const DetailPermohonanPage: React.FC = () => {
             ? permohonan.form_kalibrasi[0]
             : (Array.isArray(permohonan?.formKalibrasi) && permohonan.formKalibrasi.length > 0
                 ? permohonan.formKalibrasi[0]
+                : formData)))
+    : null
+
+  const formInspeksiData = isInspeksi
+    ? (formData?.penerima_hasil_nama
+        ? formData
+        : (Array.isArray(permohonan?.form_inspeksi) && permohonan.form_inspeksi.length > 0
+            ? permohonan.form_inspeksi[0]
+            : (Array.isArray(permohonan?.formInspeksi) && permohonan.formInspeksi.length > 0
+                ? permohonan.formInspeksi[0]
                 : formData)))
     : null
 
@@ -468,9 +503,11 @@ export const DetailPermohonanPage: React.FC = () => {
           ? grkWorkflowSteps
           : isKalibrasi
             ? kalibrasiWorkflowSteps
-            : isPengujian
-              ? pengujianWorkflowSteps
-              : workflowSteps
+            : isInspeksi
+              ? inspeksiWorkflowSteps
+              : isPengujian
+                ? pengujianWorkflowSteps
+                : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -1415,10 +1452,12 @@ export const DetailPermohonanPage: React.FC = () => {
                   ? "Data Laboratorium"
                   : isPelatihan
                     ? "Data Instansi / Peserta"
-                    : "Data Perusahaan"}
+                    : isInspeksi
+                      ? "Penerima & Pemohon"
+                      : "Data Perusahaan"}
               </span>
             </div>
-            {!isPup && !isPelatihan && pabriks.length > 0 && (
+            {!isPup && !isPelatihan && !isInspeksi && pabriks.length > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "perusahaan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                 {pabriks.length} Pabrik
@@ -1501,6 +1540,12 @@ export const DetailPermohonanPage: React.FC = () => {
             <KalibrasiDetailPermohonanTab
               permohonan={permohonan}
               formKalibrasi={formKalibrasiData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : isInspeksi ? (
+            <InspeksiDetailPermohonanTab
+              permohonan={permohonan}
+              formInspeksi={formInspeksiData}
               formatIndoDate={formatIndoDate}
             />
           ) : isPelatihan ? (
@@ -1866,6 +1911,12 @@ export const DetailPermohonanPage: React.FC = () => {
               formKalibrasi={formKalibrasiData}
               formatIndoDate={formatIndoDate}
             />
+          ) : isInspeksi ? (
+            <InspeksiDetailPelangganTab
+              permohonan={permohonan}
+              formInspeksi={formInspeksiData}
+              formatIndoDate={formatIndoDate}
+            />
           ) : (
             <div className="space-y-6 animate-in fade-in-50 duration-200">
               {/* Profil & Identitas Legal Perusahaan */}
@@ -2125,7 +2176,9 @@ export const DetailPermohonanPage: React.FC = () => {
                               ? "Penawaran Biaya Sertifikasi Profesi (LSP)"
                               : isGrk
                                 ? "Penawaran Biaya Validasi & Verifikasi GRK"
-                                : "Surat Penawaran Biaya Layanan Sertifikasi"}
+                                : isInspeksi
+                                  ? "Penawaran Biaya Jasa Inspeksi"
+                                  : "Surat Penawaran Biaya Layanan Sertifikasi"}
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {isPup
@@ -2136,11 +2189,13 @@ export const DetailPermohonanPage: React.FC = () => {
                               ? "Rincian biaya uji kompetensi dan sertifikasi profesi BNSP."
                               : isGrk
                                 ? "Rincian estimasi biaya penugasan validator/verifikator gas rumah kaca."
-                                : isPendingApproval
-                                  ? "Tim Marketing telah menerbitkan estimasi biaya definitif. Mohon tinjau dan berikan persetujuan Anda."
-                                  : isPenawaranDisetujui
-                                    ? "Penawaran biaya telah disetujui. Menunggu atau telah diterbitkan tagihan resmi."
-                                    : "Penawaran biaya dalam peninjauan oleh Marketing."}
+                                : isInspeksi
+                                  ? "Rincian tarif PNBP resmi jasa inspeksi karung plastik banpang."
+                                  : isPendingApproval
+                                    ? "Tim Marketing telah menerbitkan estimasi biaya definitif. Mohon tinjau dan berikan persetujuan Anda."
+                                    : isPenawaranDisetujui
+                                      ? "Penawaran biaya telah disetujui. Menunggu atau telah diterbitkan tagihan resmi."
+                                      : "Penawaran biaya dalam peninjauan oleh Marketing."}
                       </p>
                     </div>
                   </div>

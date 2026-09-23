@@ -122,6 +122,8 @@ class PermohonanController extends Controller
                 ?? $form?->nama_peserta 
                 ?? $form?->diajukan_oleh
                 ?? $form?->biaya_ditanggung_oleh
+                ?? $form?->biaya_nama
+                ?? $form?->pemohon_pic_nama
                 ?? $item->creator?->name 
                 ?? '-';
 
@@ -135,6 +137,7 @@ class PermohonanController extends Controller
                 elseif (str_starts_with($item->no_permohonan, 'PUP')) $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
                 elseif (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB')) $layananNama = 'Kalibrasi Alat';
                 elseif (str_starts_with($item->no_permohonan, 'UJI')) $layananNama = 'Pengujian Laboratorium';
+                elseif (str_contains($item->no_permohonan, 'INSP') || str_starts_with($item->no_permohonan, 'INS')) $layananNama = 'Inspeksi Teknis (Karung Plastik)';
                 else $layananNama = 'Layanan BBKKP';
             }
 
@@ -155,6 +158,8 @@ class PermohonanController extends Controller
                 $komoditi = $form->alatList?->pluck('nama_alat')->implode(', ') ?: 'Jasa Kalibrasi Alat';
             } elseif ($form instanceof \App\Models\Db2\FormPengujian) {
                 $komoditi = $form->samples?->pluck('nama_sampel')->implode(', ') ?: 'Uji Mutu Laboratorium';
+            } elseif ($form instanceof \App\Models\Db2\FormInspeksi) {
+                $komoditi = $form->komoditas ?: 'Karung Plastik Beras Bantuan Pangan';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -430,6 +435,7 @@ class PermohonanController extends Controller
             'formKalibrasi.alatList.nomorSeriList',
             'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
             'formPengujian.samples.parameters',
+            'formInspeksi',
             'trackingLogs',
         ]);
 
@@ -477,6 +483,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formPengujian && $permohonan->formPengujian->isNotEmpty()) {
                 $formData = $permohonan->formPengujian->first();
                 $formableType = \App\Models\Db2\FormPengujian::class;
+            } elseif ($permohonan->formInspeksi && $permohonan->formInspeksi->isNotEmpty()) {
+                $formData = $permohonan->formInspeksi->first();
+                $formableType = \App\Models\Db2\FormInspeksi::class;
             }
         }
 

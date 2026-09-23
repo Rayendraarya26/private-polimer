@@ -57,6 +57,18 @@ import {
   InspeksiDetailPermohonanTab,
   InspeksiDetailPelangganTab,
 } from "../../components/detail-service-requests/InspeksiDetailSection"
+import {
+  HalalDetailPermohonanTab,
+} from "../../components/detail-service-requests/HalalDetailSection"
+
+const halalWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen Pelaku Usaha" },
+  { key: "KAJIAN_TEKNIS", label: "Verifikasi Berkas", desc: "Verifikasi Kelayakan & Dokumen" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Kajian Biaya LPH (Jika Reguler)" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice / Fasilitasi SEHATI" },
+  { key: "PROCESS", label: "Pemeriksaan / Audit", desc: "Audit Lapangan & Sidang Fatwa" },
+  { key: "DONE", label: "Sertifikat Terbit", desc: "Ketetapan Halal & Sertifikat BPJPH" },
+]
 
 const inspeksiWorkflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen Karung" },
@@ -377,7 +389,9 @@ export const DetailPermohonanPage: React.FC = () => {
                   ? "Kalibrasi Alat"
                   : noOrder.startsWith("UJI") || noOrder.startsWith("TEST")
                     ? "Pengujian Laboratorium"
-                    : "Layanan BBSPJIKKP")
+                    : noOrder.includes("HLL") || noOrder.startsWith("HAL")
+                      ? "Sertifikasi Halal (LPH BBSPJIKKP)"
+                      : "Layanan BBSPJIKKP")
 
   // Deteksi Tipe / Lingkup Permohonan Secara Akurat (Strict)
   const isPup = Boolean(
@@ -451,7 +465,19 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi)
+  const isHalal = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isInspeksi && !isPengujian && (
+      noOrder.includes("HLL") ||
+      noOrder.startsWith("HAL") ||
+      permohonan?.formable_type?.includes("FormHalal") ||
+      lingkup?.slug?.includes("halal") ||
+      Boolean(formData?.jalur_pendaftaran) ||
+      (Array.isArray(permohonan?.form_halal) && permohonan.form_halal.length > 0) ||
+      (Array.isArray(permohonan?.formHalal) && permohonan.formHalal.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal)
 
   const formPupData = isPup
     ? (formData?.nama_lab_kalibrasi
@@ -493,6 +519,16 @@ export const DetailPermohonanPage: React.FC = () => {
                 : formData)))
     : null
 
+  const formHalalData = isHalal
+    ? (formData?.jalur_pendaftaran
+        ? formData
+        : (Array.isArray(permohonan?.form_halal) && permohonan.form_halal.length > 0
+            ? permohonan.form_halal[0]
+            : (Array.isArray(permohonan?.formHalal) && permohonan.formHalal.length > 0
+                ? permohonan.formHalal[0]
+                : formData)))
+    : null
+
   const activeWorkflowSteps = isPup
     ? pupWorkflowSteps
     : isPelatihan
@@ -507,7 +543,9 @@ export const DetailPermohonanPage: React.FC = () => {
               ? inspeksiWorkflowSteps
               : isPengujian
                 ? pengujianWorkflowSteps
-                : workflowSteps
+                : isHalal
+                  ? halalWorkflowSteps
+                  : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -1428,12 +1466,16 @@ export const DetailPermohonanPage: React.FC = () => {
                         ? "Skema & Calon Asesi"
                         : isGrk
                           ? "Data Proyek GRK"
-                          : "Data Permohonan"}
+                          : isInspeksi
+                            ? "Spesifikasi Inspeksi"
+                            : isHalal
+                              ? "Data Produk & Bahan Halal"
+                              : "Data Permohonan"}
               </span>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
-              {isPengujian ? (formPengujianData?.samples?.length || 1) : isPup ? (formPupData?.items?.length || 1) : (items.length > 0 ? items.length : 1)}
+              {isPengujian ? (formPengujianData?.samples?.length || 1) : isPup ? (formPupData?.items?.length || 1) : isHalal ? (formHalalData?.produk_json?.length || 1) : (items.length > 0 ? items.length : 1)}
             </span>
           </button>
 
@@ -1546,6 +1588,12 @@ export const DetailPermohonanPage: React.FC = () => {
             <InspeksiDetailPermohonanTab
               permohonan={permohonan}
               formInspeksi={formInspeksiData}
+              formatIndoDate={formatIndoDate}
+            />
+          ) : isHalal ? (
+            <HalalDetailPermohonanTab
+              permohonan={permohonan}
+              formHalal={formHalalData}
               formatIndoDate={formatIndoDate}
             />
           ) : isPelatihan ? (

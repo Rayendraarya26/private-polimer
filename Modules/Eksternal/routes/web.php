@@ -28,6 +28,7 @@ use Modules\Eksternal\Http\Controllers\Api\PengujianController;
 use Modules\Eksternal\Http\Controllers\Api\KalibrasiController;
 use Modules\Eksternal\Http\Controllers\Api\PupController;
 use Modules\Eksternal\Http\Controllers\Api\InspeksiController;
+use Modules\Eksternal\Http\Controllers\Api\HalalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -233,6 +234,11 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('inspeksi')->group(function () {
             Route::post('/', [InspeksiController::class, 'store']);
             Route::get('/{id}', [InspeksiController::class, 'show']);
+        });
+
+        Route::prefix('halal')->group(function () {
+            Route::post('/', [HalalController::class, 'store']);
+            Route::get('/{id}', [HalalController::class, 'show']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

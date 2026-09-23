@@ -160,6 +160,8 @@ class PermohonanController extends Controller
                 $komoditi = $form->samples?->pluck('nama_sampel')->implode(', ') ?: 'Uji Mutu Laboratorium';
             } elseif ($form instanceof \App\Models\Db2\FormInspeksi) {
                 $komoditi = $form->komoditas ?: 'Karung Plastik Beras Bantuan Pangan';
+            } elseif ($form instanceof \App\Models\Db2\FormHalal) {
+                $komoditi = ($form->jalur_pendaftaran === 'self_declare' ? 'Self Declare (SEHATI)' : 'Reguler (Audit LPH)') . ' - ' . ($form->nama_usaha ?: 'Sertifikasi Halal');
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -436,6 +438,7 @@ class PermohonanController extends Controller
             'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
             'formPengujian.samples.parameters',
             'formInspeksi',
+            'formHalal',
             'trackingLogs',
         ]);
 
@@ -486,6 +489,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formInspeksi && $permohonan->formInspeksi->isNotEmpty()) {
                 $formData = $permohonan->formInspeksi->first();
                 $formableType = \App\Models\Db2\FormInspeksi::class;
+            } elseif ($permohonan->formHalal && $permohonan->formHalal->isNotEmpty()) {
+                $formData = $permohonan->formHalal->first();
+                $formableType = \App\Models\Db2\FormHalal::class;
             }
         }
 

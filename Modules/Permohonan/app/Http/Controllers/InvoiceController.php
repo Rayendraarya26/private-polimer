@@ -27,6 +27,7 @@ class InvoiceController extends Controller
         $pelatihan   = $permohonan->formPelatihan?->first();
         $lsp         = $permohonan->formLsp?->first();
         $inspeksi    = $permohonan->formInspeksi?->first();
+        $halal       = $permohonan->formHalal?->first();
         $creator     = $permohonan->creator;
 
         // Ambil data pelanggan & detail relasi polimorfik
@@ -54,6 +55,11 @@ class InvoiceController extends Controller
             $invoiceTargetAddress = $inspeksi->biaya_alamat ?: ($inspeksi->pemohon_pic_alamat ?: '-');
             $telepon              = $inspeksi->pemohon_pic_kontak ?: ($creator?->no_hp ?: '-');
             $surel                = $inspeksi->biaya_email ?: ($creator?->email ?: '-');
+        } elseif ($halal) {
+            $invoiceTargetName    = $halal->nama_usaha ?: ($halal->pj_nama ?: ($creator?->name ?: 'Pelanggan BBKKP'));
+            $invoiceTargetAddress = $halal->pj_alamat ?: '-';
+            $telepon              = $halal->pj_kontak ?: ($creator?->no_hp ?: '-');
+            $surel                = $halal->pj_email ?: ($creator?->email ?: '-');
         } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
             $invoiceTargetName    = $pelatihan?->nama_lengkap
@@ -452,6 +458,7 @@ class InvoiceController extends Controller
             'formLsp',
             'formSertifikasi',
             'formInspeksi',
+            'formHalal',
         ])->findOrFail($id);
 
 
@@ -531,7 +538,7 @@ class InvoiceController extends Controller
         $nik = $pegawai->nik;
 
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'creator'
         ])->findOrFail($id);
 
         if ($permohonan->status_bayar !== 'LUNAS') {
@@ -688,6 +695,7 @@ class InvoiceController extends Controller
             'formPelatihan',
             'formLsp',
             'formInspeksi',
+            'formHalal',
             'creator',
         ])->findOrFail($id);
 

@@ -74,6 +74,7 @@
                                 str_starts_with($kode, 'GRK') => 'Validasi & Verifikasi GRK',
                                 str_contains($kode, 'LABKAL') => 'Kalibrasi',
                                 str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') => 'Inspeksi Teknis (Karung Plastik)',
+                                str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') => 'Sertifikasi Halal (LPH BBSPJIKKP)',
                                 default => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                             };
 
@@ -246,7 +247,7 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formInspeksi?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'REG') => 'pelatihan',
@@ -259,6 +260,7 @@
                                         str_starts_with($kode, 'PUP') => 'uji-profisiensi',
                                         str_starts_with($kode, 'UJI') => 'pengujian',
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
+                                        str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         default => 'default'
                                     };
                                 @endphp

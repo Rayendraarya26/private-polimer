@@ -63,7 +63,7 @@ class BillingPembayaranController extends Controller
 
         // 2. Ambil data pelanggan perusahaan & permohonan yang belum memiliki billing
         $pelangganRaw = Pelanggan::with(['detail', 'user'])->get();
-        $permohonanList = Permohonan::with(['formSertifikasi', 'formPelatihan', 'formLsp', 'penawaranBiaya', 'creator', 'detailPermohonan.lingkupLayanan'])
+        $permohonanList = Permohonan::with(['formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'penawaranBiaya', 'creator', 'detailPermohonan.lingkupLayanan'])
             ->whereNotIn('id', $billedMohonIds)
             ->latest()
             ->get();
@@ -94,7 +94,8 @@ class BillingPembayaranController extends Controller
         // 2. Dari master Permohonan (agar semua perusahaan pemohon tercakup dan tetap unik)
         foreach ($permohonanList as $mohon) {
             $form = $mohon->formSertifikasi->first();
-            $namaPerusahaan = $form?->nama_perusahaan ?? $mohon->creator?->name;
+            $inspeksi = $mohon->formInspeksi->first();
+            $namaPerusahaan = $form?->nama_perusahaan ?? $inspeksi?->biaya_nama ?? $mohon->creator?->name;
             if (!empty($namaPerusahaan)) {
                 $key = strtolower(trim($namaPerusahaan));
                 if (!isset($usedCompanyNames[$key])) {
@@ -103,7 +104,7 @@ class BillingPembayaranController extends Controller
                         'id' => $mohon->id,
                         'user_id' => $mohon->created_by,
                         'nama_perusahaan' => $namaPerusahaan,
-                        'email' => $form?->email ?? $mohon->creator?->email ?? '-',
+                        'email' => $form?->email ?? $inspeksi?->biaya_email ?? $mohon->creator?->email ?? '-',
                     ]);
                 }
             }
@@ -112,7 +113,8 @@ class BillingPembayaranController extends Controller
         // Siapkan data permohonan untuk JS
         $permohonanJson = $permohonanList->map(function($item) {
             $form = $item->formSertifikasi->first();
-            $perusahaan = $form?->nama_perusahaan ?? $item->creator?->name ?? 'Pelanggan #' . $item->no_permohonan;
+            $inspeksi = $item->formInspeksi->first();
+            $perusahaan = $form?->nama_perusahaan ?? $inspeksi?->biaya_nama ?? $item->creator?->name ?? 'Pelanggan #' . $item->no_permohonan;
             
             $jenisPengajuan = $form?->jenis_pengajuan ? " (" . ucfirst($form->jenis_pengajuan) . ")" : "";
             $lingkup = $item->detailPermohonan->first()?->lingkupLayanan?->nama_layanan ?? '';

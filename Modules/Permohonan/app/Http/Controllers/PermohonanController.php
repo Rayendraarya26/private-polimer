@@ -101,6 +101,9 @@ class PermohonanController extends Controller
                 return $detail?->formable->nama_perusahaan 
                     ?? $detail?->formable->nama_lengkap 
                     ?? $detail?->formable->nama_peserta 
+                    ?? $detail?->formable->biaya_nama
+                    ?? $detail?->formable->pemohon_pic_nama
+                    ?? $detail?->formable->penerima_hasil_nama
                     ?? $row->creator?->name 
                     ?? '-';
             })
@@ -108,6 +111,7 @@ class PermohonanController extends Controller
                 if (str_starts_with($row->no_permohonan, 'LSP')) return 'Sertifikasi Profesi (LSP)';
                 if (str_starts_with($row->no_permohonan, 'REG') || str_starts_with($row->no_permohonan, 'UMK') || str_starts_with($row->no_permohonan, 'TRN')) return 'Pelatihan';
                 if (str_starts_with($row->no_permohonan, 'CERT') || str_starts_with($row->no_permohonan, 'SRT')) return 'Sertifikasi Produk & Sistem (LSPro)';
+                if (str_contains($row->no_permohonan, 'INSP') || str_starts_with($row->no_permohonan, 'INS')) return 'Inspeksi Teknis';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -239,13 +243,15 @@ class PermohonanController extends Controller
                 }
 
                 $formable = $row->detailPermohonan->first()?->formable;
-                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? '-';
+                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP'))
                     return 'Sertifikasi Profesi (LSP)';
                 if (str_starts_with($row->no_permohonan, 'REG'))
                     return 'Pelatihan';
+                if (str_contains($row->no_permohonan, 'INSP') || str_starts_with($row->no_permohonan, 'INS'))
+                    return 'Inspeksi Teknis';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -275,6 +281,7 @@ class PermohonanController extends Controller
             'creator',
             'pelanggan',
             'formSertifikasi',
+            'formInspeksi',
             'formGrkVerifikasi.emisi',
             'formGrkVerifikasi.dokumen',
         ])->findOrFail($id);
@@ -317,6 +324,7 @@ class PermohonanController extends Controller
             'formSertifikasi',
             'formPelatihan',
             'formLsp',
+            'formInspeksi',
             'creator'
         ])->findOrFail($id);
 
@@ -460,6 +468,7 @@ class PermohonanController extends Controller
                 str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
                 str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
                 str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
+                str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
                 default                                             => 'Biaya Layanan',
             };
 
@@ -470,18 +479,21 @@ class PermohonanController extends Controller
 
             $pelatihan   = $permohonan->formPelatihan?->first();
             $lsp         = $permohonan->formLsp?->first();
+            $inspeksi    = $permohonan->formInspeksi?->first();
             $creator     = $permohonan->creator;
 
             $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
                 ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
+                ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
                 ?: ($creator?->name ?: 'Pelanggan BBKKP');
 
             $alamatPemohon = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
                 ?: ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+                ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
                 ?: '-';
 
-            $teleponPemohon = ($pelatihan?->no_telp ?: $creator?->phone) ?: '081234567890';
-            $emailPemohon   = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
+            $teleponPemohon = ($pelatihan?->no_telp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak) ?: '081234567890';
+            $emailPemohon   = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $inspeksi?->biaya_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
             try {
                 $bniService = new BniVaService();

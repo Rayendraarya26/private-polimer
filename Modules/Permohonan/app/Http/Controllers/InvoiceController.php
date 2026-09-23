@@ -26,6 +26,7 @@ class InvoiceController extends Controller
         $sertifikasi = $permohonan->formSertifikasi?->first();
         $pelatihan   = $permohonan->formPelatihan?->first();
         $lsp         = $permohonan->formLsp?->first();
+        $inspeksi    = $permohonan->formInspeksi?->first();
         $creator     = $permohonan->creator;
 
         // Ambil data pelanggan & detail relasi polimorfik
@@ -48,6 +49,11 @@ class InvoiceController extends Controller
             $invoiceTargetAddress = $sertifikasi->alamat_kantor ?: '-';
             $telepon              = $sertifikasi->no_whatsapp ?: ($sertifikasi->no_telp ?: ($creator?->no_hp ?: '-'));
             $surel                = $sertifikasi->email ?: ($creator?->email ?: '-');
+        } elseif ($inspeksi) {
+            $invoiceTargetName    = $inspeksi->biaya_nama ?: ($inspeksi->pemohon_pic_nama ?: ($creator?->name ?: 'Pelanggan BBKKP'));
+            $invoiceTargetAddress = $inspeksi->biaya_alamat ?: ($inspeksi->pemohon_pic_alamat ?: '-');
+            $telepon              = $inspeksi->pemohon_pic_kontak ?: ($creator?->no_hp ?: '-');
+            $surel                = $inspeksi->biaya_email ?: ($creator?->email ?: '-');
         } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
             $invoiceTargetName    = $pelatihan?->nama_lengkap
@@ -179,7 +185,7 @@ class InvoiceController extends Controller
             ]);
 
             $permohonan = Permohonan::with([
-                'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi',
+                'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi',
             ])->findOrFail($id);
 
             $detailPembayaran = $this->buildDetailPembayaran($permohonan);
@@ -444,6 +450,8 @@ class InvoiceController extends Controller
             'detailPembayaran',
             'formPelatihan',
             'formLsp',
+            'formSertifikasi',
+            'formInspeksi',
         ])->findOrFail($id);
 
 
@@ -523,7 +531,7 @@ class InvoiceController extends Controller
         $nik = $pegawai->nik;
 
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'creator'
         ])->findOrFail($id);
 
         if ($permohonan->status_bayar !== 'LUNAS') {
@@ -679,6 +687,7 @@ class InvoiceController extends Controller
             'formSertifikasi',
             'formPelatihan',
             'formLsp',
+            'formInspeksi',
             'creator',
         ])->findOrFail($id);
 

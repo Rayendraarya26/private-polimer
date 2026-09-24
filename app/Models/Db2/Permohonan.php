@@ -137,6 +137,11 @@ class Permohonan extends Model
         return $this->hasMany(FormHalal::class, 'permohonan_id');
     }
 
+    public function formMiniplant()
+    {
+        return $this->hasMany(FormMiniplant::class, 'permohonan_id');
+    }
+
     public function sertifikasi()
     {
         return $this->hasMany(\App\Models\Db1\PelangganSertifikasi::class, 'permohonan_id');

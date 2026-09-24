@@ -4,6 +4,7 @@ import { getSkemalsp } from "../../services/lsp"
 import { getSkemaPelatihan } from "../../services/pelatihan"
 import { getSkemaSertifikasi } from "../../services/sertifikasi"
 import { getMasterKalibrasi } from "../../services/kalibrasi"
+import { getMasterMiniplant } from "../../services/miniplant"
 import { regionService } from "../../services/region-service"
 
 /**
@@ -147,5 +148,14 @@ export function useMasterKalibrasiQuery() {
       },
       staleTime: 1000 * 60 * 30,
   })
-    
+}
+
+export function useMasterMiniplantQuery(kode?: string) {
+  return useQuery({
+    queryKey: ["master", "miniplant", kode || "all"],
+    queryFn: async () => {
+      return await getMasterMiniplant(kode)
+    },
+    staleTime: 1000 * 60 * 30,
+  })
 }

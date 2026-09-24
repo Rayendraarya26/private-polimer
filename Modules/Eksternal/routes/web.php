@@ -29,6 +29,7 @@ use Modules\Eksternal\Http\Controllers\Api\KalibrasiController;
 use Modules\Eksternal\Http\Controllers\Api\PupController;
 use Modules\Eksternal\Http\Controllers\Api\InspeksiController;
 use Modules\Eksternal\Http\Controllers\Api\HalalController;
+use Modules\Eksternal\Http\Controllers\Api\MiniplantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -223,6 +224,12 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/master', [KalibrasiController::class, 'getMasterKalibrasi']);
             Route::post('/', [KalibrasiController::class, 'store']);
             Route::get('/{id}', [KalibrasiController::class, 'show']);
+        });
+
+        Route::prefix('miniplant')->group(function () {
+            Route::get('/master', [MiniplantController::class, 'getMasterMiniplant']);
+            Route::post('/', [MiniplantController::class, 'store']);
+            Route::get('/{id}', [MiniplantController::class, 'show']);
         });
 
         Route::prefix('pup')->group(function () {

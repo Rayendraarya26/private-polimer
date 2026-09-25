@@ -98,22 +98,27 @@ class PermohonanController extends Controller
             ->editColumn('tgl_order', fn($row) => $row->tgl_order)
             ->addColumn('user', function ($row) {
                 $detail = $row->detailPermohonan->first();
-                return $detail?->formable->nama_perusahaan 
-                    ?? $detail?->formable->nama_lengkap 
-                    ?? $detail?->formable->nama_peserta 
+                return $detail?->formable->nama_perusahaan
+                    ?? $detail?->formable->nama_lengkap
+                    ?? $detail?->formable->nama_peserta
                     ?? $detail?->formable->biaya_nama
                     ?? $detail?->formable->pemohon_pic_nama
                     ?? $detail?->formable->penerima_hasil_nama
                     ?? $detail?->formable->nama_usaha
-                    ?? $row->creator?->name 
+                    ?? $row->creator?->name
                     ?? '-';
             })
             ->addColumn('layanan', function ($row) {
-                if (str_starts_with($row->no_permohonan, 'LSP')) return 'Sertifikasi Profesi (LSP)';
-                if (str_starts_with($row->no_permohonan, 'REG') || str_starts_with($row->no_permohonan, 'UMK') || str_starts_with($row->no_permohonan, 'TRN')) return 'Pelatihan';
-                if (str_starts_with($row->no_permohonan, 'CERT') || str_starts_with($row->no_permohonan, 'SRT')) return 'Sertifikasi Produk & Sistem (LSPro)';
-                if (str_contains($row->no_permohonan, 'INSP') || str_starts_with($row->no_permohonan, 'INS')) return 'Inspeksi Teknis';
-                if (str_contains($row->no_permohonan, 'HLL') || str_starts_with($row->no_permohonan, 'HAL')) return 'Sertifikasi Halal (LPH)';
+                if (str_starts_with($row->no_permohonan, 'LSP'))
+                    return 'Sertifikasi Profesi (LSP)';
+                if (str_starts_with($row->no_permohonan, 'REG') || str_starts_with($row->no_permohonan, 'UMK') || str_starts_with($row->no_permohonan, 'TRN'))
+                    return 'Pelatihan';
+                if (str_starts_with($row->no_permohonan, 'CERT') || str_starts_with($row->no_permohonan, 'SRT'))
+                    return 'Sertifikasi Produk & Sistem (LSPro)';
+                if (str_contains($row->no_permohonan, 'INSP') || str_starts_with($row->no_permohonan, 'INS'))
+                    return 'Inspeksi Teknis';
+                if (str_contains($row->no_permohonan, 'HLL') || str_starts_with($row->no_permohonan, 'HAL'))
+                    return 'Sertifikasi Halal (LPH)';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -230,7 +235,7 @@ class PermohonanController extends Controller
                     if ($aktif->count() > 1) {
                         $names = $aktif->map(
                             fn($g) =>
-                            $g->detailPermohonan->first()?->formable?->nama_lengkap
+                                $g->detailPermohonan->first()?->formable?->nama_lengkap
                         )->filter()->unique()->values();
 
                         if ($names->isEmpty())
@@ -304,10 +309,15 @@ class PermohonanController extends Controller
             $form->loadMissing(['alatList.nomorSeriList', 'alatList.kalibrasiItems']);
         }
 
+        if ($form instanceof \App\Models\Db2\FormMiniplant) {
+            $form->loadMissing(['items.masterMiniplant']);
+        }
+
 
         $isPerorangan = $permohonan->pelanggan?->jenis_pelanggan
             === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value;
 
+        LOG::info($permohonan->detail_permohonan);
 
         return view("{$this->view}.detail", [
             'breadcrumbs' => [
@@ -349,17 +359,17 @@ class PermohonanController extends Controller
                 try {
                     $permohonan->update([
                         'status_workflow' => 'IN_REVIEW',
-                        'catatan_admin'   => 'Verifikasi administrasi disetujui Marketing. Permohonan diteruskan ke Operator LS di SIS.',
+                        'catatan_admin' => 'Verifikasi administrasi disetujui Marketing. Permohonan diteruskan ke Operator LS di SIS.',
                     ]);
 
                     // Catat log tracking
                     PermohonanTrackingLog::create([
-                        'id'             => (string) Str::uuid(),
-                        'permohonan_id'  => $permohonan->id,
-                        'sumber'         => 'POLIMER',
+                        'id' => (string) Str::uuid(),
+                        'permohonan_id' => $permohonan->id,
+                        'sumber' => 'POLIMER',
                         'milestone_code' => 'VERIFIKASI_ADMINISTRASI_ACCEPTED',
-                        'judul'          => 'Verifikasi Administrasi Disetujui',
-                        'deskripsi'      => 'Kelengkapan dokumen telah diverifikasi oleh Marketing dan diteruskan ke Operator LS di SIS.',
+                        'judul' => 'Verifikasi Administrasi Disetujui',
+                        'deskripsi' => 'Kelengkapan dokumen telah diverifikasi oleh Marketing dan diteruskan ke Operator LS di SIS.',
                     ]);
 
                     DB::commit();
@@ -378,9 +388,9 @@ class PermohonanController extends Controller
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title'   => 'Verifikasi Administrasi Disetujui',
+                    'title' => 'Verifikasi Administrasi Disetujui',
                     'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diverifikasi dan masuk tahap Kajian Teknis.',
-                    'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
                     'is_read' => 'no',
                 ]);
 
@@ -393,7 +403,7 @@ class PermohonanController extends Controller
                 // 1B. TAHAP 2 SERTIFIKASI: PENERBITAN SURAT PENAWARAN BIAYA -> PEMBAYARAN
                 // ============================================================
                 $request->validate([
-                    'nominal'       => 'required|numeric|min:1',
+                    'nominal' => 'required|numeric|min:1',
                     'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
                 ]);
 
@@ -403,32 +413,32 @@ class PermohonanController extends Controller
                 DB::beginTransaction();
                 try {
                     $permohonan->update([
-                        'status_workflow'      => 'PEMBAYARAN',
-                        'total_harga'          => $total,
-                        'harga_permohonan'     => $total,
+                        'status_workflow' => 'PEMBAYARAN',
+                        'total_harga' => $total,
+                        'harga_permohonan' => $total,
                         'file_surat_penawaran' => $path,
-                        'status_penawaran'     => 'proses',
-                        'catatan_admin'        => $path,
+                        'status_penawaran' => 'proses',
+                        'catatan_admin' => $path,
                     ]);
 
                     DetailPembayaran::where('permohonan_id', $id)->delete();
                     DetailPembayaran::create([
-                        'id'            => (string) Str::uuid(),
-                        'id_pt_ins'     => $permohonan->id_pt_ins,
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $permohonan->id_pt_ins,
                         'permohonan_id' => $id,
-                        'item_bayar'    => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
-                        'harga_satuan'  => $total,
-                        'kuantitas'     => 1,
-                        'subtotal'      => $total,
+                        'item_bayar' => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
+                        'harga_satuan' => $total,
+                        'kuantitas' => 1,
+                        'subtotal' => $total,
                     ]);
 
                     PermohonanTrackingLog::create([
-                        'id'             => (string) Str::uuid(),
-                        'permohonan_id'  => $permohonan->id,
-                        'sumber'         => 'POLIMER',
+                        'id' => (string) Str::uuid(),
+                        'permohonan_id' => $permohonan->id,
+                        'sumber' => 'POLIMER',
                         'milestone_code' => 'PENAWARAN_BIAYA_TERKIRIM',
-                        'judul'          => 'Surat Penawaran Biaya Diterbitkan',
-                        'deskripsi'      => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($total, 0, ',', '.') . '.',
+                        'judul' => 'Surat Penawaran Biaya Diterbitkan',
+                        'deskripsi' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($total, 0, ',', '.') . '.',
                     ]);
 
                     DB::commit();
@@ -447,9 +457,9 @@ class PermohonanController extends Controller
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title'   => 'Surat Penawaran Biaya Diterbitkan',
+                    'title' => 'Surat Penawaran Biaya Diterbitkan',
                     'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diterbitkan surat penawaran biaya dan masuk tahap pembayaran.',
-                    'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => route('permohonan.layanan.detail', $permohonan->id),
                     'is_read' => 'no',
                 ]);
 
@@ -463,7 +473,7 @@ class PermohonanController extends Controller
             // 2. ALUR LAYANAN PELATIHAN / LSP
             // ============================================================
             $request->validate([
-                'nominal'       => 'required|numeric',
+                'nominal' => 'required|numeric',
                 'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             ]);
 
@@ -476,19 +486,19 @@ class PermohonanController extends Controller
                 str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
                 str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
                 str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
-                default                                             => 'Biaya Layanan',
+                default => 'Biaya Layanan',
             };
 
             $invoiceNumber = $permohonan->invoice_number ?: ('INV/' . now()->format('Ymd') . '/' . strtoupper(Str::random(5)));
-            $trxId         = 'INV-' . $permohonan->id;
-            $va            = null;
-            $vaExpiredAt   = now()->addDays(14);
+            $trxId = 'INV-' . $permohonan->id;
+            $va = null;
+            $vaExpiredAt = now()->addDays(14);
 
-            $pelatihan   = $permohonan->formPelatihan?->first();
-            $lsp         = $permohonan->formLsp?->first();
-            $inspeksi    = $permohonan->formInspeksi?->first();
-            $halal       = $permohonan->formHalal?->first();
-            $creator     = $permohonan->creator;
+            $pelatihan = $permohonan->formPelatihan?->first();
+            $lsp = $permohonan->formLsp?->first();
+            $inspeksi = $permohonan->formInspeksi?->first();
+            $halal = $permohonan->formHalal?->first();
+            $creator = $permohonan->creator;
 
             $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
                 ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
@@ -503,22 +513,22 @@ class PermohonanController extends Controller
                 ?: '-';
 
             $teleponPemohon = ($pelatihan?->no_telp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak) ?: '081234567890';
-            $emailPemohon   = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $inspeksi?->biaya_email ?: $halal?->pj_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
+            $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $inspeksi?->biaya_email ?: $halal?->pj_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
             try {
                 $bniService = new BniVaService();
                 $vaResult = $bniService->createBilling([
-                    'trx_id'           => $trxId,
-                    'trx_amount'       => $total,
-                    'customer_name'    => $namaPemohon,
-                    'customer_email'   => $emailPemohon,
-                    'customer_phone'   => $teleponPemohon,
+                    'trx_id' => $trxId,
+                    'trx_amount' => $total,
+                    'customer_name' => $namaPemohon,
+                    'customer_email' => $emailPemohon,
+                    'customer_phone' => $teleponPemohon,
                     'datetime_expired' => $vaExpiredAt->toIso8601String(),
-                    'description'      => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
+                    'description' => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
                 ]);
 
                 if (!empty($vaResult['virtual_account'])) {
-                    $va          = $vaResult['virtual_account'];
+                    $va = $vaResult['virtual_account'];
                     $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
                 }
             } catch (\Throwable $e) {
@@ -531,13 +541,13 @@ class PermohonanController extends Controller
                 DetailPembayaran::where('permohonan_id', $id)->delete();
 
                 DetailPembayaran::create([
-                    'id'            => (string) Str::uuid(),
-                    'id_pt_ins'     => $permohonan->id_pt_ins,
+                    'id' => (string) Str::uuid(),
+                    'id_pt_ins' => $permohonan->id_pt_ins,
                     'permohonan_id' => $id,
-                    'item_bayar'    => $itemBayar,
-                    'harga_satuan'  => $total,
-                    'kuantitas'     => 1,
-                    'subtotal'      => $total,
+                    'item_bayar' => $itemBayar,
+                    'harga_satuan' => $total,
+                    'kuantitas' => 1,
+                    'subtotal' => $total,
                 ]);
 
                 // Auto-generate invoice PDF
@@ -548,35 +558,35 @@ class PermohonanController extends Controller
                 })->first();
 
                 $detailPembayaran = DetailPembayaran::where('permohonan_id', $id)->get();
-                $grupPermohonan   = $permohonan->id_pt_ins
+                $grupPermohonan = $permohonan->id_pt_ins
                     ? Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)->with('detailPembayaran')->get()
                     : collect([$permohonan]);
 
                 $pemohon = [
-                    'nama'    => $namaPemohon,
-                    'alamat'  => $alamatPemohon,
+                    'nama' => $namaPemohon,
+                    'alamat' => $alamatPemohon,
                     'telepon' => $teleponPemohon,
-                    'surel'   => $emailPemohon,
+                    'surel' => $emailPemohon,
                 ];
 
                 $filePath = null;
                 try {
                     $pdf = Pdf::loadView('permohonan::layanan.invoice', [
-                        'permohonan'       => $permohonan,
+                        'permohonan' => $permohonan,
                         'detailPembayaran' => $detailPembayaran,
-                        'grupPermohonan'   => $grupPermohonan,
-                        'invoiceNumber'    => $invoiceNumber,
-                        'va'               => $va ?: '-',
-                        'total'            => $total,
-                        'pemohon'          => $pemohon,
-                        'bendahara'        => $bendahara,
+                        'grupPermohonan' => $grupPermohonan,
+                        'invoiceNumber' => $invoiceNumber,
+                        'va' => $va ?: '-',
+                        'total' => $total,
+                        'pemohon' => $pemohon,
+                        'bendahara' => $bendahara,
                     ])
-                    ->setPaper('a4', 'portrait')
-                    ->setOptions([
-                        'defaultFont'          => 'sans-serif',
-                        'isRemoteEnabled'      => true,
-                        'isHtml5ParserEnabled' => true,
-                    ]);
+                        ->setPaper('a4', 'portrait')
+                        ->setOptions([
+                            'defaultFont' => 'sans-serif',
+                            'isRemoteEnabled' => true,
+                            'isHtml5ParserEnabled' => true,
+                        ]);
 
                     $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
                     $filePath = 'invoice/' . $fileName;
@@ -586,15 +596,15 @@ class PermohonanController extends Controller
                 }
 
                 $permohonan->update([
-                    'status_workflow'      => 'PEMBAYARAN',
-                    'catatan_admin'        => $path,
-                    'invoice_number'       => $invoiceNumber,
-                    'invoice_file'         => $filePath,
+                    'status_workflow' => 'PEMBAYARAN',
+                    'catatan_admin' => $path,
+                    'invoice_number' => $invoiceNumber,
+                    'invoice_file' => $filePath,
                     'invoice_generated_at' => now(),
-                    'va'                   => $va,
-                    'va_trx_id'            => $trxId,
-                    'va_expired_at'        => $vaExpiredAt,
-                    'va_status'            => 'ACTIVE',
+                    'va' => $va,
+                    'va_trx_id' => $trxId,
+                    'va_expired_at' => $vaExpiredAt,
+                    'va_status' => 'ACTIVE',
                 ]);
 
                 DB::commit();
@@ -606,9 +616,9 @@ class PermohonanController extends Controller
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Permohonan Disetujui & Tagihan Diterbitkan',
+                'title' => 'Permohonan Disetujui & Tagihan Diterbitkan',
                 'content' => 'Permohonan Anda telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
-                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'link' => route('permohonan.layanan.detail', $permohonan->id),
                 'is_read' => 'no',
             ]);
 
@@ -774,9 +784,9 @@ class PermohonanController extends Controller
 
                 $itemBayar = match (true) {
                     str_starts_with($permohonan->no_permohonan, 'CERT') || str_starts_with($permohonan->no_permohonan, 'SRT') => 'Biaya Sertifikasi Produk & Sistem (SPPT SNI)',
-                    str_starts_with($permohonan->no_permohonan, 'LSP')  => 'Biaya Sertifikasi Profesi (LSP)',
-                    str_starts_with($permohonan->no_permohonan, 'REG')  => 'Biaya Pelatihan Reguler',
-                    str_starts_with($permohonan->no_permohonan, 'UMK')  => 'Biaya Pelatihan UMK',
+                    str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
+                    str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
+                    str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
                 };
 
 
@@ -952,12 +962,12 @@ class PermohonanController extends Controller
 
             // Update status permohonan dengan kolom flat penawaran
             $permohonan->update([
-                'total_harga'          => $request->input('total_biaya'),
-                'harga_permohonan'     => $request->input('total_biaya'),
+                'total_harga' => $request->input('total_biaya'),
+                'harga_permohonan' => $request->input('total_biaya'),
                 'file_surat_penawaran' => $filePath,
-                'status_penawaran'     => 'proses',
-                'catatan_penawaran'    => $request->input('catatan_marketing'),
-                'status_workflow'      => 'MENUNGGU_PERSETUJUAN_PELANGGAN',
+                'status_penawaran' => 'proses',
+                'catatan_penawaran' => $request->input('catatan_marketing'),
+                'status_workflow' => 'MENUNGGU_PERSETUJUAN_PELANGGAN',
             ]);
 
             // Sinkronkan ke rincian tabel detail_pembayaran

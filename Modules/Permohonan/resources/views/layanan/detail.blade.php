@@ -17,7 +17,6 @@
         <div class="card border-0 shadow-sm rounded-3">
 
 
-            {{-- TAB BAR --}}
             <div class="px-4 pt-3 border-bottom bg-light">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
@@ -259,6 +258,7 @@
                                         ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                         str_starts_with($kode, 'PUP') => 'uji-profisiensi',
                                         str_starts_with($kode, 'UJI') => 'pengujian',
+                                        str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') => 'miniplant',
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         default => 'default'

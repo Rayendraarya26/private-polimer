@@ -44,12 +44,6 @@ return new class extends Migration {
             $table->decimal('estimasi_total_biaya', 14, 2)->default(0)->comment('Estimasi total biaya permohonan');
             $table->boolean('setuju_pernyataan')->default(false)->comment('Status persetujuan ketentuan');
             $table->timestampTz('pernyataan_at')->nullable()->comment('Waktu persetujuan ketentuan');
-            $table->text('catatan_ketentuan')->nullable()->comment('Klausul batas pengambilan barang (2 bulan)');
-
-            // Integrasi / Sinkronisasi SIS
-            $table->string('status_sinkronisasi_sis', 50)->default('PENDING')->index();
-            $table->string('no_order_sis', 100)->nullable()->index();
-            $table->timestampTz('sis_synced_at')->nullable();
 
             $table->timestampsTz();
             $table->softDeletesTz();

@@ -59,7 +59,7 @@ class MiniplantController extends Controller
             // Pilihan Jenis Layanan
             'jenis_layanan' => 'nullable|string|in:F,RPK,PA,MKP',
             'fasilitas' => 'nullable|string|in:F,RPK,PA,MKP',
-            
+
             // Detail Permohonan
             'detailPermohonan' => 'required|array',
             'detailPermohonan.jasaDiminta' => 'required|string|in:proses,mesin',
@@ -135,11 +135,21 @@ class MiniplantController extends Controller
             ];
 
             $romawiMap = [
-                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+                1 => 'I',
+                2 => 'II',
+                3 => 'III',
+                4 => 'IV',
+                5 => 'V',
+                6 => 'VI',
+                7 => 'VII',
+                8 => 'VIII',
+                9 => 'IX',
+                10 => 'X',
+                11 => 'XI',
+                12 => 'XII'
             ];
             $bulanRomawi = $romawiMap[(int) now()->format('n')] ?? 'I';
-            $suffix = '/' . $bulanRomawi . '-' . now()->format('Y').'/'.$kodeLayanan;
+            $suffix = '/' . $bulanRomawi . '-' . now()->format('Y') . '/' . $kodeLayanan;
 
             $lastPermohonan = Permohonan::withTrashed()
                 ->where('no_permohonan', 'LIKE', "%{$suffix}")
@@ -190,11 +200,9 @@ class MiniplantController extends Controller
                 'nama_pemohon' => $dataPelanggan['namaPemohon'],
                 'no_telp' => $dataPelanggan['no_telp'],
                 'alamat_pemohon' => $dataPelanggan['alamat'],
-                'estimasi_total_biaya' => 0, // dihitung setelah loop item
+                'estimasi_total_biaya' => 0,
                 'setuju_pernyataan' => true,
                 'pernyataan_at' => now(),
-                'catatan_ketentuan' => 'Hasil Pekerjaan yang tidak diambil lebih dari 2 (dua) bulan setelah tanggal pekerjaan selesai apabila terjadi kerusakan bukan menjadi tanggung jawab BBKKP',
-                'status_sinkronisasi_sis' => 'PENDING',
             ]);
 
             // 4. Kaitkan ke Master Lingkup Layanan & Detail Permohonan (Polymorphic)
@@ -347,9 +355,9 @@ class MiniplantController extends Controller
                 'items',
                 'items.masterMiniplant',
             ])
-            ->where('id', $id)
-            ->orWhere('permohonan_id', $id)
-            ->first();
+                ->where('id', $id)
+                ->orWhere('permohonan_id', $id)
+                ->first();
 
             if (!$formMiniplant) {
                 return response()->json([
@@ -357,6 +365,8 @@ class MiniplantController extends Controller
                     'message' => 'Data permohonan miniplant tidak ditemukan',
                 ], 404);
             }
+
+            LOG::info($formMiniplant);
 
             return response()->json([
                 'status' => 'success',

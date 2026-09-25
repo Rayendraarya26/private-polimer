@@ -22,7 +22,6 @@ class FormMiniplant extends Model
         'estimasi_total_biaya' => 'decimal:2',
         'setuju_pernyataan'    => 'boolean',
         'pernyataan_at'        => 'datetime',
-        'sis_synced_at'        => 'datetime',
     ];
 
     /**

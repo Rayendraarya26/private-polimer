@@ -54,8 +54,13 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
   // Bendahara TTE States
   const [passphraseInvoice, setPassphraseInvoice] = useState("")
+  const [totpInvoice, setTotpInvoice] = useState("")
+  const [requestingOtpInvoice, setRequestingOtpInvoice] = useState(false)
   const [signingInvoice, setSigningInvoice] = useState(false)
+
   const [passphraseKuitansi, setPassphraseKuitansi] = useState("")
+  const [totpKuitansi, setTotpKuitansi] = useState("")
+  const [requestingOtpKuitansi, setRequestingOtpKuitansi] = useState(false)
   const [signingKuitansi, setSigningKuitansi] = useState(false)
 
   // SIS Sync State
@@ -99,19 +104,36 @@ export const AdminPermohonanDetailPage: React.FC = () => {
     fetchDetail()
   }, [id])
 
+  const handleRequestOtp = async (type: 'invoice' | 'kuitansi') => {
+    if (type === 'invoice') setRequestingOtpInvoice(true)
+    else setRequestingOtpKuitansi(true)
+
+    try {
+      const res = await api.post('/permohonan/layanan/tte/request-otp')
+      toast.success(res?.data?.message || "Kode OTP telah dikirim ke email terdaftar di BSrE")
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal meminta OTP dari BSrE")
+    } finally {
+      if (type === 'invoice') setRequestingOtpInvoice(false)
+      else setRequestingOtpKuitansi(false)
+    }
+  }
+
   const handleSignInvoiceTte = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!passphraseInvoice) {
-      toast.error("Passphrase BSrE Bendahara wajib diisi")
+    if (!passphraseInvoice && !totpInvoice) {
+      toast.error("Passphrase atau Kode OTP BSrE Bendahara wajib diisi")
       return
     }
     setSigningInvoice(true)
     try {
       const res = await api.post(`/permohonan/layanan/${id}/approval-invoice`, {
-        passphrase: passphraseInvoice,
+        passphrase: passphraseInvoice || undefined,
+        totp: totpInvoice || undefined,
       })
       toast.success(res?.data?.message || "Invoice berhasil ditandatangani secara elektronik (TTE BSrE)")
       setPassphraseInvoice("")
+      setTotpInvoice("")
       fetchDetail()
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal menandatangani Invoice TTE")
@@ -122,17 +144,19 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
   const handleSignKuitansiTte = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!passphraseKuitansi) {
-      toast.error("Passphrase BSrE Bendahara wajib diisi")
+    if (!passphraseKuitansi && !totpKuitansi) {
+      toast.error("Passphrase atau Kode OTP BSrE Bendahara wajib diisi")
       return
     }
     setSigningKuitansi(true)
     try {
       const res = await api.post(`/permohonan/layanan/${id}/approval-kuitansi-tte`, {
-        passphrase: passphraseKuitansi,
+        passphrase: passphraseKuitansi || undefined,
+        totp: totpKuitansi || undefined,
       })
       toast.success(res?.data?.message || "Kuitansi berhasil ditandatangani secara elektronik (TTE BSrE)")
       setPassphraseKuitansi("")
+      setTotpKuitansi("")
       fetchDetail()
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal menandatangani Kuitansi TTE")
@@ -1003,16 +1027,47 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSignInvoiceTte} className="space-y-3">
-                  <div>
-                    <label className="text-xs font-bold text-slate-800">Passphrase BSrE Bendahara</label>
-                    <input
-                      type="password"
-                      required
-                      value={passphraseInvoice}
-                      onChange={(e) => setPassphraseInvoice(e.target.value)}
-                      placeholder="Masukkan passphrase sertifikat elektronik..."
-                      className="w-full mt-1 p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    />
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800">Passphrase BSrE Bendahara</label>
+                        <span className="text-[10px] text-slate-400 font-medium">Metode 1</span>
+                      </div>
+                      <input
+                        type="password"
+                        value={passphraseInvoice}
+                        onChange={(e) => setPassphraseInvoice(e.target.value)}
+                        placeholder="Masukkan passphrase sertifikat elektronik..."
+                        className="w-full mt-1 p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      />
+                    </div>
+
+                    <div className="relative flex py-0.5 items-center">
+                      <div className="flex-grow border-t border-slate-200"></div>
+                      <span className="flex-shrink mx-2 text-[10px] uppercase font-semibold text-slate-400">atau OTP Email (BSrE v2)</span>
+                      <div className="flex-grow border-t border-slate-200"></div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-bold text-slate-800">Kode OTP (TOTP)</label>
+                        <button
+                          type="button"
+                          onClick={() => handleRequestOtp('invoice')}
+                          disabled={requestingOtpInvoice}
+                          className="text-[11px] text-brand-600 hover:text-brand-700 font-semibold underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {requestingOtpInvoice ? "Mengirim OTP..." : "Kirim OTP ke Email"}
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={totpInvoice}
+                        onChange={(e) => setTotpInvoice(e.target.value)}
+                        placeholder="Masukkan 6-digit kode OTP..."
+                        className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      />
+                    </div>
                   </div>
                   <Button
                     type="submit"
@@ -1066,16 +1121,47 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSignKuitansiTte} className="space-y-3">
-                  <div>
-                    <label className="text-xs font-bold text-slate-800">Passphrase BSrE Bendahara</label>
-                    <input
-                      type="password"
-                      required
-                      value={passphraseKuitansi}
-                      onChange={(e) => setPassphraseKuitansi(e.target.value)}
-                      placeholder="Masukkan passphrase sertifikat elektronik..."
-                      className="w-full mt-1 p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800">Passphrase BSrE Bendahara</label>
+                        <span className="text-[10px] text-slate-400 font-medium">Metode 1</span>
+                      </div>
+                      <input
+                        type="password"
+                        value={passphraseKuitansi}
+                        onChange={(e) => setPassphraseKuitansi(e.target.value)}
+                        placeholder="Masukkan passphrase sertifikat elektronik..."
+                        className="w-full mt-1 p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="relative flex py-0.5 items-center">
+                      <div className="flex-grow border-t border-slate-200"></div>
+                      <span className="flex-shrink mx-2 text-[10px] uppercase font-semibold text-slate-400">atau OTP Email (BSrE v2)</span>
+                      <div className="flex-grow border-t border-slate-200"></div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-bold text-slate-800">Kode OTP (TOTP)</label>
+                        <button
+                          type="button"
+                          onClick={() => handleRequestOtp('kuitansi')}
+                          disabled={requestingOtpKuitansi}
+                          className="text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold underline flex items-center gap-1 cursor-pointer"
+                        >
+                          {requestingOtpKuitansi ? "Mengirim OTP..." : "Kirim OTP ke Email"}
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={totpKuitansi}
+                        onChange={(e) => setTotpKuitansi(e.target.value)}
+                        placeholder="Masukkan 6-digit kode OTP..."
+                        className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
                   </div>
                   <Button
                     type="submit"

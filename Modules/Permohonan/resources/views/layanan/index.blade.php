@@ -291,17 +291,29 @@ PHP vars dipakai di konten DAN di script section
                             @endif
 
                             {{-- Passphrase --}}
-                            <div class="mb-5">
-                                <label class="required form-label fw-semibold fs-6">Passphrase</label>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold fs-6">Passphrase BSrE</label>
                                 <input type="password" id="input_passphrase" class="form-control form-control-solid"
                                     placeholder="Masukkan passphrase sertifikat elektronik" {{ !$pegawai?->nik ? 'disabled' : '' }} />
-                                <div class="text-muted fs-7 mt-2">Passphrase sertifikat elektronik BSRE Anda</div>
-                                {{-- Pesan error inline — ditampilkan via JS --}}
-                                <div id="passphraseError" class="text-danger fs-7 mt-1 d-none">
-                                    Passphrase tidak boleh kosong.
-                                </div>
+                                <div class="text-muted fs-7 mt-1">Passphrase sertifikat elektronik BSRE Anda</div>
                             </div>
 
+                            <div class="separator separator-content my-3 text-muted fs-8 fw-bold">ATAU OTP EMAIL (BSrE v2)</div>
+
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label fw-semibold fs-6 mb-0">Kode OTP (TOTP)</label>
+                                    <button type="button" id="btnRequestOtpBlade" class="btn btn-link btn-color-primary p-0 fs-7" {{ !$pegawai?->nik ? 'disabled' : '' }}>
+                                        <i class="fa-duotone fa-envelope-open-text me-1"></i>Kirim OTP ke Email
+                                    </button>
+                                </div>
+                                <input type="text" id="input_totp" class="form-control form-control-solid"
+                                    placeholder="Masukkan 6-digit kode OTP..." {{ !$pegawai?->nik ? 'disabled' : '' }} />
+                                <div id="otpStatusMessage" class="text-success fs-7 mt-1 d-none"></div>
+                                <div id="passphraseError" class="text-danger fs-7 mt-1 d-none">
+                                    Passphrase atau Kode OTP harus diisi.
+                                </div>
+                            </div>
                         </div>{{-- /.modal-body --}}
 
                         <div class="modal-footer flex-center">
@@ -681,6 +693,9 @@ PHP vars dipakai di konten DAN di script section
                     const resultSuccess = document.getElementById('resultSuccess');
                     const resultError = document.getElementById('resultError');
                     const inputPassphrase = document.getElementById('input_passphrase');
+                    const inputTotp = document.getElementById('input_totp');
+                    const btnRequestOtpBlade = document.getElementById('btnRequestOtpBlade');
+                    const otpStatusMessage = document.getElementById('otpStatusMessage');
                     const passphraseError = document.getElementById('passphraseError');
                     const btnSubmit = document.getElementById('btnSubmitTte');
                     const btnRetry = document.getElementById('btnRetryTte');
@@ -691,14 +706,50 @@ PHP vars dipakai di konten DAN di script section
                     const btnSubmitLabel = document.getElementById('btnSubmitLabel');
                     const btnSubmitLoading = document.getElementById('btnSubmitLoadingText');
 
-
-
                     let currentApprovalUrl = null;
                     let currentIsRegenerate = false;
 
                     // ── Helpers ───────────────────────────────────────────────────
                     const loadingSection = document.getElementById('approvalLoadingSection');
                     const tteStepIds = ['tteStep1', 'tteStep2', 'tteStep3', 'tteStep4'];
+
+                    // ── Request OTP Listener ──────────────────────────────────────
+                    if (btnRequestOtpBlade) {
+                        btnRequestOtpBlade.addEventListener('click', async function () {
+                            btnRequestOtpBlade.disabled = true;
+                            btnRequestOtpBlade.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengirim...';
+                            if (otpStatusMessage) otpStatusMessage.classList.add('d-none');
+                            if (passphraseError) passphraseError.classList.add('d-none');
+
+                            try {
+                                const res = await fetch("{{ route('permohonan.tte.request-otp') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    },
+                                });
+                                const data = await res.json();
+                                if (!res.ok || !data.success) {
+                                    throw new Error(data.message || 'Gagal mengirim OTP');
+                                }
+                                if (otpStatusMessage) {
+                                    otpStatusMessage.textContent = data.message || 'Kode OTP telah dikirim ke email terdaftar di BSrE';
+                                    otpStatusMessage.classList.remove('d-none');
+                                }
+                                if (inputTotp) inputTotp.focus();
+                            } catch (err) {
+                                if (passphraseError) {
+                                    passphraseError.textContent = err.message || 'Gagal meminta OTP';
+                                    passphraseError.classList.remove('d-none');
+                                }
+                            } finally {
+                                btnRequestOtpBlade.disabled = false;
+                                btnRequestOtpBlade.innerHTML = '<i class="fa-duotone fa-envelope-open-text me-1"></i>Kirim OTP ke Email';
+                            }
+                        });
+                    }
 
 
                     const tteMessages = [
@@ -825,15 +876,19 @@ PHP vars dipakai di konten DAN di script section
                     // ── Submit ────────────────────────────────────────────────────
                     btnSubmit.addEventListener('click', async function () {
                         const passphrase = inputPassphrase.value.trim();
+                        const totp = inputTotp ? inputTotp.value.trim() : '';
 
-                        // Validasi inline
-                        if (!passphrase) {
+                        // Validasi inline: harus ada passphrase atau totp
+                        if (!passphrase && !totp) {
                             inputPassphrase.classList.add('is-invalid');
+                            if (inputTotp) inputTotp.classList.add('is-invalid');
+                            passphraseError.textContent = 'Passphrase atau Kode OTP harus diisi.';
                             passphraseError.classList.remove('d-none');
                             inputPassphrase.focus();
                             return;
                         }
                         inputPassphrase.classList.remove('is-invalid');
+                        if (inputTotp) inputTotp.classList.remove('is-invalid');
                         passphraseError.classList.add('d-none');
 
                         if (!currentApprovalUrl) {
@@ -853,7 +908,8 @@ PHP vars dipakai di konten DAN di script section
                                     'Accept': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    passphrase
+                                    passphrase: passphrase || undefined,
+                                    totp: totp || undefined
                                 }),
                             });
 
@@ -885,8 +941,11 @@ PHP vars dipakai di konten DAN di script section
                         resultError.classList.add('d-none');
                         formSection.classList.remove('d-none');
                         inputPassphrase.value = '';
+                        if (inputTotp) inputTotp.value = '';
                         inputPassphrase.classList.remove('is-invalid');
+                        if (inputTotp) inputTotp.classList.remove('is-invalid');
                         passphraseError.classList.add('d-none');
+                        if (otpStatusMessage) otpStatusMessage.classList.add('d-none');
                     });
                 };
 

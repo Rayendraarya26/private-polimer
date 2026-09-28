@@ -54,6 +54,9 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         ->name('permohonan.kirim-penawaran-biaya');
 
 
+    Route::post('layanan/tte/request-otp', [InvoiceController::class, 'requestOtp'])
+        ->name('permohonan.tte.request-otp');
+
     Route::post(
         'layanan/{id}/approval-invoice',
         [InvoiceController::class, 'approvalInvoice']

@@ -16,7 +16,8 @@ class SertifikasiTteService
     public function signSertifikatDigital(
         PelangganSertifikasi $sertifikat,
         string $nikSigner,
-        string $passphrase
+        ?string $passphrase,
+        ?string $totp = null
     ): array {
         try {
             $fileName = 'sertifikat_' . str_replace(['/', '\\', ' '], '_', $sertifikat->nomor_sertifikat) . '.pdf';
@@ -42,7 +43,8 @@ class SertifikasiTteService
                         $sertifikat->nomor_sertifikat,
                         $pdfContent,
                         $fileName,
-                        $metadata
+                        $metadata,
+                        $totp
                     );
 
                     $fileLink = $result['file_link'] ?? null;

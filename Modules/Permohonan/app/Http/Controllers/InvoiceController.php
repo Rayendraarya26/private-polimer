@@ -170,8 +170,13 @@ class InvoiceController extends Controller
     {
         try {
             $input = $request->validate([
-                'passphrase' => 'required|string',
+                'passphrase' => 'nullable|string',
+                'totp'       => 'nullable|string',
             ]);
+
+            if (empty($input['passphrase']) && empty($input['totp'])) {
+                return response()->json(['success' => false, 'message' => 'Passphrase atau Kode OTP harus diisi'], 422);
+            }
 
             $pegawai = Pegawai::where('user_id', auth()->id())->first();
             $tteService = new TteService();
@@ -241,7 +246,7 @@ class InvoiceController extends Controller
 
             $tteResult  = $tteService->signPDF(
                 nik:         $nik,
-                passphrase:  $input['passphrase'],
+                passphrase:  $input['passphrase'] ?? null,
                 refCode:     $permohonan->no_permohonan,
                 fileContent: $pdfContent,
                 fileName:    $fileName,
@@ -250,6 +255,7 @@ class InvoiceController extends Controller
                     'virtual_account' => $va,
                     'total_amount'    => $total,
                 ],
+                totp:        $input['totp'] ?? null,
             );
 
             $esignId = $tteResult['id'];
@@ -528,8 +534,13 @@ class InvoiceController extends Controller
     public function approvalKuitansiTte(Request $request, $id)
     {
         $input = $request->validate([
-            'passphrase' => 'required|string',
+            'passphrase' => 'nullable|string',
+            'totp'       => 'nullable|string',
         ]);
+
+        if (empty($input['passphrase']) && empty($input['totp'])) {
+            return response()->json(['success' => false, 'message' => 'Passphrase atau Kode OTP harus diisi'], 422);
+        }
 
         $pegawai = Pegawai::where('user_id', auth()->id())->first();
         if (!$pegawai || empty($pegawai->nik)) {
@@ -576,7 +587,7 @@ class InvoiceController extends Controller
             $tteService = new TteService();
             $tteResult  = $tteService->signPDF(
                 nik:         $nik,
-                passphrase:  $input['passphrase'],
+                passphrase:  $input['passphrase'] ?? null,
                 refCode:     $permohonan->no_permohonan . '-KWT',
                 fileContent: $pdfContent,
                 fileName:    $fileName,
@@ -584,6 +595,7 @@ class InvoiceController extends Controller
                     'kuitansi_number' => $kuitansiNumber,
                     'total_amount'    => $total,
                 ],
+                totp:        $input['totp'] ?? null,
             );
 
             $esignId = $tteResult['id'];
@@ -754,6 +766,45 @@ class InvoiceController extends Controller
         ]);
 
         return $pdf->stream($fileName);
+    }
+
+    /**
+     * Request OTP via email for BSrE v2 signing
+     */
+    public function requestOtp(Request $request)
+    {
+        try {
+            $pegawai = Pegawai::where('user_id', auth()->id())->first();
+            $nik = $request->input('nik') ?: ($pegawai?->nik ?: null);
+
+            $tteService = new TteService();
+            if ($tteService->isDummy()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Dummy OTP berhasil dikirim (mode dummy aktif)',
+                ]);
+            }
+
+            if (empty($nik)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NIK Anda belum terdaftar di sistem pegawai',
+                ], 422);
+            }
+
+            $result = $tteService->requestOtp(nik: $nik);
+            return response()->json([
+                'success' => true,
+                'message' => 'Kode OTP berhasil dikirim ke email terdaftar di BSrE',
+                'data'    => $result,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('InvoiceController::requestOtp failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
 

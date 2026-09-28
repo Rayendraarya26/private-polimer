@@ -35,6 +35,7 @@ class PenerbitanSertifikasiController extends Controller
             'nomor_sertifikat'   => 'nullable|string|max:150',
             'nik_signer'         => 'nullable|string',
             'passphrase'         => 'nullable|string',
+            'totp'               => 'nullable|string',
             'tanggal_terbit'     => 'required|date',
             'tanggal_kadaluarsa' => 'required|date|after:tanggal_terbit',
         ]);
@@ -83,8 +84,9 @@ class PenerbitanSertifikasiController extends Controller
             // 4. Digital Signing with BSrE TTE
             $nikSigner = $validated['nik_signer'] ?? '1234567890123456';
             $passphrase = $validated['passphrase'] ?? 'dummyPassphrase';
+            $totp = $validated['totp'] ?? null;
 
-            $tteResult = $tteService->signSertifikatDigital($sertifikat, $nikSigner, $passphrase);
+            $tteResult = $tteService->signSertifikatDigital($sertifikat, $nikSigner, $passphrase, $totp);
 
             // 5. Continuous Bridging to Central SIS Database
             $bridgeResult = $bridgingService->syncSertifikatToSis($sertifikat);

@@ -29,13 +29,17 @@ class KalibrasiController extends Controller
 {
     public function getMasterKalibrasi(): JsonResponse
     {
+        $user = auth()->user();
+        $isInternal = $user && method_exists($user, 'isPegawai') && $user->isPegawai();
+
         $data = MasterKalibrasi::active()
-            ->select('id', 'kalibrasi', 'tarif_satuan')
+            ->select('id', 'kalibrasi', 'tarif_satuan', 'tarif_internal')
             ->orderBy('kalibrasi', 'asc')
             ->get();
 
         return response()->json([
             'status' => 'success',
+            'is_internal' => $isInternal,
             'data' => $data,
         ]);
     }
@@ -55,6 +59,7 @@ class KalibrasiController extends Controller
             'dataPelanggan.alamatPemohon' => 'required|string',
             // Informasi Pelaksanaan
             'dataPelaksanaan' => 'required|array',
+            'dataPelaksanaan.ruangLingkupAkreditasi' => 'nullable|string',
             'dataPelaksanaan.lokasi' => 'required|in:LABKAL BBKKP,Tempat Client',
             'dataPelaksanaan.uraian' => 'nullable|string',
             'dataPelaksanaan.bahasa' => 'required|in:indonesia,inggris',
@@ -80,6 +85,9 @@ class KalibrasiController extends Controller
         try {
             $user = auth()->user();
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
+            $isInternal = $user && method_exists($user, 'isPegawai') && $user->isPegawai();
+            $jenisPelanggan = $isInternal ? 'Internal' : 'Eksternal';
+
             $dataPelanggan = $request->input('dataPelanggan');
             $dataPelaksanaan = $request->input('dataPelaksanaan');
             $dataAlat = $request->input('dataAlat');
@@ -116,13 +124,20 @@ class KalibrasiController extends Controller
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
                 'status_workflow' => 'PERMOHONAN',
-                'status_bayar' => 'BELUM',
+                'status_bayar' => $isInternal ? 'LUNAS' : 'BELUM',
                 'total_harga' => 0, // Akan dihitung dan di-update setelah rincian dihitung
                 'tgl_order' => now(),
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
             // Simpan Form Kalibrasi
+            $rawRuangLingkup = $dataPelaksanaan['ruangLingkupAkreditasi']
+                ?? $dataPelaksanaan['ruang_lingkup_akreditasi']
+                ?? 'Masuk Ruang Lingkup';
+            $ruangLingkup = in_array($rawRuangLingkup, ['2', 'tidak_masuk', 'Tidak Masuk Ruang Lingkup'])
+                ? 'Tidak Masuk Ruang Lingkup'
+                : 'Masuk Ruang Lingkup';
+
             $formKalibrasi = FormKalibrasi::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
@@ -130,6 +145,8 @@ class KalibrasiController extends Controller
                 'no_telp' => $dataPelanggan['no_telp'] ?? $dataPelanggan['noTelp'] ?? '-',
                 'hasil_kalibrasi_untuk' => $dataPelanggan['hasilKalibrasiUntuk'],
                 'alamat_pemohon' => $dataPelanggan['alamatPemohon'],
+                'jenis_pelanggan' => $jenisPelanggan,
+                'ruang_lingkup_akreditasi' => $ruangLingkup,
                 'lokasi_pelaksanaan' => $dataPelaksanaan['lokasi'],
                 'uraian_kalibrasi' => $dataPelaksanaan['uraian'] ?? null,
                 'bahasa_laporan' => $dataPelaksanaan['bahasa'] ?? 'indonesia',
@@ -213,7 +230,7 @@ class KalibrasiController extends Controller
                     if (!$master) {
                         continue;
                     }
-                    $tarifSatuan = (float) $master->tarif_satuan;
+                    $tarifSatuan = $isInternal ? 0 : (float) $master->tarif_satuan;
                     $qty = (int) ($kItem['jumlah'] ?? 1);
                     $subtotal = $tarifSatuan * $qty;
                     $subtotalAlat += $subtotal;
@@ -240,7 +257,7 @@ class KalibrasiController extends Controller
                 'id_pt_ins' => null,
                 'permohonan_id' => $permohonan->id,
                 'kode_tarif' => null,
-                'item_bayar' => 'Biaya Layanan Jasa Kalibrasi Alat',
+                'item_bayar' => $isInternal ? 'Layanan Jasa Kalibrasi Internal BBKKP (Bebas Biaya PNBP)' : 'Biaya Layanan Jasa Kalibrasi Alat',
                 'harga_satuan' => $totalEstimasiBiaya,
                 'kuantitas' => 1,
                 'subtotal' => $totalEstimasiBiaya,

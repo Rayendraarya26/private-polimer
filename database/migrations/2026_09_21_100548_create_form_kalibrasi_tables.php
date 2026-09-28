@@ -20,11 +20,15 @@ return new class extends Migration {
             $table->string('no_telp', 50)->comment('No telepon/WhatsApp pemohon');
             $table->string('hasil_kalibrasi_untuk', 255)->comment('Nama pemilik sertifikat kalibrasi / instansi');
             $table->text('alamat_pemohon')->comment('Alamat lengkap instansi pemohon');
+            $table->enum('jenis_pelanggan', ['Internal', 'Eksternal'])->default('Eksternal')->comment('Jenis pelanggan kalibrasi: Internal BBKKP / Eksternal Umum');
 
             // Data Pelaksanaan & Pengiriman
             $table->enum('lokasi_pelaksanaan', ['LABKAL BBKKP', 'Tempat Client'])
                 ->default('LABKAL BBKKP')
                 ->comment('LABKAL BBKKP = In-House, Tempat Client = On-Site');
+            $table->enum('ruang_lingkup_akreditasi', ['Masuk Ruang Lingkup', 'Tidak Masuk Ruang Lingkup'])
+                ->default('Masuk Ruang Lingkup')
+                ->comment('Status akreditasi: Masuk Ruang Lingkup / Tidak Masuk Ruang Lingkup');
             $table->text('uraian_kalibrasi')->nullable()->comment('Catatan khusus / titik uji yang dikehendaki');
             $table->enum('bahasa_laporan', ['indonesia', 'inggris'])->default('indonesia');
             $table->string('nama_penerima_kirim', 255)->nullable()->comment('Nama penerima laporan hasil');

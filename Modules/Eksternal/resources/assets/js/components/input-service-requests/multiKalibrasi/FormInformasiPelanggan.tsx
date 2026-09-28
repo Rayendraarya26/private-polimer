@@ -36,6 +36,18 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
     if (onChangePelanggan) onChangePelanggan(updated)
   }
 
+  // Sinkronisasi dataPelanggan dari props parent (misalnya saat reset draft)
+  useEffect(() => {
+    if (dataPelanggan) {
+      setFormData({
+        namaPemohon: dataPelanggan.namaPemohon || "",
+        no_telp: dataPelanggan.no_telp || "",
+        hasilKalibrasiUntuk: dataPelanggan.hasilKalibrasiUntuk || "",
+        alamatPemohon: dataPelanggan.alamatPemohon || "",
+      })
+    }
+  }, [dataPelanggan])
+
   useEffect(() => {
     if (profile && !isLoading) {
       const detail = (profile?.detail || {}) as Record<string, any>

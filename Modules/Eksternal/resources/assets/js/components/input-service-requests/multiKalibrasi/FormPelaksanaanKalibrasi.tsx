@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../..
 import { UserCheck, Info } from "lucide-react"
 
 export interface PelaksanaanKalibrasiData {
+  ruangLingkupAkreditasi?: string
   lokasi: string
   uraian: string
   bahasa: string
@@ -19,6 +20,8 @@ export interface FormPelaksanaanKalibrasiProps {
   onChangeLokasi?: (lokasi: string) => void
   uraianKalibrasi?: string
   onChangeUraian?: (uraian: string) => void
+  ruangLingkupAkreditasi?: string
+  onChangeRuangLingkup?: (ruangLingkup: string) => void
 }
 
 export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> = ({
@@ -28,12 +31,15 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
   onChangeLokasi,
   uraianKalibrasi: propUraian,
   onChangeUraian,
+  ruangLingkupAkreditasi: propRuangLingkup,
+  onChangeRuangLingkup,
 }) => {
 
   const { profile, isLoading } = useProfileQuery()
 
   const [formData, setFormData] = useState<PelaksanaanKalibrasiData>(() => ({
-    lokasi: dataPelaksanaan?.lokasi || propLokasi || "LABKAL BBKKP",
+    ruangLingkupAkreditasi: dataPelaksanaan?.ruangLingkupAkreditasi || propRuangLingkup || "",
+    lokasi: dataPelaksanaan?.lokasi || propLokasi || "",
     uraian: dataPelaksanaan?.uraian || propUraian || "",
     bahasa: dataPelaksanaan?.bahasa || "indonesia",
     namaKirim: dataPelaksanaan?.namaKirim || "",
@@ -46,7 +52,21 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
     if (onChangePelaksanaan) onChangePelaksanaan(updated)
     if (field === "lokasi" && onChangeLokasi) onChangeLokasi(value)
     if (field === "uraian" && onChangeUraian) onChangeUraian(value)
+    if (field === "ruangLingkupAkreditasi" && onChangeRuangLingkup) onChangeRuangLingkup(value)
   }
+
+  useEffect(() => {
+    if (dataPelaksanaan) {
+      setFormData({
+        ruangLingkupAkreditasi: dataPelaksanaan.ruangLingkupAkreditasi || propRuangLingkup || "",
+        lokasi: dataPelaksanaan.lokasi || propLokasi || "",
+        uraian: dataPelaksanaan.uraian || propUraian || "",
+        bahasa: dataPelaksanaan.bahasa || "indonesia",
+        namaKirim: dataPelaksanaan.namaKirim || "",
+        alamatKirim: dataPelaksanaan.alamatKirim || "",
+      })
+    }
+  }, [dataPelaksanaan, propRuangLingkup, propLokasi, propUraian])
 
   useEffect(() => {
     if (profile && !isLoading) {
@@ -93,18 +113,67 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
       </CardHeader>
 
       <CardContent className="pt-1 space-y-3">
-        {/* Pemisah / Bagian Lokasi & Uraian */}
         <div className="pt-3 space-y-5">
           <div>
             <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4 text-brand-600" />
+              Ruang Lingkup Akreditasi <span className="text-rose-500">*</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  formData.ruangLingkupAkreditasi === "Masuk Ruang Lingkup"
+                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
+                    : "border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="ruang_lingkup_akreditasi"
+                  value="Masuk Ruang Lingkup"
+                  checked={formData.ruangLingkupAkreditasi === "Masuk Ruang Lingkup"}
+                  onChange={(e) => handleChange("ruangLingkupAkreditasi", e.target.value)}
+                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">
+                    Masuk Ruang Lingkup
+                  </span>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  formData.ruangLingkupAkreditasi === "Tidak Masuk Ruang Lingkup"
+                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
+                    : "border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="ruang_lingkup_akreditasi"
+                  value="Tidak Masuk Ruang Lingkup"
+                  checked={formData.ruangLingkupAkreditasi === "Tidak Masuk Ruang Lingkup"}
+                  onChange={(e) => handleChange("ruangLingkupAkreditasi", e.target.value)}
+                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">
+                    Tidak Masuk Ruang Lingkup
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
               Lokasi Pelaksanaan Kalibrasi <span className="text-rose-500">*</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.lokasi === "LABKAL BBKKP"
-                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                    : "border-slate-200 hover:bg-slate-50"
+                  ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
+                  : "border-slate-200 hover:bg-slate-50"
                   }`}
               >
                 <input
@@ -127,8 +196,8 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
 
               <label
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.lokasi === "Tempat Client"
-                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                    : "border-slate-200 hover:bg-slate-50"
+                  ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
+                  : "border-slate-200 hover:bg-slate-50"
                   }`}
               >
                 <input

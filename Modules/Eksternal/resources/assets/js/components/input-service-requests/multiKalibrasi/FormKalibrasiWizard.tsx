@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
+import Swal from "sweetalert2"
 import { Button } from "../../ui/Button"
-import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check } from "lucide-react"
+import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check, RotateCcw } from "lucide-react"
 import api from "../../../utils/api"
 import FormInformasiAlat, { AlatKalibrasiItem } from "./FormInformasiAlat"
 import FormInformasiPelanggan, { PelangganData } from "./FormInformasiPelanggan"
@@ -21,7 +22,8 @@ const STEPS = [
 const STORAGE_KEY = "DRAFT_PERMOHONAN_KALIBRASI"
 
 const DEFAULT_PELAKSANAAN: PelaksanaanKalibrasiData = {
-  lokasi: "LABKAL BBKKP",
+  ruangLingkupAkreditasi: "",
+  lokasi: "",
   uraian: "",
   bahasa: "indonesia",
   namaKirim: "",
@@ -39,6 +41,7 @@ export const FormKalibrasiWizard: React.FC = () => {
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [setujuPernyataan, setSetujuPernyataan] = useState(false)
+  const [formKey, setFormKey] = useState<number>(0)
 
   // Inisialisasi state dari localStorage jika ada draf tersimpan
   const [currentStep, setCurrentStep] = useState<number>(() => {
@@ -101,38 +104,130 @@ export const FormKalibrasiWizard: React.FC = () => {
     return DEFAULT_PELANGGAN
   })
 
-  // Simpan draf ke localStorage setiap ada perubahan data
+  // Helper untuk mengecek apakah form sedang terisi data draf oleh user
+  const checkIsFormFilled = (
+    step: number,
+    alat: AlatKalibrasiItem[],
+    pelaksanaan: PelaksanaanKalibrasiData,
+    pernyataan: boolean
+  ): boolean => {
+    if (step > 0) return true
+    if (pernyataan) return true
+
+    if (
+      Boolean(pelaksanaan.ruangLingkupAkreditasi) ||
+      Boolean(pelaksanaan.lokasi) ||
+      Boolean(pelaksanaan.uraian?.trim()) ||
+      pelaksanaan.bahasa !== "indonesia"
+    ) {
+      return true
+    }
+
+    if (alat.length > 1) return true
+
+    return alat.some(
+      (a) =>
+        Boolean(a.namaAlat?.trim()) ||
+        Boolean(a.merk?.trim()) ||
+        Boolean(a.tipeModel?.trim()) ||
+        Boolean(a.kondisi?.trim()) ||
+        (Array.isArray(a.nomorSeriList) && a.nomorSeriList.some((s) => Boolean(s?.trim()))) ||
+        (Array.isArray(a.kalibrasiList) && a.kalibrasiList.length > 0)
+    )
+  }
+
+  // Status draf: true jika ada draf tersimpan di storage atau user mulai mengisi form
+  // Dibuat sebagai state stabil agar tidak hilang-muncul (glitch/flicker) saat pengguna sedang mengetik
+  const [hasDraft, setHasDraft] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (
+          (typeof parsed.currentStep === "number" && parsed.currentStep > 0) ||
+          (Array.isArray(parsed.dataAlat) && parsed.dataAlat.length > 1) ||
+          (Array.isArray(parsed.dataAlat) &&
+            parsed.dataAlat.some(
+              (a: any) =>
+                Boolean(a.namaAlat?.trim()) ||
+                Boolean(a.merk?.trim()) ||
+                Boolean(a.tipeModel?.trim()) ||
+                Boolean(a.kondisi?.trim()) ||
+                (Array.isArray(a.nomorSeriList) && a.nomorSeriList.some((s: any) => Boolean(s?.trim()))) ||
+                (Array.isArray(a.kalibrasiList) && a.kalibrasiList.length > 0)
+            )) ||
+          Boolean(parsed.dataPelaksanaan?.ruangLingkupAkreditasi) ||
+          Boolean(parsed.dataPelaksanaan?.lokasi) ||
+          Boolean(parsed.dataPelaksanaan?.uraian?.trim())
+        ) {
+          return true
+        }
+      }
+    } catch (e) {
+      console.error("Error reading draft status:", e)
+    }
+    return false
+  })
+
+  // Aktifkan hasDraft saat data mulai diisi oleh user
+  useEffect(() => {
+    if (!hasDraft) {
+      const isFilled = checkIsFormFilled(currentStep, dataAlat, dataPelaksanaan, setujuPernyataan)
+      if (isFilled) {
+        setHasDraft(true)
+      }
+    }
+  }, [hasDraft, currentStep, dataAlat, dataPelaksanaan, setujuPernyataan])
+
   useEffect(() => {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          currentStep,
-          dataAlat,
-          dataPelaksanaan,
-          dataPelanggan,
-        })
-      )
+      if (hasDraft) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            currentStep,
+            dataAlat,
+            dataPelaksanaan,
+            dataPelanggan,
+          })
+        )
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
     } catch (error) {
       console.error("Gagal menyimpan draf kalibrasi ke localStorage:", error)
     }
-  }, [currentStep, dataAlat, dataPelaksanaan, dataPelanggan])
+  }, [hasDraft, currentStep, dataAlat, dataPelaksanaan, dataPelanggan])
 
   // Handler: Hapus Draf dan Reset Formulir
-  const handleResetDraft = () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus seluruh draf formulir kalibrasi ini dan mulai dari awal?")) {
-      try {
-        localStorage.removeItem(STORAGE_KEY)
-      } catch (e) {
-        console.error("Gagal menghapus draf:", e)
-      }
-      setDataAlat([])
-      setDataPelaksanaan(DEFAULT_PELAKSANAAN)
-      setDataPelanggan(DEFAULT_PELANGGAN)
-      setCurrentStep(0)
-      setSetujuPernyataan(false)
-      toast.success("Draf berhasil dihapus")
+  const handleResetDraft = async () => {
+    const result = await Swal.fire({
+      title: "Reset Draft Formulir?",
+      text: "Seluruh data alat, pelaksanaan, dan informasi pemohon yang telah diisi akan dihapus dan kembali ke langkah awal.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e11d48",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, Reset Draft",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch (e) {
+      console.error("Gagal menghapus draf:", e)
     }
+    setDataAlat([])
+    setDataPelaksanaan({ ...DEFAULT_PELAKSANAAN })
+    setDataPelanggan({ ...DEFAULT_PELANGGAN })
+    setCurrentStep(0)
+    setSetujuPernyataan(false)
+    setHasDraft(false)
+    setFormKey((prev) => prev + 1)
+    toast.success("Draf formulir berhasil direset.")
   }
 
   const validateCurrentStep = (): boolean => {
@@ -153,6 +248,10 @@ export const FormKalibrasiWizard: React.FC = () => {
         }
       }
     } else if (currentStep === 1) {
+      if (!dataPelaksanaan.ruangLingkupAkreditasi) {
+        toast.error("Harap pilih status ruang lingkup akreditasi.")
+        return false
+      }
       if (!dataPelaksanaan.lokasi) {
         toast.error("Harap pilih lokasi pelaksanaan kalibrasi.")
         return false
@@ -226,6 +325,7 @@ export const FormKalibrasiWizard: React.FC = () => {
       } catch (e) {
         console.error("Gagal menghapus draf storage:", e)
       }
+      setHasDraft(false)
 
       toast.success(res?.data?.message || "Permohonan kalibrasi berhasil dikirim!")
       if (resData?.id) {
@@ -252,6 +352,21 @@ export const FormKalibrasiWizard: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Tombol Reset Draft (diluar card timeline, kanan atas) */}
+      <div className="flex justify-end -mb-2 min-h-[20px]">
+        {hasDraft && (
+          <button
+            type="button"
+            onClick={handleResetDraft}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
+            title="Reset Seluruh Draf Formulir"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Draft</span>
+          </button>
+        )}
+      </div>
+
       {/* Stepper Progress Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -302,35 +417,37 @@ export const FormKalibrasiWizard: React.FC = () => {
       </div>
 
       {/* Step Contents */}
-      <div className={currentStep === 0 ? "block" : "hidden"}>
-        <FormInformasiAlat
-          dataAlat={dataAlat}
-          onChangeDataAlat={setDataAlat}
-        />
-      </div>
+      <div key={`step-contents-${formKey}`}>
+        <div className={currentStep === 0 ? "block" : "hidden"}>
+          <FormInformasiAlat
+            dataAlat={dataAlat}
+            onChangeDataAlat={setDataAlat}
+          />
+        </div>
 
-      <div className={currentStep === 1 ? "block" : "hidden"}>
-        <FormPelaksanaanKalibrasi
-          dataPelaksanaan={dataPelaksanaan}
-          onChangePelaksanaan={setDataPelaksanaan}
-        />
-      </div>
+        <div className={currentStep === 1 ? "block" : "hidden"}>
+          <FormPelaksanaanKalibrasi
+            dataPelaksanaan={dataPelaksanaan}
+            onChangePelaksanaan={setDataPelaksanaan}
+          />
+        </div>
 
-      <div className={currentStep === 2 ? "block" : "hidden"}>
-        <FormInformasiPelanggan
-          dataPelanggan={dataPelanggan}
-          onChangePelanggan={setDataPelanggan}
-        />
-      </div>
+        <div className={currentStep === 2 ? "block" : "hidden"}>
+          <FormInformasiPelanggan
+            dataPelanggan={dataPelanggan}
+            onChangePelanggan={setDataPelanggan}
+          />
+        </div>
 
-      <div className={currentStep === 3 ? "block" : "hidden"}>
-        <FormPernyataan
-          dataAlat={dataAlat}
-          dataPelaksanaan={dataPelaksanaan}
-          dataPelanggan={dataPelanggan}
-          setujuPernyataan={setujuPernyataan}
-          onChangePernyataan={setSetujuPernyataan}
-        />
+        <div className={currentStep === 3 ? "block" : "hidden"}>
+          <FormPernyataan
+            dataAlat={dataAlat}
+            dataPelaksanaan={dataPelaksanaan}
+            dataPelanggan={dataPelanggan}
+            setujuPernyataan={setujuPernyataan}
+            onChangePernyataan={setSetujuPernyataan}
+          />
+        </div>
       </div>
 
       {/* Navigation Buttons */}

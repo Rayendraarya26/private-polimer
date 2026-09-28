@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../..
 import { Button } from "../../ui/Button"
 import { Toolbox, Plus, Trash2, Settings, Loader2, Info, Calculator, ShieldCheck } from "lucide-react"
 import { useMasterKalibrasiQuery } from "../../../hooks/queries/useMasterQuery"
+import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 
 export interface KalibrasiUjiItem {
   id: string
@@ -33,6 +34,12 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
   onChangeDataAlat,
 }) => {
   const { data: masterKalibrasi = [], isLoading: isLoadingMaster } = useMasterKalibrasiQuery()
+  const { profile } = useProfileQuery()
+
+  const isInternal = Boolean(
+    (masterKalibrasi as any)?.is_internal ??
+    (profile?.group?.id && profile.group.id !== "c3877540-427b-11ef-9454-0242ac120002")
+  )
 
   // State internal untuk multi-alat
   const [alatList, setAlatList] = useState<AlatKalibrasiItem[]>(() => {
@@ -53,21 +60,60 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
     ]
   })
 
-  // State untuk dropdown kalibrasi per alat: Record<alatId, selectedMasterId>
+  useEffect(() => {
+    if (isInternal) {
+      setAlatList((prev) => {
+        let changed = false
+        const updated = prev.map((alat) => {
+          const updatedKalibrasi = alat.kalibrasiList.map((k) => {
+            if (k.tarifSatuan !== 0) {
+              changed = true
+              return { ...k, tarifSatuan: 0 }
+            }
+            return k
+          })
+          return { ...alat, kalibrasiList: updatedKalibrasi }
+        })
+        return changed ? updated : prev
+      })
+    }
+  }, [isInternal])
+
   const [selectedKalibrasiMap, setSelectedKalibrasiMap] = useState<Record<string, string>>({})
 
-  // Sinkronisasi perubahan alatList ke parent wizard
   useEffect(() => {
-    if (onChangeDataAlat) {
-      onChangeDataAlat(alatList)
+    if (dataAlat && dataAlat.length > 0) {
+      setAlatList(dataAlat)
+    } else if (dataAlat && dataAlat.length === 0) {
+      setAlatList([
+        {
+          id: "alat-1",
+          namaAlat: "",
+          merk: "",
+          tipeModel: "",
+          jumlah: 1,
+          nomorSeriList: [""],
+          kondisi: "",
+          kalibrasiList: [],
+        },
+      ])
+      setSelectedKalibrasiMap({})
     }
-  }, [alatList, onChangeDataAlat])
+  }, [dataAlat])
+
+  // Helper untuk update state lokal dan sinkronkan langsung ke parent wizard
+  const updateAlatList = (updated: AlatKalibrasiItem[]) => {
+    setAlatList(updated)
+    if (onChangeDataAlat) {
+      onChangeDataAlat(updated)
+    }
+  }
 
   // Handler: Tambah Alat Baru
   const handleTambahAlat = () => {
     const newId = `alat-${Date.now()}`
-    setAlatList((prev) => [
-      ...prev,
+    const updated = [
+      ...alatList,
       {
         id: newId,
         namaAlat: "",
@@ -75,67 +121,67 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
         tipeModel: "",
         jumlah: 1,
         nomorSeriList: [""],
-        kondisi: "Baik / Normal",
+        kondisi: "",
         kalibrasiList: [],
       },
-    ])
+    ]
+    updateAlatList(updated)
   }
 
   // Handler: Hapus Alat
   const handleHapusAlat = (alatId: string) => {
     if (alatList.length <= 1) return
-    setAlatList((prev) => prev.filter((a) => a.id !== alatId))
+    const updated = alatList.filter((a) => a.id !== alatId)
+    updateAlatList(updated)
   }
 
   // Handler: Update Spesifikasi Alat
   const handleUpdateAlat = (alatId: string, field: keyof AlatKalibrasiItem, value: any) => {
-    setAlatList((prev) =>
-      prev.map((item) => {
-        if (item.id !== alatId) return item
+    const updated = alatList.map((item) => {
+      if (item.id !== alatId) return item
 
-        if (field === "jumlah") {
-          const newJumlah = Math.max(1, parseInt(value) || 1)
-          // Sinkronisasi ukuran nomorSeriList sesuai jumlah
-          const currentSerials = [...item.nomorSeriList]
-          let updatedSerials = currentSerials
-          if (newJumlah > currentSerials.length) {
-            updatedSerials = [
-              ...currentSerials,
-              ...Array(newJumlah - currentSerials.length).fill(""),
-            ]
-          } else if (newJumlah < currentSerials.length) {
-            updatedSerials = currentSerials.slice(0, newJumlah)
-          }
-
-          // Sinkronisasi juga jumlah kalibrasi jika sebelumnya sudah terpilih
-          const updatedKalibrasi = item.kalibrasiList.map((k) => ({
-            ...k,
-            jumlah: newJumlah,
-          }))
-
-          return {
-            ...item,
-            jumlah: newJumlah,
-            nomorSeriList: updatedSerials,
-            kalibrasiList: updatedKalibrasi,
-          }
+      if (field === "jumlah") {
+        const newJumlah = Math.max(1, parseInt(value) || 1)
+        // Sinkronisasi ukuran nomorSeriList sesuai jumlah
+        const currentSerials = [...item.nomorSeriList]
+        let updatedSerials = currentSerials
+        if (newJumlah > currentSerials.length) {
+          updatedSerials = [
+            ...currentSerials,
+            ...Array(newJumlah - currentSerials.length).fill(""),
+          ]
+        } else if (newJumlah < currentSerials.length) {
+          updatedSerials = currentSerials.slice(0, newJumlah)
         }
 
-        return { ...item, [field]: value }
-      })
-    )
+        // Sinkronisasi juga jumlah kalibrasi jika sebelumnya sudah terpilih
+        const updatedKalibrasi = item.kalibrasiList.map((k) => ({
+          ...k,
+          jumlah: newJumlah,
+        }))
+
+        return {
+          ...item,
+          jumlah: newJumlah,
+          nomorSeriList: updatedSerials,
+          kalibrasiList: updatedKalibrasi,
+        }
+      }
+
+      return { ...item, [field]: value }
+    })
+    updateAlatList(updated)
   }
 
   // Handler: Update Nomor Seri spesifik per unit
   const handleUpdateNomorSeri = (alatId: string, index: number, value: string) => {
-    setAlatList((prev) =>
-      prev.map((item) => {
-        if (item.id !== alatId) return item
-        const updatedSerials = [...item.nomorSeriList]
-        updatedSerials[index] = value
-        return { ...item, nomorSeriList: updatedSerials }
-      })
-    )
+    const updated = alatList.map((item) => {
+      if (item.id !== alatId) return item
+      const updatedSerials = [...item.nomorSeriList]
+      updatedSerials[index] = value
+      return { ...item, nomorSeriList: updatedSerials }
+    })
+    updateAlatList(updated)
   }
 
   // Handler: Tambah Jenis Kalibrasi ke Alat Tertentu
@@ -146,36 +192,36 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
     const masterItem = masterKalibrasi.find((m: any) => m.id === selectedMasterId)
     if (!masterItem) return
 
-    setAlatList((prev) =>
-      prev.map((alat) => {
-        if (alat.id !== alatId) return alat
+    const updated = alatList.map((alat) => {
+      if (alat.id !== alatId) return alat
 
-        // Cek apakah jenis kalibrasi ini sudah ditambahkan pada alat ini
-        const existingIdx = alat.kalibrasiList.findIndex(
-          (k) => k.masterKalibrasiId === selectedMasterId
-        )
+      // Cek apakah jenis kalibrasi ini sudah ditambahkan pada alat ini
+      const existingIdx = alat.kalibrasiList.findIndex(
+        (k) => k.masterKalibrasiId === selectedMasterId
+      )
 
-        if (existingIdx > -1) {
-          const updatedList = [...alat.kalibrasiList]
-          updatedList[existingIdx].jumlah += 1
-          return { ...alat, kalibrasiList: updatedList }
-        }
+      if (existingIdx > -1) {
+        const updatedList = [...alat.kalibrasiList]
+        updatedList[existingIdx].jumlah += 1
+        return { ...alat, kalibrasiList: updatedList }
+      }
 
-        return {
-          ...alat,
-          kalibrasiList: [
-            ...alat.kalibrasiList,
-            {
-              id: `${alatId}-kal-${Date.now()}`,
-              masterKalibrasiId: masterItem.id,
-              nama: masterItem.kalibrasi,
-              tarifSatuan: Number(masterItem.tarif_satuan || 0),
-              jumlah: alat.jumlah, // default mengikuti jumlah alat
-            },
-          ],
-        }
-      })
-    )
+      return {
+        ...alat,
+        kalibrasiList: [
+          ...alat.kalibrasiList,
+          {
+            id: `${alatId}-kal-${Date.now()}`,
+            masterKalibrasiId: masterItem.id,
+            nama: masterItem.kalibrasi,
+            tarifSatuan: isInternal ? 0 : Number(masterItem.tarif_satuan || 0),
+            jumlah: alat.jumlah,
+          },
+        ],
+      }
+    })
+
+    updateAlatList(updated)
 
     // Reset dropdown pilihan kalibrasi untuk alat ini
     setSelectedKalibrasiMap((prev) => ({ ...prev, [alatId]: "" }))
@@ -184,30 +230,28 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
   // Handler: Ubah jumlah pengujian kalibrasi
   const handleUpdateJumlahKalibrasi = (alatId: string, kalibrasiId: string, jumlah: number) => {
     const val = Math.max(1, jumlah)
-    setAlatList((prev) =>
-      prev.map((alat) => {
-        if (alat.id !== alatId) return alat
-        return {
-          ...alat,
-          kalibrasiList: alat.kalibrasiList.map((k) =>
-            k.id === kalibrasiId ? { ...k, jumlah: val } : k
-          ),
-        }
-      })
-    )
+    const updated = alatList.map((alat) => {
+      if (alat.id !== alatId) return alat
+      return {
+        ...alat,
+        kalibrasiList: alat.kalibrasiList.map((k) =>
+          k.id === kalibrasiId ? { ...k, jumlah: val } : k
+        ),
+      }
+    })
+    updateAlatList(updated)
   }
 
   // Handler: Hapus jenis kalibrasi dari alat
   const handleHapusKalibrasiDariAlat = (alatId: string, kalibrasiId: string) => {
-    setAlatList((prev) =>
-      prev.map((alat) => {
-        if (alat.id !== alatId) return alat
-        return {
-          ...alat,
-          kalibrasiList: alat.kalibrasiList.filter((k) => k.id !== kalibrasiId),
-        }
-      })
-    )
+    const updated = alatList.map((alat) => {
+      if (alat.id !== alatId) return alat
+      return {
+        ...alat,
+        kalibrasiList: alat.kalibrasiList.filter((k) => k.id !== kalibrasiId),
+      }
+    })
+    updateAlatList(updated)
   }
 
   // Hitung total keseluruhan
@@ -240,6 +284,14 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
         </CardHeader>
 
         <CardContent className="p-0 divide-y divide-slate-200">
+          {isInternal && (
+            <div className="p-4 bg-blue-50/80 border-b border-blue-200 flex items-center gap-2.5 text-xs text-blue-900">
+              <Info className="w-4 h-4 text-blue-600 shrink-0" />
+              <div>
+                <span className="font-bold">Akun Internal BBKKP:</span> Layanan kalibrasi alat internal antar-laboratorium bebas biaya PNBP (Rp 0).
+              </div>
+            </div>
+          )}
           <div className="divide-y divide-slate-200">
             {alatList.map((alat, index) => {
               const subtotalAlat = alat.kalibrasiList.reduce(
@@ -365,9 +417,9 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                           <input
                             type="text"
                             placeholder="Contoh: Baik/Normal"
-                            name="kondisi"
-                            id="kondisi"
-                            value={alat.kondisi}
+                            name={`kondisi-${alat.id}`}
+                            id={`kondisi-${alat.id}`}
+                            value={alat.kondisi || ""}
                             onChange={(e) => handleUpdateAlat(alat.id, "kondisi", e.target.value)}
                             className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
                           />
@@ -503,10 +555,20 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                                     />
                                   </td>
                                   <td className="px-3.5 py-2 text-right text-slate-600">
-                                    {k.tarifSatuan.toLocaleString("id-ID")}
+                                    {k.tarifSatuan === 0 ? (
+                                      <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] inline-block">
+                                        Gratis (Rp 0)
+                                      </span>
+                                    ) : (
+                                      k.tarifSatuan.toLocaleString("id-ID")
+                                    )}
                                   </td>
                                   <td className="px-3.5 py-2 text-right font-bold text-slate-800">
-                                    {(k.jumlah * k.tarifSatuan).toLocaleString("id-ID")}
+                                    {k.tarifSatuan === 0 ? (
+                                      <span className="text-emerald-700 font-bold">Rp 0</span>
+                                    ) : (
+                                      (k.jumlah * k.tarifSatuan).toLocaleString("id-ID")
+                                    )}
                                   </td>
                                   <td className="px-2 py-2 text-center">
                                     <button
@@ -557,20 +619,23 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
         </CardContent>
       </Card>
 
+      <Card className="rounded-2xl border-slate-200/90 shadow-soft bg-gradient-to-r from-slate-50 via-brand-50/20 to-white overflow-hidden">
+        <CardContent className="p-5 text-end">
+          <div>
+            <span className="text-[11px] font-semibold text-slate-500 tracking-wider uppercase block">
+              Estimasi Total Tarif Kalibrasi
+            </span>
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+              Rp {grandTotalBiaya.toLocaleString("id-ID")}
+            </h3>
+          </div>
+        </CardContent>
+      </Card>
 
 
-      {/* Ringkasan Total Estimasi Biaya */}
-      <div className="bg-gradient-to-r from-brand-900 to-slate-900 text-white p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <span className="text-[11px] font-semibold text-brand-200 tracking-wider uppercase block">
-            Estimasi Total Tarif Kalibrasi
-          </span>
-          <h3 className="text-xl font-black tracking-tight text-white mt-0.5">
-            Rp {grandTotalBiaya.toLocaleString("id-ID")}
-          </h3>
-        </div>
-      </div>
     </div>
+
+
   )
 }
 

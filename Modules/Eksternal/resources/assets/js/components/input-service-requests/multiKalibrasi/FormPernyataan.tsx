@@ -105,11 +105,19 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
             </h4>
             <div className="text-xs space-y-1.5 pt-1">
               <div>
+                <span className="text-slate-500 block text-[11px]">Ruang Lingkup Akreditasi:</span>
+                <span className="font-semibold text-slate-800">
+                  {dataPelaksanaan?.ruangLingkupAkreditasi || "-"}
+                </span>
+              </div>
+              <div>
                 <span className="text-slate-500 block text-[11px]">Lokasi Pelaksanaan:</span>
                 <span className="font-semibold text-brand-700">
                   {dataPelaksanaan?.lokasi === "Tempat Client"
                     ? "On-Site (Di Lokasi / Tempat Client)"
-                    : "Laboratorium Kalibrasi BBKKP"}
+                    : dataPelaksanaan?.lokasi === "LABKAL BBKKP"
+                    ? "Laboratorium Kalibrasi BBKKP"
+                    : "-"}
                 </span>
               </div>
               <div>
@@ -143,7 +151,7 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
               Daftar Alat & Layanan Kalibrasi ({dataAlat.length} Alat)
             </h4>
             <span className="text-xs font-bold text-brand-700">
-              Total: Rp {grandTotalBiaya.toLocaleString("id-ID")}
+              Total: {grandTotalBiaya === 0 ? "Rp 0 (Internal BBKKP)" : `Rp ${grandTotalBiaya.toLocaleString("id-ID")}`}
             </span>
           </div>
 
@@ -171,7 +179,7 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
                           {alat.namaAlat?.trim() || "Nama Alat Belum Diisi"}
                         </h5>
                         <p className="text-[11px] text-slate-500">
-                          Merek: {alat.merk || "-"} | Tipe/Model: {alat.tipeModel || "-"} | Kondisi: {alat.kondisi || "Baik / Normal"} | Jumlah: {alat.jumlah} Unit
+                          Merek: {alat.merk || "-"} | Tipe/Model: {alat.tipeModel || "-"} | Kondisi: {alat.kondisi || "-"} | Jumlah: {alat.jumlah} Unit
                         </p>
                       </div>
                       <div className="sm:text-right">
@@ -213,7 +221,11 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
                                 • {kal.nama} <span className="text-slate-400">({kal.jumlah}x)</span>
                               </span>
                               <span className="font-medium text-slate-800">
-                                Rp {((kal.tarifSatuan || 0) * (kal.jumlah || 1)).toLocaleString("id-ID")}
+                                {(kal.tarifSatuan || 0) === 0 ? (
+                                  <span className="text-emerald-700 font-semibold">Rp 0 (Gratis)</span>
+                                ) : (
+                                  `Rp ${((kal.tarifSatuan || 0) * (kal.jumlah || 1)).toLocaleString("id-ID")}`
+                                )}
                               </span>
                             </div>
                           ))}

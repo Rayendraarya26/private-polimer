@@ -36,10 +36,12 @@ return [
     ],
 
     'tte' => [
-        'base_url' => env('TTE_BASE_URL'),
-        'api_key' => env('TTE_API_KEY'),
-        'timeout' => env('TTE_TIMEOUT_SECONDS', 60),
-        'dummy'   => env('TTE_DUMMY', true),
+        'base_url'      => env('TTE_BASE_URL'),
+        'api_key'       => env('TTE_API_KEY'),
+        'timeout'       => env('TTE_TIMEOUT_SECONDS', 60),
+        'dummy'         => env('TTE_DUMMY', true),
+        'api_version'   => env('TTE_API_VERSION', 'v1'),
+        'totp_required' => env('TTE_TOTP_REQUIRED', false),
     ],
 
     'bni' => [

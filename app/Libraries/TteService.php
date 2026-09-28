@@ -12,7 +12,6 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use SplFileObject;
 
 class TteService
 {
@@ -26,6 +25,50 @@ class TteService
         return (bool) config('services.tte.dummy', env('TTE_DUMMY', false))
             || empty(config('services.tte.base_url'))
             || config('services.tte.base_url') === 'dummy';
+    }
+
+    /**
+     * Cek apakah TOTP diwajibkan
+     */
+    public function isTotpRequired(): bool
+    {
+        return (bool) config('services.tte.totp_required', false);
+    }
+
+    /**
+     * Versi API yang digunakan ('v1' atau 'v2')
+     */
+    public function getApiVersion(): string
+    {
+        return config('services.tte.api_version', 'v1');
+    }
+
+    /**
+     * Check user NIK status
+     */
+    public function checkNIK(string $nik): bool
+    {
+        if ($this->isDummy()) {
+            return true;
+        }
+
+        $httpClient = new Client([
+            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
+            'timeout'  => config('services.tte.timeout', 60),
+            'headers'  => [
+                'X-API-KEY' => config('services.tte.api_key'),
+                'Accept'    => 'application/json',
+            ],
+        ]);
+
+        try {
+            $response = $httpClient->get("api/esign/nik/{$nik}");
+            $body = json_decode($response->getBody()->getContents(), true);
+            return (bool) ($body['results'] ?? false);
+        } catch (\Throwable $e) {
+            Log::error('TteService::checkNIK failed', ['nik' => $nik, 'error' => $e->getMessage()]);
+            return false;
+        }
     }
 
     /**
@@ -50,25 +93,84 @@ class TteService
             ->setApiKey('X-API-KEY', config('services.tte.api_key'));
 
         $client = new Client([
-            'timeout' => config('services.tte.timeout'),
+            'timeout' => config('services.tte.timeout', 60),
         ]);
 
         $this->http = new EsignApi($client, $config);
     }
 
-public function signPDF(
+    /**
+     * Request OTP via email dari BSrE (API v2)
+     *
+     * @throws Exception
+     */
+    public function requestOtp(string $nik, ?string $email = null, int $fileCount = 1): array
+    {
+        Log::info('TteService::requestOtp - Start', [
+            'nik'       => substr($nik, 0, 4) . '****' . substr($nik, -4),
+            'email'     => $email,
+            'fileCount' => $fileCount,
+            'is_dummy'  => $this->isDummy(),
+        ]);
+
+        if ($this->isDummy()) {
+            return [
+                'success' => true,
+                'message' => 'Dummy OTP berhasil dikirim ke email terdaftar (Mode Dummy)',
+                'time'    => 1000,
+            ];
+        }
+
+        $httpClient = new Client([
+            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
+            'timeout'  => config('services.tte.timeout', 60),
+            'headers'  => [
+                'X-API-KEY' => config('services.tte.api_key'),
+                'Accept'    => 'application/json',
+            ],
+        ]);
+
+        try {
+            $response = $httpClient->post('api/esign/sign/request-totp', [
+                'json' => [
+                    'nik'        => $nik,
+                    'email'      => $email,
+                    'file_count' => $fileCount,
+                ],
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            return $body['results'] ?? $body['data'] ?? ['success' => true];
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $responseBody = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : null;
+            $err = $responseBody ? json_decode($responseBody, true) : null;
+            $msg = $err['message'] ?? $err['error'] ?? 'Gagal meminta OTP ke server TTE';
+            Log::error('TteService::requestOtp - Failed', ['error' => $msg]);
+            throw new Exception($msg);
+        }
+    }
+
+    /**
+     * Sign PDF - supports both v1 and v2 with optional TOTP
+     *
+     * @throws Exception
+     */
+    public function signPDF(
         string $nik,
-        string $passphrase,
+        ?string $passphrase,
         string $refCode,
         string $fileContent,
         string $fileName,
         array  $refMetadata = [],
+        ?string $totp = null,
+        string $tampilan = 'invisible'
     ): array {
         Log::info('TteService::signPDF - Start', [
             'nik'      => substr($nik, 0, 4) . '****' . substr($nik, -4),
             'ref_code' => $refCode,
             'fileName' => $fileName,
             'fileSize' => strlen($fileContent),
+            'has_totp' => !empty($totp),
             'is_dummy' => $this->isDummy(),
         ]);
 
@@ -107,9 +209,6 @@ public function signPDF(
         // ref_metadata dikirim sebagai base64(json) — internal service akan base64_decode
         $encodedMetadata = base64_encode(json_encode($refMetadata));
 
-        // Buat Guzzle client khusus untuk endpoint internal esign service.
-        // $this->http adalah EsignApi (SDK), tidak punya ->post(),
-        // sehingga HTTP call dilakukan lewat client terpisah di sini.
         $httpClient = new Client([
             'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
             'timeout'  => config('services.tte.timeout', 60),
@@ -119,61 +218,71 @@ public function signPDF(
             ],
         ]);
 
+        $multipart = [
+            [
+                'name'     => 'nik',
+                'contents' => $nik,
+            ],
+            [
+                'name'     => 'ref_code',
+                'contents' => $refCode,
+            ],
+            [
+                'name'     => 'ref_metadata',
+                'contents' => $encodedMetadata,
+            ],
+            [
+                'name'     => 'file_name',
+                'contents' => $fileName,
+            ],
+            [
+                'name'     => 'tampilan',
+                'contents' => $tampilan,
+            ],
+            [
+                'name'     => 'file',
+                'contents' => $fileContent,
+                'filename' => $fileName,
+                'headers'  => ['Content-Type' => 'application/pdf'],
+            ],
+        ];
+
+        if (!empty($passphrase)) {
+            $multipart[] = [
+                'name'     => 'passphrase',
+                'contents' => $passphrase,
+            ];
+        }
+
+        if (!empty($totp)) {
+            $multipart[] = [
+                'name'     => 'totp',
+                'contents' => $totp,
+            ];
+        }
+
         try {
             $response = $httpClient->post('api/esign/sign', [
-                'multipart' => [
-                    [
-                        'name'     => 'nik',
-                        'contents' => $nik,
-                    ],
-                    [
-                        'name'     => 'passphrase',
-                        'contents' => $passphrase,
-                    ],
-                    [
-                        'name'     => 'ref_code',
-                        'contents' => $refCode,
-                    ],
-                    [
-                        'name'     => 'ref_metadata',
-                        'contents' => $encodedMetadata,
-                    ],
-                    [
-                        'name'     => 'file_name',
-                        'contents' => $fileName,
-                    ],
-                    [
-                        'name'     => 'file',
-                        'contents' => $fileContent,
-                        'filename' => $fileName,
-                        'headers'  => ['Content-Type' => 'application/pdf'],
-                    ],
-                ],
+                'multipart' => $multipart,
             ]);
 
-                $rawBody = $response->getBody()->getContents();
+            $rawBody = $response->getBody()->getContents();
 
-                Log::info('TteService::signPDF - Raw response', [
-                    'ref_code'    => $refCode,
-                    'status_code' => $response->getStatusCode(),
-                    'body'        => $rawBody,  // tambah ini
-                ]);
+            Log::info('TteService::signPDF - Raw response', [
+                'ref_code'    => $refCode,
+                'status_code' => $response->getStatusCode(),
+                'body'        => $rawBody,
+            ]);
 
-                $body = json_decode($rawBody, true);
+            $body = json_decode($rawBody, true);
 
-                            Log::info('TteService::signPDF - Success', [
-                    'ref_code'      => $refCode,
-                    'data_keys'     => array_keys($body['results'] ?? []),  // ← ganti 'data' → 'results'
-                    'esign_id'      => $body['results']['id']        ?? null,
-                    'has_file_link' => !empty($body['results']['file_link']),
-                ]);
+            $results = $body['results'] ?? $body['data'] ?? null;
 
-                if (empty($body['results']['file_link'])) {  // ← ganti 'data' → 'results'
-                    throw new Exception('Internal service tidak mengembalikan file_link');
-                }
+            if (empty($results['file_link'])) {
+                throw new Exception('Internal service tidak mengembalikan file_link');
+            }
 
-                return $body['results'];  // ← ganti 'data' → 'results'
-
+            return $results;
         } catch (\GuzzleHttp\Exception\RequestException $e) {
             $responseBody = $e->hasResponse()
                 ? $e->getResponse()->getBody()->getContents()
@@ -188,6 +297,158 @@ public function signPDF(
             ]);
 
             throw new Exception($err['message'] ?? 'Gagal menandatangani dokumen');
+        }
+    }
+
+    /**
+     * Sign PDF via API v2 endpoint directly
+     *
+     * @throws Exception
+     */
+    public function signPdfV2(
+        string $nik,
+        ?string $passphrase,
+        string $refCode,
+        string $fileContent,
+        string $fileName,
+        ?string $totp = null,
+        array  $refMetadata = [],
+        string $tampilan = 'INVISIBLE',
+        ?array $visibleOptions = null,
+        ?string $email = null
+    ): array {
+        if ($this->isDummy()) {
+            return $this->signPDF($nik, $passphrase, $refCode, $fileContent, $fileName, $refMetadata, $totp, $tampilan);
+        }
+
+        $encodedMetadata = base64_encode(json_encode($refMetadata));
+
+        $httpClient = new Client([
+            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
+            'timeout'  => config('services.tte.timeout', 60),
+            'headers'  => [
+                'X-API-KEY' => config('services.tte.api_key'),
+                'Accept'    => 'application/json',
+            ],
+        ]);
+
+        $multipart = [
+            ['name' => 'nik', 'contents' => $nik],
+            ['name' => 'ref_code', 'contents' => $refCode],
+            ['name' => 'ref_metadata', 'contents' => $encodedMetadata],
+            ['name' => 'file_name', 'contents' => $fileName],
+            ['name' => 'tampilan', 'contents' => $tampilan],
+            [
+                'name'     => 'file',
+                'contents' => $fileContent,
+                'filename' => $fileName,
+                'headers'  => ['Content-Type' => 'application/pdf'],
+            ],
+        ];
+
+        if (!empty($passphrase)) {
+            $multipart[] = ['name' => 'passphrase', 'contents' => $passphrase];
+        }
+        if (!empty($totp)) {
+            $multipart[] = ['name' => 'totp', 'contents' => $totp];
+        }
+        if (!empty($email)) {
+            $multipart[] = ['name' => 'email', 'contents' => $email];
+        }
+        if (!empty($visibleOptions)) {
+            foreach ($visibleOptions as $key => $val) {
+                $multipart[] = ['name' => "visible_options[{$key}]", 'contents' => (string) $val];
+            }
+        }
+
+        try {
+            $response = $httpClient->post('api/esign/sign/v2', [
+                'multipart' => $multipart,
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            $results = $body['results'] ?? $body['data'] ?? null;
+
+            if (empty($results['file_link'])) {
+                throw new Exception('Internal service tidak mengembalikan file_link');
+            }
+
+            return $results;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $responseBody = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : null;
+            $err = $responseBody ? json_decode($responseBody, true) : null;
+            throw new Exception($err['message'] ?? 'Gagal menandatangani dokumen (v2)');
+        }
+    }
+
+    /**
+     * Seal PDF (Segel Elektronik Institusi)
+     *
+     * @throws Exception
+     */
+    public function sealPdf(
+        string $idSubscriber,
+        string $totp,
+        string $refCode,
+        string $fileContent,
+        string $fileName,
+        array  $refMetadata = [],
+        string $tampilan = 'INVISIBLE',
+        ?array $visibleOptions = null
+    ): array {
+        if ($this->isDummy()) {
+            return $this->signPDF('SEAL-DUMMY', 'dummy', $refCode, $fileContent, $fileName, $refMetadata, $totp, $tampilan);
+        }
+
+        $encodedMetadata = base64_encode(json_encode($refMetadata));
+
+        $httpClient = new Client([
+            'base_uri' => rtrim(config('services.tte.base_url'), '/') . '/',
+            'timeout'  => config('services.tte.timeout', 60),
+            'headers'  => [
+                'X-API-KEY' => config('services.tte.api_key'),
+                'Accept'    => 'application/json',
+            ],
+        ]);
+
+        $multipart = [
+            ['name' => 'id_subscriber', 'contents' => $idSubscriber],
+            ['name' => 'totp', 'contents' => $totp],
+            ['name' => 'ref_code', 'contents' => $refCode],
+            ['name' => 'ref_metadata', 'contents' => $encodedMetadata],
+            ['name' => 'file_name', 'contents' => $fileName],
+            ['name' => 'tampilan', 'contents' => $tampilan],
+            [
+                'name'     => 'file',
+                'contents' => $fileContent,
+                'filename' => $fileName,
+                'headers'  => ['Content-Type' => 'application/pdf'],
+            ],
+        ];
+
+        if (!empty($visibleOptions)) {
+            foreach ($visibleOptions as $key => $val) {
+                $multipart[] = ['name' => "visible_options[{$key}]", 'contents' => (string) $val];
+            }
+        }
+
+        try {
+            $response = $httpClient->post('api/esign/seal/pdf', [
+                'multipart' => $multipart,
+            ]);
+
+            $body = json_decode($response->getBody()->getContents(), true);
+            $results = $body['results'] ?? $body['data'] ?? null;
+
+            if (empty($results['file_link'])) {
+                throw new Exception('Internal service tidak mengembalikan file_link untuk segel');
+            }
+
+            return $results;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            $responseBody = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : null;
+            $err = $responseBody ? json_decode($responseBody, true) : null;
+            throw new Exception($err['message'] ?? 'Gagal membubuhkan Segel Elektronik');
         }
     }
 

@@ -60,6 +60,18 @@ import {
 import {
   HalalDetailPermohonanTab,
 } from "../../components/detail-service-requests/HalalDetailSection"
+import {
+  MiniplantDetailPermohonanTab,
+} from "../../components/detail-service-requests/MiniplantDetailSection"
+
+const miniplantWorkflowSteps = [
+  { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Daftar Perlakuan" },
+  { key: "KAJIAN_TEKNIS", label: "Kajian Teknis", desc: "Review Tim Miniplant" },
+  { key: "PENAWARAN_BIAYA", label: "Penawaran Biaya", desc: "Estimasi Biaya PNBP" },
+  { key: "PEMBAYARAN", label: "Pembayaran", desc: "Invoice & Billing" },
+  { key: "PROCESS", label: "Pelaksanaan Miniplant", desc: "Pengolahan & Pengerjaan Mesin" },
+  { key: "DONE", label: "Selesai", desc: "Barang Selesai Diproses" },
+]
 
 const halalWorkflowSteps = [
   { key: "PERMOHONAN", label: "Pengajuan", desc: "Formulir & Dokumen Pelaku Usaha" },
@@ -477,56 +489,83 @@ export const DetailPermohonanPage: React.FC = () => {
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal)
+  const isMiniplant = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isInspeksi && !isPengujian && !isHalal && (
+      noOrder.startsWith("MINI") ||
+      noOrder.includes("MKP") ||
+      noOrder.startsWith("MNP") ||
+      noOrder.startsWith("F") ||
+      noOrder.startsWith("RK") ||
+      noOrder.startsWith("PA") ||
+      permohonan?.formable_type?.includes("FormMiniplant") ||
+      lingkup?.slug?.includes("miniplant") ||
+      lingkup?.nama_layanan?.toLowerCase()?.includes("miniplant") ||
+      Boolean(formData?.jasa_diminta) ||
+      (Array.isArray(permohonan?.form_miniplant) && permohonan.form_miniplant.length > 0) ||
+      (Array.isArray(permohonan?.formMiniplant) && permohonan.formMiniplant.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant)
 
   const formPupData = isPup
     ? (formData?.nama_lab_kalibrasi
-        ? formData
-        : (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0
-            ? permohonan.form_pup[0]
-            : (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0
-                ? permohonan.formPup[0]
-                : formData)))
+      ? formData
+      : (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0
+        ? permohonan.form_pup[0]
+        : (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0
+          ? permohonan.formPup[0]
+          : formData)))
     : null
 
   const formKalibrasiData = isKalibrasi
     ? (formData?.hasil_kalibrasi_untuk
-        ? formData
-        : (Array.isArray(permohonan?.form_kalibrasi) && permohonan.form_kalibrasi.length > 0
-            ? permohonan.form_kalibrasi[0]
-            : (Array.isArray(permohonan?.formKalibrasi) && permohonan.formKalibrasi.length > 0
-                ? permohonan.formKalibrasi[0]
-                : formData)))
+      ? formData
+      : (Array.isArray(permohonan?.form_kalibrasi) && permohonan.form_kalibrasi.length > 0
+        ? permohonan.form_kalibrasi[0]
+        : (Array.isArray(permohonan?.formKalibrasi) && permohonan.formKalibrasi.length > 0
+          ? permohonan.formKalibrasi[0]
+          : formData)))
     : null
 
   const formInspeksiData = isInspeksi
     ? (formData?.penerima_hasil_nama
-        ? formData
-        : (Array.isArray(permohonan?.form_inspeksi) && permohonan.form_inspeksi.length > 0
-            ? permohonan.form_inspeksi[0]
-            : (Array.isArray(permohonan?.formInspeksi) && permohonan.formInspeksi.length > 0
-                ? permohonan.formInspeksi[0]
-                : formData)))
+      ? formData
+      : (Array.isArray(permohonan?.form_inspeksi) && permohonan.form_inspeksi.length > 0
+        ? permohonan.form_inspeksi[0]
+        : (Array.isArray(permohonan?.formInspeksi) && permohonan.formInspeksi.length > 0
+          ? permohonan.formInspeksi[0]
+          : formData)))
     : null
 
   const formPengujianData = isPengujian
     ? (Array.isArray(formData?.samples)
-        ? formData
-        : (Array.isArray(permohonan?.form_pengujian) && permohonan.form_pengujian.length > 0
-            ? permohonan.form_pengujian[0]
-            : (Array.isArray(permohonan?.formPengujian) && permohonan.formPengujian.length > 0
-                ? permohonan.formPengujian[0]
-                : formData)))
+      ? formData
+      : (Array.isArray(permohonan?.form_pengujian) && permohonan.form_pengujian.length > 0
+        ? permohonan.form_pengujian[0]
+        : (Array.isArray(permohonan?.formPengujian) && permohonan.formPengujian.length > 0
+          ? permohonan.formPengujian[0]
+          : formData)))
     : null
 
   const formHalalData = isHalal
     ? (formData?.jalur_pendaftaran
-        ? formData
-        : (Array.isArray(permohonan?.form_halal) && permohonan.form_halal.length > 0
-            ? permohonan.form_halal[0]
-            : (Array.isArray(permohonan?.formHalal) && permohonan.formHalal.length > 0
-                ? permohonan.formHalal[0]
-                : formData)))
+      ? formData
+      : (Array.isArray(permohonan?.form_halal) && permohonan.form_halal.length > 0
+        ? permohonan.form_halal[0]
+        : (Array.isArray(permohonan?.formHalal) && permohonan.formHalal.length > 0
+          ? permohonan.formHalal[0]
+          : formData)))
+    : null
+
+  const formMiniplantData = isMiniplant
+    ? (formData?.jasa_diminta || formData?.jenis_barang
+      ? formData
+      : (Array.isArray(permohonan?.form_miniplant) && permohonan.form_miniplant.length > 0
+        ? permohonan.form_miniplant[0]
+        : (Array.isArray(permohonan?.formMiniplant) && permohonan.formMiniplant.length > 0
+          ? permohonan.formMiniplant[0]
+          : formData)))
     : null
 
   const activeWorkflowSteps = isPup
@@ -545,7 +584,9 @@ export const DetailPermohonanPage: React.FC = () => {
                 ? pengujianWorkflowSteps
                 : isHalal
                   ? halalWorkflowSteps
-                  : workflowSteps
+                  : isMiniplant
+                    ? miniplantWorkflowSteps
+                    : workflowSteps
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -912,22 +953,33 @@ export const DetailPermohonanPage: React.FC = () => {
     return map[key] || key.replace(/_/g, " ").toUpperCase()
   }
 
-  // Helper pemformat tanggal Indonesia ramah pengguna
-  const formatIndoDate = (dateStr?: string | null, withTime: boolean = false) => {
+  // Helper pemformat tanggal Indonesia ramah pengguna (contoh: 25 Sep 2026, 13:23)
+  const formatIndoDate = (
+    dateStr?: string | null,
+    withTime: boolean = false,
+    shortMonth?: boolean
+  ) => {
     if (!dateStr || dateStr === "-" || dateStr === "null") return "-"
     try {
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return dateStr
-      const options: Intl.DateTimeFormatOptions = {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }
+
+      const isShort = shortMonth !== undefined ? shortMonth : withTime
+      const months = isShort
+        ? ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]
+        : ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+
+      const day = d.getDate()
+      const month = months[d.getMonth()]
+      const year = d.getFullYear()
+      const datePart = `${day} ${month} ${year}`
+
       if (withTime) {
-        options.hour = "2-digit"
-        options.minute = "2-digit"
+        const hours = String(d.getHours()).padStart(2, "0")
+        const minutes = String(d.getMinutes()).padStart(2, "0")
+        return `${datePart}, ${hours}:${minutes}`
       }
-      return d.toLocaleDateString("id-ID", options) + (withTime ? " WIB" : "")
+      return datePart
     } catch {
       return dateStr
     }
@@ -1184,15 +1236,12 @@ export const DetailPermohonanPage: React.FC = () => {
           </Button>
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">{noOrder}</h1>
-              {getStatusBadge(status)}
               {isSiapBayar && (
                 <Badge variant={isLunas ? "success" : "warning"}>
                   {isLunas ? "LUNAS" : "BELUM LUNAS"}
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">{layananName}</p>
           </div>
         </div>
 
@@ -1265,6 +1314,61 @@ export const DetailPermohonanPage: React.FC = () => {
         </div>
       </div>
 
+      <Card className="rounded-2xl border-slate-200/80 shadow-soft overflow-hidden bg-white">
+        {/* Header */}
+        <CardHeader className="px-5 py-4 border-b border-slate-200/80">
+          <CardTitle className="text-md font-bold flex items-center gap-2 text-slate-800">
+            <FileText className="h-5 w-5 text-brand-700" />
+            <span>
+              Detail Permohonan {layananName}
+            </span>
+          </CardTitle>
+        </CardHeader>
+
+        {/* Content */}
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            {/* No. Permohonan */}
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+              <p className="text-xs font-medium text-slate-400">
+                No. Permohonan
+              </p>
+
+              <p className="mt-1 text-sm font-bold text-brand-800">
+                {noOrder}
+              </p>
+            </div>
+
+            {/* Tanggal Permohonan */}
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+              <p className="text-xs font-medium text-slate-400">
+                Tanggal Permohonan
+              </p>
+
+              <p className="mt-1 text-sm font-bold text-slate-900">
+                {formatIndoDate(
+                  permohonan?.created_at || permohonan?.tgl_order,
+                  true
+                )}
+              </p>
+            </div>
+
+            {/* Status */}
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+              <p className="text-xs font-medium text-slate-400">
+                Status Workflow
+              </p>
+
+              <div className="mt-1">
+                {getStatusBadge(status)}
+              </div>
+            </div>
+
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Catatan Perbaikan / Revisi Banner */}
       {isRevisi && permohonan?.catatan_admin && (
         <div className="p-5 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-soft flex items-start gap-4">
@@ -1291,159 +1395,19 @@ export const DetailPermohonanPage: React.FC = () => {
         </div>
       )}
 
-      {/* Progress Tracker Stepper Card */}
-      <Card className="rounded-2xl border-slate-200 shadow-soft overflow-hidden">
-        <div className="p-5 bg-gradient-to-r from-slate-50 to-brand-50/20 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-brand-600" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Pelacakan Status Permohonan</h3>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">
-            Tanggal Pengajuan: {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
-          </span>
+      {/* DETAIL CONTENT: Jika Miniplant tampil langsung satu halaman tanpa tab/step-step */}
+      {isMiniplant ? (
+        <div className="w-full space-y-6">
+          <MiniplantDetailPermohonanTab
+            permohonan={permohonan}
+            formMiniplant={formMiniplantData}
+            formatIndoDate={formatIndoDate}
+          />
         </div>
-
-        <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 relative">
-            {activeWorkflowSteps.map((step, idx) => {
-              const isPast = idx < currentStepIdx || (isDone && idx <= currentStepIdx)
-              const isCurrent = idx === currentStepIdx && !isDone
-              const isStepPendingApproval = isCurrent && isPendingApproval && idx === 2
-              const isStepRevisi = isCurrent && isRevisi && idx === 1
-
-              return (
-                <div
-                  key={step.key}
-                  className={`p-4 rounded-xl border transition-all ${isPast
-                    ? "bg-emerald-50/80 border-emerald-200 text-emerald-900"
-                    : isStepRevisi || isStepPendingApproval
-                      ? "bg-amber-50/90 border-amber-300 ring-2 ring-amber-500/20 text-amber-900 shadow-xs"
-                      : isCurrent
-                        ? "bg-brand-50/90 border-brand-300 ring-2 ring-brand-500/20 text-brand-900 shadow-xs"
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-400"
-                    }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isPast
-                        ? "bg-emerald-600 text-white"
-                        : isStepRevisi || isStepPendingApproval
-                          ? "bg-amber-600 text-white"
-                          : isCurrent
-                            ? "bg-brand-600 text-white"
-                            : "bg-slate-200 text-slate-600"
-                        }`}
-                    >
-                      {isPast ? <CheckCircle className="w-3.5 h-3.5" /> : idx + 1}
-                    </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">
-                      {isPast
-                        ? "Selesai"
-                        : isStepRevisi
-                          ? "Perlu Koreksi"
-                          : isStepPendingApproval
-                            ? "Persetujuan"
-                            : isCurrent
-                              ? "Sedang Berjalan"
-                              : "Menunggu"}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold leading-tight">{step.label}</h4>
-                  <p className="text-[11px] opacity-75 mt-0.5 truncate">{step.desc}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Toggle Detail Pelacakan (Timeline Alur seperti pada SIS) */}
-        <div className="px-6 py-2.5 flex flex-col items-center justify-center">
-          <a
-            onClick={() => setShowTimeline(!showTimeline)}
-            className="inline-flex items-center gap-2 text-xs font-bold text-brand-700 hover:text-br  and-900 transition-all py-1.5 px-4 rounded-xl hover:bg-brand-50 border border-brand-200/80 bg-white shadow-2xs cursor-pointer group"
-          >
-            <Clock className="w-3.5 h-3.5 text-brand-600 group-hover:scale-110 transition-transform" />
-            <span>{showTimeline ? "Tutup Detail Pelacakan" : "Detail Timeline"}</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showTimeline ? "rotate-180 text-brand-700" : "text-brand-500"}`} />
-          </a>
-        </div>
-
-        {/* Timeline Panel (Expandable Timeline Kronologis seperti di SIS) */}
-        {showTimeline && (
-          <div className="p-6 bg-slate-50/90 border-t border-slate-200 animate-in fade-in-50 duration-200">
-            <div className="max-w-2xl mx-auto space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-brand-600" />
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Kronologi & Riwayat Proses Permohonan ({noOrder})
-                  </h4>
-                </div>
-                <Badge variant="outline">{layananName}</Badge>
-              </div>
-
-              {/* Vertical Timeline List */}
-              <div className="relative pl-6 border-l-2 border-brand-500 space-y-5 my-2">
-                {getTimelineEvents().map((ev, idx) => (
-                  <div key={idx} className="relative group">
-                    {/* Bullet marker on vertical line */}
-                    <div
-                      className={`absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full border-2 bg-white flex items-center justify-center transition-all ${ev.type === "revisi"
-                        ? "border-amber-500 ring-4 ring-amber-100 bg-amber-500"
-                        : ev.type === "sukses"
-                          ? "border-emerald-600 ring-4 ring-emerald-100 bg-emerald-600"
-                          : "border-brand-600 ring-4 ring-brand-100 bg-brand-600"
-                        }`}
-                    />
-
-                    <div
-                      className={`p-4 rounded-xl border transition-all ${ev.type === "revisi"
-                        ? "bg-amber-50/70 border-amber-200 shadow-2xs"
-                        : "bg-white border-slate-200 shadow-2xs hover:shadow-soft"
-                        }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-                        <h5
-                          className={`text-xs font-bold ${ev.type === "revisi"
-                            ? "text-amber-900"
-                            : ev.type === "sukses"
-                              ? "text-slate-900"
-                              : "text-brand-900"
-                            }`}
-                        >
-                          {ev.title}
-                        </h5>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                            {ev.date}
-                          </span>
-                          <Badge
-                            variant={
-                              ev.type === "revisi"
-                                ? "warning"
-                                : ev.type === "sukses"
-                                  ? "success"
-                                  : "primary"
-                            }
-                          >
-                            {ev.badgeText}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        {ev.message}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      {/* TAB NAVIGATION (Model Grid Responsif - Menyesuaikan Jenis Layanan) */}
-      <div className="bg-slate-100/80 p-2 rounded-2xl border border-slate-200/80 shadow-xs">
+      ) : (
+        <>
+          {/* TAB NAVIGATION (Model Grid Responsif - Menyesuaikan Jenis Layanan) */}
+          <div className="bg-slate-100/80 p-2 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className={`grid grid-cols-2 sm:grid-cols-3 ${isSertifikasi ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-2`}>
           <button
             type="button"
@@ -1470,12 +1434,22 @@ export const DetailPermohonanPage: React.FC = () => {
                             ? "Spesifikasi Inspeksi"
                             : isHalal
                               ? "Data Produk & Bahan Halal"
-                              : "Data Permohonan"}
+                              : isMiniplant
+                                ? "Detail Miniplant & Perlakuan"
+                                : "Data Permohonan"}
               </span>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
               }`}>
-              {isPengujian ? (formPengujianData?.samples?.length || 1) : isPup ? (formPupData?.items?.length || 1) : isHalal ? (formHalalData?.produk_json?.length || 1) : (items.length > 0 ? items.length : 1)}
+              {isPengujian
+                ? (formPengujianData?.samples?.length || 1)
+                : isPup
+                  ? (formPupData?.items?.length || 1)
+                  : isHalal
+                    ? (formHalalData?.produk_json?.length || 1)
+                    : isMiniplant
+                      ? (formMiniplantData?.items?.length || 1)
+                      : (items.length > 0 ? items.length : 1)}
             </span>
           </button>
 
@@ -1819,7 +1793,7 @@ export const DetailPermohonanPage: React.FC = () => {
                 <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
                     <FileText className="w-4 h-4 text-brand-600" />
-                    Parameter & Skema Pengajuan
+                    Data Permohonan
                   </CardTitle>
                   <Badge variant="outline">{layananName}</Badge>
                 </CardHeader>
@@ -3019,9 +2993,10 @@ export const DetailPermohonanPage: React.FC = () => {
           </div>
         )}
       </div>
+    </>
+  )}
 
-      {/* Pusat Layanan Pelanggan Footer Banner (Full Width) */}
-      <Card className="rounded-2xl border-slate-200/90 shadow-soft bg-gradient-to-r from-slate-50 via-brand-50/20 to-white overflow-hidden">
+      {/* <Card className="rounded-2xl border-slate-200/90 shadow-soft bg-gradient-to-r from-slate-50 via-brand-50/20 to-white overflow-hidden">
         <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 shadow-2xs">
@@ -3045,7 +3020,7 @@ export const DetailPermohonanPage: React.FC = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Modal Ajukan Negosiasi / Tolak Penawaran */}
       {showRejectModal && (

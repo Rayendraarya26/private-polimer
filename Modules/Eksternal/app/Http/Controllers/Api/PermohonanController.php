@@ -439,6 +439,7 @@ class PermohonanController extends Controller
             'formPengujian.samples.parameters',
             'formInspeksi',
             'formHalal',
+            'formMiniplant.items.masterMiniplant',
             'trackingLogs',
         ]);
 
@@ -492,6 +493,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formHalal && $permohonan->formHalal->isNotEmpty()) {
                 $formData = $permohonan->formHalal->first();
                 $formableType = \App\Models\Db2\FormHalal::class;
+            } elseif ($permohonan->formMiniplant && $permohonan->formMiniplant->isNotEmpty()) {
+                $formData = $permohonan->formMiniplant->first();
+                $formableType = \App\Models\Db2\FormMiniplant::class;
             }
         }
 
@@ -511,6 +515,8 @@ class PermohonanController extends Controller
                 $formData->load(['alatList.nomorSeriList', 'alatList.kalibrasiItems.masterKalibrasi']);
             } elseif ($formData instanceof \App\Models\Db2\FormPengujian) {
                 $formData->load(['samples.parameters']);
+            } elseif ($formData instanceof \App\Models\Db2\FormMiniplant) {
+                $formData->load(['items.masterMiniplant']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure

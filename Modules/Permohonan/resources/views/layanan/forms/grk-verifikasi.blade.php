@@ -319,7 +319,6 @@
                                 <td class="text-center text-muted">{{ $dIdx + 1 }}</td>
                                 <td>
                                     <div class="fw-semibold text-slate-800">{{ $dok->nama_dokumen }}</div>
-                                    <span class="text-muted font-monospace" style="font-size: 11px;">Kode: {{ $dok->kode_dokumen }}</span>
                                 </td>
                                 <td>
                                     @if($dok->status_ketersediaan === 'TERSEDIA')

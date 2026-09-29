@@ -39,31 +39,6 @@ export const KalibrasiDetailPermohonanTab: React.FC<KalibrasiDetailSectionProps>
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Header Banner Laboratorium Kalibrasi */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-brand-900 via-brand-800 to-sky-900 text-white shadow-soft">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 text-brand-100 text-xs font-semibold backdrop-blur-xs">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Laboratorium Kalibrasi Terakreditasi KAN (LK-005-IDN)</span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Layanan Jasa Kalibrasi Alat Ukur & Uji
-            </h3>
-            <p className="text-xs text-brand-100/90 max-w-2xl leading-relaxed">
-              Dikalibrasi oleh Laboratorium Kalibrasi BBSPJIKKP Yogyakarta dengan ketertelusuran standar nasional dan internasional (SI).
-            </p>
-          </div>
-
-          <div className="flex sm:flex-col items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-white/15 pt-3 sm:pt-0 sm:pl-5 shrink-0">
-            <span className="text-[11px] text-brand-200 block font-medium">Estimasi Biaya PNBP:</span>
-            <span className="text-base sm:text-lg font-bold text-white tracking-tight">
-              Rp {grandTotalBiaya.toLocaleString("id-ID")}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Ringkasan Informasi Pelaksanaan & Pengiriman */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Card className="rounded-2xl border-slate-200 shadow-soft">
@@ -75,18 +50,22 @@ export const KalibrasiDetailPermohonanTab: React.FC<KalibrasiDetailSectionProps>
           </CardHeader>
           <CardContent className="p-5 pt-4 space-y-3 text-xs">
             <div>
+              <span className="text-slate-400 block font-medium">Ruang Lingkup Akreditasi:</span>
+              <span className="font-semibold text-slate-700 mt-0.5 inline-flex items-center gap-1">
+                {formKalibrasi?.ruang_lingkup_akreditasi || "Masuk Ruang Lingkup"}
+              </span>
+            </div>
+            <div>
               <span className="text-slate-400 block font-medium">Lokasi Pelaksanaan:</span>
               <span className="font-semibold text-brand-700 mt-0.5 inline-flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-brand-500" />
                 {formKalibrasi?.lokasi_pelaksanaan === "Tempat Client"
-                  ? "On-Site (Di Lokasi / Tempat Client)"
-                  : "In-House (Laboratorium Kalibrasi BBKKP)"}
+                  ? "Di Lokasi / Tempat Client"
+                  : "Laboratorium Kalibrasi BBKKP"}
               </span>
             </div>
             <div>
               <span className="text-slate-400 block font-medium">Bahasa Sertifikat:</span>
               <span className="font-semibold text-slate-800 mt-0.5 inline-flex items-center gap-1">
-                <Languages className="w-3.5 h-3.5 text-slate-500" />
                 {formKalibrasi?.bahasa_laporan === "inggris" ? "Bahasa Inggris (English)" : "Bahasa Indonesia"}
               </span>
             </div>
@@ -280,27 +259,26 @@ export const KalibrasiDetailPermohonanTab: React.FC<KalibrasiDetailSectionProps>
         </CardContent>
       </Card>
 
-      {/* Persetujuan & Pernyataan Resmi Pemohon */}
-      <Card className="rounded-2xl border-slate-200 shadow-soft bg-emerald-50/30 border-emerald-200/80">
-        <CardContent className="p-5 flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-emerald-900">
-              Pernyataan Resmi Pemohon Telah Disetujui
-            </h4>
-            <p className="text-xs text-emerald-800 leading-relaxed">
-              Pemohon menyatakan bahwa seluruh data peralatan yang diajukan dalam kondisi baik serta menyetujui ketentuan teknis kalibrasi yang berlaku di Laboratorium Kalibrasi BBSPJIKKP.
-            </p>
-            {formKalibrasi?.pernyataan_at && (
-              <span className="text-[11px] text-emerald-600 font-medium block pt-1">
-                Disetujui pada: {formatIndoDate(formKalibrasi.pernyataan_at, true)}
+      <Card className="rounded-2xl border-slate-200/90 shadow-soft bg-gradient-to-r from-slate-50 via-brand-50/20 to-white overflow-hidden">
+        <CardContent className="p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-bold text-slate-500 tracking-tight">
+                Estimasi Biaya Kalibrasi
+              </h3>
+            </div>
+
+            <div className="shrink-0 text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200/60 pt-3 sm:pt-0 sm:pl-5">
+              <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                Rp {grandTotalBiaya.toLocaleString("id-ID")}
               </span>
-            )}
+            </div>
+
           </div>
         </CardContent>
       </Card>
+
     </div>
   )
 }

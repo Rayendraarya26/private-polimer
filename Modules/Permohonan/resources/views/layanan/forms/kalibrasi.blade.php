@@ -94,6 +94,16 @@
             </div>
 
             <div class="detail-kal-row">
+                <div class="detail-kal-label">Jenis Pelanggan</div>
+                <div>:</div>
+                <div class="detail-kal-value fw-semibold">
+                    <span class="badge {{ ($form->jenis_pelanggan ?? 'Eksternal') === 'Internal' ? 'bg-info text-white' : 'bg-primary' }}">
+                        {{ $form->jenis_pelanggan ?? 'Eksternal' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-kal-row">
                 <div class="detail-kal-label">Nama Pemohon</div>
                 <div>:</div>
                 <div class="detail-kal-value fw-semibold">{{ $form->nama_pemohon ?? '-' }}</div>
@@ -124,6 +134,14 @@
         <div class="col-md-6">
             <div class="kal-section-title text-primary">
                 <i class="bi bi-truck"></i> Pelaksanaan & Pengiriman
+            </div>
+
+            <div class="detail-kal-row">
+                <div class="detail-kal-label">Ruang Lingkup Akreditasi</div>
+                <div>:</div>
+                <div class="detail-kal-value">
+                    {{ $form->ruang_lingkup_akreditasi ?? 'Masuk Ruang Lingkup' }}
+                </div>
             </div>
 
             <div class="detail-kal-row">
@@ -168,7 +186,7 @@
                         <strong class="text-dark fs-6">{{ $alat->nama_alat }}</strong>
                     </div>
                     <span class="badge bg-light text-dark border">
-                        Subtotal: <strong>Rp {{ number_format($alat->subtotal_biaya ?? 0, 0, ',', '.') }}</strong>
+                        Subtotal: <strong>{{ ($form->jenis_pelanggan ?? '') === 'Internal' && ($alat->subtotal_biaya ?? 0) == 0 ? 'Rp 0 (Internal)' : 'Rp ' . number_format($alat->subtotal_biaya ?? 0, 0, ',', '.') }}</strong>
                     </span>
                 </div>
 
@@ -238,7 +256,11 @@
                                                 <td class="text-center">{{ $i + 1 }}</td>
                                                 <td>{{ $item->nama_kalibrasi_snapshot ?? '-' }}</td>
                                                 <td class="text-end fw-semibold">
-                                                    Rp {{ number_format($item->tarif_satuan_snapshot ?? 0, 0, ',', '.') }}
+                                                    @if(($item->tarif_satuan_snapshot ?? 0) == 0 && ($form->jenis_pelanggan ?? '') === 'Internal')
+                                                        <span class="text-success">Rp 0 (Internal)</span>
+                                                    @else
+                                                        Rp {{ number_format($item->tarif_satuan_snapshot ?? 0, 0, ',', '.') }}
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -252,26 +274,6 @@
         @empty
             <div class="alert alert-warning">Belum ada rincian alat yang dimasukkan.</div>
         @endforelse
-    </div>
-
-    {{-- ── 4. PERNYATAAN & PERSETUJUAN ── --}}
-    <div class="p-3 bg-light rounded border">
-        <div class="d-flex align-items-center gap-2">
-            @if($form->setuju_pernyataan)
-                <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                <div>
-                    <div class="fw-semibold text-success">Pemohon telah menyetujui Ketentuan & Pernyataan Layanan Kalibrasi
-                    </div>
-                    <small class="text-muted">
-                        Disetujui pada:
-                        {{ $form->pernyataan_at ? \Carbon\Carbon::parse($form->pernyataan_at)->format('d F Y, H:i') . ' WIB' : '-' }}
-                    </small>
-                </div>
-            @else
-                <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
-                <span class="text-muted">Pernyataan belum disetujui pemohon.</span>
-            @endif
-        </div>
     </div>
 
 </div>

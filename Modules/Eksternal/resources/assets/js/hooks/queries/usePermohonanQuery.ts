@@ -38,6 +38,7 @@ export type PembayaranItem = {
   kuitansi_pdf_tte?: string | null
   tte_kuitansi_requested?: boolean
   tte_kuitansi_requested_at?: string | null
+  file_surat_penawaran?: string | null
 }
 
 /**
@@ -69,6 +70,7 @@ export function usePembayaranQuery() {
         kuitansi_pdf_tte: item.kuitansi_pdf_tte || null,
         tte_kuitansi_requested: Boolean(item.tte_kuitansi_requested),
         tte_kuitansi_requested_at: item.tte_kuitansi_requested_at || null,
+        file_surat_penawaran: item.file_surat_penawaran || null,
       }))
     },
     staleTime: 1000 * 60 * 3,

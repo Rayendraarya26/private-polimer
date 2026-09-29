@@ -195,6 +195,19 @@ export function usePembayaran() {
     [fetchAndOpenPdf]
   )
 
+  const openSuratPenawaran = useCallback(
+    (item: any) => {
+      if (!item?.id) return
+      const filename = `Surat-Penawaran-${item.no_permohonan || item.id}.pdf`
+      fetchAndOpenPdf(
+        `/eksternal/pembayaran/${item.id}/stream-penawaran`,
+        "Surat Penawaran Biaya",
+        filename
+      )
+    },
+    [fetchAndOpenPdf]
+  )
+
   const openLhu = useCallback(
     (item?: any) => {
       const permohonanId = item?.id || (typeof item === "string" ? item : "default")
@@ -383,6 +396,7 @@ export function usePembayaran() {
     loading: previewState.loading,
     openInvoice,
     openKuitansi,
+    openSuratPenawaran,
     openLhu,
     onDownloadCertificate,
     fetchAndOpenPdf,

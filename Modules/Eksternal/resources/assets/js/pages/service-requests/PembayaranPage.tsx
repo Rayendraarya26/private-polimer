@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react"
 import {
   Receipt,
   FileCheck,
+  FileText,
   CreditCard,
   CheckCircle2,
   Clock,
@@ -15,6 +16,10 @@ import api from "../../utils/api"
 import Swal from "sweetalert2"
 import usePembayaran from "../../hooks/usePembayaran"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
+import { DataTable, Column } from "../../components/ui/DataTable"
+import { Badge } from "../../components/ui/Badge"
+import { Button } from "../../components/ui/Button"
+import { StatsCard } from "../../components/ui/StatsCard"
 import toast from "react-hot-toast"
 import { usePembayaranQuery, PembayaranItem } from "../../hooks/queries/usePermohonanQuery"
 
@@ -23,7 +28,7 @@ export type { PembayaranItem }
 const PembayaranPage: React.FC = () => {
   const [requestingTteId, setRequestingTteId] = useState<string | null>(null)
   const { data = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
-  const { openInvoice, openKuitansi, PdfPreviewModal } = usePembayaran()
+  const { openInvoice, openKuitansi, openSuratPenawaran, PdfPreviewModal } = usePembayaran()
 
 
   const handleRequestTteInvoice = async (row: PembayaranItem) => {
@@ -195,6 +200,20 @@ const PembayaranPage: React.FC = () => {
       headerClassName: "text-right",
       render: (row) => (
         <div className="flex items-center justify-end gap-2 flex-wrap whitespace-nowrap">
+          {/* Surat Penawaran Button */}
+          {row.file_surat_penawaran && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
+              leftIcon={<FileText className="w-3.5 h-3.5 text-indigo-600" />}
+              onClick={() => openSuratPenawaran(row)}
+              title="Lihat Surat Penawaran Biaya Resmi"
+            >
+              Surat Penawaran
+            </Button>
+          )}
+
           {/* Invoice Button & TTE Request */}
           <div className="inline-flex items-center gap-1">
             <Button

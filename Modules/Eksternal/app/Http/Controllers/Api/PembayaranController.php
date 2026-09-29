@@ -55,19 +55,25 @@ class PembayaranController extends Controller
                     'va_status'      => $item->va_status ?? 'PENDING',
 
                     // Info invoice & kuitansi
-                    'invoice_number'            => $item->invoice_number,
-                    'invoice_file'              => $item->invoice_file,
+                    'invoice_number'            => $item->invoice_number ?? $item->billing?->no_billing,
+                    'invoice_file'              => $item->invoice_file ?? $item->billing?->file_invoice,
                     'pdf_tte'                   => $item->pdf_tte,
                     'tte_invoice_requested'     => (bool) $item->tte_invoice_requested,
                     'tte_invoice_requested_at'  => $item->tte_invoice_requested_at?->format('Y-m-d H:i:s'),
-
-                    'invoice_number'            => $item->invoice_number ?? $item->billing?->no_billing,
-                    'invoice_file'              => $item->invoice_file ?? $item->billing?->file_invoice,
                     'kuitansi_number'           => $item->kuitansi_number,
                     'kuitansi_file'             => $item->kuitansi_file,
                     'kuitansi_pdf_tte'          => $item->kuitansi_pdf_tte,
                     'tte_kuitansi_requested'    => (bool) $item->tte_kuitansi_requested,
                     'tte_kuitansi_requested_at' => $item->tte_kuitansi_requested_at?->format('Y-m-d H:i:s'),
+
+                    // Surat Penawaran Biaya
+                    'file_surat_penawaran'      => $item->file_surat_penawaran ?: (
+                        (!empty($item->catatan_admin) && (
+                            str_ends_with(strtolower($item->catatan_admin), '.pdf') ||
+                            str_contains($item->catatan_admin, 'penawaran/') ||
+                            str_contains($item->catatan_admin, 'surat_penawaran/')
+                        )) ? $item->catatan_admin : null
+                    ),
                 ];
             });
 
@@ -406,6 +412,49 @@ class PembayaranController extends Controller
             abort(500, 'Gagal streaming file Kuitansi: ' . $e->getMessage());
         }
     }
+
+    public function streamPenawaran($id)
+    {
+        @ini_set('memory_limit', '512M');
+        $user = auth()->user();
+        $isPegawai = $user ? $user->isPegawai() : false;
+
+        $query = Permohonan::where(function ($q) use ($id) {
+            $q->where('id', $id)->orWhere('no_permohonan', $id);
+        });
+
+        if (!$isPegawai && $user) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhereNull('created_by');
+            });
+        }
+
+        $permohonan = $query->firstOrFail();
+
+        $filePath = $permohonan->file_surat_penawaran ?: $permohonan->catatan_admin;
+
+        if (empty($filePath)) {
+            abort(404, 'File Surat Penawaran Biaya belum tersedia.');
+        }
+
+        $fullPath = storage_path('app/public/' . $filePath);
+        if (!file_exists($fullPath)) {
+            abort(404, 'File Surat Penawaran Biaya tidak ditemukan di server.');
+        }
+
+        $pdfContent = @file_get_contents($fullPath);
+        $mime = @mime_content_type($fullPath) ?: 'application/pdf';
+        $ext = pathinfo($fullPath, PATHINFO_EXTENSION) ?: 'pdf';
+        $fileName = 'Surat-Penawaran-' . str_replace(['/', '\\'], '-', $permohonan->no_permohonan) . '.' . $ext;
+
+        return response($pdfContent, 200, [
+            'Content-Type'        => $mime,
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length'      => strlen($pdfContent),
+        ]);
+    }
+
     public function destroy($id)
     {
         return response()->json([

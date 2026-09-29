@@ -164,6 +164,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/{id}/invoice', [PembayaranController::class, 'previewInvoice']);
             Route::get('/{id}/stream-invoice', [PembayaranController::class, 'streamInvoice']);
             Route::get('/{id}/stream-kuitansi', [PembayaranController::class, 'streamKuitansi']);
+            Route::get('/{id}/stream-penawaran', [PembayaranController::class, 'streamPenawaran']);
         });
         Route::get('/skema-pelatihan', [PelatihanController::class, 'getSkemaPelatihan']);
         Route::post('/pelatihan', [PelatihanController::class, 'store']);

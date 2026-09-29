@@ -8,10 +8,13 @@
                && $statusBayar !== 'LUNAS';
 
 
-    $grupPermohonan = \App\Models\Db2\Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
-        ->with(['detailPembayaran', 'detailPermohonan.formable'])
-        ->get();
+    $isGrup = !empty($permohonan->id_pt_ins);
 
+    $grupPermohonan = $isGrup
+        ? \App\Models\Db2\Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
+            ->with(['detailPembayaran', 'detailPermohonan.formable'])
+            ->get()
+        : collect([$permohonan]);
 
     $jumlahGrup = $grupPermohonan->count();
 @endphp
@@ -48,7 +51,9 @@
 
 
     @php
-        $detailBayarGrup = $permohonan->detailPembayaranGrup->filter(fn($b) => !is_null($b->item_bayar));
+        $detailBayarGrup = ($isGrup && !$isSplit)
+            ? $permohonan->detailPembayaranGrup->filter(fn($b) => !is_null($b->item_bayar))
+            : $permohonan->detailPembayaran->filter(fn($b) => !is_null($b->item_bayar));
         $totalGrup       = $detailBayarGrup->sum('subtotal');
     @endphp
 
@@ -102,10 +107,10 @@
 
 
         {{-- Tabel tarif --}}
-        <form action="{{ route('permohonan.pembayaran.simpan-tarif', $permohonan->id_pt_ins ?: $permohonan->id) }}"
+        <form action="{{ route('permohonan.pembayaran.simpan-tarif', $isGrup ? $permohonan->id_pt_ins : $permohonan->id) }}"
               method="POST" id="formTarifTogether">
             @csrf
-            <input type="hidden" name="billing_type" value="together">
+            <input type="hidden" name="billing_type" value="{{ $isGrup ? 'together' : 'split' }}">
             <input type="hidden" name="id_pt_ins" value="{{ $permohonan->id_pt_ins }}">
 
 

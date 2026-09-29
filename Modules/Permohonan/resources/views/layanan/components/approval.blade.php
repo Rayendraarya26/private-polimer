@@ -6,12 +6,14 @@
         || str_starts_with($permohonan->no_permohonan, 'SRT')
         || ($permohonan->detailPermohonan->first()?->formable_type === 'App\Models\Db2\FormSertifikasi');
 
-    $grupPermohonan = \App\Models\Db2\Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
-        ->with(['detailPermohonan.formable'])
-        ->orderBy('created_at')
-        ->get();
+    $grupPermohonan = !empty($permohonan->id_pt_ins)
+        ? \App\Models\Db2\Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
+            ->with(['detailPermohonan.formable'])
+            ->orderBy('created_at')
+            ->get()
+        : collect([$permohonan]);
 
-    $isTogether = !$isSplit && $grupPermohonan->count() > 1;
+    $isTogether = !$isSplit && !empty($permohonan->id_pt_ins) && $grupPermohonan->count() > 1;
 @endphp
 
 
@@ -26,7 +28,7 @@
 @if(in_array($status, ['PERMOHONAN', 'IN_REVIEW']) && $isPegawai)
 
     @if($isSertifikasi && $status === 'IN_REVIEW')
-        <div class="card border-0 shadow-sm mt-4 border-start border-primary border-4">
+        <div class="card shadow-sm mt-4 border-start border-primary border-4">
             <div class="card-body p-4 d-flex justify-content-between align-items-center">
                 <div>
                     <span class="badge bg-primary-subtle text-primary fw-semibold mb-1">Tahap 2 : Penawaran Biaya</span>
@@ -56,20 +58,17 @@
             <div class="card-body p-4 d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="fw-bold mb-1">Verifikasi Permohonan</h6>
-                    <small class="text-muted">Pastikan kelengkapan berkas dan data pemohon sudah valid sebelum diproses</small>
+                    <small class="text-muted">Pastikan data sudah benar sebelum diproses</small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-success d-flex align-items-center gap-1" data-bs-toggle="modal"
-                        data-bs-target="#modalApprove">
-                        <i class="fas fa-check-circle"></i> Terima Pengajuan
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                        Setujui
                     </button>
-                    <button class="btn btn-warning d-flex align-items-center gap-1" data-bs-toggle="modal"
-                        data-bs-target="#modalRevisi">
-                        <i class="fas fa-edit"></i> Revisi
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">
+                        Tolak
                     </button>
-                    <button class="btn btn-danger d-flex align-items-center gap-1" data-bs-toggle="modal"
-                        data-bs-target="#modalReject">
-                        <i class="fas fa-times-circle"></i> Tolak Pengajuan
+                    <button class="btn btn-warning text-white" data-bs-toggle="modal" data-bs-target="#modalRevisi">
+                        Revisi
                     </button>
                 </div>
             </div>

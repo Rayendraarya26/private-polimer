@@ -486,6 +486,12 @@ class PermohonanController extends Controller
                 str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
                 str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
                 str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
+                str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
+                str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
+                str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
+                str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
+                str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
+                str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
                 default => 'Biaya Layanan',
             };
 
@@ -598,6 +604,7 @@ class PermohonanController extends Controller
                 $permohonan->update([
                     'status_workflow' => 'PEMBAYARAN',
                     'catatan_admin' => $path,
+                    'file_surat_penawaran' => $path,
                     'invoice_number' => $invoiceNumber,
                     'invoice_file' => $filePath,
                     'invoice_generated_at' => now(),
@@ -793,6 +800,7 @@ class PermohonanController extends Controller
                 $permohonan->update([
                     'status_workflow' => 'PEMBAYARAN',
                     'catatan_admin' => $path,
+                    'file_surat_penawaran' => $path,
                 ]);
 
 

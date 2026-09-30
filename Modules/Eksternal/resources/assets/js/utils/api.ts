@@ -13,7 +13,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    config.headers = config.headers || {}
+    config.headers = (config.headers || {}) as any
     config.headers['X-Requested-With'] = 'XMLHttpRequest'
     config.headers['Accept'] = 'application/json'
 

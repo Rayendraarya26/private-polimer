@@ -34,5 +34,5 @@ export const submitPermohonanInspeksi = async (form: InspeksiFormData): Promise<
  */
 export const getDetailInspeksi = async (id: string): Promise<any> => {
   const { data } = await api.get<DefaultApiResponse<any>>(`/eksternal/inspeksi/${id}`)
-  return data?.data || data?.results
+  return (data as any)?.data || data?.results
 }

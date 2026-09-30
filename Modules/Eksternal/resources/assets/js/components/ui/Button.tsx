@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary:
         'bg-slate-100 hover:bg-slate-200 text-slate-800 active:bg-slate-300',
       outline:
-        'border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-700 active:bg-slate-100',
+        'border border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400 text-slate-700 hover:text-slate-800 active:bg-slate-100',
       ghost:
         'bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900',
       danger:
@@ -46,10 +46,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: 'text-xs px-3 py-1.5 rounded-lg gap-1.5',
-      md: 'text-sm px-4 py-2 rounded-lg gap-2',
-      lg: 'text-base px-5 py-2.5 rounded-xl gap-2.5',
-      icon: 'h-9 w-9 p-0 rounded-lg',
+      sm: 'text-xs px-3.5 py-1.5 rounded-lg gap-1.5',
+      md: 'text-xs px-5 py-2.5 rounded-xl font-semibold gap-2',
+      lg: 'text-sm px-6 py-3 rounded-xl font-semibold gap-2.5',
+      icon: 'h-9 w-9 p-0 rounded-xl',
     };
 
     return (

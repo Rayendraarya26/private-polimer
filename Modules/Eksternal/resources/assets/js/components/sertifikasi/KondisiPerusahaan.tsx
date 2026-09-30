@@ -746,7 +746,7 @@ const Step3KondisiPerusahaan: React.FC<Step3KondisiPerusahaanProps> = ({
                 </div>
               </div>
             </div>
-          </div>  </div>
+          </div>
         </div>
       </div>
 

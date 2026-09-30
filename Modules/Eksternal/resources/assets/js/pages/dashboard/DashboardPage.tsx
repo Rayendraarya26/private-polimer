@@ -229,7 +229,6 @@ const DashboardPage: React.FC = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand-600" />
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
               Statistik Permohonan
             </h2>

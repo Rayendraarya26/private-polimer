@@ -284,14 +284,6 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
         </CardHeader>
 
         <CardContent className="p-0 divide-y divide-slate-200">
-          {isInternal && (
-            <div className="p-4 bg-blue-50/80 border-b border-blue-200 flex items-center gap-2.5 text-xs text-blue-900">
-              <Info className="w-4 h-4 text-blue-600 shrink-0" />
-              <div>
-                <span className="font-bold">Akun Internal BBKKP:</span> Layanan kalibrasi alat internal antar-laboratorium bebas biaya PNBP (Rp 0).
-              </div>
-            </div>
-          )}
           <div className="divide-y divide-slate-200">
             {alatList.map((alat, index) => {
               const subtotalAlat = alat.kalibrasiList.reduce(
@@ -555,20 +547,10 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                                     />
                                   </td>
                                   <td className="px-3.5 py-2 text-right text-slate-600">
-                                    {k.tarifSatuan === 0 ? (
-                                      <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] inline-block">
-                                        Gratis (Rp 0)
-                                      </span>
-                                    ) : (
-                                      k.tarifSatuan.toLocaleString("id-ID")
-                                    )}
+                                    {k.tarifSatuan.toLocaleString("id-ID")}
                                   </td>
                                   <td className="px-3.5 py-2 text-right font-bold text-slate-800">
-                                    {k.tarifSatuan === 0 ? (
-                                      <span className="text-emerald-700 font-bold">Rp 0</span>
-                                    ) : (
-                                      (k.jumlah * k.tarifSatuan).toLocaleString("id-ID")
-                                    )}
+                                    {(k.jumlah * k.tarifSatuan).toLocaleString("id-ID")}
                                   </td>
                                   <td className="px-2 py-2 text-center">
                                     <button

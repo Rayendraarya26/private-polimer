@@ -31,7 +31,7 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
   const navigate = useNavigate()
   const { profile } = useProfile()
   const detail = profile?.detail
-  const userId = profile?.id || profile?.detail?.id || "guest"
+  const userId = profile?.id || (profile?.detail as any)?.id || "guest"
 
   const { data: skemaList = [] } = useSertifikasiSkemaQuery()
   const { data: provinces = [] } = useProvincesQuery()
@@ -261,7 +261,7 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
       toast.error("Jumlah Shift operasional dalam sehari minimal 1.")
       return false
     }
-    if (formData.jumlah_bagian === undefined || formData.jumlah_bagian === null || formData.jumlah_bagian === "") {
+    if (formData.jumlah_bagian === undefined || formData.jumlah_bagian === null || (formData.jumlah_bagian as any) === "") {
       toast.error("Jumlah Bagian operasional wajib diisi.")
       return false
     }

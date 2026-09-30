@@ -75,7 +75,7 @@
                     <h1 class="text-white fw-bold fs-2x mb-2">
                         Selamat Datang, {{ Auth::user()->name }}! 👋
                     </h1>
-                    <p class="text-white-50 fs-6 mb-4 pe-lg-10 leading-relaxed">
+                    <p class="text-white-50 fs-6 mb-0 pe-lg-10 leading-relaxed">
                         Portal Layanan dan Informasi Terintegrasi Balai Besar Standarisai dan Pelayanan Jasa Industri Kulit,
                         Karet, dan Plastik (BBSPJIKKP)
                     </p>

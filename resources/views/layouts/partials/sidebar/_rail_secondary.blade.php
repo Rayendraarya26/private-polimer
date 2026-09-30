@@ -50,6 +50,15 @@
                 </div>
                 <span class="subpanel-item-title fw-bold fs-7 text-truncate flex-grow-1">Ekosistem SSO Balai</span>
             </a>
+
+            {{-- Portal Layanan --}}
+            <a href="{{ url('/app/#/dashboard') }}" class="subpanel-nav-item d-flex align-items-center gap-3 px-3 py-3 rounded-3 text-decoration-none" title="Portal Permohonan Layanan BBKKP">
+                <div class="subpanel-item-icon d-flex align-items-center justify-content-center text-primary" style="width: 28px;">
+                    <i class="fa-duotone fa-compass-drafting fs-2"></i>
+                </div>
+                <span class="subpanel-item-title fw-bold fs-7 text-truncate flex-grow-1">Portal Layanan Balai</span>
+                <i class="fa-solid fa-arrow-up-right-from-square fs-8 text-muted"></i>
+            </a>
         </div>
         <!--end::Subpanel Nav List-->
     </div>

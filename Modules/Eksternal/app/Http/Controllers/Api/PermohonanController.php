@@ -433,6 +433,9 @@ class PermohonanController extends Controller
             'formSertifikasi',
             'formPelatihan',
             'formLsp',
+            'formGrkVerifikasi.emisi',
+            'formGrkVerifikasi.dokumen',
+            'formGrkValidasi.dokumen',
             'formPup.items',
             'formKalibrasi.alatList.nomorSeriList',
             'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
@@ -478,6 +481,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formGrkVerifikasi && $permohonan->formGrkVerifikasi->isNotEmpty()) {
                 $formData = $permohonan->formGrkVerifikasi->first();
                 $formableType = \App\Models\Db2\FormGrkVerifikasi::class;
+            } elseif ($permohonan->formGrkValidasi && $permohonan->formGrkValidasi->isNotEmpty()) {
+                $formData = $permohonan->formGrkValidasi->first();
+                $formableType = \App\Models\Db2\FormGrkValidasi::class;
             } elseif ($permohonan->formPup && $permohonan->formPup->isNotEmpty()) {
                 $formData = $permohonan->formPup->first();
                 $formableType = \App\Models\Db2\FormPup::class;
@@ -509,6 +515,8 @@ class PermohonanController extends Controller
                 $formData->load(['peserta']);
             } elseif ($formData instanceof \App\Models\Db2\FormGrkVerifikasi) {
                 $formData->load(['emisi', 'dokumen']);
+            } elseif ($formData instanceof \App\Models\Db2\FormGrkValidasi) {
+                $formData->load(['dokumen']);
             } elseif ($formData instanceof \App\Models\Db2\FormPup) {
                 $formData->load(['items']);
             } elseif ($formData instanceof \App\Models\Db2\FormKalibrasi) {

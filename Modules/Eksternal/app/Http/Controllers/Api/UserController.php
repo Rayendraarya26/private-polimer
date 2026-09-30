@@ -106,10 +106,18 @@ class UserController extends Controller
             ];
         }
 
-        return [
+        $res = [
             'nik'      => $pegawai->nik,
             'whatsapp' => $pegawai->whatsapp,
         ];
+
+        // Jika pegawai juga memiliki profil pelanggan, sertakan agar data profil lengkap untuk permohonan
+        if ($pegawai->user && $pegawai->user->pelanggan) {
+            $pelangganDetail = $this->extractDetailPelanggan($pegawai->user->pelanggan);
+            return array_merge($pelangganDetail, $res);
+        }
+
+        return $res;
     }
 
     private function extractDetailPelanggan(?Pelanggan $pelanggan)

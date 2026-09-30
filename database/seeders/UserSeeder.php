@@ -54,6 +54,7 @@ class UserSeeder extends Seeder
         $this->createPelangganPerorangan();
         $this->createPelangganInstansi();
         $this->createPelangganPerusahaan();
+        $this->call(PegawaiPelangganSeeder::class);
     }
 
     private function createPelangganPerorangan(): void

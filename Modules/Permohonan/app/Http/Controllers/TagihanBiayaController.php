@@ -172,7 +172,6 @@ class TagihanBiayaController extends Controller
             DB::commit();
 
             try {
-                app(SisSyncBridgingService::class)->syncPenawaranBiayaToSis($permohonan);
                 app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
             } catch (\Throwable $bridgeErr) {
                 Log::warning('Gagal sinkron penawaran ke SIS: ' . $bridgeErr->getMessage());

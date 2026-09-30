@@ -14,7 +14,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
-use \Modules\Webhook\Services\SisSyncBridgingService;
 
 
 class GenerateKwitansiDigitalJob implements ShouldQueue
@@ -143,13 +142,5 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
             Log::error('GenerateKwitansiDigitalJob - Failed to generate PDF: ' . $e->getMessage());
         }
 
-        // Trigger sinkronisasi asinkron ke SIS via Queue Webhook
-        if ($permohonan->formSertifikasi()->exists()) {
-            try {
-                app(SisSyncBridgingService::class)->updatePaymentStatusToSis($permohonan);
-            } catch (\Throwable $e) {
-                Log::error('GenerateKwitansiDigitalJob - Gagal kirim update status bayar ke SIS: ' . $e->getMessage());
-            }
-        }
     }
 }

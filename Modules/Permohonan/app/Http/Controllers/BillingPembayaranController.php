@@ -15,7 +15,6 @@ use App\Models\Db1\PelangganSertifikasi;
 use App\Models\Db1\SysUser;
 use App\Enums\SysGroup;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Modules\Webhook\Services\SisSyncBridgingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -372,23 +371,9 @@ class BillingPembayaranController extends Controller
 
             DB::commit();
 
-            try {
-                $bridgeRes = app(SisSyncBridgingService::class)->syncBillingToSis($billing);
-                if (!empty($bridgeRes['success']) && isset($bridgeRes['sis_bill_id'])) {
-                    $billing->update([
-                        'sis_bill_id' => $bridgeRes['sis_bill_id'],
-                        'sis_sync_status' => 'SYNCED',
-                        'sis_synced_at' => Carbon::now(),
-                    ]);
-                }
-            } catch (\Throwable $bridgeErr) {
-                Log::warning("Gagal auto-sync billing ke SIS: " . $bridgeErr->getMessage());
-                // Tetap lanjut tanpa membatalkan pembuatan billing lokal
-            }
-
             return response()->json([
                 'success' => true,
-                'message' => 'Data Billing berhasil disimpan dan disinkronkan ke SIS.',
+                'message' => 'Data Billing berhasil disimpan.',
                 'redirect_url' => route('permohonan.billing.index')
             ]);
 

@@ -26,7 +26,6 @@ use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
 use App\Models\Db2\PermohonanTrackingLog;
 use App\Models\Db2\PermohonanPenawaranBiaya;
 use App\Models\Db2\Billing;
-use Modules\Webhook\Services\SisSyncBridgingService;
 
 class SertifikasiController extends Controller
 {
@@ -1017,21 +1016,9 @@ class SertifikasiController extends Controller
 
             DB::commit();
 
-            // Kirim bridging callback ke SIS
-            $bridgingService = app(SisSyncBridgingService::class);
-            $bridgeRes = $bridgingService->syncApproveTemuanTahap1ToSis($permohonan, [
-                'status' => $status,
-                'catatan' => $catatan,
-                'file_perbaikan_url' => $fileUrl,
-                'file_perbaikan_name' => $fileName,
-            ]);
-
             return response()->json([
                 'success' => true,
-                'message' => 'Persetujuan dan berkas perbaikan temuan Tahap 1 berhasil dikirim ke Tim Auditor.',
-                'data' => [
-                    'sis_sync' => $bridgeRes,
-                ],
+                'message' => 'Persetujuan dan berkas perbaikan temuan Tahap 1 berhasil disimpan.',
             ]);
 
         } catch (\Throwable $e) {

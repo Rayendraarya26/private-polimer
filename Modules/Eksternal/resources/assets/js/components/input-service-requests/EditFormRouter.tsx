@@ -4,6 +4,7 @@ import api from "../../utils/api"
 import EditFormPelatihan from "./EditFormPelatihan"
 import EditFormLSP from "./EditFormLSP"
 import EditFormSertifikasi from "./EditFormSertifikasi"
+import EditFormKalibrasi from "./EditFormKalibrasi"
 import Head from "../common/Head"
 import { Card } from "../ui/Card"
 import { Button } from "../ui/Button"
@@ -25,12 +26,13 @@ const EditFormRouter: React.FC = () => {
 
         let detectedType = detail?.formable_type || ""
 
-        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK)
+        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK, LABKAL)
         const noPermohonan = detail?.no_permohonan || ""
         if (!detectedType && noPermohonan) {
           if (noPermohonan.startsWith("CERT") || noPermohonan.startsWith("SRT")) detectedType = "FormSertifikasi"
           else if (noPermohonan.startsWith("LSP")) detectedType = "FormLsp"
           else if (noPermohonan.startsWith("REG") || noPermohonan.startsWith("TRN") || noPermohonan.startsWith("UMK")) detectedType = "FormPelatihan"
+          else if (noPermohonan.includes("LABKAL") || noPermohonan.startsWith("KAL")) detectedType = "FormKalibrasi"
         }
 
         // Deteksi dari form_data jika formable_type tidak terdefinisi
@@ -55,6 +57,7 @@ const EditFormRouter: React.FC = () => {
           if (lNama.includes("lsp") || lNama.includes("profesi")) detectedType = "FormLsp"
           else if (lNama.includes("pelatihan") || lNama.includes("bimtek")) detectedType = "FormPelatihan"
           else if (lNama.includes("sertifikasi") || lNama.includes("sni")) detectedType = "FormSertifikasi"
+          else if (lNama.includes("kalibrasi") || lNama.includes("labkal")) detectedType = "FormKalibrasi"
         }
 
         // Fallback: probing endpoint spesifik
@@ -71,7 +74,14 @@ const EditFormRouter: React.FC = () => {
                 detectedType = "FormPelatihan"
               }
             } catch (err) {
-              // ignore
+              try {
+                const kalRes = await api.get(`/eksternal/kalibrasi/${id}`)
+                if (kalRes?.data?.success || kalRes?.data?.data) {
+                  detectedType = "FormKalibrasi"
+                }
+              } catch (e2) {
+                // ignore
+              }
             }
           }
         }
@@ -118,6 +128,15 @@ const EditFormRouter: React.FC = () => {
   // FORM LSP
   if (normalizedType.includes("lsp") || normalizedType.includes("profesi") || normalizedType.includes("kompetensi")) {
     return <EditFormLSP />
+  }
+
+  // FORM KALIBRASI
+  if (
+    normalizedType.includes("kalibrasi") ||
+    normalizedType.includes("labkal") ||
+    normalizedType.includes("formkalibrasi")
+  ) {
+    return <EditFormKalibrasi />
   }
 
   // FORM SERTIFIKASI

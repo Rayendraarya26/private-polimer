@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import Swal from "sweetalert2"
 import { Button } from "../../ui/Button"
-import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check, RotateCcw } from "lucide-react"
+import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check, RotateCcw, Save } from "lucide-react"
 import api from "../../../utils/api"
 import FormInformasiAlat, { AlatKalibrasiItem } from "./FormInformasiAlat"
 import FormInformasiPelanggan, { PelangganData } from "./FormInformasiPelanggan"
@@ -301,25 +301,55 @@ export const FormKalibrasiWizard: React.FC = () => {
     }
   }
 
-  const handleSubmit = async () => {
-    if (!setujuPernyataan) {
-      toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
-      return
+  const handleSubmit = async (aksi: "draft" | "ajukan" = "ajukan") => {
+    const isAjukan = aksi === "ajukan"
+
+    if (isAjukan) {
+      if (!validateCurrentStep()) {
+        return
+      }
+      if (!setujuPernyataan) {
+        toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
+        return
+      }
+    } else {
+      // Validasi draft: cukup ada data alat atau nama pemohon
+      if ((!dataAlat || dataAlat.length === 0) && !dataPelanggan.namaPemohon?.trim()) {
+        toast.error("Harap isi setidaknya nama pemohon atau data 1 alat untuk disimpan sebagai draft.")
+        return
+      }
     }
 
     try {
       setIsSubmitting(true)
       const payload = {
-        dataAlat,
+        aksi,
+        dataAlat: dataAlat.length > 0 ? dataAlat : [
+          {
+            id: "draft-alat-1",
+            namaAlat: "Alat Kalibrasi (Draft)",
+            merk: "",
+            tipeModel: "",
+            jumlah: 1,
+            nomorSeriList: [],
+            kondisi: "Baik / Normal",
+            kalibrasiList: [],
+          }
+        ],
         dataPelaksanaan,
-        dataPelanggan,
-        setujuPernyataan,
+        dataPelanggan: {
+          ...dataPelanggan,
+          namaPemohon: dataPelanggan.namaPemohon || "Draft Pemohon",
+          hasilKalibrasiUntuk: dataPelanggan.hasilKalibrasiUntuk || dataPelanggan.namaPemohon || "Draft",
+          alamatPemohon: dataPelanggan.alamatPemohon || "-",
+        },
+        setujuPernyataan: isAjukan ? true : Boolean(setujuPernyataan),
       }
 
       const res = await api.post("/eksternal/kalibrasi", payload)
       const resData = res?.data?.data || res?.data
 
-      // Hapus draf di storage setelah sukses mengirim permohonan
+      // Hapus draf di storage setelah sukses mengirim atau menyimpan ke backend
       try {
         localStorage.removeItem(STORAGE_KEY)
       } catch (e) {
@@ -327,14 +357,18 @@ export const FormKalibrasiWizard: React.FC = () => {
       }
       setHasDraft(false)
 
-      toast.success(res?.data?.message || "Permohonan kalibrasi berhasil dikirim!")
+      toast.success(
+        res?.data?.message ||
+        (isAjukan ? "Permohonan kalibrasi berhasil dikirim!" : "Draft permohonan kalibrasi berhasil disimpan di sistem!")
+      )
+
       if (resData?.id) {
         navigate(`/permohonan/detail/${resData.id}`)
       } else {
         navigate("/permohonan")
       }
     } catch (error: any) {
-      console.error("Gagal mengirim permohonan kalibrasi:", error)
+      console.error("Gagal memproses permohonan kalibrasi:", error)
       const validationErrors = error?.response?.data?.errors
       if (validationErrors && typeof validationErrors === "object") {
         const firstKey = Object.keys(validationErrors)[0]
@@ -343,7 +377,7 @@ export const FormKalibrasiWizard: React.FC = () => {
           : validationErrors[firstKey]
         toast.error(firstMsg || "Validasi data gagal.")
       } else {
-        toast.error(error?.response?.data?.message || "Terjadi kesalahan saat mengirim permohonan")
+        toast.error(error?.response?.data?.message || "Terjadi kesalahan saat memproses permohonan")
       }
     } finally {
       setIsSubmitting(false)
@@ -463,35 +497,49 @@ export const FormKalibrasiWizard: React.FC = () => {
           {currentStep === 0 ? "Batal" : "Sebelumnya"}
         </Button>
 
-        {currentStep < TOTAL_STEPS - 1 ? (
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Tombol Simpan Draft ke Server */}
           <Button
             type="button"
-            onClick={handleNext}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+            variant="secondary"
+            onClick={() => handleSubmit("draft")}
+            disabled={isSubmitting}
+            className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border border-slate-200 shadow-2xs hover:bg-slate-100"
           >
-            Selanjutnya
-            <ArrowRight className="w-4 h-4" />
+            <Save className="w-4 h-4 text-slate-600" />
+            <span>Simpan Draft</span>
           </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !setujuPernyataan}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Mengirim...
-              </>
-            ) : (
-              <>
-                Kirim Permohonan
-                <Send className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        )}
+
+          {currentStep < TOTAL_STEPS - 1 ? (
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+            >
+              Selanjutnya
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => handleSubmit("ajukan")}
+              disabled={isSubmitting || !setujuPernyataan}
+              className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Mengirim...
+                </>
+              ) : (
+                <>
+                  Kirim Permohonan
+                  <Send className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

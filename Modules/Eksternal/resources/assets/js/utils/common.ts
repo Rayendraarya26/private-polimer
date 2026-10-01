@@ -26,3 +26,5 @@ export const getFilenameFromContentDisposition = (contentDisposition: string): s
   if (!matches) return null
   return matches[1].replace(/['"]/g, '')
 }
+
+export * from './string'

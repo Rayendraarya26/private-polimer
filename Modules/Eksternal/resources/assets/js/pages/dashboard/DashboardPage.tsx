@@ -12,12 +12,16 @@ import {
   RotateCcw,
   Download,
   Calendar,
-  Sparkles,
+  Send,
+  Pencil,
   FileCheck2,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import Swal from "sweetalert2"
+import { useQueryClient } from "@tanstack/react-query"
 import api from "../../utils/api"
 import { getDateDisplay } from "../../utils/date"
+import { titleCase } from "../../utils/string"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import { useDashboardStatsQuery, useSlidersQuery } from "../../hooks/queries/useDashboardQuery"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -35,6 +39,7 @@ const currentYear = new Date().getFullYear()
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { openLhu, openInvoice, fetchAndOpenPdf, PdfPreviewModal } = usePembayaran()
 
   const [selectedStatisticYear, setSelectedStatisticYear] = useState<number>(currentYear)
@@ -108,13 +113,87 @@ const DashboardPage: React.FC = () => {
   }
 
   const onDelete = async (item: any) => {
-    const isLSP =
-      item.layanan_slug?.includes("lsp") || item.layanan?.toLowerCase().includes("lsp")
-    if (isLSP) {
-      await deleteLSP(item, getFeedbacks)
-      return
+    const nomor = item.nomor_order || item.kode_order || ""
+    const confirmDelete = await Swal.fire({
+      title: "Hapus Draft Permohonan?",
+      text: `Apakah Anda yakin ingin menghapus draft permohonan ${nomor ? `(${nomor}) ` : ""}? Tindakan ini tidak dapat dibatalkan.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+    })
+
+    if (!confirmDelete.isConfirmed) return
+
+    const toastId = toast.loading("Menghapus draft permohonan...")
+    try {
+      const isLSP = item.layanan_slug?.includes("lsp") || item.layanan?.toLowerCase().includes("lsp")
+      const isPelatihan = item.layanan_slug?.includes("pelatihan") || item.layanan?.toLowerCase().includes("pelatihan")
+      const isKalibrasi = item.layanan_slug?.includes("kalibrasi") || item.layanan?.toLowerCase().includes("kalibrasi")
+      const isSertifikasi = item.layanan_slug?.includes("sertifikasi") || item.layanan?.toLowerCase().includes("sertifikasi")
+
+      let endpoint = `/eksternal/permohonan/${item.id}`
+      if (isLSP) endpoint = `/eksternal/lsp-transformasi-industri/${item.id}`
+      else if (isPelatihan) endpoint = `/eksternal/pelatihan/${item.id}`
+      else if (isKalibrasi) endpoint = `/eksternal/kalibrasi/${item.id}`
+      else if (isSertifikasi) endpoint = `/eksternal/sertifikasi/${item.id}`
+
+      let res
+      try {
+        res = await api.delete(endpoint)
+      } catch (err: any) {
+        if (endpoint !== `/eksternal/permohonan/${item.id}`) {
+          res = await api.delete(`/eksternal/permohonan/${item.id}`)
+        } else {
+          throw err
+        }
+      }
+
+      toast.success(res?.data?.message || "Draft permohonan berhasil dihapus")
+      getFeedbacks()
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] })
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Gagal menghapus draft permohonan")
+    } finally {
+      toast.dismiss(toastId)
     }
-    await deletePelatihan(item, getFeedbacks)
+  }
+
+  const onAjukan = async (item: any) => {
+    const nomor = item.nomor_order || item.kode_order || ""
+    const confirm = await Swal.fire({
+      title: "Ajukan Permohonan?",
+      text: `Permohonan ${nomor ? `(${nomor}) ` : ""}akan diajukan ke admin dan diproses. Data tidak dapat diubah kembali setelah diajukan.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Ya, Ajukan",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+    })
+
+    if (!confirm.isConfirmed) return
+
+    const toastId = toast.loading("Mengajukan permohonan...")
+    try {
+      const res = await api.post(`/eksternal/permohonan/${item.id}/ajukan`)
+      const response = res?.data ?? res
+      if (response?.success) {
+        toast.success(response.message || "Permohonan berhasil diajukan ke admin")
+        getFeedbacks()
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] })
+      } else {
+        toast.error(response?.message || "Gagal mengajukan permohonan")
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || "Terjadi kesalahan sistem")
+    } finally {
+      toast.dismiss(toastId)
+    }
   }
 
   const statisticYearOptions = useMemo<number[]>(
@@ -144,7 +223,7 @@ const DashboardPage: React.FC = () => {
       case FeedbackItemStatusOrder.PROCESS:
         return <Badge variant="info" dot>Dalam Proses</Badge>
       case FeedbackItemStatusOrder.PEMBAYARAN:
-        return <Badge variant="warning" dot>Menunggu Pembayaran</Badge>
+        return <Badge variant="warning" dot>Pembayaran</Badge>
       case FeedbackItemStatusOrder.REVISI:
         return <Badge variant="danger" dot>Perlu Revisi</Badge>
       case FeedbackItemStatusOrder.IN_REVIEW:
@@ -154,7 +233,7 @@ const DashboardPage: React.FC = () => {
       case FeedbackItemStatusOrder.MENUNGGU_PERSETUJUAN:
         return <Badge variant="warning" dot>Menunggu Persetujuan</Badge>
       default:
-        return <Badge variant="neutral">{orderStatus || 'Permohonan'}</Badge>
+        return <Badge variant="neutral">{titleCase(orderStatus) || 'Permohonan'}</Badge>
     }
   }
 
@@ -359,34 +438,84 @@ const DashboardPage: React.FC = () => {
                       </td>
                       <td className="px-5 py-4 text-right space-x-1.5 whitespace-nowrap">
                         {/* Detail / Tracking */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          leftIcon={<Eye className="w-3.5 h-3.5" />}
-                          onClick={() => navigate(`/permohonan/detail/${item.id}`)}
-                        >
-                          Detail
-                        </Button>
 
-                        {/* Pratinjau Invoice */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          leftIcon={<FileText className="w-3.5 h-3.5" />}
-                          onClick={() => openInvoice({ id: item.id, no_permohonan: item.kode_order || item.nomor_order })}
-                        >
-                          Invoice
-                        </Button>
+                        {(item.status_order?.toLowerCase() === 'draft' || item.status_order === FeedbackItemStatusOrder.DRAFT) ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-18"
+                              leftIcon={<Pencil className="w-3.5 h-3.5" />}
+                              onClick={() => navigate(`/permohonan/edit/${item.id}`)}
+                            >
+                              Edit
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-18"
+                              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+                              onClick={() => onDelete(item)}
+                            >
+                              Hapus
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-18"
+                              leftIcon={<Send className="w-3.5 h-3.5" />}
+                              onClick={() => onAjukan(item)}
+                            >
+                              Ajukan
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              leftIcon={<Eye className="w-3.5 h-3.5" />}
+                              onClick={() => navigate(`/permohonan/detail/${item.id}`)}
+                            >
+                              Detail
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              leftIcon={<FileText className="w-3.5 h-3.5" />}
+                              onClick={() =>
+                                openInvoice({
+                                  id: item.id,
+                                  no_permohonan: item.kode_order || item.nomor_order,
+                                })
+                              }
+                            >
+                              Invoice
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+                              onClick={() =>
+                                openLhu({
+                                  id: item.id,
+                                  no_permohonan: item.kode_order || item.nomor_order,
+                                })
+                              }
+                            >
+                              LHU
+                            </Button>
+                          </>
+                        )}
+
+
 
                         {/* Pratinjau LHU jika status pengujian/sertifikasi selesai */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-                          onClick={() => openLhu({ id: item.id, no_permohonan: item.kode_order || item.nomor_order })}
-                        >
-                          LHU
-                        </Button>
+
 
                         {/* Download Certificate if Done */}
                         {item.sertifikat && (

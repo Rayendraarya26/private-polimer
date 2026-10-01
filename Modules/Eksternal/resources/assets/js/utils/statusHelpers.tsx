@@ -25,7 +25,7 @@ export const getStatusBadge = ({
   isLunas,
 }: StatusBadgeParams): React.ReactElement => {
   if (isPendingApproval) {
-    return <Badge variant="warning">Menunggu Persetujuan Biaya</Badge>
+    return <Badge variant="warning">Menunggu Persetujuan</Badge>
   }
   if (isDitolak) {
     return <Badge variant="danger">Ditolak</Badge>

@@ -417,6 +417,65 @@ class PermohonanController extends Controller
         ], 500);
     }
 }
+
+    public function destroy($id)
+    {
+        $userId = Auth::id();
+
+        $permohonan = Permohonan::where('id', $id)
+            ->where('created_by', $userId)
+            ->first();
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan tidak ditemukan'
+            ], 404);
+        }
+
+        // Hanya permohonan berstatus DRAFT atau belum diajukan (tgl_order null) yang boleh dihapus
+        if ($permohonan->status_workflow !== 'DRAFT' && !empty($permohonan->tgl_order)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya draft permohonan yang dapat dihapus'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            if (method_exists($permohonan, 'detailPembayaran')) $permohonan->detailPembayaran()->delete();
+            if (method_exists($permohonan, 'detailPermohonan')) $permohonan->detailPermohonan()->delete();
+            if (method_exists($permohonan, 'formLsp')) $permohonan->formLsp()->delete();
+            if (method_exists($permohonan, 'formPelatihan')) $permohonan->formPelatihan()->delete();
+            if (method_exists($permohonan, 'formSertifikasi')) $permohonan->formSertifikasi()->delete();
+            if (method_exists($permohonan, 'formGrkVerifikasi')) $permohonan->formGrkVerifikasi()->delete();
+            if (method_exists($permohonan, 'formGrkValidasi')) $permohonan->formGrkValidasi()->delete();
+            if (method_exists($permohonan, 'formPup')) $permohonan->formPup()->delete();
+            if (method_exists($permohonan, 'formKalibrasi')) $permohonan->formKalibrasi()->delete();
+            if (method_exists($permohonan, 'formPengujian')) $permohonan->formPengujian()->delete();
+            if (method_exists($permohonan, 'formInspeksi')) $permohonan->formInspeksi()->delete();
+            if (method_exists($permohonan, 'formHalal')) $permohonan->formHalal()->delete();
+            if (method_exists($permohonan, 'formMiniplant')) $permohonan->formMiniplant()->delete();
+
+            $permohonan->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Draft permohonan berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function show($id)
     {
         $user = Auth::user();
@@ -665,4 +724,3 @@ class PermohonanController extends Controller
         ]);
     }
 }
-

@@ -155,6 +155,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/{uuid}/feedback', [PermohonanController::class, 'getFeedback']);
             Route::post('/{uuid}/feedback', [PermohonanController::class, 'storeFeedback']);
             Route::post('/{id}/ajukan', [PermohonanController::class, 'ajukan']);
+            Route::delete('/{id}', [PermohonanController::class, 'destroy']);
             Route::post('/{id}/request-tte-invoice', [PermohonanController::class, 'requestTteInvoice']);
             Route::post('/{id}/request-tte-kuitansi', [PermohonanController::class, 'requestTteKuitansi']);
             Route::get('/{id}', [PermohonanController::class, 'show']);
@@ -225,6 +226,10 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/master', [KalibrasiController::class, 'getMasterKalibrasi']);
             Route::post('/', [KalibrasiController::class, 'store']);
             Route::get('/{id}', [KalibrasiController::class, 'show']);
+            Route::put('/{id}', [KalibrasiController::class, 'update']);
+            Route::post('/{id}', [KalibrasiController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [KalibrasiController::class, 'ajukanUlang']);
+            Route::delete('/{id}', [KalibrasiController::class, 'destroy']);
         });
 
         Route::prefix('miniplant')->group(function () {

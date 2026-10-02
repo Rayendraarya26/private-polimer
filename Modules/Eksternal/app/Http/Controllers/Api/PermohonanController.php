@@ -15,7 +15,7 @@ use Modules\Eksternal\Http\Traits\VerifiedWhatsappTrait;
 class PermohonanController extends Controller
 {
     use VerifiedWhatsappTrait;
-   
+
     public function checkStatus()
     {
         $user = Auth::user();
@@ -81,21 +81,21 @@ class PermohonanController extends Controller
             );
 
             $statusMap = match (true) {
-                $isMenungguPersetujuanBiaya          => 'menunggu_persetujuan',
-                $item->status_workflow === 'DRAFT'      => 'draft',
+                $isMenungguPersetujuanBiaya => 'menunggu_persetujuan',
+                $item->status_workflow === 'DRAFT' => 'draft',
                 $item->status_workflow === 'PERMOHONAN' => 'permohonan',
-                $item->status_workflow === 'REVISI'     => 'revisi',
-                $item->status_workflow === 'IN_REVIEW'  => 'review',
+                $item->status_workflow === 'REVISI' => 'revisi',
+                $item->status_workflow === 'IN_REVIEW' => 'review',
                 $item->status_workflow === 'KAJIAN_TEKNIS' => 'review',
                 $item->status_workflow === 'PEMBAYARAN' => 'pembayaran',
-                $item->status_workflow === 'LUNAS'      => 'proses',
-                $item->status_workflow === 'PROSES'     => 'proses',
-                $item->status_workflow === 'PROCESS'    => 'proses',
+                $item->status_workflow === 'LUNAS' => 'proses',
+                $item->status_workflow === 'PROSES' => 'proses',
+                $item->status_workflow === 'PROCESS' => 'proses',
                 $item->status_workflow === 'PROSES_AUDIT' => 'proses',
-                $item->status_workflow === 'DONE'       => 'selesai',
-                $item->status_workflow === 'SELESAI'    => 'selesai',
-                $item->status_workflow === 'DITOLAK'    => 'ditolak',
-                default                                 => 'draft'
+                $item->status_workflow === 'DONE' => 'selesai',
+                $item->status_workflow === 'SELESAI' => 'selesai',
+                $item->status_workflow === 'DITOLAK' => 'ditolak',
+                default => 'draft'
             };
 
             $attachments = $item->file_attachment;
@@ -117,28 +117,38 @@ class PermohonanController extends Controller
                 ];
             })->values()->toArray();
 
-            $namaPemohon = $form?->nama_perusahaan 
-                ?? $form?->nama_lengkap 
-                ?? $form?->nama_peserta 
+            $namaPemohon = $form?->nama_perusahaan
+                ?? $form?->nama_lengkap
+                ?? $form?->nama_peserta
                 ?? $form?->diajukan_oleh
                 ?? $form?->biaya_ditanggung_oleh
                 ?? $form?->biaya_nama
                 ?? $form?->pemohon_pic_nama
-                ?? $item->creator?->name 
+                ?? $item->creator?->name
                 ?? '-';
 
             $layananNama = $lingkup?->lingkup;
             if (!$layananNama) {
-                if (str_starts_with($item->no_permohonan, 'CERT')) $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
-                elseif (str_starts_with($item->no_permohonan, 'LSP')) $layananNama = 'Sertifikasi Profesi (LSP)';
-                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN')) $layananNama = 'Bimtek / Pelatihan';
-                elseif (str_starts_with($item->no_permohonan, 'VAL')) $layananNama = 'Validasi Gas Rumah Kaca (GRK)';
-                elseif (str_starts_with($item->no_permohonan, 'GRK')) $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
-                elseif (str_starts_with($item->no_permohonan, 'PUP')) $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
-                elseif (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB')) $layananNama = 'Kalibrasi Alat';
-                elseif (str_starts_with($item->no_permohonan, 'UJI')) $layananNama = 'Pengujian Laboratorium';
-                elseif (str_contains($item->no_permohonan, 'INSP') || str_starts_with($item->no_permohonan, 'INS')) $layananNama = 'Inspeksi Teknis (Karung Plastik)';
-                else $layananNama = 'Layanan BBKKP';
+                if (str_starts_with($item->no_permohonan, 'CERT'))
+                    $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
+                elseif (str_starts_with($item->no_permohonan, 'LSP'))
+                    $layananNama = 'Sertifikasi Profesi (LSP)';
+                elseif (str_starts_with($item->no_permohonan, 'REG') || str_starts_with($item->no_permohonan, 'UMK') || str_starts_with($item->no_permohonan, 'TRN'))
+                    $layananNama = 'Bimtek / Pelatihan';
+                elseif (str_starts_with($item->no_permohonan, 'VAL'))
+                    $layananNama = 'Validasi Gas Rumah Kaca (GRK)';
+                elseif (str_starts_with($item->no_permohonan, 'GRK'))
+                    $layananNama = 'Verifikasi Gas Rumah Kaca (GRK)';
+                elseif (str_starts_with($item->no_permohonan, 'PUP'))
+                    $layananNama = 'Penyelenggara Uji Profisiensi (PUP)';
+                elseif (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB'))
+                    $layananNama = 'Kalibrasi Alat';
+                elseif (str_starts_with($item->no_permohonan, 'UJI'))
+                    $layananNama = 'Pengujian Laboratorium';
+                elseif (str_contains($item->no_permohonan, 'INSP') || str_starts_with($item->no_permohonan, 'INS'))
+                    $layananNama = 'Inspeksi Teknis (Karung Plastik)';
+                else
+                    $layananNama = 'Layanan BBKKP';
             }
 
             $komoditi = null;
@@ -202,7 +212,7 @@ class PermohonanController extends Controller
                 'pelanggan' => $namaPemohon,
                 'email' => $form?->email ?? $item->creator?->email ?? '-',
                 'instansi' => $form?->nama_perusahaan ?? $form?->nama_instansi ?? '-',
-                'total_tagihan' => (float)$totalNominal,
+                'total_tagihan' => (float) $totalNominal,
 
                 'is_given_feedback' => (bool) ($item->is_given_feedback ?? false),
 
@@ -235,9 +245,9 @@ class PermohonanController extends Controller
 
         $query->where(function ($q) use ($tahun) {
             $q->whereYear('tgl_order', $tahun)
-              ->orWhere(function ($sub) use ($tahun) {
-                  $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
-              });
+                ->orWhere(function ($sub) use ($tahun) {
+                    $sub->whereNull('tgl_order')->whereYear('created_at', $tahun);
+                });
         });
 
         $totalAll = (clone $query)->count();
@@ -375,48 +385,48 @@ class PermohonanController extends Controller
     }
 
     public function ajukan(Request $request, $id)
-{
-    $userId = Auth::id();
+    {
+        $userId = Auth::id();
 
-    $permohonan = Permohonan::where('id', $id)
-        ->where('created_by', $userId)
-        ->firstOrFail();
+        $permohonan = Permohonan::where('id', $id)
+            ->where('created_by', $userId)
+            ->firstOrFail();
 
-    if ($permohonan->tgl_order) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Permohonan sudah diajukan'
-        ], 400);
+        if ($permohonan->tgl_order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan sudah diajukan'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+
+            $permohonan->update([
+                'tgl_order' => now(),
+                'status_workflow' => 'PERMOHONAN', // tetap, tidak ditambah status baru
+            ]);
+
+            DB::commit();
+
+            // Sync permohonan ke SIS secara async
+            SyncPermohonanToSisJob::dispatch($permohonan->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan berhasil diajukan ke admin'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-
-    DB::beginTransaction();
-
-    try {
-
-        $permohonan->update([
-            'tgl_order' => now(),
-            'status_workflow' => 'PERMOHONAN', // tetap, tidak ditambah status baru
-        ]);
-
-        DB::commit();
-
-        // Sync permohonan ke SIS secara async
-        SyncPermohonanToSisJob::dispatch($permohonan->id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Permohonan berhasil diajukan ke admin'
-        ]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
-    }
-}
 
     public function destroy($id)
     {
@@ -444,19 +454,32 @@ class PermohonanController extends Controller
         DB::beginTransaction();
 
         try {
-            if (method_exists($permohonan, 'detailPembayaran')) $permohonan->detailPembayaran()->delete();
-            if (method_exists($permohonan, 'detailPermohonan')) $permohonan->detailPermohonan()->delete();
-            if (method_exists($permohonan, 'formLsp')) $permohonan->formLsp()->delete();
-            if (method_exists($permohonan, 'formPelatihan')) $permohonan->formPelatihan()->delete();
-            if (method_exists($permohonan, 'formSertifikasi')) $permohonan->formSertifikasi()->delete();
-            if (method_exists($permohonan, 'formGrkVerifikasi')) $permohonan->formGrkVerifikasi()->delete();
-            if (method_exists($permohonan, 'formGrkValidasi')) $permohonan->formGrkValidasi()->delete();
-            if (method_exists($permohonan, 'formPup')) $permohonan->formPup()->delete();
-            if (method_exists($permohonan, 'formKalibrasi')) $permohonan->formKalibrasi()->delete();
-            if (method_exists($permohonan, 'formPengujian')) $permohonan->formPengujian()->delete();
-            if (method_exists($permohonan, 'formInspeksi')) $permohonan->formInspeksi()->delete();
-            if (method_exists($permohonan, 'formHalal')) $permohonan->formHalal()->delete();
-            if (method_exists($permohonan, 'formMiniplant')) $permohonan->formMiniplant()->delete();
+            if (method_exists($permohonan, 'detailPembayaran'))
+                $permohonan->detailPembayaran()->delete();
+            if (method_exists($permohonan, 'detailPermohonan'))
+                $permohonan->detailPermohonan()->delete();
+            if (method_exists($permohonan, 'formLsp'))
+                $permohonan->formLsp()->delete();
+            if (method_exists($permohonan, 'formPelatihan'))
+                $permohonan->formPelatihan()->delete();
+            if (method_exists($permohonan, 'formSertifikasi'))
+                $permohonan->formSertifikasi()->delete();
+            if (method_exists($permohonan, 'formGrkVerifikasi'))
+                $permohonan->formGrkVerifikasi()->delete();
+            if (method_exists($permohonan, 'formGrkValidasi'))
+                $permohonan->formGrkValidasi()->delete();
+            if (method_exists($permohonan, 'formPup'))
+                $permohonan->formPup()->delete();
+            if (method_exists($permohonan, 'formKalibrasi'))
+                $permohonan->formKalibrasi()->delete();
+            if (method_exists($permohonan, 'formPengujian'))
+                $permohonan->formPengujian()->delete();
+            if (method_exists($permohonan, 'formInspeksi'))
+                $permohonan->formInspeksi()->delete();
+            if (method_exists($permohonan, 'formHalal'))
+                $permohonan->formHalal()->delete();
+            if (method_exists($permohonan, 'formMiniplant'))
+                $permohonan->formMiniplant()->delete();
 
             $permohonan->delete();
 
@@ -644,7 +667,7 @@ class PermohonanController extends Controller
         }
 
         $permohonan->update([
-            'tte_invoice_requested'    => true,
+            'tte_invoice_requested' => true,
             'tte_invoice_requested_at' => now(),
         ]);
 
@@ -655,9 +678,9 @@ class PermohonanController extends Controller
         foreach ($bendaharaUserIds as $bendaharaId) {
             \App\Models\Db1\SysUserNotif::create([
                 'user_id' => $bendaharaId,
-                'title'   => 'Permintaan TTE Invoice BSrE',
+                'title' => 'Permintaan TTE Invoice BSrE',
                 'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Invoice ' . ($permohonan->invoice_number ?: $permohonan->no_permohonan),
-                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'link' => route('permohonan.layanan.detail', $permohonan->id),
                 'is_read' => 'no',
             ]);
         }
@@ -665,8 +688,8 @@ class PermohonanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permintaan TTE Invoice BSrE berhasil dikirim ke Bendahara.',
-            'data'    => [
-                'tte_invoice_requested'    => true,
+            'data' => [
+                'tte_invoice_requested' => true,
                 'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
             ]
         ]);
@@ -696,7 +719,7 @@ class PermohonanController extends Controller
         }
 
         $permohonan->update([
-            'tte_kuitansi_requested'    => true,
+            'tte_kuitansi_requested' => true,
             'tte_kuitansi_requested_at' => now(),
         ]);
 
@@ -707,9 +730,9 @@ class PermohonanController extends Controller
         foreach ($bendaharaUserIds as $bendaharaId) {
             \App\Models\Db1\SysUserNotif::create([
                 'user_id' => $bendaharaId,
-                'title'   => 'Permintaan TTE Kuitansi BSrE',
+                'title' => 'Permintaan TTE Kuitansi BSrE',
                 'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Kuitansi Pembayaran ' . ($permohonan->kuitansi_number ?: $permohonan->no_permohonan),
-                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'link' => route('permohonan.layanan.detail', $permohonan->id),
                 'is_read' => 'no',
             ]);
         }
@@ -717,8 +740,8 @@ class PermohonanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permintaan TTE Kuitansi BSrE berhasil dikirim ke Bendahara.',
-            'data'    => [
-                'tte_kuitansi_requested'    => true,
+            'data' => [
+                'tte_kuitansi_requested' => true,
                 'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,
             ]
         ]);

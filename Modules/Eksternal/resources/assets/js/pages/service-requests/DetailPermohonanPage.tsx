@@ -168,13 +168,19 @@ export const DetailPermohonanPage: React.FC = () => {
       permohonan?.status_penawaran === "tolak"
     )
   )
+  const isStatusTahapPenawaran = [
+    "PENAWARAN_BIAYA",
+    "MENUNGGU_PERSETUJUAN_PELANGGAN",
+    "PEMBAYARAN",
+  ].includes(status)
+
   const isPendingApproval = Boolean(
+    isStatusTahapPenawaran &&
     penawaran &&
     !isPenawaranDisetujui &&
     !isPenawaranDitolak && (
       penawaran?.status_persetujuan === "MENUNGGU" ||
       penawaran?.status === "MENUNGGU_PERSETUJUAN" ||
-      penawaran?.status === "MENUNGGU" ||
       status === "MENUNGGU_PERSETUJUAN_PELANGGAN" ||
       status === "PENAWARAN_BIAYA"
     )

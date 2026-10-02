@@ -1,75 +1,227 @@
 import React from "react"
-import { Badge } from "../components/ui/Badge"
+import { Badge, BadgeProps } from "../components/ui/Badge"
+import { titleCase } from "./string"
+import { cn } from "./cn"
 
 /**
- * Status badge & step-index helpers for DetailPermohonanPage.
- * Extracted from DetailPermohonanPage.tsx — Phase 1 refactor.
+ * Parameter terstruktur untuk penentuan status workflow pada halaman Detail.
  */
+export interface StatusBadgeParams {
+  status?: string | null
+  isPendingApproval?: boolean
+  isDitolak?: boolean
+  isPenawaranDisetujui?: boolean
+  isLunas?: boolean
+}
 
-interface StatusBadgeParams {
-  status: string
-  isPendingApproval: boolean
-  isDitolak: boolean
-  isPenawaranDisetujui: boolean
-  isLunas: boolean
+export type StatusBadgeInput = string | StatusBadgeParams | null | undefined
+
+export interface StatusBadgeOptions {
+  dot?: boolean
+  size?: "sm" | "md" | "lg"
+  className?: string
+}
+
+export interface StatusInfo {
+  label: string
+  variant: NonNullable<BadgeProps["variant"]>
+  dot: boolean
+  textColor: string
 }
 
 /**
- * Returns the appropriate <Badge> element for a given workflow status.
+ * Mengambil informasi status murni (label teks, warna variant badge, dot, dan class warna teks)
+ * tanpa membungkusnya dalam elemen JSX Badge.
  */
-export const getStatusBadge = ({
-  status,
-  isPendingApproval,
-  isDitolak,
-  isPenawaranDisetujui,
-  isLunas,
-}: StatusBadgeParams): React.ReactElement => {
-  if (isPendingApproval) {
-    return <Badge variant="warning">Menunggu Persetujuan</Badge>
+export const getStatusInfo = (input?: StatusBadgeInput): StatusInfo => {
+  let statusRaw = ""
+  let isPendingApproval = false
+  let isDitolak = false
+  let isPenawaranDisetujui = false
+  let isLunas = false
+
+  if (typeof input === "string") {
+    statusRaw = input
+  } else if (input && typeof input === "object") {
+    statusRaw = input.status || ""
+    isPendingApproval = Boolean(input.isPendingApproval)
+    isDitolak = Boolean(input.isDitolak)
+    isPenawaranDisetujui = Boolean(input.isPenawaranDisetujui)
+    isLunas = Boolean(input.isLunas)
   }
-  if (isDitolak) {
-    return <Badge variant="danger">Ditolak</Badge>
+
+  const normalized = (statusRaw || "").trim().toUpperCase()
+
+  // 1. Kondisi Ditolak
+  if (isDitolak || normalized === "DITOLAK" || normalized === "REJECTED") {
+    return {
+      label: "Ditolak",
+      variant: "danger",
+      dot: false,
+      textColor: "text-rose-600",
+    }
   }
 
-  switch (status) {
-    case "DRAFT":
-      return <Badge variant="neutral">Draf</Badge>
-
-    case "PERMOHONAN":
-      return <Badge variant="primary">Diajukan</Badge>
-
-    case "IN_REVIEW":
-    case "KAJIAN_TEKNIS":
-      return <Badge variant="warning">Kajian Teknis</Badge>
-
-    case "PENAWARAN_BIAYA":
-    case "MENUNGGU_PERSETUJUAN_PELANGGAN":
-      return isPenawaranDisetujui
-        ? <Badge variant="primary">Menunggu Pembayaran</Badge>
-        : <Badge variant="warning">Menunggu Persetujuan Biaya</Badge>
-
-    case "REVISI":
-      return <Badge variant="danger">Perlu Perbaikan</Badge>
-
-    case "PEMBAYARAN":
-      return isLunas
-        ? <Badge variant="info">Lunas (Menunggu Audit)</Badge>
-        : <Badge variant="primary">Menunggu Pembayaran</Badge>
-
-    case "PROSES":
-    case "PROCESS":
-      return <Badge variant="info">Pelaksanaan Audit & Uji</Badge>
-
-    case "LUNAS":
-      return <Badge variant="info">Lunas (Siap Audit)</Badge>
-
-    case "DONE":
-    case "SELESAI":
-      return <Badge variant="success">Selesai</Badge>
-
-    default:
-      return <Badge variant="neutral">{status}</Badge>
+  // 2. Kondisi Draft
+  if (normalized === "DRAFT") {
+    return {
+      label: "Draft",
+      variant: "neutral",
+      dot: false,
+      textColor: "text-slate-600",
+    }
   }
+
+  // 3. Kondisi Permohonan Masuk
+  if (normalized === "PERMOHONAN" || normalized === "DIAJUKAN") {
+    return {
+      label: "Permohonan",
+      variant: "primary",
+      dot: false,
+      textColor: "text-brand-700",
+    }
+  }
+
+  // 4. Kondisi Review / Kajian Teknis
+  if (normalized === "REVIEW" || normalized === "IN_REVIEW" || normalized === "KAJIAN_TEKNIS") {
+    return {
+      label: "Dalam Review",
+      variant: "primary",
+      dot: false,
+      textColor: "text-brand-700",
+    }
+  }
+
+  // 5. Kondisi Perlu Revisi / Perbaikan
+  if (normalized === "REVISI" || normalized === "PERBAIKAN") {
+    return {
+      label: "Perlu Revisi",
+      variant: "warning",
+      dot: false,
+      textColor: "text-amber-600",
+    }
+  }
+
+  // 6. Kondisi Menunggu Persetujuan Penawaran Biaya
+  if (
+    isPendingApproval ||
+    normalized === "MENUNGGU_PERSETUJUAN" ||
+    (!isPenawaranDisetujui && (normalized === "PENAWARAN_BIAYA" || normalized === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
+  ) {
+    return {
+      label: "Menunggu Persetujuan",
+      variant: "warning",
+      dot: false,
+      textColor: "text-amber-600",
+    }
+  }
+
+  // 7. Kondisi Pembayaran
+  if (
+    normalized === "PEMBAYARAN" ||
+    (isPenawaranDisetujui && (normalized === "PENAWARAN_BIAYA" || normalized === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
+  ) {
+    if (isLunas) {
+      return {
+        label: "Dalam Proses",
+        variant: "info",
+        dot: false,
+        textColor: "text-sky-600",
+      }
+    }
+    return {
+      label: "Pembayaran",
+      variant: "primary",
+      dot: false,
+      textColor: "text-brand-700",
+    }
+  }
+
+  // 8. Kondisi Proses / Lunas / Audit
+  if (
+    normalized === "PROSES" ||
+    normalized === "PROCESS" ||
+    normalized === "LUNAS" ||
+    normalized === "PROSES_AUDIT"
+  ) {
+    return {
+      label: "Dalam Proses",
+      variant: "info",
+      dot: false,
+      textColor: "text-sky-600",
+    }
+  }
+
+  // 9. Kondisi Selesai
+  if (normalized === "DONE" || normalized === "SELESAI") {
+    return {
+      label: "Selesai",
+      variant: "success",
+      dot: false,
+      textColor: "text-emerald-600",
+    }
+  }
+
+  // Fallback
+  return {
+    label: titleCase(statusRaw) || "Permohonan",
+    variant: "neutral",
+    dot: false,
+    textColor: "text-slate-700",
+  }
+}
+
+/**
+ * Mengembalikan elemen teks dengan warna yang sesuai status (tanpa badge / border).
+ * Contoh: <span className="font-bold text-sm text-emerald-600">Selesai</span>
+ */
+export const getStatusText = (
+  input?: StatusBadgeInput,
+  options?: { className?: string }
+): React.ReactElement => {
+  const info = getStatusInfo(input)
+  return (
+    <span className={cn("font-bold text-sm", info.textColor, options?.className)}>
+      {info.label}
+    </span>
+  )
+}
+
+/**
+ * Mengembalikan string teks murni status (hanya string teks tanpa tag JSX / styling).
+ * Contoh: getStatusLabel("in_review") => "Dalam Review"
+ */
+export const getStatusLabel = (input?: StatusBadgeInput): string => {
+  return getStatusInfo(input).label
+}
+
+/**
+ * Mengembalikan class text color Tailwind sesuai status (misal: "text-emerald-600").
+ */
+export const getStatusTextColor = (input?: StatusBadgeInput): string => {
+  return getStatusInfo(input).textColor
+}
+
+/**
+ * Mengembalikan elemen <Badge> yang telah disatukan dan distandarisasi
+ * untuk digunakan di Dashboard, Halaman Detail, maupun komponen lainnya.
+ */
+export const getStatusBadge = (
+  input?: StatusBadgeInput,
+  options?: StatusBadgeOptions
+): React.ReactElement => {
+  const info = getStatusInfo(input)
+
+  return (
+    <Badge
+      variant={info.variant}
+      dot={options?.dot ?? info.dot}
+      size={options?.size}
+      className={options?.className}
+    >
+      {info.label}
+    </Badge>
+  )
 }
 
 interface StepIndexParams {
@@ -80,13 +232,12 @@ interface StepIndexParams {
 }
 
 /**
- * Returns the current zero-based step index for the workflow stepper.
- *
- * 0 = Draft / awal
+ * Menghitung indeks tahapan workflow (zero-based):
+ * 0 = Draft
  * 1 = Kajian Teknis / Revisi
  * 2 = Menunggu Persetujuan Penawaran
  * 3 = Pembayaran / Menunggu Bayar
- * 4 = Proses / Lunas / Done
+ * 4 = Proses / Lunas / Selesai
  */
 export const getStepIndex = ({
   status,

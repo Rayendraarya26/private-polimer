@@ -22,6 +22,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import api from "../../utils/api"
 import { getDateDisplay } from "../../utils/date"
 import { titleCase } from "../../utils/string"
+import { getStatusBadge } from "../../utils/statusHelpers"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
 import { useDashboardStatsQuery, useSlidersQuery } from "../../hooks/queries/useDashboardQuery"
 import useFeedbacks from "../../hooks/feedback/useFeedbacks"
@@ -216,27 +217,6 @@ const DashboardPage: React.FC = () => {
     []
   )
 
-  const getStatusBadge = (orderStatus: FeedbackItemStatusOrder | string) => {
-    switch (orderStatus) {
-      case FeedbackItemStatusOrder.DONE:
-        return <Badge variant="success" dot>Selesai</Badge>
-      case FeedbackItemStatusOrder.PROCESS:
-        return <Badge variant="info" dot>Dalam Proses</Badge>
-      case FeedbackItemStatusOrder.PEMBAYARAN:
-        return <Badge variant="warning" dot>Pembayaran</Badge>
-      case FeedbackItemStatusOrder.REVISI:
-        return <Badge variant="danger" dot>Perlu Revisi</Badge>
-      case FeedbackItemStatusOrder.IN_REVIEW:
-        return <Badge variant="primary" dot>Dalam Review</Badge>
-      case FeedbackItemStatusOrder.DRAFT:
-        return <Badge variant="neutral">Draft</Badge>
-      case FeedbackItemStatusOrder.MENUNGGU_PERSETUJUAN:
-        return <Badge variant="warning" dot>Menunggu Persetujuan</Badge>
-      default:
-        return <Badge variant="neutral">{titleCase(orderStatus) || 'Permohonan'}</Badge>
-    }
-  }
-
   return (
     <div className="space-y-6">
       <Head title="Dashboard Pelanggan" />
@@ -356,7 +336,7 @@ const DashboardPage: React.FC = () => {
             variant="success"
           />
           <StatsCard
-            title="Ditolak / Draf"
+            title="Ditolak"
             value={statisticData?.total_ditolak || 0}
             icon={<XCircle className="w-5 h-5" />}
             variant="danger"

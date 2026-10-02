@@ -6,6 +6,7 @@ import api from "../../utils/api"
 import Head from "../common/Head"
 import { Card, CardContent } from "../ui/Card"
 import { Button } from "../ui/Button"
+import { BackButton } from "../ui/BackButton"
 import {
   Loader2,
   ArrowLeft,
@@ -272,16 +273,7 @@ export const EditFormKalibrasi: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/permohonan")}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="shrink-0"
-        >
-          Kembali ke Permohonan
-        </Button>
+        <BackButton to="/dashboard" />
       </div>
 
 
@@ -340,15 +332,12 @@ export const EditFormKalibrasi: React.FC = () => {
 
       {/* Action Footer Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate(`/permohonan/detail/${id}`)}
+        <BackButton
+          to={`/permohonan/detail/${id}`}
           disabled={submitting}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
         >
           Batalkan Perubahan
-        </Button>
+        </BackButton>
 
         <div className="flex items-center gap-3">
           <Button

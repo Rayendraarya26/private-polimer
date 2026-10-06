@@ -70,16 +70,27 @@ class MarketingUserSeeder extends Seeder
             );
         }
 
-        // 3. Assign Operational & Permohonan permissions to MARKETING group
-        $operationalActions = SysMenuAction::where(function ($query) {
-            $query->where('controller', 'LIKE', '%Modules\Permohonan%')
-                  ->orWhere('controller', 'LIKE', '%Modules\Admin\Http\Controllers\DashboardController%')
-                  ->orWhere('controller', 'LIKE', '%Modules\Admin\Http\Controllers\ManageOrderController%')
-                  ->orWhere('controller', 'LIKE', '%Modules\Admin\Http\Controllers\PertanyaanPelangganController%')
-                  ->orWhere('controller', '#');
+        // 3. Assign Permohonan permissions to MARKETING group (ONLY Permohonan & Data Permohonan Layanan)
+        SysGroupPermission::where('group_id', SysGroup::MARKETING->value)->delete();
+
+        $permohonanParent = \App\Models\Db1\SysMenu::where('name', 'Permohonan')->whereNull('parent_id')->first();
+        if ($permohonanParent) {
+            $parentAction = SysMenuAction::where('menu_id', $permohonanParent->id)->where('name', 'index')->first();
+            if ($parentAction) {
+                SysGroupPermission::firstOrCreate([
+                    'group_id'  => SysGroup::MARKETING->value,
+                    'action_id' => $parentAction->id,
+                ]);
+            }
+        }
+
+        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
+        $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
+            $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%');
         })->get();
 
-        foreach ($operationalActions as $action) {
+        foreach ($marketingActions as $action) {
             SysGroupPermission::firstOrCreate([
                 'group_id'  => SysGroup::MARKETING->value,
                 'action_id' => $action->id,

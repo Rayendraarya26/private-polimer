@@ -15,9 +15,13 @@ class NotifHelper
     {
         return SysUserGroup::whereIn('group_id', [
                 SysGroup::ROOT->value,
-                SysGroup::ADMIN->value,   // ← pakai ADMIN, bukan PEGAWAI
+                SysGroup::ADMIN->value,
+                SysGroup::MARKETING->value,
+                SysGroup::PEGAWAI->value,
             ])
             ->pluck('user_id')
+            ->unique()
+            ->values()
             ->toArray();
     }
 

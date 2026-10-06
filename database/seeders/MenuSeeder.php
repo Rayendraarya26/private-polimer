@@ -14,27 +14,27 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         $moduleSystem = 'Modules\System\Http\Controllers';
-        $moduleAdmin  = 'Modules\Admin\Http\Controllers';
+        $moduleAdmin = 'Modules\Admin\Http\Controllers';
         $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
-        $menus        = [
+        $menus = [
             [
-                'name'      => 'System',
-                'parent'    => null,
-                'desc'      => 'Management System',
+                'name' => 'System',
+                'parent' => null,
+                'desc' => 'Management System',
                 'is_active' => 'yes',
-                'order'     => '99',
-                'icon'      => 'fas fa-cog',
-                'action'    => [
+                'order' => '99',
+                'icon' => 'fas fa-cog',
+                'action' => [
                     ['name' => 'index', 'controller' => '#'],
                 ],
-                'children'  => [
+                'children' => [
                     [
-                        'name'      => 'Manage User',
-                        'desc'      => 'Mengatur crud user',
+                        'name' => 'Manage User',
+                        'desc' => 'Mengatur crud user',
                         'is_active' => 'yes',
-                        'order'     => '1',
-                        'icon'      => 'fa-duotone fa-users',
-                        'action'    => [
+                        'order' => '1',
+                        'icon' => 'fa-duotone fa-users',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleSystem . '\ManageUserController@index'],
                             ['name' => 'add', 'controller' => $moduleSystem . '\ManageUserController@create'],
                             ['name' => 'store', 'controller' => $moduleSystem . '\ManageUserController@store'],
@@ -47,12 +47,12 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Manage Group',
-                        'desc'      => 'Mengatur Group dan permission',
+                        'name' => 'Manage Group',
+                        'desc' => 'Mengatur Group dan permission',
                         'is_active' => 'yes',
-                        'order'     => '2',
-                        'icon'      => 'fa-duotone fa-user-group',
-                        'action'    => [
+                        'order' => '2',
+                        'icon' => 'fa-duotone fa-user-group',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleSystem . '\ManageGroupController@index'],
                             ['name' => 'add', 'controller' => $moduleSystem . '\ManageGroupController@create'],
                             ['name' => 'store', 'controller' => $moduleSystem . '\ManageGroupController@store'],
@@ -66,12 +66,12 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Manage Menu',
-                        'desc'      => 'Mengatur Menu',
+                        'name' => 'Manage Menu',
+                        'desc' => 'Mengatur Menu',
                         'is_active' => 'yes',
-                        'order'     => '3',
-                        'icon'      => 'fa-duotone fa-layer-group',
-                        'action'    => [
+                        'order' => '3',
+                        'icon' => 'fa-duotone fa-layer-group',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleSystem . '\ManageMenuController@index'],
                             ['name' => 'add', 'controller' => $moduleSystem . '\ManageMenuController@create'],
                             ['name' => 'store', 'controller' => $moduleSystem . '\ManageMenuController@store'],
@@ -84,12 +84,12 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Manage Menu Action',
-                        'desc'      => 'Mengatur Menu Aksi controller',
+                        'name' => 'Manage Menu Action',
+                        'desc' => 'Mengatur Menu Aksi controller',
                         'is_active' => 'no',
-                        'order'     => '3',
-                        'icon'      => 'fa-duotone fa-bars',
-                        'action'    => [
+                        'order' => '3',
+                        'icon' => 'fa-duotone fa-bars',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleSystem . '\ManageMenuActionController@index'],
                             ['name' => 'add', 'controller' => $moduleSystem . '\ManageMenuActionController@create'],
                             ['name' => 'store', 'controller' => $moduleSystem . '\ManageMenuActionController@store'],
@@ -102,24 +102,24 @@ class MenuSeeder extends Seeder
                 ]
             ],
             [
-                'name'      => 'Management Master',
-                'parent'    => null,
-                'desc'      => 'Management Master',
+                'name' => 'Management Master',
+                'parent' => null,
+                'desc' => 'Management Master',
                 'is_active' => 'yes',
-                'order'     => 80,
-                'icon'      => 'fa-regular fa-database',
-                'action'    => [
+                'order' => 80,
+                'icon' => 'fa-regular fa-database',
+                'action' => [
                     ['name' => 'index', 'controller' => '#'],
                 ],
-                'children'  => [
+                'children' => [
 
                     [
-                        'name'      => 'Manajemen SSO',
-                        'desc'      => 'Mengatur aplikasi client ID dan secret',
+                        'name' => 'Manajemen SSO',
+                        'desc' => 'Mengatur aplikasi client ID dan secret',
                         'is_active' => 'yes',
-                        'order'     => 5,
-                        'icon'      => 'fa-regular fa-key',
-                        'action'    => [
+                        'order' => 5,
+                        'icon' => 'fa-regular fa-key',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleAdmin . '\IntegrasiSsoController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\IntegrasiSsoController@ajax'],
                             ['name' => 'add', 'controller' => $moduleAdmin . '\IntegrasiSsoController@create'],
@@ -132,12 +132,12 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Manajemen Layanan',
-                        'desc'      => 'Mengatur layanan data',
+                        'name' => 'Manajemen Layanan',
+                        'desc' => 'Mengatur layanan data',
                         'is_active' => 'yes',
-                        'order'     => 6,
-                        'icon'      => 'fa-solid fa-server',
-                        'action'    => [
+                        'order' => 6,
+                        'icon' => 'fa-solid fa-server',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleAdmin . '\ManageLayananController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageLayananController@ajax'],
                             ['name' => 'edit', 'controller' => $moduleAdmin . '\ManageLayananController@edit'],
@@ -147,12 +147,12 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Data Permitaan Layanan',
-                        'desc'      => 'Data Permitaan Layanan',
+                        'name' => 'Data Permitaan Layanan',
+                        'desc' => 'Data Permitaan Layanan',
                         'is_active' => 'yes',
-                        'order'     => 7,
-                        'icon'      => 'fa-duotone fa-solid fa-house-laptop',
-                        'action'    => [
+                        'order' => 7,
+                        'icon' => 'fa-duotone fa-solid fa-house-laptop',
+                        'action' => [
                             ['name' => 'index', 'controller' => $moduleAdmin . '\ManageOrderController@index'],
                             ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageOrderController@ajax'],
                             ['name' => 'detail', 'controller' => $moduleAdmin . '\ManageOrderController@detail'],
@@ -161,23 +161,23 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Manajemen Website',
-                        'parent'    => null,
-                        'desc'      => 'Management Website',
+                        'name' => 'Manajemen Website',
+                        'parent' => null,
+                        'desc' => 'Management Website',
                         'is_active' => 'yes',
-                        'order'     => 90,
-                        'icon'      => 'fa-solid fa-browser',
-                        'action'    => [
+                        'order' => 90,
+                        'icon' => 'fa-solid fa-browser',
+                        'action' => [
                             ['name' => 'index', 'controller' => '#'],
                         ],
-                        'children'  => [
+                        'children' => [
                             [
-                                'name'      => 'Setting Slider',
-                                'desc'      => 'Mengatur data Slider',
+                                'name' => 'Setting Slider',
+                                'desc' => 'Mengatur data Slider',
                                 'is_active' => 'yes',
-                                'order'     => 10,
-                                'icon'      => 'fa-regular fa-images',
-                                'action'    => [
+                                'order' => 10,
+                                'icon' => 'fa-regular fa-images',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\BannerController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\BannerController@ajax'],
                                     ['name' => 'add', 'controller' => $moduleAdmin . '\BannerController@create'],
@@ -188,12 +188,12 @@ class MenuSeeder extends Seeder
                                 ]
                             ],
                             [
-                                'name'      => 'Manajemen FAQ',
-                                'desc'      => 'Mengatur FAQ',
+                                'name' => 'Manajemen FAQ',
+                                'desc' => 'Mengatur FAQ',
                                 'is_active' => 'yes',
-                                'order'     => 20,
-                                'icon'      => 'fa-duotone fa-bars',
-                                'action'    => [
+                                'order' => 20,
+                                'icon' => 'fa-duotone fa-bars',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageFaqController@index'],
                                     ['name' => 'add', 'controller' => $moduleAdmin . '\ManageFaqController@create'],
                                     ['name' => 'store', 'controller' => $moduleAdmin . '\ManageFaqController@store'],
@@ -204,24 +204,24 @@ class MenuSeeder extends Seeder
                                 ]
                             ],
                             [
-                                'name'      => 'Data Contact Us',
-                                'desc'      => 'Mengatur Contact Us',
+                                'name' => 'Data Contact Us',
+                                'desc' => 'Mengatur Contact Us',
                                 'is_active' => 'yes',
-                                'order'     => 30,
-                                'icon'      => 'fa-solid fa-paper-plane',
-                                'action'    => [
+                                'order' => 30,
+                                'icon' => 'fa-solid fa-paper-plane',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageContactUsController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageContactUsController@ajax'],
                                     ['name' => 'detail', 'controller' => $moduleAdmin . '\ManageContactUsController@show'],
                                 ]
                             ],
                             [
-                                'name'      => 'Manajemen Homepage',
-                                'desc'      => 'Mengatur Homepage',
+                                'name' => 'Manajemen Homepage',
+                                'desc' => 'Mengatur Homepage',
                                 'is_active' => 'yes',
-                                'order'     => 30,
-                                'icon'      => 'fa-solid fa-globe-pointer',
-                                'action'    => [
+                                'order' => 30,
+                                'icon' => 'fa-solid fa-globe-pointer',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageHomepageController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\ManageHomepageController@ajax'],
                                     ['name' => 'update', 'controller' => $moduleAdmin . '\ManageHomepageController@update'],
@@ -231,23 +231,23 @@ class MenuSeeder extends Seeder
                         ]
                     ],
                     [
-                        'name'      => 'Pelayanan Pertanyaan',
-                        'parent'    => null,
-                        'desc'      => 'Management Pelayanan Pertanyaan',
+                        'name' => 'Pelayanan Pertanyaan',
+                        'parent' => null,
+                        'desc' => 'Management Pelayanan Pertanyaan',
                         'is_active' => 'yes',
-                        'order'     => 91,
-                        'icon'      => 'fa-solid fa-envelope-open-text',
-                        'action'    => [
+                        'order' => 91,
+                        'icon' => 'fa-solid fa-envelope-open-text',
+                        'action' => [
                             ['name' => 'index', 'controller' => '#'],
                         ],
-                        'children'  => [
+                        'children' => [
                             [
-                                'name'      => 'Manage Topik Pertanyaan',
-                                'desc'      => 'Mengatur Topik Pertanyaan',
+                                'name' => 'Manage Topik Pertanyaan',
+                                'desc' => 'Mengatur Topik Pertanyaan',
                                 'is_active' => 'yes',
-                                'order'     => '1',
-                                'icon'      => 'fa-duotone fa-bars',
-                                'action'    => [
+                                'order' => '1',
+                                'icon' => 'fa-duotone fa-bars',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@index'],
                                     ['name' => 'add', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@create'],
                                     ['name' => 'store', 'controller' => $moduleAdmin . '\ManageTopikPertanyaanController@store'],
@@ -258,12 +258,12 @@ class MenuSeeder extends Seeder
                                 ]
                             ],
                             [
-                                'name'      => 'Manajemen Pertanyaan',
-                                'desc'      => 'Manajemen pertanyaan pelanggan',
+                                'name' => 'Manajemen Pertanyaan',
+                                'desc' => 'Manajemen pertanyaan pelanggan',
                                 'is_active' => 'yes',
-                                'order'     => 20,
-                                'icon'      => 'fa-solid fa-headset',
-                                'action'    => [
+                                'order' => 20,
+                                'icon' => 'fa-solid fa-headset',
+                                'action' => [
                                     ['name' => 'index', 'controller' => $moduleAdmin . '\PertanyaanController@index'],
                                     ['name' => 'ajax', 'controller' => $moduleAdmin . '\PertanyaanController@ajax'],
                                     ['name' => 'add', 'controller' => $moduleAdmin . '\PertanyaanController@create'],
@@ -277,110 +277,132 @@ class MenuSeeder extends Seeder
                 ]
             ],
             [
-                'name'      => 'Management Permohonan',
-                'parent'    => null,
-                'desc'      => 'Manajemen Permohonan',
+                'name' => 'Permohonan',
+                'parent' => null,
+                'desc' => 'Manajemen Permohonan',
                 'is_active' => 'yes',
-                'order'     => 90,
-                'icon'      => 'fa-solid fa-file-lines',
-                'action'    => [
+                'order' => 90,
+                'icon' => 'fa-solid fa-file-lines',
+                'action' => [
                     ['name' => 'index', 'controller' => '#'],
                 ],
-                'children'  => [
+                'children' => [
                     [
-                        'name'      => 'Data Permohonan Layanan',
-                        'desc'      => 'Mengelola data permohonan',
+                        'name' => 'Data Permohonan Layanan',
+                        'desc' => 'Mengelola data permohonan',
                         'is_active' => 'yes',
-                        'order'     => 1,
-                        'icon'      => 'fa-regular fa-file',
-                        'action'    => [
-                           ['name' => 'index',           'controller' => $modulePermohonan . '\PermohonanController@index'],
-                            ['name' => 'ajax',            'controller' => $modulePermohonan . '\PermohonanController@ajax'],
-                            ['name' => 'detail',          'controller' => $modulePermohonan . '\PermohonanController@detail'],
-                            ['name' => 'approve',         'controller' => $modulePermohonan . '\PermohonanController@approve'],
-                            ['name' => 'reject',          'controller' => $modulePermohonan . '\PermohonanController@reject'],
-                            ['name' => 'revisi',          'controller' => $modulePermohonan . '\PermohonanController@revisi'],
-                            ['name' => 'simpanTarif',     'controller' => $modulePermohonan . '\PermohonanController@simpanTarif'],
-                            ['name' => 'bulkApprove',     'controller' => $modulePermohonan . '\PermohonanController@bulkApprove'],
-                            ['name' => 'bulkReject',      'controller' => $modulePermohonan . '\PermohonanController@bulkReject'],
-                            ['name' => 'bulkRevisi',      'controller' => $modulePermohonan . '\PermohonanController@bulkRevisi'],
-                            ['name' => 'generate',        'controller' => $modulePermohonan . '\InvoiceController@generate'],
+                        'order' => 1,
+                        'icon' => 'fa-regular fa-file',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\PermohonanController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\PermohonanController@ajax'],
+                            ['name' => 'detail', 'controller' => $modulePermohonan . '\PermohonanController@detail'],
+                            ['name' => 'approve', 'controller' => $modulePermohonan . '\PermohonanController@approve'],
+                            ['name' => 'reject', 'controller' => $modulePermohonan . '\PermohonanController@reject'],
+                            ['name' => 'revisi', 'controller' => $modulePermohonan . '\PermohonanController@revisi'],
+                            ['name' => 'simpanTarif', 'controller' => $modulePermohonan . '\PermohonanController@simpanTarif'],
+                            ['name' => 'bulkApprove', 'controller' => $modulePermohonan . '\PermohonanController@bulkApprove'],
+                            ['name' => 'bulkReject', 'controller' => $modulePermohonan . '\PermohonanController@bulkReject'],
+                            ['name' => 'bulkRevisi', 'controller' => $modulePermohonan . '\PermohonanController@bulkRevisi'],
+                            ['name' => 'tagihanBiayaIndex', 'controller' => $modulePermohonan . '\TagihanBiayaController@index'],
+                            ['name' => 'tagihanBiayaAjax', 'controller' => $modulePermohonan . '\TagihanBiayaController@ajax'],
+                            ['name' => 'tagihanBiayaEdit', 'controller' => $modulePermohonan . '\TagihanBiayaController@edit'],
+                            ['name' => 'tagihanBiayaKirim', 'controller' => $modulePermohonan . '\TagihanBiayaController@kirim'],
+                            ['name' => 'generate', 'controller' => $modulePermohonan . '\InvoiceController@generate'],
                             ['name' => 'approvalInvoice', 'controller' => $modulePermohonan . '\InvoiceController@approvalInvoice'],
-                            ['name' => 'page',            'controller' => $modulePermohonan . '\InvoiceController@page'],
+                            ['name' => 'page', 'controller' => $modulePermohonan . '\InvoiceController@page'],
                             ['name' => 'approvalKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@approvalKuitansi'],
                             ['name' => 'generateKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@generateKuitansi'],
-                            ['name' => 'preview',          'controller' => $modulePermohonan . '\InvoiceController@previewKuitansi'],
-                            ['name' => 'downloadTte',      'controller' => $modulePermohonan . '\InvoiceController@downloadTte'],
-                            ['name' => 'streamTte',        'controller' => $modulePermohonan . '\InvoiceController@streamTte'],
+                            ['name' => 'preview', 'controller' => $modulePermohonan . '\InvoiceController@previewKuitansi'],
+                            ['name' => 'downloadTte', 'controller' => $modulePermohonan . '\InvoiceController@downloadTte'],
+                            ['name' => 'streamTte', 'controller' => $modulePermohonan . '\InvoiceController@streamTte'],
                         ]
                     ],
                     [
-                        'name'      => 'Master Lokasi',
-                        'desc'      => 'Manajemen data Provinsi, Kabupaten/Kota, dan Kecamatan',
+                        'name' => 'Billing',
+                        'desc' => 'Manajemen Billing dan Pembayaran',
                         'is_active' => 'yes',
-                        'order'     => 2,
-                        'icon'      => 'fa-duotone fa-map-location-dot',
-                        'action'    => [
-                            ['name' => 'index',            'controller' => $modulePermohonan . '\MasterLokasiController@index'],
-                            ['name' => 'ajax',             'controller' => $modulePermohonan . '\MasterLokasiController@ajax'],
-                            ['name' => 'provinsi_store',   'controller' => $modulePermohonan . '\MasterLokasiController@storeProvinsi'],
-                            ['name' => 'provinsi_update',  'controller' => $modulePermohonan . '\MasterLokasiController@updateProvinsi'],
-                            ['name' => 'provinsi_delete',  'controller' => $modulePermohonan . '\MasterLokasiController@destroyProvinsi'],
-                            ['name' => 'kabupaten_store',  'controller' => $modulePermohonan . '\MasterLokasiController@storeKabupaten'],
+                        'order' => 2,
+                        'icon' => 'fa-duotone fa-file-invoice-dollar',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\BillingPembayaranController@index'],
+                            ['name' => 'create', 'controller' => $modulePermohonan . '\BillingPembayaranController@create'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\BillingPembayaranController@store'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Master Lokasi',
+                        'desc' => 'Manajemen data Provinsi, Kabupaten/Kota, dan Kecamatan',
+                        'is_active' => 'yes',
+                        'order' => 3,
+                        'icon' => 'fa-duotone fa-map-location-dot',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\MasterLokasiController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\MasterLokasiController@ajax'],
+                            ['name' => 'provinsi_store', 'controller' => $modulePermohonan . '\MasterLokasiController@storeProvinsi'],
+                            ['name' => 'provinsi_update', 'controller' => $modulePermohonan . '\MasterLokasiController@updateProvinsi'],
+                            ['name' => 'provinsi_delete', 'controller' => $modulePermohonan . '\MasterLokasiController@destroyProvinsi'],
+                            ['name' => 'kabupaten_store', 'controller' => $modulePermohonan . '\MasterLokasiController@storeKabupaten'],
                             ['name' => 'kabupaten_update', 'controller' => $modulePermohonan . '\MasterLokasiController@updateKabupaten'],
                             ['name' => 'kabupaten_delete', 'controller' => $modulePermohonan . '\MasterLokasiController@destroyKabupaten'],
-                            ['name' => 'kecamatan_store',  'controller' => $modulePermohonan . '\MasterLokasiController@storeKecamatan'],
+                            ['name' => 'kecamatan_store', 'controller' => $modulePermohonan . '\MasterLokasiController@storeKecamatan'],
                             ['name' => 'kecamatan_update', 'controller' => $modulePermohonan . '\MasterLokasiController@updateKecamatan'],
                             ['name' => 'kecamatan_delete', 'controller' => $modulePermohonan . '\MasterLokasiController@destroyKecamatan'],
                         ],
                     ],
                     [
-                    'name'      => 'Master Jenis Layanan',
-                    'desc'      => 'Manajemen jenis layanan',
-                    'is_active' => 'yes',
-                    'order'     => 3,
-                    'icon'      => 'fa-duotone fa-list',
-                    'action'    => [
-                        ['name' => 'index',  'controller' => $modulePermohonan . '\MasterJenisLayananController@index'],
-                        ['name' => 'ajax',   'controller' => $modulePermohonan . '\MasterJenisLayananController@ajax'],
-                        ['name' => 'store',  'controller' => $modulePermohonan . '\MasterJenisLayananController@store'],
-                        ['name' => 'update', 'controller' => $modulePermohonan . '\MasterJenisLayananController@update'],
-                        ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterJenisLayananController@destroy'],
+                        'name' => 'Master Jenis Layanan',
+                        'desc' => 'Manajemen jenis layanan',
+                        'is_active' => 'yes',
+                        'order' => 4,
+                        'icon' => 'fa-duotone fa-list',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\MasterJenisLayananController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\MasterJenisLayananController@ajax'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\MasterJenisLayananController@store'],
+                            ['name' => 'update', 'controller' => $modulePermohonan . '\MasterJenisLayananController@update'],
+                            ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterJenisLayananController@destroy'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Master Lingkup Layanan',
+                        'desc' => 'Manajemen Lingkup layanan',
+                        'is_active' => 'yes',
+                        'order' => 5,
+                        'icon' => 'fa-duotone fa-diagram-project',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@ajax'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@store'],
+                            ['name' => 'update', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@update'],
+                            ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@destroy'],
+                        ],
                     ],
                 ],
-                [
-                    'name'      => 'Master Lingkup Layanan',
-                    'desc'      => 'Manajemen Lingkup layanan',
-                    'is_active' => 'yes',
-                    'order'     => 4,
-                    'icon'      => 'fa-duotone fa-diagram-project',
-                    'action'    => [
-                        ['name' => 'index',  'controller' => $modulePermohonan . '\MasterLingkupLayananController@index'],
-                        ['name' => 'ajax',   'controller' => $modulePermohonan . '\MasterLingkupLayananController@ajax'],
-                        ['name' => 'store',  'controller' => $modulePermohonan . '\MasterLingkupLayananController@store'],
-                        ['name' => 'update', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@update'],
-                        ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@destroy'],
-                    ],
-                ],
-                ],  
             ],
         ];
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('sys_group_permission')->delete();
+        DB::table('sys_menu_action')->delete();
+        DB::table('sys_menu')->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         DB::transaction(function () use ($menus) {
             foreach ($menus as $menu) {
                 $newMenu = SysMenu::query()->create([
-                    'name'      => $menu['name'],
+                    'name' => $menu['name'],
                     'parent_id' => $menu['parent'],
-                    'desc'      => $menu['desc'],
+                    'desc' => $menu['desc'],
                     'is_active' => $menu['is_active'],
-                    'order'     => $menu['order'],
-                    'icon'      => $menu['icon'],
+                    'order' => $menu['order'],
+                    'icon' => $menu['icon'],
                 ]);
 
                 if (isset($menu['action'])) {
                     foreach ($menu['action'] as $action) {
                         $newMenu->sys_menu_actions()->create([
-                            'name'       => $action['name'],
+                            'name' => $action['name'],
                             'controller' => $action['controller'],
                         ]);
                     }
@@ -389,17 +411,17 @@ class MenuSeeder extends Seeder
                 if (isset($menu['children'])) {
                     foreach ($menu['children'] as $child) {
                         $newMenuChild = SysMenu::query()->create([
-                            'name'      => $child['name'],
+                            'name' => $child['name'],
                             'parent_id' => $newMenu->id,
-                            'desc'      => $child['desc'],
+                            'desc' => $child['desc'],
                             'is_active' => $child['is_active'],
-                            'order'     => $child['order'],
-                            'icon'      => $child['icon'],
+                            'order' => $child['order'],
+                            'icon' => $child['icon'],
                         ]);
                         if (isset($child['action'])) {
                             foreach ($child['action'] as $action) {
                                 $newMenuChild->sys_menu_actions()->create([
-                                    'name'       => $action['name'],
+                                    'name' => $action['name'],
                                     'controller' => $action['controller'],
                                 ]);
                             }
@@ -408,17 +430,17 @@ class MenuSeeder extends Seeder
                         if (isset($child['children'])) {
                             foreach ($child['children'] as $child_menu2) {
                                 $newMenuChild2 = SysMenu::query()->create([
-                                    'name'      => $child_menu2['name'],
+                                    'name' => $child_menu2['name'],
                                     'parent_id' => $newMenuChild->id,
-                                    'desc'      => $child_menu2['desc'],
+                                    'desc' => $child_menu2['desc'],
                                     'is_active' => $child_menu2['is_active'],
-                                    'order'     => $child_menu2['order'],
-                                    'icon'      => $child_menu2['icon'],
+                                    'order' => $child_menu2['order'],
+                                    'icon' => $child_menu2['icon'],
                                 ]);
                                 if (isset($child_menu2['action'])) {
                                     foreach ($child_menu2['action'] as $action) {
                                         $newMenuChild2->sys_menu_actions()->create([
-                                            'name'       => $action['name'],
+                                            'name' => $action['name'],
                                             'controller' => $action['controller'],
                                         ]);
                                     }

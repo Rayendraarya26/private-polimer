@@ -23,26 +23,23 @@ class UserSeeder extends Seeder
         $data = [
             ['name' => 'Developer', 'email' => 'dolkode@mailinator.com', 'password' => 'password', 'group' => SysGroup::ROOT, 'nip' => '198707062014022001', 'nik' => null],
             ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198706192009012001', 'nik' => '1290412412120932'],
-            ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '199104282018012001', 'nik' => '0803202100007062'],
+            ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::ROOT, 'nip' => '199104282018012001', 'nik' => '0803202100007062'],
             ['name' => 'Bendahara', 'email' => 'bendahara@mailinator.com', 'password' => 'password', 'group' => SysGroup::BENDAHARA, 'nip' => '199203120101801001', 'nik' => '1234567890123452'],
-            ['name' => 'Ketua Tim Auditor', 'email' => 'auditor@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198703032012031003', 'nik' => '1234567890123453'],
-            ['name' => 'Anggota Tim Auditor', 'email' => 'auditor2@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198904042014042004', 'nik' => '1234567890123454'],
-            ['name' => 'Auditor Teknis Lapangan', 'email' => 'auditor3@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '199005052015051005', 'nik' => '1234567890123455'],
-            ['name' => 'Lead Auditor Sertifikasi', 'email' => 'lead_auditor@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198606062011011006', 'nik' => '1234567890123456'],
+            ['name' => 'Marketing', 'email' => 'marketing@mailinator.com', 'password' => 'password', 'group' => SysGroup::MARKETING, 'nip' => '193563032012031003', 'nik' => '7524567890123453'],
         ];
 
         foreach ($data as $item) {
             $user = SysUser::query()->create([
-                'name'              => $item['name'],
-                'email'             => $item['email'],
-                'password'          => bcrypt($item['password']),
+                'name' => $item['name'],
+                'email' => $item['email'],
+                'password' => bcrypt($item['password']),
                 'email_verified_at' => now(),
-                'nip'               => $item['nip'] ?? null,
+                'nip' => $item['nip'] ?? null,
             ]);
 
             SysUserGroup::query()->create([
-                'user_id'    => $user->id,
-                'group_id'   => $item['group'],
+                'user_id' => $user->id,
+                'group_id' => $item['group'],
                 'is_default' => 'yes',
             ]);
 
@@ -60,43 +57,43 @@ class UserSeeder extends Seeder
     private function createPelangganPerorangan(): void
     {
         // create pelanggan peroangan
-        $user                    = new SysUser();
-        $user->name              = 'Perorangan';
-        $user->email             = 'perorangan@mailinator.com';
-        $user->password          = bcrypt('password');
+        $user = new SysUser();
+        $user->name = 'Perorangan';
+        $user->email = 'perorangan@mailinator.com';
+        $user->password = bcrypt('password');
         $user->email_verified_at = now();
         $user->save();
 
         // create group
-        $userGroup             = new SysUserGroup();
-        $userGroup->user_id    = $user->id;
-        $userGroup->group_id   = SysGroup::PELANGGAN;
+        $userGroup = new SysUserGroup();
+        $userGroup->user_id = $user->id;
+        $userGroup->group_id = SysGroup::PELANGGAN;
         $userGroup->is_default = 'yes';
         $userGroup->save();
 
         // create pelanggan
         $pelanggan = Pelanggan::create([
-            'user_id'         => $user->id,
+            'user_id' => $user->id,
             'jenis_pelanggan' => PelangganJenisPelanggan::PERORANGAN,
         ]);
 
         $detail = PelangganPerorangan::create([
-            'pelanggan_id'        => $pelanggan->id,
-            'nama'                => 'Ahmad Zulfikar',
-            'alamat'              => 'Jl. Pribadi No. 123, Bandung',
-            'tempat_lahir'        => 'Bandung',
-            'tanggal_lahir'       => '1980-01-01',
-            'jenis_kelamin'       => PelangganGender::LAKI,
-            'kewarganegaraan'     => 'WNI',
-            'nik'                 => '1234567890123456',
-            'surel'               => 'ahmad.zulfikar@example.com',
-            'whatsapp'            => '085678901234',
+            'pelanggan_id' => $pelanggan->id,
+            'nama' => 'Ahmad Zulfikar',
+            'alamat' => 'Jl. Pribadi No. 123, Bandung',
+            'tempat_lahir' => 'Bandung',
+            'tanggal_lahir' => '1980-01-01',
+            'jenis_kelamin' => PelangganGender::LAKI,
+            'kewarganegaraan' => 'WNI',
+            'nik' => '1234567890123456',
+            'surel' => 'ahmad.zulfikar@example.com',
+            'whatsapp' => '085678901234',
             'pendidikan_terakhir' => 'S1',
-            'npwp'                => '1234567890',
-            'nib'                 => '0987654321',
-            'dok_npwp'            => '/dummy/dummy.pdf',
-            'dok_nib'             => '/dummy/dummy.pdf',
-            'dok_lainnya'         => '/dummy/dummy.pdf',
+            'npwp' => '1234567890',
+            'nib' => '0987654321',
+            'dok_npwp' => '/dummy/dummy.pdf',
+            'dok_nib' => '/dummy/dummy.pdf',
+            'dok_lainnya' => '/dummy/dummy.pdf',
         ]);
 
         $pelanggan->detail()->associate($detail)->save();
@@ -104,44 +101,44 @@ class UserSeeder extends Seeder
 
     private function createPelangganInstansi(): void
     {
-        $user                    = new SysUser();
-        $user->name              = 'Instansi';
-        $user->email             = 'instansi@mailinator.com';
-        $user->password          = bcrypt('password');
+        $user = new SysUser();
+        $user->name = 'Instansi';
+        $user->email = 'instansi@mailinator.com';
+        $user->password = bcrypt('password');
         $user->email_verified_at = now();
         $user->save();
 
         // create group
-        $userGroup             = new SysUserGroup();
-        $userGroup->user_id    = $user->id;
-        $userGroup->group_id   = SysGroup::PELANGGAN;
+        $userGroup = new SysUserGroup();
+        $userGroup->user_id = $user->id;
+        $userGroup->group_id = SysGroup::PELANGGAN;
         $userGroup->is_default = 'yes';
         $userGroup->save();
 
         // create pelanggan
         $pelanggan = Pelanggan::create([
-            'user_id'         => $user->id,
+            'user_id' => $user->id,
             'jenis_pelanggan' => PelangganJenisPelanggan::INSTANSI_PEMERINTAH,
         ]);
 
         $detail = PelangganInstansi::create([
-            'pelanggan_id'       => $pelanggan->id,
-            'nama'               => 'Dinas Example',
-            'pimpinan'           => 'Alice Smith',
-            'telepon'            => '62214810912',
-            'fax'                => '1231-412-442',
-            'surel'              => 'info@dinas.example.com',
-            'whatsapp'           => '08234567890',
-            'npwp'               => '9876543210',
-            'nib'                => '1234567890',
-            'sk_nomenklatur'     => '/dummy/dummy.pdf',
-            'pj_nama'            => 'Alice Smith',
-            'pj_whatsapp'        => '08234567890',
-            'pj_surel'           => 'alice.smith@dinas.example.com',
-            'dok_npwp'           => '/dummy/dummy.pdf',
-            'dok_nib'            => '/dummy/dummy.pdf',
+            'pelanggan_id' => $pelanggan->id,
+            'nama' => 'Dinas Example',
+            'pimpinan' => 'Alice Smith',
+            'telepon' => '62214810912',
+            'fax' => '1231-412-442',
+            'surel' => 'info@dinas.example.com',
+            'whatsapp' => '08234567890',
+            'npwp' => '9876543210',
+            'nib' => '1234567890',
+            'sk_nomenklatur' => '/dummy/dummy.pdf',
+            'pj_nama' => 'Alice Smith',
+            'pj_whatsapp' => '08234567890',
+            'pj_surel' => 'alice.smith@dinas.example.com',
+            'dok_npwp' => '/dummy/dummy.pdf',
+            'dok_nib' => '/dummy/dummy.pdf',
             'dok_sk_nomenklatur' => '/dummy/dummy.pdf',
-            'dok_lainnya'        => '/dummy/dummy.pdf',
+            'dok_lainnya' => '/dummy/dummy.pdf',
         ]);
 
         $pelanggan->detail()->associate($detail)->save();
@@ -149,50 +146,50 @@ class UserSeeder extends Seeder
 
     private function createPelangganPerusahaan(): void
     {
-        $user                    = new SysUser();
-        $user->name              = 'Perusahaan';
-        $user->email             = 'perusahaan@mailinator.com';
-        $user->password          = bcrypt('password');
+        $user = new SysUser();
+        $user->name = 'Perusahaan';
+        $user->email = 'perusahaan@mailinator.com';
+        $user->password = bcrypt('password');
         $user->email_verified_at = now();
         $user->save();
 
         // create group
-        $userGroup             = new SysUserGroup();
-        $userGroup->user_id    = $user->id;
-        $userGroup->group_id   = SysGroup::PELANGGAN;
+        $userGroup = new SysUserGroup();
+        $userGroup->user_id = $user->id;
+        $userGroup->group_id = SysGroup::PELANGGAN;
         $userGroup->is_default = 'yes';
         $userGroup->save();
 
         // create pelanggan
         $pelanggan = Pelanggan::create([
-            'user_id'         => $user->id,
+            'user_id' => $user->id,
             'jenis_pelanggan' => PelangganJenisPelanggan::BADAN_USAHA,
         ]);
 
         $detail = PelangganPerusahaan::create([
-            'pelanggan_id'       => $pelanggan->id,
-            'nama'               => 'PT. Example',
-            'alamat'             => 'Jl. Contoh No. 1, Jakarta',
-            'badan_hukum'        => 'PT',
-            'jenis'              => 'Swasta',
-            'pemilik'            => 'John Doe',
-            'pimpinan'           => 'Jane Doe',
-            'telepon'            => '622112345678',
-            'fax'                => '123-4124-4122',
-            'surel'              => 'info@example.com',
-            'whatsapp'           => '08123456789',
-            'npwp'               => '1234567890',
-            'nib'                => '0987654321',
-            'no_akta_pendirian'  => '1234567890',
-            'iup'                => '0987654321',
-            'pj_nama'            => 'John Doe',
-            'pj_whatsapp'        => '08123456789',
-            'pj_surel'           => 'john.doe@example.com',
-            'dok_npwp'           => '/dummy/dummy.pdf',
-            'dok_nib'            => '/dummy/dummy.pdf',
+            'pelanggan_id' => $pelanggan->id,
+            'nama' => 'PT. Example',
+            'alamat' => 'Jl. Contoh No. 1, Jakarta',
+            'badan_hukum' => 'PT',
+            'jenis' => 'Swasta',
+            'pemilik' => 'John Doe',
+            'pimpinan' => 'Jane Doe',
+            'telepon' => '622112345678',
+            'fax' => '123-4124-4122',
+            'surel' => 'info@example.com',
+            'whatsapp' => '08123456789',
+            'npwp' => '1234567890',
+            'nib' => '0987654321',
+            'no_akta_pendirian' => '1234567890',
+            'iup' => '0987654321',
+            'pj_nama' => 'John Doe',
+            'pj_whatsapp' => '08123456789',
+            'pj_surel' => 'john.doe@example.com',
+            'dok_npwp' => '/dummy/dummy.pdf',
+            'dok_nib' => '/dummy/dummy.pdf',
             'dok_akta_pendirian' => '/dummy/dummy.pdf',
-            'dok_iup'            => '/dummy/dummy.pdf',
-            'dok_lainnya'        => '/dummy/dummy.pdf',
+            'dok_iup' => '/dummy/dummy.pdf',
+            'dok_lainnya' => '/dummy/dummy.pdf',
         ]);
 
         $pelanggan->detail()->associate($detail)->save();

@@ -34,24 +34,65 @@ class GroupSeeder extends Seeder
             );
         }
 
-        // Insert All Permission to root user
+        // Insert All Permission to root & admin user
         $data = SysMenuAction::all();
         foreach ($data as $d) {
             SysGroupPermission::query()->firstOrCreate([
                 'group_id' => \App\Enums\SysGroup::ROOT,
                 'action_id' => $d->id,
             ]);
-        }
-        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
-        $invoiceActions = \App\Models\Db1\SysMenuAction::whereIn('controller', [
-            $modulePermohonan . '\InvoiceController@generate',
-            $modulePermohonan . '\InvoiceController@approvalInvoice',
-            $modulePermohonan . '\InvoiceController@page',
-        ])->get();
-
-        foreach ($invoiceActions as $action) {
             SysGroupPermission::query()->firstOrCreate([
+                'group_id' => \App\Enums\SysGroup::ADMIN,
+                'action_id' => $d->id,
+            ]);
+        }
+        // Parent Permohonan menu action for both Marketing & Bendahara
+        $permohonanParent = \App\Models\Db1\SysMenu::where('name', 'Permohonan')->whereNull('parent_id')->first();
+        $parentAction = $permohonanParent ? SysMenuAction::where('menu_id', $permohonanParent->id)->where('name', 'index')->first() : null;
+
+        // Clear existing permissions for Marketing & Bendahara
+        SysGroupPermission::whereIn('group_id', [\App\Enums\SysGroup::BENDAHARA, \App\Enums\SysGroup::MARKETING])->delete();
+
+        if ($parentAction) {
+            SysGroupPermission::firstOrCreate([
                 'group_id'  => \App\Enums\SysGroup::BENDAHARA,
+                'action_id' => $parentAction->id,
+            ]);
+            SysGroupPermission::firstOrCreate([
+                'group_id'  => \App\Enums\SysGroup::MARKETING,
+                'action_id' => $parentAction->id,
+            ]);
+        }
+
+        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
+
+        // Bendahara: PermohonanController (index, ajax, detail), InvoiceController, and BillingPembayaranController
+        $bendaharaActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
+            $query->whereIn('controller', [
+                $modulePermohonan . '\PermohonanController@index',
+                $modulePermohonan . '\PermohonanController@ajax',
+                $modulePermohonan . '\PermohonanController@detail',
+            ])
+            ->orWhere('controller', 'LIKE', $modulePermohonan . '\InvoiceController%')
+            ->orWhere('controller', 'LIKE', $modulePermohonan . '\BillingPembayaranController%');
+        })->get();
+
+        foreach ($bendaharaActions as $action) {
+            SysGroupPermission::firstOrCreate([
+                'group_id'  => \App\Enums\SysGroup::BENDAHARA,
+                'action_id' => $action->id,
+            ]);
+        }
+
+        // Marketing: PermohonanController and TagihanBiayaController (NO Billing, NO Master, NO System)
+        $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
+            $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%');
+        })->get();
+
+        foreach ($marketingActions as $action) {
+            SysGroupPermission::firstOrCreate([
+                'group_id'  => \App\Enums\SysGroup::MARKETING,
                 'action_id' => $action->id,
             ]);
         }

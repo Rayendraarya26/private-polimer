@@ -25,18 +25,26 @@ class NotificationController extends Controller
             ->count();
 
         return responseJSON("Success", [
-            'data'   => $notification->map(function ($item) {
+            'data'   => collect($notification->items())->map(function ($item) {
                 return [
+                    'id'            => $item->id,
                     'title'         => $item->title,
                     'content'       => $item->content,
                     'is_read'       => $item->is_read,
                     'created_at'    => $item->created_at,
                     'link'          => url("notifications/open/{$item->id}"),
                 ];
-            }),
+            })->values(),
             'unread' => $unread,
             'total'  => $total,
         ]);
+    }
+
+    public function markAsRead($id)
+    {
+        SysUserNotif::where('user_id', auth()->id())->where('id', $id)->update(['is_read' => 'yes']);
+
+        return responseJSON("Success");
     }
 
     public function markAllAsRead()

@@ -120,6 +120,7 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::post("mark-all-as-read", [NotificationController::class, 'markAllAsRead']);
+            Route::post("{id}/mark-as-read", [NotificationController::class, 'markAsRead']);
         });
 
         // Route::prefix('layanan')->group(function () {

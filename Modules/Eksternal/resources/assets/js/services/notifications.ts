@@ -25,3 +25,12 @@ export const markAllNotificationsAsRead = async () => {
     return Promise.reject(error)
   }
 }
+
+export const markNotificationAsRead = async (id: number | string) => {
+  try {
+    const { data } = await api.post<DefaultApiResponse<unknown>>(`/eksternal/notifications/${id}/mark-as-read`)
+    return data.results
+  } catch (error) {
+    return Promise.reject(error)
+  }
+}

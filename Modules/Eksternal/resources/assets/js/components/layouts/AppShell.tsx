@@ -8,8 +8,6 @@ import {
   Receipt,
   HelpCircle,
   MessageSquareQuote,
-  User,
-  KeyRound,
   Menu,
   X,
   Bell,
@@ -22,6 +20,8 @@ import {
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { Badge } from '../ui/Badge';
+import NotificationPopover from '../common/NotificationPopover';
+import ProfilePopover from '../common/ProfilePopover';
 
 export interface NavItem {
   title: string;
@@ -82,16 +82,6 @@ export const AppShell: React.FC = () => {
       href: '/feedbacks',
       icon: <MessageSquareQuote className="w-5 h-5" />,
     },
-    {
-      title: 'Profil Akun',
-      href: '/profile/update',
-      icon: <User className="w-5 h-5" />,
-    },
-    {
-      title: 'Keamanan & Password',
-      href: '/profile/change-account-and-password',
-      icon: <KeyRound className="w-5 h-5" />,
-    },
   ];
 
   return (
@@ -136,39 +126,12 @@ export const AppShell: React.FC = () => {
 
         {/* Right Action Icons & User Dropdown */}
         <div className="flex items-center gap-3">
-          <Link
-            to="/notifications"
-            className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
-          </Link>
+          <NotificationPopover />
 
           <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
 
-          {/* User Profile */}
-          <div className="flex items-center gap-3 pl-1">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-slate-800 leading-none">
-                {profile?.name || profile?.detail?.nama || 'Pelanggan BBKKP'}
-              </p>
-              <span className="text-[11px] text-slate-500 leading-none mt-1 inline-block">
-                {profile?.detail?.type ? profile.detail.type.toUpperCase() : 'PORTAL PELANGGAN'}
-              </span>
-            </div>
-
-            <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-brand-100">
-              {(profile?.name || profile?.detail?.nama || 'U').charAt(0).toUpperCase()}
-            </div>
-
-            <a
-              href="/auth/logout"
-              title="Logout"
-              className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </a>
-          </div>
+          {/* User Profile Popover */}
+          <ProfilePopover />
         </div>
       </header>
 

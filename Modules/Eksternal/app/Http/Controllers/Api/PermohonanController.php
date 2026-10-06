@@ -590,7 +590,8 @@ class PermohonanController extends Controller
         // Load nested relations safely if relations exist
         try {
             if ($formData instanceof \App\Models\Db2\FormSertifikasi) {
-                $formData->load(['items', 'pabrik']);
+                $formData->setAttribute('items', $formData->komoditas_json ?? []);
+                $formData->setAttribute('pabrik', $formData->pabrik_json ?? []);
             } elseif ($formData instanceof \App\Models\Db2\FormPelatihan && method_exists($formData, 'peserta')) {
                 $formData->load(['peserta']);
             } elseif ($formData instanceof \App\Models\Db2\FormLsp && method_exists($formData, 'peserta')) {

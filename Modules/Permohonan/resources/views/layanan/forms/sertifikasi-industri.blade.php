@@ -54,6 +54,83 @@
     }
 @endphp
 
+<div class="row g-4 mb-4">
+    <!-- ================= IDENTITAS PERUSAHAAN / PEMOHON ================= -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Identitas Perusahaan / Pemohon</h6>
+
+        <div class="detail-row">
+            <div class="detail-label">Nama Perusahaan</div>
+            <div>:</div>
+            <div class="detail-value fw-bold text-dark">{{ $form->nama_perusahaan ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Jenis Badan Usaha</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->jenis_perusahaan ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">No. Akta / NIB</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold">{{ $form->nomor_akta_pendirian ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Pemilik Perusahaan</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->nama_pemilik ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Alamat Kantor</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->alamat_kantor ?? '-' }}</div>
+        </div>
+    </div>
+
+    <!-- ================= PIMPINAN & KONTAK ================= -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Pimpinan & Kontak Perusahaan</h6>
+
+        <div class="detail-row">
+            <div class="detail-label">Nama Pimpinan</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold text-dark">{{ $form->nama_pimpinan ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Wakil Manajemen (MR)</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->nama_wakil_manajemen ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Kontak Person (PIC)</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->kontak_person ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Telepon / WhatsApp</div>
+            <div>:</div>
+            <div class="detail-value">
+                {{ $form->no_telp ?? $form->no_whatsapp ?? '-' }}
+                @if(!empty($form->no_whatsapp) && $form->no_whatsapp !== $form->no_telp)
+                    <span class="text-muted small">({{ $form->no_whatsapp }})</span>
+                @endif
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Email Perusahaan</div>
+            <div>:</div>
+            <div class="detail-value text-primary">{{ $form->email ?? '-' }}</div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
 
     <!-- ================= KIRI: INFORMASI PENGAJUAN & AREA ================= -->
@@ -64,7 +141,7 @@
             <div class="detail-label">Skema / Lingkup Layanan</div>
             <div>:</div>
             <div class="detail-value fw-semibold text-dark">
-                {{ $detail->lingkupLayanan->lingkup ?? '-' }}
+                {{ $detail->lingkupLayanan->lingkup ?? $permohonan->detailPermohonan?->first()?->lingkupLayanan?->lingkup ?? $form->permohonan?->detailPermohonan?->first()?->lingkupLayanan?->lingkup ?? 'Sertifikasi Produk & Sistem' }}
                 @if(!empty($detail->lingkupLayanan->kode_layanan))
                     <span class="badge bg-light text-secondary ms-1">{{ $detail->lingkupLayanan->kode_layanan }}</span>
                 @endif
@@ -76,7 +153,7 @@
             <div>:</div>
             <div class="detail-value fw-semibold">
                 @php
-                    $jp = strtolower($form->jenis_pengajuan ?? 'baru');
+                    $jp = strtolower($form->jenis_pengajuan ?? $form->tipe_pengajuan ?? 'baru');
                     $jpBadge = match($jp) {
                         'baru' => 'bg-primary',
                         'perpanjangan' => 'bg-success',
@@ -199,13 +276,13 @@
                 <tbody>
                     @foreach($komoditasList as $kIdx => $komoditas)
                         @php
-                            $namaKomoditi = $komoditas['nama'] ?? $komoditas['komoditi'] ?? '-';
-                            $sni          = $komoditas['sni'] ?? $komoditas['noSni'] ?? $komoditas['no_sni'] ?? '-';
-                            $merek        = $komoditas['merek'] ?? $komoditas['merk'] ?? '-';
-                            $tipe         = $komoditas['tipe'] ?? '-';
+                            $namaKomoditi = $komoditas['nama_produk'] ?? $komoditas['nama'] ?? $komoditas['komoditi'] ?? $komoditas['namaKomoditi'] ?? '-';
+                            $sni          = $komoditas['standar_sni_iso'] ?? $komoditas['sni'] ?? $komoditas['noSni'] ?? $komoditas['no_sni'] ?? '-';
+                            $merek        = $komoditas['merk_dagang'] ?? $komoditas['merek'] ?? $komoditas['merk'] ?? '-';
+                            $tipe         = $komoditas['tipe_jenis'] ?? $komoditas['tipe'] ?? '-';
                             $ukuran       = $komoditas['ukuran'] ?? '-';
-                            $jmlProduksi  = $komoditas['jumlahProduksi'] ?? $komoditas['jumlah_produksi'] ?? '';
-                            $satProduksi  = $komoditas['satuanProduksi'] ?? $komoditas['satuan_produksi'] ?? '';
+                            $jmlProduksi  = $komoditas['kapasitas_produksi'] ?? $komoditas['jumlahProduksi'] ?? $komoditas['jumlah_produksi'] ?? '';
+                            $satProduksi  = $komoditas['satuan_produksi'] ?? $komoditas['satuanProduksi'] ?? '';
                             $kapasitas    = trim($jmlProduksi . ' ' . $satProduksi);
                             $ket          = $komoditas['keterangan'] ?? '-';
                         @endphp
@@ -245,17 +322,17 @@
     <div class="row g-3">
         @foreach($pabrikList as $pIdx => $pabrik)
             @php
-                $namaPabrik   = $pabrik['namaPabrik'] ?? $pabrik['nama'] ?? ('Pabrik ' . ($pIdx + 1));
-                $alamatPabrik = $pabrik['alamatPabrik'] ?? $pabrik['alamat'] ?? '-';
-                $noTelp       = $pabrik['noTelp'] ?? $pabrik['telp'] ?? '-';
-                $noHp         = $pabrik['noHp'] ?? $pabrik['hp'] ?? '-';
+                $namaPabrik   = $pabrik['nama_pabrik'] ?? $pabrik['namaPabrik'] ?? $pabrik['nama'] ?? ('Pabrik ' . ($pIdx + 1));
+                $alamatPabrik = $pabrik['alamat_pabrik'] ?? $pabrik['alamatPabrik'] ?? $pabrik['alamat'] ?? '-';
+                $noTelp       = $pabrik['kontak_pabrik'] ?? $pabrik['noTelp'] ?? $pabrik['telp'] ?? '-';
+                $noHp         = $pabrik['no_hp'] ?? $pabrik['noHp'] ?? $pabrik['hp'] ?? '-';
                 $fax          = $pabrik['fax'] ?? '-';
                 $negara       = $pabrik['negara'] ?? 'Indonesia';
-                $kodePos      = $pabrik['kodePos'] ?? '-';
-                $kegiatan     = $pabrik['kegiatanUtama'] ?? '-';
-                $jmlKaryawan  = $pabrik['jumlahKaryawan'] ?? '-';
-                $luasT        = $pabrik['luasTanah'] ?? '-';
-                $luasB        = $pabrik['luasBangunan'] ?? '-';
+                $kodePos      = $pabrik['kode_pos'] ?? $pabrik['kodePos'] ?? '-';
+                $kegiatan     = $pabrik['kegiatan_utama'] ?? $pabrik['kegiatanUtama'] ?? '-';
+                $jmlKaryawan  = $pabrik['jumlah_karyawan'] ?? $pabrik['jumlahKaryawan'] ?? '-';
+                $luasT        = $pabrik['luas_tanah'] ?? $pabrik['luasTanah'] ?? '-';
+                $luasB        = $pabrik['luas_bangunan'] ?? $pabrik['luasBangunan'] ?? '-';
             @endphp
             <div class="col-md-6">
                 <div class="card h-100 border shadow-none bg-light p-3 rounded-3">

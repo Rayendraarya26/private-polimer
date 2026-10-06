@@ -278,6 +278,35 @@
                                 </div>
                             @endforeach
 
+                            @if($detailItems->isEmpty())
+                                @php
+                                    $form = $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first();
+                                    $viewName = match (true) {
+                                        str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
+                                        str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
+                                        str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') || ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
+                                        str_starts_with($kode, 'GRK') || ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
+                                        str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
+                                        str_starts_with($kode, 'PUP') => 'uji-profisiensi',
+                                        str_starts_with($kode, 'UJI') => 'pengujian',
+                                        str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') => 'miniplant',
+                                        str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
+                                        str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
+                                        default => 'default'
+                                    };
+                                @endphp
+
+                                <div id="pesertaPanel0" class="peserta-panel p-4">
+                                    @if($form)
+                                        @includeFirst(
+                                            ["permohonan::layanan.forms.{$viewName}", "permohonan::layanan.forms.default"],
+                                            ['form' => $form, 'detail' => (object)['lingkupLayanan' => null]]
+                                        )
+                                    @else
+                                        <div class="alert alert-warning mb-0">Data formulir tidak ditemukan.</div>
+                                    @endif
+                                </div>
+                            @endif
 
                         </div>{{-- end blok utama --}}
 

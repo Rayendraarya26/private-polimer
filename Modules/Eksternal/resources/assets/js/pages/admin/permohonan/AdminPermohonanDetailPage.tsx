@@ -45,7 +45,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true)
   const [activeTab, setActiveTab] = useState<
-    "overview" | "komoditas" | "pabrik" | "dokumen" | "keuangan" | "tte" | "integrasi" | "grk_emisi" | "grk_dokumen"
+    "overview" | "komoditas" | "pabrik" | "dokumen" | "keuangan" | "tte" | "integrasi" | "grk_emisi" | "grk_dokumen" | "sertifikasi_dokumen"
   >("overview")
 
   const [permohonan, setPermohonan] = useState<any>(null)
@@ -82,11 +82,19 @@ export const AdminPermohonanDetailPage: React.FC = () => {
       setLingkup(detail?.lingkup_layanan)
 
       // If it's a sertifikasi form, also fetch items & factories
-      if (detail?.formable_type?.toLowerCase().includes("sertifikasi")) {
+      const isSertifikasi = detail?.formable_type?.toLowerCase().includes("sertifikasi") ||
+        detail?.no_permohonan?.startsWith("CERT") ||
+        detail?.no_permohonan?.startsWith("SRT")
+
+      if (isSertifikasi) {
         try {
           const certRes = await api.get(`/eksternal/sertifikasi/${id}`)
-          if (certRes?.data?.data?.form) {
-            setFormData(certRes.data.data.form)
+          const certForm = certRes?.data?.results?.form || certRes?.data?.data?.form
+          if (certForm) {
+            setFormData(certForm)
+          }
+          if (certRes?.data?.results?.lingkup || certRes?.data?.data?.lingkup) {
+            setLingkup(certRes?.data?.results?.lingkup || certRes?.data?.data?.lingkup)
           }
         } catch (e) {
           console.error("Gagal load detail sertifikasi:", e)
@@ -201,8 +209,37 @@ export const AdminPermohonanDetailPage: React.FC = () => {
     "Layanan BBKKP"
   )
 
-  const items = formData?.items || []
-  const pabriks = formData?.pabrik || []
+  const parseJsonSafe = (data: any) => {
+    if (!data) return []
+    if (Array.isArray(data)) return data
+    if (typeof data === "string") {
+      try {
+        const parsed = JSON.parse(data)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  const items = parseJsonSafe(formData?.items || formData?.komoditas_json || formData?.komoditas)
+  const pabriks = parseJsonSafe(formData?.pabrik || formData?.pabrik_json)
+
+  const sertifikasiDokumenList: { label: string; file_path: string }[] = []
+  if (formData?.file_surat_permohonan) sertifikasiDokumenList.push({ label: "Surat Permohonan Sertifikasi", file_path: formData.file_surat_permohonan })
+  if (formData?.file_pertanyaan_tambahan) sertifikasiDokumenList.push({ label: "Kuesioner / Pertanyaan Tambahan", file_path: formData.file_pertanyaan_tambahan })
+  if (formData?.file_manual_mutu) sertifikasiDokumenList.push({ label: "Manual Sistem Manajemen Mutu", file_path: formData.file_manual_mutu })
+  if (formData?.file_proses_produksi) sertifikasiDokumenList.push({ label: "Diagram Alir Proses Produksi", file_path: formData.file_proses_produksi })
+  if (formData?.file_daftar_peralatan) sertifikasiDokumenList.push({ label: "Daftar Peralatan Pabrik / Lab", file_path: formData.file_daftar_peralatan })
+  if (formData?.file_denah_lokasi) sertifikasiDokumenList.push({ label: "Denah / Layout Lokasi Pabrik", file_path: formData.file_denah_lokasi })
+
+  const dokPendukung = typeof formData?.file_dokumen_pendukung_json === "object" ? formData.file_dokumen_pendukung_json : (typeof formData?.file_dokumen_pendukung === "object" ? formData.file_dokumen_pendukung : null)
+  if (dokPendukung) {
+    if (dokPendukung.dok_akta_pendirian) sertifikasiDokumenList.push({ label: "Akta Pendirian Perusahaan", file_path: dokPendukung.dok_akta_pendirian })
+    if (dokPendukung.dok_nib) sertifikasiDokumenList.push({ label: "Nomor Induk Berusaha (NIB)", file_path: dokPendukung.dok_nib })
+    if (dokPendukung.dok_npwp) sertifikasiDokumenList.push({ label: "NPWP Perusahaan", file_path: dokPendukung.dok_npwp })
+  }
   const isGrk = noOrder.startsWith("GRK") || noOrder.startsWith("VAL") || String(permohonan?.formable_type || "").toLowerCase().includes("grk") || formData?.merek_sample !== undefined
   const grkEmisiList = formData?.emisi || formData?.emisi_items || []
   const grkDokumenList = formData?.dokumen || formData?.dokumen_items || []
@@ -415,6 +452,20 @@ export const AdminPermohonanDetailPage: React.FC = () => {
             </button>
           )}
 
+          {sertifikasiDokumenList.length > 0 && (
+            <button
+              onClick={() => setActiveTab("sertifikasi_dokumen")}
+              className={`whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-xs rounded-t-lg transition-colors flex items-center gap-1.5 ${
+                activeTab === "sertifikasi_dokumen"
+                  ? "border-brand-600 text-brand-600 bg-brand-50/50"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+              }`}
+            >
+              <FileCheck2 className="w-4 h-4" />
+              <span>Dokumen Teknis ({sertifikasiDokumenList.length})</span>
+            </button>
+          )}
+
           <button
             onClick={() => setActiveTab("keuangan")}
             className={`whitespace-nowrap py-2.5 px-3 border-b-2 font-medium text-xs rounded-t-lg transition-colors flex items-center gap-1.5 ${
@@ -485,7 +536,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 <div>
                   <span className="text-slate-400 font-medium">Nomor Akta / NIB:</span>
                   <p className="font-semibold text-slate-800 mt-0.5">
-                    {formData?.kuesioner_kelayakan?.nomor_akta_pendirian || formData?.nib || "-"}
+                    {formData?.nomor_akta_pendirian || formData?.kuesioner_kelayakan?.nomor_akta_pendirian || formData?.nib || "-"}
                   </p>
                 </div>
                 <div>
@@ -500,6 +551,18 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                     {formData?.provinsi || "-"}
                   </p>
                 </div>
+                {formData?.nama_pimpinan && (
+                  <div>
+                    <span className="text-slate-400 font-medium">Pimpinan Perusahaan:</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData.nama_pimpinan}</p>
+                  </div>
+                )}
+                {formData?.nama_wakil_manajemen && (
+                  <div>
+                    <span className="text-slate-400 font-medium">Wakil Manajemen (MR):</span>
+                    <p className="font-semibold text-slate-800 mt-0.5">{formData.nama_wakil_manajemen}</p>
+                  </div>
+                )}
                 <div className="sm:col-span-2">
                   <span className="text-slate-400 font-medium">Alamat Domisili Kantor:</span>
                   <p className="font-medium text-slate-700 mt-0.5">{alamat}</p>
@@ -508,18 +571,18 @@ export const AdminPermohonanDetailPage: React.FC = () => {
             </Card>
 
             {/* Informasi Sertifikasi Tambahan jika Sertifikasi */}
-            {formData?.jenis_permohonan && (
+            {(formData?.jenis_permohonan || formData?.jenis_pengajuan || formData?.tipe_pengajuan || noOrder.startsWith("CERT") || noOrder.startsWith("SRT") || String(permohonan?.formable_type || "").toLowerCase().includes("sertifikasi")) && (
               <Card>
                 <CardHeader className="pb-3 border-b border-slate-100">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Layers className="w-4 h-4 text-brand-600" />
-                    <span>Parameter Sertifikasi Produk</span>
+                    <span>Parameter Sertifikasi Produk & Sistem</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-400 font-medium">Jenis Permohonan:</span>
-                    <p className="font-bold text-slate-800 mt-0.5 capitalize">{formData?.jenis_permohonan}</p>
+                    <span className="text-slate-400 font-medium">Jenis Pengajuan:</span>
+                    <p className="font-bold text-slate-800 mt-0.5 capitalize">{formData?.jenis_pengajuan || formData?.tipe_pengajuan || formData?.jenis_permohonan || "Baru"}</p>
                   </div>
                   <div>
                     <span className="text-slate-400 font-medium">Tipe Sistem Sertifikasi:</span>
@@ -527,8 +590,36 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                   </div>
                   {formData?.sertifikat_lama_nomor && (
                     <div className="sm:col-span-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
-                      <span className="text-amber-700 font-medium">Sertifikat Lama (Resertifikasi):</span>
+                      <span className="text-amber-700 font-medium">Sertifikat Lama (Resertifikasi / Perpanjangan):</span>
                       <p className="font-bold text-amber-900 mt-0.5">{formData?.sertifikat_lama_nomor}</p>
+                    </div>
+                  )}
+                  {formData?.jumlah_karyawan_total !== undefined && (
+                    <div>
+                      <span className="text-slate-400 font-medium">Total Tenaga Kerja:</span>
+                      <p className="font-semibold text-slate-800 mt-0.5">{formData.jumlah_karyawan_total} Orang</p>
+                    </div>
+                  )}
+                  {formData?.luas_tanah && (
+                    <div>
+                      <span className="text-slate-400 font-medium">Luas Tanah Pabrik:</span>
+                      <p className="font-semibold text-slate-800 mt-0.5">{Number(formData.luas_tanah).toLocaleString("id-ID")} m²</p>
+                    </div>
+                  )}
+                  {formData?.luas_bangunan && (
+                    <div>
+                      <span className="text-slate-400 font-medium">Luas Bangunan Pabrik:</span>
+                      <p className="font-semibold text-slate-800 mt-0.5">{Number(formData.luas_bangunan).toLocaleString("id-ID")} m²</p>
+                    </div>
+                  )}
+                  {formData?.setuju_pernyataan !== undefined && (
+                    <div>
+                      <span className="text-slate-400 font-medium">Pernyataan Kebenaran Data:</span>
+                      <p className="mt-0.5">
+                        <Badge variant={formData.setuju_pernyataan ? "success" : "secondary"}>
+                          {formData.setuju_pernyataan ? "Disetujui" : "Belum Disetujui"}
+                        </Badge>
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -650,26 +741,38 @@ export const AdminPermohonanDetailPage: React.FC = () => {
             <CardDescription className="text-xs">Rincian produk sertifikasi SPPT SNI yang diajukan pemohon.</CardDescription>
           </CardHeader>
           <CardContent className="pt-4 divide-y divide-slate-100 text-xs">
-            {items.map((it: any, idx: number) => (
-              <div key={idx} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 text-sm">{it.nama_produk}</span>
-                    <Badge variant="outline">{it.standar_sni_iso || "SNI Standard"}</Badge>
+            {items.map((it: any, idx: number) => {
+              const namaProduk = it.nama_produk || it.nama || it.komoditi || `Produk #${idx + 1}`
+              const sni = it.standar_sni_iso || it.sni || "SNI Standard"
+              const merek = it.merk_dagang || it.merek || it.merk || "-"
+              const tipe = it.tipe_jenis || it.tipe || "-"
+              const kapasitas = it.kapasitas_produksi ? `${it.kapasitas_produksi} ${it.satuan_produksi || ''}` : (it.jumlah_produksi ? `${it.jumlah_produksi} ${it.satuan_produksi || ''}` : null)
+              return (
+                <div key={idx} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900 text-sm">{namaProduk}</span>
+                      <Badge variant="outline">{sni}</Badge>
+                    </div>
+                    <p className="text-slate-500 text-xs">
+                      Merk Dagang: <span className="font-semibold text-slate-700">{merek}</span> • Tipe/Jenis:{" "}
+                      <span className="font-semibold text-slate-700">{tipe}</span>
+                      {it.ukuran && <span> • Ukuran: <span className="font-semibold text-slate-700">{it.ukuran}</span></span>}
+                      {kapasitas && <span> • Kapasitas: <span className="font-semibold text-slate-700">{kapasitas}</span></span>}
+                    </p>
+                    {it.keterangan && <p className="text-[11px] text-slate-400">{it.keterangan}</p>}
                   </div>
-                  <p className="text-slate-500 text-xs">
-                    Merk Dagang: <span className="font-semibold text-slate-700">{it.merk_dagang || "-"}</span> • Tipe/Jenis:{" "}
-                    <span className="font-semibold text-slate-700">{it.tipe_jenis || "-"}</span>
-                  </p>
+                  {it.estimasi_tarif ? (
+                    <div className="text-right">
+                      <span className="text-[11px] text-slate-400 block">Estimasi Tarif SNI</span>
+                      <span className="text-xs font-bold text-emerald-700">
+                        Rp {Number(it.estimasi_tarif || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="text-right">
-                  <span className="text-[11px] text-slate-400 block">Estimasi Tarif SNI</span>
-                  <span className="text-xs font-bold text-emerald-700">
-                    Rp {Number(it.estimasi_tarif || 0).toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </CardContent>
         </Card>
       )}
@@ -685,29 +788,47 @@ export const AdminPermohonanDetailPage: React.FC = () => {
             <CardDescription className="text-xs">Lokasi fasilitas produksi yang menjadi objek audit sertifikasi.</CardDescription>
           </CardHeader>
           <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            {pabriks.map((pb: any, idx: number) => (
-              <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-sm">{pb.nama_pabrik}</span>
-                  <Badge variant="secondary">Pabrik #{idx + 1}</Badge>
+            {pabriks.map((pb: any, idx: number) => {
+              const namaPabrik = pb.nama_pabrik || pb.namaPabrik || pb.nama || `Pabrik #${idx + 1}`
+              const alamatPabrik = pb.alamat_pabrik || pb.alamatPabrik || pb.alamat || "-"
+              const karyawan = pb.jumlah_karyawan || pb.jumlahKaryawan || 0
+              const kontak = pb.kontak_pabrik || pb.noTelp || pb.telp || pb.no_hp || pb.hp || "-"
+              const kegiatan = pb.kegiatan_utama || pb.kegiatanUtama || "-"
+              const luasTanah = pb.luas_tanah || pb.luasTanah
+              const luasBangunan = pb.luas_bangunan || pb.luasBangunan
+
+              return (
+                <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 text-sm">{namaPabrik}</span>
+                    <Badge variant="secondary">Pabrik #{idx + 1}</Badge>
+                  </div>
+                  <p className="text-slate-600 text-xs leading-relaxed">{alamatPabrik}</p>
+                  <div className="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
+                    <div>
+                      <span>Karyawan:</span>
+                      <p className="font-semibold text-slate-800">{karyawan} orang</p>
+                    </div>
+                    <div>
+                      <span>Kontak:</span>
+                      <p className="font-semibold text-slate-800">{kontak}</p>
+                    </div>
+                    {kegiatan !== "-" && (
+                      <div className="col-span-2">
+                        <span>Kegiatan Utama:</span>
+                        <p className="font-semibold text-slate-800">{kegiatan}</p>
+                      </div>
+                    )}
+                    {(luasTanah || luasBangunan) && (
+                      <div className="col-span-2">
+                        <span>Luas Tanah / Bangunan:</span>
+                        <p className="font-semibold text-slate-800">{luasTanah || '-'} m² / {luasBangunan || '-'} m²</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-slate-600 text-xs leading-relaxed">{pb.alamat_pabrik}</p>
-                <div className="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
-                  <div>
-                    <span>Karyawan:</span>
-                    <p className="font-semibold text-slate-800">{pb.jumlah_karyawan || 0} orang</p>
-                  </div>
-                  <div>
-                    <span>Kontak:</span>
-                    <p className="font-semibold text-slate-800">{pb.kontak_pabrik || "-"}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <span>Email Pabrik:</span>
-                    <p className="font-semibold text-slate-800">{pb.email_pabrik || "-"}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </CardContent>
         </Card>
       )}
@@ -846,6 +967,56 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TAB CONTENT: Dokumen Teknis Sertifikasi */}
+      {activeTab === "sertifikasi_dokumen" && (
+        <Card>
+          <CardHeader className="pb-3 border-b border-slate-100">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileCheck2 className="w-4 h-4 text-brand-600" />
+              <span>Dokumen Teknis & Persyaratan Sertifikasi ({sertifikasiDokumenList.length} Berkas)</span>
+            </CardTitle>
+            <CardDescription className="text-xs">Berkas dan dokumen teknis yang diunggah oleh pemohon.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                  <tr>
+                    <th className="px-4 py-2.5 w-12 text-center">No</th>
+                    <th className="px-4 py-2.5">Nama Dokumen</th>
+                    <th className="px-4 py-2.5 w-32 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sertifikasiDokumenList.map((dok, idx) => {
+                    const fileUrl = dok.file_path.startsWith("http") || dok.file_path.startsWith("/storage/")
+                      ? dok.file_path
+                      : `/storage/${dok.file_path}`
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 text-center text-slate-400">{idx + 1}</td>
+                        <td className="px-4 py-3 font-semibold text-slate-800">{dok.label}</td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => window.open(fileUrl, "_blank")}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                            Lihat Berkas
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

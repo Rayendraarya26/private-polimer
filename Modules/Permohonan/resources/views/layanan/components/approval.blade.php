@@ -27,53 +27,26 @@
 
 @if(in_array($status, ['PERMOHONAN', 'IN_REVIEW']) && $isPegawai)
 
-    @if($isSertifikasi && $status === 'IN_REVIEW')
-        <div class="card shadow-sm mt-4 border-start border-primary border-4">
-            <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="badge bg-primary-subtle text-primary fw-semibold mb-1">Tahap 2 : Penawaran Biaya</span>
-                    <h6 class="fw-bold mb-1">Penerbitan Surat Penawaran Biaya Sertifikasi</h6>
-                    <small class="text-muted">Kajian teknis telah diproses oleh Operator LS di SIS. Silakan terbitkan Surat
-                        Penawaran Biaya resmi untuk pemohon.</small>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('permohonan.tagihan-biaya.edit', $permohonan->id) }}"
-                        class="btn btn-primary d-flex align-items-center gap-1">
-                        <i class="fas fa-file-invoice-dollar"></i> Terbitkan Penawaran Biaya
-                    </a>
-                    <button class="btn btn-warning d-flex align-items-center gap-1" data-bs-toggle="modal"
-                        data-bs-target="#modalRevisi">
-                        <i class="fas fa-edit"></i> Revisi
-                    </button>
-                    <button class="btn btn-danger d-flex align-items-center gap-1" data-bs-toggle="modal"
-                        data-bs-target="#modalReject">
-                        <i class="fas fa-times-circle"></i> Tolak
-                    </button>
-                </div>
+    {{-- ================= CARD VERIFIKASI PERMOHONAN ================= --}}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-1">Verifikasi Permohonan</h6>
+                <small class="text-muted">Pastikan data sudah benar sebelum diproses</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
+                    Setujui
+                </button>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">
+                    Tolak
+                </button>
+                <button class="btn btn-warning text-white" data-bs-toggle="modal" data-bs-target="#modalRevisi">
+                    Revisi
+                </button>
             </div>
         </div>
-    @else
-        {{-- ================= CARD DEFAULT / TAHAP 1 (VERIFIKASI ADMINISTRASI) ================= --}}
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="fw-bold mb-1">Verifikasi Permohonan</h6>
-                    <small class="text-muted">Pastikan data sudah benar sebelum diproses</small>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalApprove">
-                        Setujui
-                    </button>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReject">
-                        Tolak
-                    </button>
-                    <button class="btn btn-warning text-white" data-bs-toggle="modal" data-bs-target="#modalRevisi">
-                        Revisi
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+    </div>
 
 
 
@@ -98,7 +71,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="fw-bold">
-                                {{ ($isSertifikasi && $status === 'IN_REVIEW') ? 'Terbitkan Surat Penawaran Biaya' : 'Verifikasi Permohonan' }}
+                                Verifikasi Permohonan
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
@@ -174,50 +147,27 @@
                             @endif
 
 
-                            @if($isSertifikasi && $status === 'PERMOHONAN')
-                                {{-- Khusus Sertifikasi Industri Tahap 1: Verifikasi Administrasi untuk diteruskan ke SIS --}}
-                                <div class="alert alert-info border-0 bg-info-subtle text-info-emphasis p-3 rounded-3 mb-0">
-                                    <div class="d-flex gap-2">
-                                        <i class="fas fa-info-circle mt-1 fa-lg text-info"></i>
-                                        <div>
-                                            <h6 class="fw-bold mb-1">Verifikasi Kelengkapan Administrasi</h6>
-                                            <p class="mb-0 small text-secondary">
-                                                Persetujuan ini akan memvalidasi dokumen pemohon dan meneruskannya ke tim
-                                                <strong>Operator Lembaga Sertifikasi (LS) di SIS</strong> untuk proses Kajian
-                                                Teknis (penentuan ruang lingkup SNI, NACE, EA, dan audit).
-                                            </p>
-                                            <p class="mb-0 mt-2 small text-muted fst-italic">
-                                                *Surat penawaran biaya resmi akan diterbitkan oleh Marketing setelah kajian
-                                                teknis selesai.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                {{-- Untuk Layanan Pelatihan & LSP ATAU Sertifikasi Tahap 2 (IN_REVIEW): Input nominal & upload
-                                file penawaran --}}
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        Total Nominal Biaya (Rp) <span class="text-danger">*</span>
-                                    </label>
-                                    @if($isTogether)
-                                        <small class="d-block text-muted mb-1">
-                                            Berlaku sama untuk semua peserta yang dipilih
-                                        </small>
-                                    @endif
-                                    <input type="number" name="nominal" class="form-control" min="1"
-                                        placeholder="Contoh: 15000000" required>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Total Nominal Biaya (Rp) <span class="text-danger">*</span>
+                                </label>
+                                @if($isTogether)
+                                    <small class="d-block text-muted mb-1">
+                                        Berlaku sama untuk semua peserta yang dipilih
+                                    </small>
+                                @endif
+                                <input type="number" name="nominal" class="form-control" min="1"
+                                    placeholder="Contoh: 15000000" required>
+                            </div>
 
 
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        Dokumen Surat Penawaran Biaya (PDF) <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="file" name="dok_penawaran" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
-                                        required>
-                                </div>
-                            @endif
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    Dokumen Surat Penawaran Biaya (PDF) <span class="text-danger">*</span>
+                                </label>
+                                <input type="file" name="dok_penawaran" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
+                                    required>
+                            </div>
 
 
                         </div>
@@ -225,13 +175,8 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit"
-                                class="btn {{ ($isSertifikasi && $status === 'IN_REVIEW') ? 'btn-primary' : 'btn-success' }}">
-                                @if($isSertifikasi)
-                                    {{ $status === 'PERMOHONAN' ? 'Terima' : 'Kirim Penawaran ke Pelanggan' }}
-                                @else
-                                    Approve
-                                @endif
+                            <button type="submit" class="btn btn-success">
+                                Setujui
                             </button>
                         </div>
                     </div>

@@ -344,295 +344,205 @@ class PermohonanController extends Controller
             'creator'
         ])->findOrFail($id);
 
-        $isSertifikasi = str_starts_with($permohonan->no_permohonan, 'CERT')
-            || str_starts_with($permohonan->no_permohonan, 'SRT')
-            || ($permohonan->formSertifikasi()->exists());
+        $request->validate([
+            'nominal' => 'required|numeric|min:1',
+            'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
 
-        if ($isSertifikasi) {
-            $currentStatus = strtoupper(trim($permohonan->status_workflow));
+        $path = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
+        $total = (float) $request->nominal;
 
-            if ($currentStatus === 'PERMOHONAN') {
-                // ============================================================
-                // 1A. TAHAP 1 SERTIFIKASI: VERIFIKASI ADMINISTRASI -> IN_REVIEW
-                // ============================================================
-                DB::beginTransaction();
-                try {
-                    $permohonan->update([
-                        'status_workflow' => 'IN_REVIEW',
-                        'catatan_admin' => 'Verifikasi administrasi disetujui Marketing. Permohonan diteruskan ke Operator LS di SIS.',
-                    ]);
+        $itemBayar = match (true) {
+            str_starts_with($permohonan->no_permohonan, 'CERT') || str_starts_with($permohonan->no_permohonan, 'SRT') => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
+            str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
+            str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
+            str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
+            str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
+            str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
+            str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
+            str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
+            str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
+            str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
+            str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
+            str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
+            default => 'Biaya Layanan',
+        };
 
-                    // Catat log tracking
-                    PermohonanTrackingLog::create([
-                        'id' => (string) Str::uuid(),
-                        'permohonan_id' => $permohonan->id,
-                        'sumber' => 'POLIMER',
-                        'milestone_code' => 'VERIFIKASI_ADMINISTRASI_ACCEPTED',
-                        'judul' => 'Verifikasi Administrasi Disetujui',
-                        'deskripsi' => 'Kelengkapan dokumen telah diverifikasi oleh Marketing dan diteruskan ke Operator LS di SIS.',
-                    ]);
+        $invoiceNumber = $permohonan->invoice_number ?: ('INV/' . now()->format('Ymd') . '/' . strtoupper(Str::random(5)));
+        $trxId = 'INV-' . $permohonan->id;
+        $va = null;
+        $vaExpiredAt = now()->addDays(14);
 
-                    DB::commit();
+        $sertifikasi = $permohonan->formSertifikasi?->first();
+        $pelatihan = $permohonan->formPelatihan?->first();
+        $lsp = $permohonan->formLsp?->first();
+        $inspeksi = $permohonan->formInspeksi?->first();
+        $halal = $permohonan->formHalal?->first();
+        $creator = $permohonan->creator;
 
-                    // Pemicu bridging ke SIS
-                    try {
-                        app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
-                    } catch (\Throwable $bridgeErr) {
-                        Log::warning('Bridging to SIS error: ' . $bridgeErr->getMessage());
-                    }
+        $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
+            ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
+            ?: ($sertifikasi?->nama_perusahaan ?: $sertifikasi?->kontak_person)
+            ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
+            ?: ($halal?->nama_usaha ?: $halal?->pj_nama)
+            ?: ($creator?->name ?: 'Pelanggan BBKKP');
 
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return back()->with('error', 'Gagal memproses verifikasi: ' . $e->getMessage());
-                }
+        $alamatPemohon = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
+            ?: ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
+            ?: ($sertifikasi?->alamat_kantor)
+            ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
+            ?: ($halal?->pj_alamat)
+            ?: '-';
 
-                SysUserNotif::create([
-                    'user_id' => $permohonan->created_by,
-                    'title' => 'Verifikasi Administrasi Disetujui',
-                    'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diverifikasi dan masuk tahap Kajian Teknis.',
-                    'link' => route('permohonan.layanan.detail', $permohonan->id),
-                    'is_read' => 'no',
-                ]);
+        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak) ?: '081234567890';
+        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
-                return redirect()
-                    ->route('permohonan.layanan.detail', ['id' => $id])
-                    ->with('success', 'Verifikasi administrasi berhasil! Permohonan telah diteruskan ke Operator LS di SIS.');
-
-            } else {
-                // ============================================================
-                // 1B. TAHAP 2 SERTIFIKASI: PENERBITAN SURAT PENAWARAN BIAYA -> PEMBAYARAN
-                // ============================================================
-                $request->validate([
-                    'nominal' => 'required|numeric|min:1',
-                    'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-                ]);
-
-                $path = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
-                $total = (float) $request->nominal;
-
-                DB::beginTransaction();
-                try {
-                    $permohonan->update([
-                        'status_workflow' => 'PEMBAYARAN',
-                        'total_harga' => $total,
-                        'harga_permohonan' => $total,
-                        'file_surat_penawaran' => $path,
-                        'status_penawaran' => 'proses',
-                        'catatan_admin' => $path,
-                    ]);
-
-                    DetailPembayaran::where('permohonan_id', $id)->delete();
-                    DetailPembayaran::create([
-                        'id' => (string) Str::uuid(),
-                        'id_pt_ins' => $permohonan->id_pt_ins,
-                        'permohonan_id' => $id,
-                        'item_bayar' => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
-                        'harga_satuan' => $total,
-                        'kuantitas' => 1,
-                        'subtotal' => $total,
-                    ]);
-
-                    PermohonanTrackingLog::create([
-                        'id' => (string) Str::uuid(),
-                        'permohonan_id' => $permohonan->id,
-                        'sumber' => 'POLIMER',
-                        'milestone_code' => 'PENAWARAN_BIAYA_TERKIRIM',
-                        'judul' => 'Surat Penawaran Biaya Diterbitkan',
-                        'deskripsi' => 'Marketing telah menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($total, 0, ',', '.') . '.',
-                    ]);
-
-                    DB::commit();
-
-                    // Pemicu bridging ke SIS
-                    try {
-                        app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
-                    } catch (\Throwable $bridgeErr) {
-                        Log::warning('Bridging penawaran to SIS error: ' . $bridgeErr->getMessage());
-                    }
-
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return back()->with('error', 'Gagal menerbitkan penawaran: ' . $e->getMessage());
-                }
-
-                SysUserNotif::create([
-                    'user_id' => $permohonan->created_by,
-                    'title' => 'Surat Penawaran Biaya Diterbitkan',
-                    'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diterbitkan surat penawaran biaya dan masuk tahap pembayaran.',
-                    'link' => route('permohonan.layanan.detail', $permohonan->id),
-                    'is_read' => 'no',
-                ]);
-
-                return redirect()
-                    ->route('permohonan.layanan.detail', ['id' => $id])
-                    ->with('success', 'Surat Penawaran Biaya berhasil diterbitkan! Permohonan masuk ke tahap Pembayaran.');
-            }
-
-        } else {
-            // ============================================================
-            // 2. ALUR LAYANAN PELATIHAN / LSP
-            // ============================================================
-            $request->validate([
-                'nominal' => 'required|numeric',
-                'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        try {
+            $bniService = new BniVaService();
+            $vaResult = $bniService->createBilling([
+                'trx_id' => $trxId,
+                'trx_amount' => $total,
+                'customer_name' => $namaPemohon,
+                'customer_email' => $emailPemohon,
+                'customer_phone' => $teleponPemohon,
+                'datetime_expired' => $vaExpiredAt->toIso8601String(),
+                'description' => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
             ]);
 
-            $path = $request->file('dok_penawaran')->store('penawaran', 'public');
-            $total = (float) $request->nominal;
-
-            $itemBayar = match (true) {
-                str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
-                str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
-                str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
-                str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
-                str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
-                str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
-                str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
-                str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
-                str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
-                str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
-                str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
-                default => 'Biaya Layanan',
-            };
-
-            $invoiceNumber = $permohonan->invoice_number ?: ('INV/' . now()->format('Ymd') . '/' . strtoupper(Str::random(5)));
-            $trxId = 'INV-' . $permohonan->id;
-            $va = null;
-            $vaExpiredAt = now()->addDays(14);
-
-            $pelatihan = $permohonan->formPelatihan?->first();
-            $lsp = $permohonan->formLsp?->first();
-            $inspeksi = $permohonan->formInspeksi?->first();
-            $halal = $permohonan->formHalal?->first();
-            $creator = $permohonan->creator;
-
-            $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
-                ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
-                ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
-                ?: ($halal?->nama_usaha ?: $halal?->pj_nama)
-                ?: ($creator?->name ?: 'Pelanggan BBKKP');
-
-            $alamatPemohon = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
-                ?: ($lsp?->alamat_instansi ?: $lsp?->alamat_peserta)
-                ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
-                ?: ($halal?->pj_alamat)
-                ?: '-';
-
-            $teleponPemohon = ($pelatihan?->no_telp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak) ?: '081234567890';
-            $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $inspeksi?->biaya_email ?: $halal?->pj_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
-
-            try {
-                $bniService = new BniVaService();
-                $vaResult = $bniService->createBilling([
-                    'trx_id' => $trxId,
-                    'trx_amount' => $total,
-                    'customer_name' => $namaPemohon,
-                    'customer_email' => $emailPemohon,
-                    'customer_phone' => $teleponPemohon,
-                    'datetime_expired' => $vaExpiredAt->toIso8601String(),
-                    'description' => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
-                ]);
-
-                if (!empty($vaResult['virtual_account'])) {
-                    $va = $vaResult['virtual_account'];
-                    $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('PermohonanController@approve - Gagal create billing BNI: ' . $e->getMessage());
-                $va = $va ?: '-';
+            if (!empty($vaResult['virtual_account'])) {
+                $va = $vaResult['virtual_account'];
+                $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
             }
-
-            DB::beginTransaction();
-            try {
-                DetailPembayaran::where('permohonan_id', $id)->delete();
-
-                DetailPembayaran::create([
-                    'id' => (string) Str::uuid(),
-                    'id_pt_ins' => $permohonan->id_pt_ins,
-                    'permohonan_id' => $id,
-                    'item_bayar' => $itemBayar,
-                    'harga_satuan' => $total,
-                    'kuantitas' => 1,
-                    'subtotal' => $total,
-                ]);
-
-                // Auto-generate invoice PDF
-                $bendahara = SysUser::whereIn('id', function ($query) {
-                    $query->select('user_id')
-                        ->from('sys_user_group')
-                        ->where('group_id', SysGroup::BENDAHARA->value);
-                })->first();
-
-                $detailPembayaran = DetailPembayaran::where('permohonan_id', $id)->get();
-                $grupPermohonan = $permohonan->id_pt_ins
-                    ? Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)->with('detailPembayaran')->get()
-                    : collect([$permohonan]);
-
-                $pemohon = [
-                    'nama' => $namaPemohon,
-                    'alamat' => $alamatPemohon,
-                    'telepon' => $teleponPemohon,
-                    'surel' => $emailPemohon,
-                ];
-
-                $filePath = null;
-                try {
-                    $pdf = Pdf::loadView('permohonan::layanan.invoice', [
-                        'permohonan' => $permohonan,
-                        'detailPembayaran' => $detailPembayaran,
-                        'grupPermohonan' => $grupPermohonan,
-                        'invoiceNumber' => $invoiceNumber,
-                        'va' => $va ?: '-',
-                        'total' => $total,
-                        'pemohon' => $pemohon,
-                        'bendahara' => $bendahara,
-                    ])
-                        ->setPaper('a4', 'portrait')
-                        ->setOptions([
-                            'defaultFont' => 'sans-serif',
-                            'isRemoteEnabled' => true,
-                            'isHtml5ParserEnabled' => true,
-                        ]);
-
-                    $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
-                    $filePath = 'invoice/' . $fileName;
-                    Storage::disk('public')->put($filePath, $pdf->output());
-                } catch (\Throwable $pdfErr) {
-                    Log::warning('Gagal auto-generate invoice PDF: ' . $pdfErr->getMessage());
-                }
-
-                $permohonan->update([
-                    'status_workflow' => 'PEMBAYARAN',
-                    'catatan_admin' => $path,
-                    'file_surat_penawaran' => $path,
-                    'invoice_number' => $invoiceNumber,
-                    'invoice_file' => $filePath,
-                    'invoice_generated_at' => now(),
-                    'va' => $va,
-                    'va_trx_id' => $trxId,
-                    'va_expired_at' => $vaExpiredAt,
-                    'va_status' => 'ACTIVE',
-                ]);
-
-                DB::commit();
-
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                return back()->with('error', $e->getMessage());
-            }
-
-            SysUserNotif::create([
-                'user_id' => $permohonan->created_by,
-                'title' => 'Permohonan Disetujui & Tagihan Diterbitkan',
-                'content' => 'Permohonan Anda telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
-                'link' => route('permohonan.layanan.detail', $permohonan->id),
-                'is_read' => 'no',
-            ]);
-
-            return redirect()
-                ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
-                ->with('success', 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.');
+        } catch (\Throwable $e) {
+            Log::warning('PermohonanController@approve - Gagal create billing BNI: ' . $e->getMessage());
+            $va = $va ?: '-';
         }
+
+        DB::beginTransaction();
+        try {
+            DetailPembayaran::where('permohonan_id', $id)->delete();
+
+            DetailPembayaran::create([
+                'id' => (string) Str::uuid(),
+                'id_pt_ins' => $permohonan->id_pt_ins,
+                'permohonan_id' => $id,
+                'item_bayar' => $itemBayar,
+                'harga_satuan' => $total,
+                'kuantitas' => 1,
+                'subtotal' => $total,
+            ]);
+
+            // Auto-generate invoice PDF
+            $bendahara = SysUser::whereIn('id', function ($query) {
+                $query->select('user_id')
+                    ->from('sys_user_group')
+                    ->where('group_id', SysGroup::BENDAHARA->value);
+            })->first();
+
+            $detailPembayaran = DetailPembayaran::where('permohonan_id', $id)->get();
+            $grupPermohonan = $permohonan->id_pt_ins
+                ? Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)->with('detailPembayaran')->get()
+                : collect([$permohonan]);
+
+            $pemohon = [
+                'nama' => $namaPemohon,
+                'alamat' => $alamatPemohon,
+                'telepon' => $teleponPemohon,
+                'surel' => $emailPemohon,
+            ];
+
+            $filePath = null;
+            try {
+                $pdf = Pdf::loadView('permohonan::layanan.invoice', [
+                    'permohonan' => $permohonan,
+                    'detailPembayaran' => $detailPembayaran,
+                    'grupPermohonan' => $grupPermohonan,
+                    'invoiceNumber' => $invoiceNumber,
+                    'va' => $va ?: '-',
+                    'total' => $total,
+                    'pemohon' => $pemohon,
+                    'bendahara' => $bendahara,
+                ])
+                    ->setPaper('a4', 'portrait')
+                    ->setOptions([
+                        'defaultFont' => 'sans-serif',
+                        'isRemoteEnabled' => true,
+                        'isHtml5ParserEnabled' => true,
+                    ]);
+
+                $fileName = 'invoice-' . $permohonan->no_permohonan . '.pdf';
+                $filePath = 'invoice/' . $fileName;
+                Storage::disk('public')->put($filePath, $pdf->output());
+            } catch (\Throwable $pdfErr) {
+                Log::warning('Gagal auto-generate invoice PDF: ' . $pdfErr->getMessage());
+            }
+
+            $permohonan->update([
+                'status_workflow' => 'PEMBAYARAN',
+                'total_harga' => $total,
+                'harga_permohonan' => $total,
+                'status_penawaran' => 'proses',
+                'catatan_admin' => $path,
+                'file_surat_penawaran' => $path,
+                'invoice_number' => $invoiceNumber,
+                'invoice_file' => $filePath,
+                'invoice_generated_at' => now(),
+                'va' => $va,
+                'va_trx_id' => $trxId,
+                'va_expired_at' => $vaExpiredAt,
+                'va_status' => 'ACTIVE',
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_ACCEPTED',
+                'judul' => 'Permohonan Disetujui & Penawaran Diterbitkan',
+                'deskripsi' => 'Marketing telah menyetujui permohonan dan menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($total, 0, ',', '.') . '.',
+            ]);
+
+            DB::commit();
+
+            // Pemicu bridging ke SIS jika sertifikasi
+            if (str_starts_with($permohonan->no_permohonan, 'CERT') || str_starts_with($permohonan->no_permohonan, 'SRT') || $permohonan->formSertifikasi()->exists()) {
+                try {
+                    app(SisSyncBridgingService::class)->syncPermohonanToSis($permohonan);
+                } catch (\Throwable $bridgeErr) {
+                    Log::warning('Bridging to SIS error: ' . $bridgeErr->getMessage());
+                }
+            }
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menyetujui permohonan: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->with('error', $e->getMessage());
+        }
+
+        SysUserNotif::create([
+            'user_id' => $permohonan->created_by,
+            'title' => 'Permohonan Disetujui & Tagihan Diterbitkan',
+            'content' => 'Permohonan Anda telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
+            'link' => route('permohonan.layanan.detail', $permohonan->id),
+            'is_read' => 'no',
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.',
+                'data' => $permohonan,
+            ]);
+        }
+
+        return redirect()
+            ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
+            ->with('success', 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.');
     }
 
 

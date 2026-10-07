@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MasterDistrictSeeder::class);
         $this->call(MasterJenisLayananSeeder::class);
         $this->call(MasterKomoditiSeeder::class);
+        $this->call(MasterKalibrasiSeeder::class);
         $this->call(MasterMiniplantSeeder::class);
         $this->call(SertifikasiMasterSeeder::class);
         if (config('app.env') === 'local') {

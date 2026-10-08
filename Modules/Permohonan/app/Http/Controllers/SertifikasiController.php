@@ -42,7 +42,11 @@ class SertifikasiController extends Controller
         $query = Permohonan::query()
             ->with(['creator', 'detailPermohonan.lingkupLayanan']) // sesuaikan relasi
             ->whereNotNull('tgl_order')
-            ->where('no_permohonan', 'like', 'SRT%'); // contoh jika ada prefix khusus sertifikasi
+            ->where(function ($q) {
+                $q->where('no_permohonan', 'like', 'SRT%')
+                  ->orWhere('no_permohonan', 'like', 'CERT%')
+                  ->orWhereHas('formSertifikasi');
+            });
 
         if ($request->filled('status_order')) {
             $status = array_map('strtoupper', $request->status_order);
@@ -92,7 +96,7 @@ class SertifikasiController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Permohonan Sertifikasi Disetujui',
                 'content' => 'Permohonan sertifikasi Anda telah diverifikasi dan disetujui.',
-                'link'    => url('/user/sertifikasi/' . $permohonan->id), // sesuaikan URL user
+                'link'    => '/app/#/permohonan',
                 'is_read' => 'no',
             ]);
 
@@ -125,7 +129,7 @@ class SertifikasiController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Permohonan Sertifikasi Ditolak',
                 'content' => 'Alasan: ' . $request->catatan_penolakan,
-                'link'    => url('/user/sertifikasi/' . $permohonan->id),
+                'link'    => '/app/#/permohonan',
                 'is_read' => 'no',
             ]);
 
@@ -158,7 +162,7 @@ class SertifikasiController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Permohonan Sertifikasi Perlu Revisi',
                 'content' => 'Catatan revisi: ' . $request->catatan_revisi,
-                'link'    => url('/user/sertifikasi/' . $permohonan->id),
+                'link'    => '/app/#/permohonan',
                 'is_read' => 'no',
             ]);
 

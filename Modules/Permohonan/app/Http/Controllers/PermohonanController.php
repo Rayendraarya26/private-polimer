@@ -704,35 +704,45 @@ class PermohonanController extends Controller
                     str_starts_with($permohonan->no_permohonan, 'LSP') => 'Biaya Sertifikasi Profesi (LSP)',
                     str_starts_with($permohonan->no_permohonan, 'REG') => 'Biaya Pelatihan Reguler',
                     str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
+                    str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
+                    str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
+                    str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
+                    str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
+                    str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
+                    str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
+                    str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
+                    str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
+                    str_starts_with($permohonan->no_permohonan, 'UJI') => 'Biaya Pengujian Laboratorium',
+                    default => 'Biaya Layanan (' . $permohonan->no_permohonan . ')',
                 };
 
+                $nominal = (float) $request->nominal;
 
                 $permohonan->update([
                     'status_workflow' => 'PEMBAYARAN',
                     'catatan_admin' => $path,
                     'file_surat_penawaran' => $path,
+                    'total_harga' => $nominal,
+                    'harga_permohonan' => $nominal,
                 ]);
 
-
                 DetailPembayaran::where('permohonan_id', $id)->delete();
-
 
                 DetailPembayaran::create([
                     'id' => (string) Str::uuid(),
                     'id_pt_ins' => $permohonan->id_pt_ins,
                     'permohonan_id' => $id,
                     'item_bayar' => $itemBayar,
-                    'harga_satuan' => $request->nominal,
+                    'harga_satuan' => $nominal,
                     'kuantitas' => 1,
-                    'subtotal' => $request->nominal,
+                    'subtotal' => $nominal,
                 ]);
-
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
                     'title' => 'Permohonan Disetujui',
-                    'content' => 'Permohonan Anda telah disetujui dan masuk tahap pembayaran.',
-                    'link' => route('permohonan.layanan.detail', $permohonan->id),
+                    'content' => 'Permohonan Anda (' . $permohonan->no_permohonan . ') telah disetujui dan masuk tahap pembayaran.',
+                    'link' => '/app/#/permohonan',
                     'is_read' => 'no',
                 ]);
             }

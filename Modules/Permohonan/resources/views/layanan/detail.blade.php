@@ -163,13 +163,32 @@
                                         {{ $sp[2] }}
                                     </span>
                                 </div>
-                                <div class="px-4 py-3 flex-fill">
+                                <div class="px-4 py-3 border-end flex-fill">
                                     <div class="text-uppercase text-muted mb-1" style="font-size:10px;letter-spacing:.06em">Status
                                         Proses</div>
                                     <span class="badge rounded-pill"
                                         style="background:{{ $sw[0] }};color:{{ $sw[1] }};font-size:11px">
                                         {{ $sw[2] }}
                                     </span>
+                                </div>
+                                @php
+                                    $sipptLog = $permohonan->latestSipptSyncLog;
+                                @endphp
+                                <div class="px-4 py-3 flex-fill">
+                                    <div class="text-uppercase text-muted mb-1" style="font-size:10px;letter-spacing:.06em">SIPPT BSKJI</div>
+                                    @if($sipptLog && $sipptLog->status === 'success')
+                                        <a href="{{ route('sippt.detail', $sipptLog->id) }}" class="badge rounded-pill text-decoration-none" style="background:#dcfce7;color:#166534;font-size:11px" title="Tersinkronisasi ke SIPPT">
+                                            ✓ Synced
+                                        </a>
+                                    @elseif($sipptLog && $sipptLog->status === 'failed')
+                                        <a href="{{ route('sippt.detail', $sipptLog->id) }}" class="badge rounded-pill text-decoration-none" style="background:#fee2e2;color:#991b1b;font-size:11px" title="Gagal sinkron: {{ $sipptLog->last_error }}">
+                                            ✕ Failed
+                                        </a>
+                                    @else
+                                        <span class="badge rounded-pill" style="background:#f1f5f9;color:#64748b;font-size:11px">
+                                            — Pending
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
 

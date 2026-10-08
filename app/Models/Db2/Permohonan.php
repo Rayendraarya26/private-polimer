@@ -151,6 +151,16 @@ class Permohonan extends Model
         return $this->hasMany(FormMiniplant::class, 'permohonan_id');
     }
 
+    public function formAset()
+    {
+        return $this->hasMany(FormAset::class, 'permohonan_id');
+    }
+
+    public function formJasaLainnya()
+    {
+        return $this->hasMany(FormJasaLainnya::class, 'permohonan_id');
+    }
+
     public function sertifikasi()
     {
         return $this->hasMany(\App\Models\Db1\PelangganSertifikasi::class, 'permohonan_id');

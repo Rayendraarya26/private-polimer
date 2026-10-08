@@ -15,6 +15,8 @@ use Modules\Integration\Console\SyncUserPuk;
 use Modules\Integration\Console\SyncUserSil;
 use Modules\Integration\Console\SyncUserSis;
 use Modules\Integration\Console\SyncSertifikasiToSisCmd;
+use Modules\Integration\Console\SipptSyncMasterDataCommand;
+use Modules\Integration\Console\SipptRetrySyncCommand;
 
 class IntegrationServiceProvider extends ServiceProvider
 {
@@ -33,6 +35,8 @@ class IntegrationServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
+
+        \App\Models\Db2\Permohonan::observe(\Modules\Integration\Observers\PermohonanSipptObserver::class);
     }
 
     /**
@@ -60,6 +64,8 @@ class IntegrationServiceProvider extends ServiceProvider
             SyncUserSis::class,
             MigrateSisHistory::class,
             SyncSertifikasiToSisCmd::class,
+            SipptSyncMasterDataCommand::class,
+            SipptRetrySyncCommand::class,
         ]);
     }
 

@@ -254,4 +254,14 @@ class Permohonan extends Model
     {
         return $this->hasMany(BillingItem::class, 'mohon_id');
     }
+
+    public function sipptSyncLogs(): HasMany
+    {
+        return $this->hasMany(SipptSyncLog::class, 'permohonan_id')->orderBy('created_at', 'desc');
+    }
+
+    public function latestSipptSyncLog(): HasOne
+    {
+        return $this->hasOne(SipptSyncLog::class, 'permohonan_id')->latestOfMany();
+    }
 }

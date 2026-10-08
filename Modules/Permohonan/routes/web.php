@@ -16,6 +16,7 @@ use Modules\Permohonan\Http\Controllers\KomiteSertifikasiController;
 use Modules\Permohonan\Http\Controllers\PenerbitanSertifikasiController;
 use Modules\Permohonan\Http\Controllers\TagihanBiayaController;
 use Modules\Permohonan\Http\Controllers\BillingPembayaranController;
+use Modules\Permohonan\Http\Controllers\JasaLainnyaController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -153,6 +154,17 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         Route::get('/', [BillingPembayaranController::class, 'index'])->name('index');
         Route::get('/create', [BillingPembayaranController::class, 'create'])->name('create');
         Route::post('/store', [BillingPembayaranController::class, 'store'])->name('store');
+    });
+
+    Route::prefix('jasa-lainnya')->name('permohonan.jasa-lainnya.')->group(function () {
+        Route::get('/', [JasaLainnyaController::class, 'index'])->name('index');
+        Route::get('/ajax', [JasaLainnyaController::class, 'ajax'])->name('ajax');
+        Route::get('/create', [JasaLainnyaController::class, 'create'])->name('create');
+        Route::post('/', [JasaLainnyaController::class, 'store'])->name('store');
+        Route::get('/{id}', [JasaLainnyaController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [JasaLainnyaController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [JasaLainnyaController::class, 'update'])->name('update');
+        Route::delete('/{id}', [JasaLainnyaController::class, 'destroy'])->name('destroy');
     });
 
     // Sertifikasi Audit & LKS Endpoints

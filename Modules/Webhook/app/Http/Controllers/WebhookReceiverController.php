@@ -60,7 +60,7 @@ class WebhookReceiverController extends Controller
             }
 
             if (in_array($validated['milestone_code'], ['AUDIT_TAHAP_1_VERIFIED', 'LAPORAN_AUDIT_TAHAP_1_SUBMITTED'])) {
-                $metadata = $validated = ['metadata'] ?? [];
+                $metadata = $validated['metadata'] ?? [];
                 $audThp1Id = $metadata['aud_thp1_id'] ?? null;
 
 
@@ -81,11 +81,15 @@ class WebhookReceiverController extends Controller
                         'kode' => 'LAPORAN_AUDIT_TAHAP_1',
                         'nama' => 'Laporan Hasil Audit Tahap 1',
                         'file_url' => $metadata['file_laporan_url'],
-                        'path' => $metadata['file_laporan_path'],
+                        'path' => $metadata['file_laporan_path'] ?? $metadata['file_laporan_url'],
                         'uploaded_at' => now()->toIso8601String(),
                         'actor' => $metadata['verified_by'] ?? 'Koordinator Sertifikasi',
                         'created_at' => now()->toIso8601String(),
                     ];
+
+                    $permohonan->update([
+                        'file_attachment' => $currentAttachments,
+                    ]);
                 }
                 
             }
@@ -176,7 +180,7 @@ class WebhookReceiverController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title' => $validated['milestone_title'],
                 'content' => $validated['milestone_description'] ?? 'Ada pembaruan status sertifikasi industri.',
-                'link' => route('permohonan.layanan.detail', $permohonan->id),
+                'link' => '/app/#/permohonan',
                 'is_read' => 'no',
             ]);
 
@@ -264,7 +268,7 @@ class WebhookReceiverController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title' => 'Sertifikat Industri Telah Terbit',
                 'content' => 'Selamat! Sertifikat Industri Anda #' . $validated['nomor_sertifikat'],
-                'link' => route('permohonan.layanan.detail', $permohonan->id),
+                'link' => '/app/#/permohonan',
                 'is_read' => 'no',
             ]);
 

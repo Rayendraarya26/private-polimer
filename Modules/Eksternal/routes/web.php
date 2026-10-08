@@ -30,6 +30,7 @@ use Modules\Eksternal\Http\Controllers\Api\PupController;
 use Modules\Eksternal\Http\Controllers\Api\InspeksiController;
 use Modules\Eksternal\Http\Controllers\Api\HalalController;
 use Modules\Eksternal\Http\Controllers\Api\MiniplantController;
+use Modules\Eksternal\Http\Controllers\Api\AsetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -274,6 +275,15 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::put('/{id}', [HalalController::class, 'update']);
             Route::post('/{id}', [HalalController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [HalalController::class, 'ajukanUlang']);
+        });
+
+        Route::prefix('aset')->group(function () {
+            Route::get('/jenis-sewa', [AsetController::class, 'getJenisSewa']);
+            Route::post('/', [AsetController::class, 'store']);
+            Route::get('/{id}', [AsetController::class, 'show']);
+            Route::put('/{id}', [AsetController::class, 'update']);
+            Route::post('/{id}', [AsetController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [AsetController::class, 'ajukanUlang']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

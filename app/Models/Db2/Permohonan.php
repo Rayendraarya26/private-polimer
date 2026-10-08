@@ -17,8 +17,6 @@ class Permohonan extends Model
 
     protected $table = 'permohonan';
 
-    protected $guarded = ['id'];
-
     protected $fillable = [
         'id',
         'no_permohonan',
@@ -51,10 +49,18 @@ class Permohonan extends Model
         'feedback_json',
         'feedback_at',
         'file_attachment',
+        'total_harga',
         'harga_permohonan',
         'file_surat_penawaran',
         'status_penawaran',
         'catatan_penawaran',
+        'sis_mohon_id',
+        'sis_sync_status',
+        'sis_synced_at',
+        'nomor_sertifikat',
+        'tanggal_sertifikat_terbit',
+        'tanggal_sertifikat_kadaluarsa',
+        'file_sertifikat_final',
     ];
 
     protected $casts = [
@@ -68,6 +74,9 @@ class Permohonan extends Model
         'tte_kuitansi_requested' => 'boolean',
         'tte_kuitansi_requested_at' => 'datetime',
         'total_harga' => 'decimal:2',
+        'sis_synced_at' => 'datetime',
+        'tanggal_sertifikat_terbit' => 'date',
+        'tanggal_sertifikat_kadaluarsa' => 'date',
         'feedback_json' => 'array',
         'file_attachment' => 'array',
     ];

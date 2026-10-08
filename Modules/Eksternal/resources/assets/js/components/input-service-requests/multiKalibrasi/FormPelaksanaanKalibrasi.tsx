@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
-import useProfile from "../../../hooks/useProfile"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
-import { UserCheck, Info } from "lucide-react"
+import { UserCheck, ShieldCheck } from "lucide-react"
 
 export interface PelaksanaanKalibrasiData {
   ruangLingkupAkreditasi?: string
@@ -20,8 +19,6 @@ export interface FormPelaksanaanKalibrasiProps {
   onChangeLokasi?: (lokasi: string) => void
   uraianKalibrasi?: string
   onChangeUraian?: (uraian: string) => void
-  ruangLingkupAkreditasi?: string
-  onChangeRuangLingkup?: (ruangLingkup: string) => void
 }
 
 export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> = ({
@@ -31,14 +28,12 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
   onChangeLokasi,
   uraianKalibrasi: propUraian,
   onChangeUraian,
-  ruangLingkupAkreditasi: propRuangLingkup,
-  onChangeRuangLingkup,
 }) => {
 
   const { profile, isLoading } = useProfileQuery()
 
   const [formData, setFormData] = useState<PelaksanaanKalibrasiData>(() => ({
-    ruangLingkupAkreditasi: dataPelaksanaan?.ruangLingkupAkreditasi || propRuangLingkup || "",
+    ruangLingkupAkreditasi: dataPelaksanaan?.ruangLingkupAkreditasi || "Masuk Ruang Lingkup",
     lokasi: dataPelaksanaan?.lokasi || propLokasi || "",
     uraian: dataPelaksanaan?.uraian || propUraian || "",
     bahasa: dataPelaksanaan?.bahasa || "indonesia",
@@ -52,13 +47,12 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
     if (onChangePelaksanaan) onChangePelaksanaan(updated)
     if (field === "lokasi" && onChangeLokasi) onChangeLokasi(value)
     if (field === "uraian" && onChangeUraian) onChangeUraian(value)
-    if (field === "ruangLingkupAkreditasi" && onChangeRuangLingkup) onChangeRuangLingkup(value)
   }
 
   useEffect(() => {
     if (dataPelaksanaan) {
       setFormData({
-        ruangLingkupAkreditasi: dataPelaksanaan.ruangLingkupAkreditasi || propRuangLingkup || "",
+        ruangLingkupAkreditasi: dataPelaksanaan.ruangLingkupAkreditasi || "Masuk Ruang Lingkup",
         lokasi: dataPelaksanaan.lokasi || propLokasi || "",
         uraian: dataPelaksanaan.uraian || propUraian || "",
         bahasa: dataPelaksanaan.bahasa || "indonesia",
@@ -66,7 +60,7 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
         alamatKirim: dataPelaksanaan.alamatKirim || "",
       })
     }
-  }, [dataPelaksanaan, propRuangLingkup, propLokasi, propUraian])
+  }, [dataPelaksanaan, propLokasi, propUraian])
 
   useEffect(() => {
     if (profile && !isLoading) {
@@ -112,63 +106,13 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
         </div>
       </CardHeader>
 
-      <CardContent className="pt-1 space-y-3">
-        <div className="pt-3 space-y-5">
-          <div>
-            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
-              Ruang Lingkup Akreditasi <span className="text-rose-500">*</span>
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label
-                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  formData.ruangLingkupAkreditasi === "Masuk Ruang Lingkup"
-                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                    : "border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="ruang_lingkup_akreditasi"
-                  value="Masuk Ruang Lingkup"
-                  checked={formData.ruangLingkupAkreditasi === "Masuk Ruang Lingkup"}
-                  onChange={(e) => handleChange("ruangLingkupAkreditasi", e.target.value)}
-                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
-                />
-                <div>
-                  <span className="text-xs font-bold text-slate-800 block">
-                    Masuk Ruang Lingkup
-                  </span>
-                </div>
-              </label>
-
-              <label
-                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  formData.ruangLingkupAkreditasi === "Tidak Masuk Ruang Lingkup"
-                    ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                    : "border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="ruang_lingkup_akreditasi"
-                  value="Tidak Masuk Ruang Lingkup"
-                  checked={formData.ruangLingkupAkreditasi === "Tidak Masuk Ruang Lingkup"}
-                  onChange={(e) => handleChange("ruangLingkupAkreditasi", e.target.value)}
-                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
-                />
-                <div>
-                  <span className="text-xs font-bold text-slate-800 block">
-                    Tidak Masuk Ruang Lingkup
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
+      <CardContent className="pt-1 space-y-4">
+        <div className="pt-1 space-y-5">
           <div>
             <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
               Lokasi Pelaksanaan Kalibrasi <span className="text-rose-500">*</span>
             </h4>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.lokasi === "LABKAL BBKKP"

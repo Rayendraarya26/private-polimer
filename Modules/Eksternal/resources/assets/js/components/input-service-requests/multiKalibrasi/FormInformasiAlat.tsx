@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { toast } from "react-hot-toast"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
 import { Toolbox, Plus, Trash2, Settings, Loader2, Info, Calculator, ShieldCheck } from "lucide-react"
@@ -154,10 +155,11 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
           updatedSerials = currentSerials.slice(0, newJumlah)
         }
 
-        // Sinkronisasi juga jumlah kalibrasi jika sebelumnya sudah terpilih
+        // Sinkronisasi jumlah kalibrasi per jenis: tidak boleh melebihi unit alat yang baru
+        const oldJumlah = item.jumlah
         const updatedKalibrasi = item.kalibrasiList.map((k) => ({
           ...k,
-          jumlah: newJumlah,
+          jumlah: k.jumlah === oldJumlah ? newJumlah : Math.min(newJumlah, Math.max(1, k.jumlah)),
         }))
 
         return {
@@ -184,7 +186,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
     updateAlatList(updated)
   }
 
-  // Handler: Tambah Jenis Kalibrasi ke Alat Tertentu
+  // Handler: Tambahkan Jenis Kalibrasi ke Alat Tertentu
   const handleTambahKalibrasiKeAlat = (alatId: string) => {
     const selectedMasterId = selectedKalibrasiMap[alatId]
     if (!selectedMasterId) return
@@ -201,8 +203,15 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
       )
 
       if (existingIdx > -1) {
+        const currentJumlah = alat.kalibrasiList[existingIdx].jumlah
+        if (currentJumlah >= alat.jumlah) {
+          toast.error(
+            `Jumlah kalibrasi "${masterItem.kalibrasi}" sudah mencapai batas maksimal unit alat (${alat.jumlah} unit)`
+          )
+          return alat
+        }
         const updatedList = [...alat.kalibrasiList]
-        updatedList[existingIdx].jumlah += 1
+        updatedList[existingIdx].jumlah = Math.min(alat.jumlah, currentJumlah + 1)
         return { ...alat, kalibrasiList: updatedList }
       }
 
@@ -227,11 +236,12 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
     setSelectedKalibrasiMap((prev) => ({ ...prev, [alatId]: "" }))
   }
 
-  // Handler: Ubah jumlah pengujian kalibrasi
+  // Handler: Ubah jumlah pengujian kalibrasi (dibatasi antara 1 sampai jumlah unit alat)
   const handleUpdateJumlahKalibrasi = (alatId: string, kalibrasiId: string, jumlah: number) => {
-    const val = Math.max(1, jumlah)
     const updated = alatList.map((alat) => {
       if (alat.id !== alatId) return alat
+      const maxJumlah = Math.max(1, alat.jumlah)
+      const val = Math.min(maxJumlah, Math.max(1, jumlah))
       return {
         ...alat,
         kalibrasiList: alat.kalibrasiList.map((k) =>
@@ -512,7 +522,9 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                           <thead>
                             <tr className="bg-slate-100/80 text-slate-700 font-semibold border-b border-slate-200 divide-x divide-slate-200">
                               <th className="px-3.5 py-2.5 w-[50%]">Jenis Kalibrasi</th>
-                              <th className="px-3.5 py-2.5 w-[15%] text-center">Jumlah</th>
+                              <th className="px-3.5 py-2.5 w-[15%] text-center">
+                                Jumlah (Maks. {alat.jumlah})
+                              </th>
                               <th className="px-3.5 py-2.5 w-[15%] text-right">Tarif Satuan (Rp)</th>
                               <th className="px-3.5 py-2.5 w-[15%] text-right">Subtotal (Rp)</th>
                               <th className="px-2 py-2.5 w-[5%] text-center">Aksi</th>
@@ -534,7 +546,8 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                                   <td className="px-3.5 py-2 text-center">
                                     <input
                                       type="number"
-                                      min="1"
+                                      min={1}
+                                      max={alat.jumlah}
                                       value={k.jumlah}
                                       onChange={(e) =>
                                         handleUpdateJumlahKalibrasi(
@@ -543,6 +556,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                                           parseInt(e.target.value) || 1
                                         )
                                       }
+                                      title={`Jumlah kalibrasi untuk ${k.nama} (Maksimal ${alat.jumlah} unit)`}
                                       className="w-16 text-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-brand-500"
                                     />
                                   </td>

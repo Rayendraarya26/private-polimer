@@ -22,7 +22,7 @@ const STEPS = [
 const STORAGE_KEY = "DRAFT_PERMOHONAN_KALIBRASI"
 
 const DEFAULT_PELAKSANAAN: PelaksanaanKalibrasiData = {
-  ruangLingkupAkreditasi: "",
+  ruangLingkupAkreditasi: "Masuk Ruang Lingkup",
   lokasi: "",
   uraian: "",
   bahasa: "indonesia",
@@ -115,7 +115,6 @@ export const FormKalibrasiWizard: React.FC = () => {
     if (pernyataan) return true
 
     if (
-      Boolean(pelaksanaan.ruangLingkupAkreditasi) ||
       Boolean(pelaksanaan.lokasi) ||
       Boolean(pelaksanaan.uraian?.trim()) ||
       pelaksanaan.bahasa !== "indonesia"
@@ -156,7 +155,6 @@ export const FormKalibrasiWizard: React.FC = () => {
                 (Array.isArray(a.nomorSeriList) && a.nomorSeriList.some((s: any) => Boolean(s?.trim()))) ||
                 (Array.isArray(a.kalibrasiList) && a.kalibrasiList.length > 0)
             )) ||
-          Boolean(parsed.dataPelaksanaan?.ruangLingkupAkreditasi) ||
           Boolean(parsed.dataPelaksanaan?.lokasi) ||
           Boolean(parsed.dataPelaksanaan?.uraian?.trim())
         ) {
@@ -247,11 +245,7 @@ export const FormKalibrasiWizard: React.FC = () => {
           return false
         }
       }
-    } else if (currentStep === 1) {
-      if (!dataPelaksanaan.ruangLingkupAkreditasi) {
-        toast.error("Harap pilih status ruang lingkup akreditasi.")
-        return false
-      }
+    } else if (currentStep === 1) { 
       if (!dataPelaksanaan.lokasi) {
         toast.error("Harap pilih lokasi pelaksanaan kalibrasi.")
         return false

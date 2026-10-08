@@ -105,19 +105,13 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
             </h4>
             <div className="text-xs space-y-1.5 pt-1">
               <div>
-                <span className="text-slate-500 block text-[11px]">Ruang Lingkup Akreditasi:</span>
-                <span className="font-semibold text-slate-800">
-                  {dataPelaksanaan?.ruangLingkupAkreditasi || "-"}
-                </span>
-              </div>
-              <div>
                 <span className="text-slate-500 block text-[11px]">Lokasi Pelaksanaan:</span>
                 <span className="font-semibold text-brand-700">
                   {dataPelaksanaan?.lokasi === "Tempat Client"
                     ? "On-Site (Di Lokasi / Tempat Client)"
                     : dataPelaksanaan?.lokasi === "LABKAL BBKKP"
-                    ? "Laboratorium Kalibrasi BBKKP"
-                    : "-"}
+                      ? "Laboratorium Kalibrasi BBKKP"
+                      : "-"}
                 </span>
               </div>
               <div>

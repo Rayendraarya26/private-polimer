@@ -29,6 +29,7 @@ const GrkValidasiPage = lazy(() => import('./pages/service-requests/grk/GrkValid
 const MiniplatPage = lazy(() => import('./pages/service-requests/MiniplantPage'))
 const InspeksiPage = lazy(() => import('./pages/service-requests/InspeksiPage'))
 const HalalPage = lazy(() => import('./pages/service-requests/HalalPage'))
+const KonsultasiAuditTeknologiPage = lazy(() => import('./pages/service-requests/KonsultasiAuditTeknologiPage'))
 
 const AppRoutes: React.FC = () => {
   return (
@@ -68,6 +69,7 @@ const AppRoutes: React.FC = () => {
             <Route path="validasi" element={<GrkValidasiPage />} />
           </Route>
           <Route path="miniplant" element={<MiniplatPage />} />
+          <Route path="konsultasi-at" element={<KonsultasiAuditTeknologiPage />} />
         </Route>
         <Route path="/service-requests">
           <Route index element={<PermohonanPage />} />

@@ -172,18 +172,12 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         isAvailable: true,
       },
       {
-        id: "konsultasi",
-        name: "Konsultasi & Optimalisasi",
+        id: "konsultasi_at",
+        name: "Konsultasi & Audit Teknologi",
         desc: "Pemecahan masalah cacat produksi, formulasi bahan baku, dan efisiensi lini produksi.",
-        icon: <HelpCircle className="w-6 h-6 text-amber-600" />,
-        isAvailable: false,
-      },
-      {
-        id: "audit",
-        name: "Audit Teknologi & Energi",
-        desc: "Evaluasi kapabilitas mesin, optimasi energi manufaktur, dan kesiapan industri hijau.",
-        icon: <Cpu className="w-6 h-6 text-purple-600" />,
-        isAvailable: false,
+        icon: <Cpu className="w-6 h-6 text-amber-600" />,
+        route: "/permohonan/konsultasi-at",
+        isAvailable: true,
       },
       {
         id: "miniplant",

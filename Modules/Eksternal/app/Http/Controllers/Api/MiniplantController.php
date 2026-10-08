@@ -379,4 +379,229 @@ class MiniplantController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Memperbarui formulir permohonan jasa miniplant
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormMiniplant::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Permohonan miniplant tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $formMiniplant = FormMiniplant::where('permohonan_id', $permohonan->id)->first();
+        if (!$formMiniplant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Form miniplant tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $detail = $request->input('detailPermohonan', []);
+            $dataPelanggan = $request->input('dataPelanggan', []);
+
+            if ($request->has('jenis_layanan')) $formMiniplant->jenis_layanan = $request->input('jenis_layanan');
+            if ($request->has('fasilitas')) $formMiniplant->fasilitas = $request->input('fasilitas');
+
+            if (!empty($detail['jasaDiminta'])) $formMiniplant->jasa_diminta = $detail['jasaDiminta'];
+            if (!empty($detail['jenisBarang'])) $formMiniplant->jenis_barang = $detail['jenisBarang'];
+            if (!empty($detail['jumlahBarang'])) $formMiniplant->jumlah_barang = $detail['jumlahBarang'];
+            if (isset($detail['perlakuanDiminta'])) $formMiniplant->perlakuan_diminta = $detail['perlakuanDiminta'];
+            if (isset($detail['tekananNilai'])) $formMiniplant->tekanan_nilai = $detail['tekananNilai'];
+            if (isset($detail['tekananSatuan'])) $formMiniplant->tekanan_satuan = $detail['tekananSatuan'];
+            if (isset($detail['suhuNilai'])) $formMiniplant->suhu_nilai = $detail['suhuNilai'];
+            if (isset($detail['suhuSatuan'])) $formMiniplant->suhu_satuan = $detail['suhuSatuan'];
+            if (isset($detail['waktuNilai'])) $formMiniplant->waktu_nilai = $detail['waktuNilai'];
+            if (isset($detail['waktuSatuan'])) $formMiniplant->waktu_satuan = $detail['waktuSatuan'];
+            if (isset($detail['instruksiKhusus'])) $formMiniplant->instruksi_khusus = $detail['instruksiKhusus'];
+
+            if (!empty($dataPelanggan['namaPemohon'])) $formMiniplant->nama_pemohon = $dataPelanggan['namaPemohon'];
+            if (!empty($dataPelanggan['no_telp'])) $formMiniplant->no_telp = $dataPelanggan['no_telp'];
+            if (!empty($dataPelanggan['alamat'])) $formMiniplant->alamat_pemohon = $dataPelanggan['alamat'];
+
+            // Update items jika diberikan
+            $activeItems = $request->input('activeItems') ?? $request->input('itemPerlakuan');
+            if (is_array($activeItems) && !empty($activeItems)) {
+                FormMiniplantItem::where('form_miniplant_id', $formMiniplant->id)->delete();
+                $totalEstimasiBiaya = 0;
+                foreach ($activeItems as $masterId => $itemData) {
+                    $qty = 1;
+                    if (is_array($itemData) && isset($itemData['jumlah'])) {
+                        $qty = max(1, (int) $itemData['jumlah']);
+                    }
+
+                    $master = MasterMiniplant::find($masterId);
+                    if (!$master) continue;
+
+                    $tarifSatuan = (float) $master->biaya;
+                    $subtotal = $tarifSatuan * $qty;
+                    $totalEstimasiBiaya += $subtotal;
+
+                    FormMiniplantItem::create([
+                        'id' => (string) Str::uuid(),
+                        'form_miniplant_id' => $formMiniplant->id,
+                        'master_miniplant_id' => $master->id,
+                        'kode' => $master->kode,
+                        'nama_perlakuan_snapshot' => $master->nama,
+                        'satuan_snapshot' => $master->satuan,
+                        'tarif_satuan_snapshot' => $tarifSatuan,
+                        'jumlah' => $qty,
+                        'subtotal' => $subtotal,
+                        'keterangan' => null,
+                    ]);
+                }
+
+                $formMiniplant->estimasi_total_biaya = $totalEstimasiBiaya;
+                $permohonan->total_harga = $totalEstimasiBiaya;
+            }
+
+            $formMiniplant->save();
+            $permohonan->save();
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Permohonan miniplant berhasil diperbarui!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'total_harga' => $permohonan->total_harga,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('MiniplantController::update Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui permohonan miniplant: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan miniplant setelah revisi
+     */
+    public function ajukanUlang(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormMiniplant::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Permohonan miniplant tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        if ($request->has('detailPermohonan') || $request->has('activeItems')) {
+            $updateResponse = $this->update($request, $id);
+            if ($updateResponse->getStatusCode() !== 200) {
+                return $updateResponse;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => now(),
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Permohonan Miniplant Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah melakukan revisi formulir miniplant #' . $permohonan->no_permohonan . ' dan mengajukan kembali untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                $adminIds = NotifHelper::getAdminUserIds();
+                NotifHelper::notifyMany(
+                    $adminIds,
+                    'Permohonan Miniplant Diajukan Ulang',
+                    'Permohonan jasa miniplant #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (\Exception $notifEx) {
+                Log::warning('Gagal kirim notifikasi admin ajukan ulang miniplant: ' . $notifEx->getMessage());
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Permohonan miniplant berhasil diajukan ulang!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => 'PERMOHONAN',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('MiniplantController::ajukanUlang Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengajukan ulang permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

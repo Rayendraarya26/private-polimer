@@ -213,14 +213,23 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/komoditi/{id}/parameters', [PengujianController::class, 'getParametersByKomoditi']);
             Route::post('/permohonan', [PengujianController::class, 'store']);
             Route::get('/{id}', [PengujianController::class, 'show']);
+            Route::put('/{id}', [PengujianController::class, 'update']);
+            Route::post('/{id}', [PengujianController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [PengujianController::class, 'ajukanUlang']);
         });
 
         Route::prefix('grk')->group(function () {
             Route::get('/skema', [GrkController::class, 'getSkema']);
             Route::post('/verifikasi', [GrkController::class, 'store']);
             Route::get('/verifikasi/{id}', [GrkController::class, 'show']);
+            Route::put('/verifikasi/{id}', [GrkController::class, 'update']);
+            Route::post('/verifikasi/{id}', [GrkController::class, 'update']);
+            Route::post('/verifikasi/{id}/ajukan-ulang', [GrkController::class, 'ajukanUlang']);
             Route::post('/validasi', [GrkValidasiController::class, 'store']);
             Route::get('/validasi/{id}', [GrkValidasiController::class, 'show']);
+            Route::put('/validasi/{id}', [GrkValidasiController::class, 'update']);
+            Route::post('/validasi/{id}', [GrkValidasiController::class, 'update']);
+            Route::post('/validasi/{id}/ajukan-ulang', [GrkValidasiController::class, 'ajukanUlang']);
         });
 
         Route::prefix('kalibrasi')->group(function () {
@@ -237,22 +246,34 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::get('/master', [MiniplantController::class, 'getMasterMiniplant']);
             Route::post('/', [MiniplantController::class, 'store']);
             Route::get('/{id}', [MiniplantController::class, 'show']);
+            Route::put('/{id}', [MiniplantController::class, 'update']);
+            Route::post('/{id}', [MiniplantController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [MiniplantController::class, 'ajukanUlang']);
         });
 
         Route::prefix('pup')->group(function () {
             Route::get('/skema', [PupController::class, 'getSkema']);
             Route::post('/', [PupController::class, 'store']);
             Route::get('/{id}', [PupController::class, 'show']);
+            Route::put('/{id}', [PupController::class, 'update']);
+            Route::post('/{id}', [PupController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [PupController::class, 'ajukanUlang']);
         });
 
         Route::prefix('inspeksi')->group(function () {
             Route::post('/', [InspeksiController::class, 'store']);
             Route::get('/{id}', [InspeksiController::class, 'show']);
+            Route::put('/{id}', [InspeksiController::class, 'update']);
+            Route::post('/{id}', [InspeksiController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [InspeksiController::class, 'ajukanUlang']);
         });
 
         Route::prefix('halal')->group(function () {
             Route::post('/', [HalalController::class, 'store']);
             Route::get('/{id}', [HalalController::class, 'show']);
+            Route::put('/{id}', [HalalController::class, 'update']);
+            Route::post('/{id}', [HalalController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [HalalController::class, 'ajukanUlang']);
         });
 
         Route::get('/master/jenis-perusahaan', [SertifikasiController::class, 'getJenisPerusahaan']);

@@ -624,4 +624,257 @@ class PupController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Memperbarui formulir pendaftaran Uji Profisiensi (PUP)
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormPup::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan Uji Profisiensi tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $formPup = FormPup::where('permohonan_id', $permohonan->id)->first();
+        if (!$formPup) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Form Uji Profisiensi tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $fillable = [
+                'nama_lab_kalibrasi', 'no_akreditasi_kan', 'masa_berlaku_akreditasi',
+                'alamat_laboratorium', 'telepon_laboratorium', 'email_laboratorium',
+                'pic_nama', 'pic_jabatan', 'pic_telepon', 'pic_email',
+                'penanggung_jawab_biaya', 'alamat_penagihan', 'npwp_penagihan',
+                'penerima_laporan_nama', 'penerima_laporan_alamat', 'catatan_khusus'
+            ];
+
+            foreach ($fillable as $col) {
+                if ($request->has($col)) {
+                    $formPup->{$col} = $request->input($col);
+                }
+            }
+
+            if ($request->has('is_akreditasi_kan')) {
+                $formPup->is_akreditasi_kan = filter_var($request->input('is_akreditasi_kan'), FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Update items jika diberikan
+            $skemaCodes = $request->input('skema_terpilih') ?? $request->input('selectedSkemas');
+            if (is_array($skemaCodes) && !empty($skemaCodes)) {
+                FormPupItem::where('form_pup_id', $formPup->id)->delete();
+                DetailPembayaran::where('permohonan_id', $permohonan->id)->delete();
+
+                $skemaCatalogIndexed = collect($this->skemaCatalog)->keyBy('kode_skema');
+                $totalKotor = 0;
+                $hasCentrifuge = false;
+                $hasOverheadStirrer = false;
+
+                foreach ($skemaCodes as $kode) {
+                    $cat = $skemaCatalogIndexed->get($kode);
+                    if (!$cat) continue;
+
+                    $harga = (float) $cat['harga_promo'];
+                    $totalKotor += $harga;
+
+                    if ($kode === 'UP-CENTRIFUGE') $hasCentrifuge = true;
+                    if ($kode === 'UP-OVERHEAD-STIRRER') $hasOverheadStirrer = true;
+
+                    FormPupItem::create([
+                        'id' => (string) Str::uuid(),
+                        'form_pup_id' => $formPup->id,
+                        'kode_skema' => $cat['kode_skema'],
+                        'nama_skema' => $cat['nama'],
+                        'kategori' => $cat['kategori'],
+                        'tarif_pnbp' => $harga,
+                        'requires_equipment' => (bool) $cat['requires_equipment'],
+                        'equipment_group' => $cat['equipment_group'] ?? null,
+                    ]);
+
+                    DetailPembayaran::create([
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $permohonan->id_pt_ins,
+                        'permohonan_id' => $permohonan->id,
+                        'kode_tarif' => $cat['kode_skema'],
+                        'item_bayar' => $cat['nama'],
+                        'harga_satuan' => $harga,
+                        'kuantitas' => 1,
+                        'subtotal' => $harga,
+                    ]);
+                }
+
+                $diskonNominal = 0;
+                if ($hasCentrifuge && $hasOverheadStirrer) {
+                    $diskonNominal = 1000000;
+                    DetailPembayaran::create([
+                        'id' => (string) Str::uuid(),
+                        'id_pt_ins' => $permohonan->id_pt_ins,
+                        'permohonan_id' => $permohonan->id,
+                        'kode_tarif' => 'DISCOUNT-BUNDLE-UP',
+                        'item_bayar' => 'Potongan Diskon Bundling (Centrifuge + Overhead Stirrer)',
+                        'harga_satuan' => -$diskonNominal,
+                        'kuantitas' => 1,
+                        'subtotal' => -$diskonNominal,
+                    ]);
+                }
+
+                $totalBersih = max(0, $totalKotor - $diskonNominal);
+                $formPup->total_biaya_kotor = $totalKotor;
+                $formPup->diskon_bundling = $diskonNominal;
+                $formPup->total_biaya_bersih = $totalBersih;
+                $formPup->total_skema_dipilih = count($skemaCodes);
+
+                $permohonan->total_harga = $totalBersih;
+            }
+
+            $formPup->save();
+            $permohonan->save();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran Uji Profisiensi berhasil diperbarui!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'total_biaya' => $permohonan->total_harga,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('PupController::update Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui pendaftaran PUP: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan Uji Profisiensi (PUP) setelah revisi
+     */
+    public function ajukanUlang(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormPup::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan Uji Profisiensi tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        if ($request->has('nama_lab_kalibrasi') || $request->has('skema_terpilih')) {
+            $updateResponse = $this->update($request, $id);
+            if ($updateResponse->getStatusCode() !== 200) {
+                return $updateResponse;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => now(),
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Pendaftaran Uji Profisiensi Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah melakukan revisi formulir PUP #' . $permohonan->no_permohonan . ' dan mengajukan kembali untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                $adminIds = NotifHelper::getAdminUserIds();
+                NotifHelper::notifyMany(
+                    $adminIds,
+                    'Pendaftaran Uji Profisiensi Diajukan Ulang',
+                    'Pendaftaran Uji Profisiensi #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (\Exception $notifEx) {
+                Log::warning('Gagal kirim notifikasi admin ajukan ulang PUP: ' . $notifEx->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran Uji Profisiensi berhasil diajukan ulang!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => 'PERMOHONAN',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('PupController::ajukanUlang Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengajukan ulang pendaftaran: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

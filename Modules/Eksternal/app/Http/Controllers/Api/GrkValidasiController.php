@@ -263,4 +263,215 @@ class GrkValidasiController extends Controller
             ], 404);
         }
     }
+
+    /**
+     * Memperbarui formulir permohonan validasi GRK
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormGrkValidasi::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan validasi GRK tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $form = FormGrkValidasi::where('permohonan_id', $permohonan->id)->first();
+        if (!$form) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Form validasi GRK tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $fillable = [
+                'merek_sample', 'acuan_peraturan', 'ruang_lingkup_diajukan', 'uraian_kebutuhan',
+                'nama_pemilik', 'nama_pimpinan', 'nama_pj', 'deskripsi_aktivitas', 'batasan_proyek',
+                'periode_mulai', 'periode_selesai', 'kriteria_verifikasi', 'kriteria_lainnya',
+                'jumlah_karyawan', 'metodologi_pengumpulan', 'estimasi_penurunan_ton_co2e',
+                'tingkat_jaminan', 'materialitas_tipe', 'materialitas_custom', 'konsultan_nama',
+                'konsultan_institusi', 'pihak_eksternal'
+            ];
+
+            foreach ($fillable as $col) {
+                if ($request->has($col)) {
+                    $form->{$col} = $request->input($col);
+                }
+            }
+
+            if ($request->has('jenisProyekGrk') || $request->has('jenis_proyek_grk')) {
+                $form->jenis_proyek_grk = (array) ($request->input('jenisProyekGrk') ?? $request->input('jenis_proyek_grk'));
+            }
+            if ($request->has('useKonsultan') || $request->has('use_konsultan')) {
+                $form->use_konsultan = filter_var($request->input('useKonsultan') ?? $request->input('use_konsultan'), FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($request->has('isShareExternal') || $request->has('is_share_external')) {
+                $form->is_share_external = filter_var($request->input('isShareExternal') ?? $request->input('is_share_external'), FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Update dokumen jika ada
+            $dokumenList = $request->input('dokumenItems') ?? $request->input('dokumen_items');
+            if (is_array($dokumenList) && !empty($dokumenList)) {
+                FormGrkValidasiDokumen::where('form_grk_validasi_id', $form->id)->delete();
+                foreach ($dokumenList as $dok) {
+                    $keterangan = trim($dok['keterangan'] ?? '');
+                    $status = (!empty($keterangan) && strtolower($keterangan) !== 'tidak ada')
+                        ? 'TERSEDIA'
+                        : 'TIDAK_TERSEDIA';
+
+                    FormGrkValidasiDokumen::create([
+                        'id'                    => (string) Str::uuid(),
+                        'form_grk_validasi_id'  => $form->id,
+                        'dokumen_code'          => $dok['code'] ?? ($dok['id'] ?? ''),
+                        'dokumen_nama'          => $dok['name'] ?? '',
+                        'status'                => $status,
+                        'keterangan'            => $keterangan,
+                    ]);
+                }
+            }
+
+            $form->save();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan validasi GRK berhasil diperbarui!',
+                'data'    => [
+                    'id'            => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('GrkValidasiController::update Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui permohonan validasi GRK: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan validasi GRK setelah revisi
+     */
+    public function ajukanUlang(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormGrkValidasi::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan validasi GRK tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        if ($request->has('namaPemilik') || $request->has('dokumenItems')) {
+            $updateResponse = $this->update($request, $id);
+            if ($updateResponse->getStatusCode() !== 200) {
+                return $updateResponse;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => now(),
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Permohonan Validasi GRK Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah melakukan revisi formulir validasi GRK #' . $permohonan->no_permohonan . ' dan mengajukan kembali untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                $adminIds = NotifHelper::getAdminUserIds();
+                NotifHelper::notifyMany(
+                    $adminIds,
+                    'Permohonan Validasi GRK Diajukan Ulang',
+                    'Permohonan validasi GRK #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (\Exception $notifEx) {
+                Log::warning('Gagal kirim notifikasi admin ajukan ulang validasi GRK: ' . $notifEx->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan validasi GRK berhasil diajukan ulang!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => 'PERMOHONAN',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('GrkValidasiController::ajukanUlang Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengajukan ulang permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

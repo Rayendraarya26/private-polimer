@@ -339,4 +339,249 @@ class HalalController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Memperbarui formulir permohonan sertifikasi halal
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $formHalal = FormHalal::where('id', $id)->first();
+            $permohonan = $formHalal ? Permohonan::find($formHalal->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan sertifikasi halal tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $formHalal = FormHalal::where('permohonan_id', $permohonan->id)->first();
+        if (!$formHalal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data formulir halal tidak ditemukan.',
+            ], 404);
+        }
+
+        // Decode JSON inputs jika berbentuk string FormData
+        $dataPengajuan = is_string($request->input('dataPengajuan'))
+            ? json_decode($request->input('dataPengajuan'), true)
+            : $request->input('dataPengajuan', []);
+
+        $dataPelakuUsaha = is_string($request->input('dataPelakuUsaha'))
+            ? json_decode($request->input('dataPelakuUsaha'), true)
+            : $request->input('dataPelakuUsaha', []);
+
+        $dataFasilitas = is_string($request->input('dataFasilitas'))
+            ? json_decode($request->input('dataFasilitas'), true)
+            : $request->input('dataFasilitas', []);
+
+        $dataPenyelia = is_string($request->input('dataPenyelia'))
+            ? json_decode($request->input('dataPenyelia'), true)
+            : $request->input('dataPenyelia', []);
+
+        $dataBahan = is_string($request->input('dataBahan'))
+            ? json_decode($request->input('dataBahan'), true)
+            : $request->input('dataBahan', []);
+
+        $dataProduk = is_string($request->input('dataProduk'))
+            ? json_decode($request->input('dataProduk'), true)
+            : $request->input('dataProduk', []);
+
+        DB::beginTransaction();
+        try {
+            // Upload update berkas bila ada
+            if ($request->hasFile('file_denah_lokasi')) {
+                $formHalal->file_denah_lokasi = $request->file('file_denah_lokasi')->store('halal/denah', 'public');
+            }
+            if ($request->hasFile('file_sk_penyelia')) {
+                $formHalal->file_sk_penyelia = $request->file('file_sk_penyelia')->store('halal/sk_penyelia', 'public');
+            }
+            if ($request->hasFile('file_ktp_penyelia')) {
+                $formHalal->file_ktp_penyelia = $request->file('file_ktp_penyelia')->store('halal/ktp_penyelia', 'public');
+            }
+            if ($request->hasFile('file_sertifikat_penyelia')) {
+                $formHalal->file_sertifikat_penyelia = $request->file('file_sertifikat_penyelia')->store('halal/sertifikat_penyelia', 'public');
+            }
+            if ($request->hasFile('file_alur_proses')) {
+                $formHalal->file_alur_proses = $request->file('file_alur_proses')->store('halal/alur_proses', 'public');
+            }
+            if ($request->hasFile('file_surat_permohonan')) {
+                $formHalal->file_surat_permohonan = $request->file('file_surat_permohonan')->store('halal/surat_permohonan', 'public');
+            }
+            if ($request->hasFile('file_manual_sjph')) {
+                $formHalal->file_manual_sjph = $request->file('file_manual_sjph')->store('halal/manual_sjph', 'public');
+            }
+
+            if (!empty($dataPengajuan['jalur_pendaftaran'])) $formHalal->jalur_pendaftaran = $dataPengajuan['jalur_pendaftaran'];
+            if (!empty($dataPengajuan['jenis_pendaftaran'])) $formHalal->jenis_pendaftaran = $dataPengajuan['jenis_pendaftaran'];
+            if (isset($dataPengajuan['kode_fasilitasi'])) $formHalal->kode_fasilitasi = $dataPengajuan['kode_fasilitasi'];
+
+            if (!empty($dataPelakuUsaha['nama_usaha'])) $formHalal->nama_usaha = $dataPelakuUsaha['nama_usaha'];
+            if (!empty($dataPelakuUsaha['skala_usaha'])) $formHalal->skala_usaha = $dataPelakuUsaha['skala_usaha'];
+            if (!empty($dataPelakuUsaha['nib'])) $formHalal->nib = $dataPelakuUsaha['nib'];
+            if (isset($dataPelakuUsaha['npwp'])) $formHalal->npwp = $dataPelakuUsaha['npwp'];
+            if (!empty($dataPelakuUsaha['pj_nama'])) $formHalal->pj_nama = $dataPelakuUsaha['pj_nama'];
+            if (!empty($dataPelakuUsaha['pj_kontak'])) $formHalal->pj_kontak = $dataPelakuUsaha['pj_kontak'];
+            if (isset($dataPelakuUsaha['pj_email'])) $formHalal->pj_email = $dataPelakuUsaha['pj_email'];
+            if (isset($dataPelakuUsaha['pj_alamat'])) $formHalal->pj_alamat = $dataPelakuUsaha['pj_alamat'];
+
+            if (!empty($dataFasilitas['pabrik'])) $formHalal->pabrik_json = $dataFasilitas['pabrik'];
+            if (isset($dataFasilitas['outlet'])) $formHalal->outlet_json = $dataFasilitas['outlet'];
+
+            if (!empty($dataPenyelia['penyelia_nama'])) $formHalal->penyelia_nama = $dataPenyelia['penyelia_nama'];
+            if (!empty($dataPenyelia['penyelia_nik'])) $formHalal->penyelia_nik = $dataPenyelia['penyelia_nik'];
+            if (!empty($dataPenyelia['penyelia_agama'])) $formHalal->penyelia_agama = $dataPenyelia['penyelia_agama'];
+            if (!empty($dataPenyelia['penyelia_kontak'])) $formHalal->penyelia_kontak = $dataPenyelia['penyelia_kontak'];
+            if (isset($dataPenyelia['penyelia_no_sk'])) $formHalal->penyelia_no_sk = $dataPenyelia['penyelia_no_sk'];
+            if (isset($dataPenyelia['penyelia_tgl_sk'])) $formHalal->penyelia_tgl_sk = $dataPenyelia['penyelia_tgl_sk'];
+            if (isset($dataPenyelia['penyelia_no_sertifikat'])) $formHalal->penyelia_no_sertifikat = $dataPenyelia['penyelia_no_sertifikat'];
+            if (isset($dataPenyelia['penyelia_tgl_sertifikat'])) $formHalal->penyelia_tgl_sertifikat = $dataPenyelia['penyelia_tgl_sertifikat'];
+
+            if (!empty($dataBahan)) $formHalal->bahan_json = $dataBahan;
+            if (!empty($dataProduk)) {
+                $formHalal->produk_json = $dataProduk;
+                if (!empty($dataProduk['alur_proses'])) $formHalal->alur_proses = $dataProduk['alur_proses'];
+            }
+
+            $formHalal->save();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan sertifikasi halal berhasil diperbarui!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('HalalController::update Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui formulir halal: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan sertifikasi halal setelah revisi
+     */
+    public function ajukanUlang(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $formHalal = FormHalal::where('id', $id)->first();
+            $permohonan = $formHalal ? Permohonan::find($formHalal->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan sertifikasi halal tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        // Update data jika dikirim payload baru
+        if ($request->has('dataPengajuan') || $request->has('dataPelakuUsaha') || $request->has('dataFasilitas')) {
+            $updateResponse = $this->update($request, $id);
+            if ($updateResponse->getStatusCode() !== 200) {
+                return $updateResponse;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => now(),
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Permohonan Sertifikasi Halal Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah melakukan revisi formulir halal #' . $permohonan->no_permohonan . ' dan mengajukan kembali untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                $adminIds = NotifHelper::getAdminUserIds();
+                NotifHelper::notifyMany(
+                    $adminIds,
+                    'Permohonan Halal Diajukan Ulang',
+                    'Permohonan sertifikasi halal #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (\Exception $notifEx) {
+                Log::warning('Gagal kirim notifikasi admin ajukan ulang halal: ' . $notifEx->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan sertifikasi halal berhasil diajukan ulang!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => 'PERMOHONAN',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('HalalController::ajukanUlang Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengajukan ulang permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

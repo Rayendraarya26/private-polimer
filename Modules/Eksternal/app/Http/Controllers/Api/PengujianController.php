@@ -976,4 +976,264 @@ class PengujianController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Memperbarui formulir permohonan pengujian laboratorium
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormPengujian::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan pengujian tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $formPengujian = FormPengujian::where('permohonan_id', $permohonan->id)->first();
+        if (!$formPengujian) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Form pengujian tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update file pengantar jika ada
+            if ($request->hasFile('file_surat_pengantar')) {
+                $formPengujian->file_surat_pengantar = $request->file('file_surat_pengantar')->store('permohonan/pengujian/surat', 'public');
+            }
+            if ($request->hasFile('file_ktm')) {
+                $formPengujian->file_ktm = $request->file('file_ktm')->store('permohonan/pengujian/ktm', 'public');
+            }
+
+            // Update field header jika diberikan
+            $fillableFields = [
+                'bahasa_laporan', 'diajukan_oleh', 'biaya_ditanggung_oleh',
+                'laporan_dialamatkan_kepada', 'keterangan_permintaan', 'cara_pembayaran',
+                'kategori_tarif', 'jenis_uji', 'catatan_evaluasi', 'catatan_menyaksikan',
+                'tanggal_bapc', 'no_bapc', 'no_sample', 'merek_kode', 'no_surat_pengantar',
+                'tgl_surat_pengantar'
+            ];
+
+            foreach ($fillableFields as $field) {
+                if ($request->has($field)) {
+                    $formPengujian->{$field} = $request->input($field);
+                }
+            }
+
+            if ($request->has('biaya_sama_dengan_pemohon')) {
+                $formPengujian->biaya_sama_dengan_pemohon = filter_var($request->input('biaya_sama_dengan_pemohon'), FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($request->has('alamat_sama_dengan_pemohon')) {
+                $formPengujian->alamat_sama_dengan_pemohon = filter_var($request->input('alamat_sama_dengan_pemohon'), FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($request->has('permintaan_evaluasi')) {
+                $formPengujian->permintaan_evaluasi = filter_var($request->input('permintaan_evaluasi'), FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($request->has('menyaksikan_uji')) {
+                $formPengujian->menyaksikan_uji = filter_var($request->input('menyaksikan_uji'), FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Update samples jika payload samples disertakan
+            if ($request->has('samples') && is_array($request->input('samples'))) {
+                $samplesData = $request->input('samples');
+                $kategoriTarif = $request->input('kategori_tarif', $formPengujian->kategori_tarif ?? 'umum');
+                $isMahasiswa = $kategoriTarif === 'mahasiswa';
+
+                // Hapus sampel lama beserta parameter
+                $oldSamples = FormPengujianSample::where('form_pengujian_id', $formPengujian->id)->get();
+                foreach ($oldSamples as $oldSample) {
+                    FormPengujianSampleParameter::where('form_pengujian_sample_id', $oldSample->id)->delete();
+                    $oldSample->delete();
+                }
+
+                $grandTotal = 0;
+                foreach ($samplesData as $sIndex => $sample) {
+                    $sampleSubtotal = 0;
+                    $sampleRecord = FormPengujianSample::create([
+                        'id'                 => (string) Str::uuid(),
+                        'form_pengujian_id'  => $formPengujian->id,
+                        'urutan'             => $sample['urutan'] ?? ($sIndex + 1),
+                        'nama_sampel'        => $sample['nama_sampel'] ?? ('Sampel #' . ($sIndex + 1)),
+                        'bentuk_sampel'      => $sample['bentuk_sampel'] ?? null,
+                        'jumlah_sampel'      => $sample['jumlah_sampel'] ?? 1,
+                        'satuan_sampel'      => $sample['satuan_sampel'] ?? 'Pcs',
+                        'no_lot_bets'        => $sample['no_lot_bets'] ?? null,
+                        'kondisi_sampel'     => $sample['kondisi_sampel'] ?? 'Baik',
+                        'master_komoditi_id' => $sample['master_komoditi_id'] ?? null,
+                        'subtotal'           => 0,
+                    ]);
+
+                    $params = $sample['parameters'] ?? [];
+                    foreach ($params as $p) {
+                        $tarif = $p['tarif'] ?? ($isMahasiswa ? ($p['tarif_mahasiswa'] ?? 0) : ($p['tarif_umum'] ?? 0));
+                        $sampleSubtotal += (int) $tarif;
+
+                        FormPengujianSampleParameter::create([
+                            'id'                       => (string) Str::uuid(),
+                            'form_pengujian_sample_id' => $sampleRecord->id,
+                            'master_parameter_id'      => $p['id'] ?? ($p['master_parameter_id'] ?? null),
+                            'kode_parameter'           => $p['kode_parameter'] ?? ($p['kode'] ?? null),
+                            'nama_parameter'           => $p['nama_parameter'] ?? ($p['nama'] ?? ''),
+                            'metode_uji'               => $p['metode_uji'] ?? null,
+                            'satuan'                   => $p['satuan'] ?? null,
+                            'tarif'                    => (int) $tarif,
+                        ]);
+                    }
+
+                    $sampleRecord->update(['subtotal' => $sampleSubtotal]);
+                    $grandTotal += $sampleSubtotal;
+                }
+
+                $formPengujian->total_estimasi_biaya = $grandTotal;
+                $permohonan->harga_permohonan = $grandTotal;
+                $permohonan->total_harga = $grandTotal;
+            }
+
+            $formPengujian->save();
+            $permohonan->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan pengujian berhasil diperbarui.',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'total_harga' => $permohonan->total_harga,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('PengujianController::update Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan pengujian laboratorium setelah revisi
+     */
+    public function ajukanUlang(Request $request, $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $form = FormPengujian::where('id', $id)->first();
+            $permohonan = $form ? Permohonan::find($form->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan pengujian tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        // Validasi kepemilikan data (mitigasi IDOR)
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        if ($request->has('samples') || $request->has('bahasa_laporan') || $request->has('diajukan_oleh')) {
+            $updateResponse = $this->update($request, $id);
+            if ($updateResponse->getStatusCode() !== 200) {
+                return $updateResponse;
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => now(),
+            ]);
+
+            \App\Models\Db2\PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Permohonan Pengujian Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah melakukan revisi formulir pengujian #' . $permohonan->no_permohonan . ' dan mengajukan kembali untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                $adminIds = \App\Helpers\NotifHelper::getAdminUserIds();
+                \App\Helpers\NotifHelper::notifyMany(
+                    $adminIds,
+                    'Permohonan Pengujian Diajukan Ulang',
+                    'Permohonan pengujian laboratorium #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    route('permohonan.layanan.detail', $permohonan->id)
+                );
+            } catch (\Exception $notifEx) {
+                Log::warning('Gagal kirim notifikasi admin ajukan ulang pengujian: ' . $notifEx->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Permohonan pengujian berhasil diajukan ulang!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => 'PERMOHONAN',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('PengujianController::ajukanUlang Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengajukan ulang permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

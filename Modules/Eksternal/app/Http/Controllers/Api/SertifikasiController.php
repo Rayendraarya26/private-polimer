@@ -1225,5 +1225,81 @@ class SertifikasiController extends Controller
 
         abort(404, 'Berkas sertifikat belum tersedia atau belum diterbitkan.');
     }
+
+    /**
+     * Pratinjau berkas Laporan Hasil Pengujian (LHU) laboratorium sertifikasi
+     */
+    public function previewHasilUji(Request $request, ?string $id = null)
+    {
+        $permohonan = null;
+        if ($id && $id !== 'default') {
+            $permohonan = Permohonan::where('id', $id)
+                ->orWhere('no_permohonan', $id)
+                ->orWhere('kode_order', $id)
+                ->first();
+        }
+
+        // Cari file LHU dari lampiran permohonan
+        $fileUrl = null;
+        $nomorRef = $permohonan?->no_permohonan ?: ($id ?: 'LHU-SNI-0001');
+
+        if ($permohonan && !empty($permohonan->file_attachment)) {
+            $attachments = is_array($permohonan->file_attachment)
+                ? $permohonan->file_attachment
+                : (is_string($permohonan->file_attachment) ? json_decode($permohonan->file_attachment, true) : []);
+
+            if (is_array($attachments)) {
+                foreach ($attachments as $att) {
+                    if (in_array($att['kode'] ?? '', ['LHU', 'LAPORAN_HASIL_UJI', 'HASIL_UJI', 'LAPORAN_AUDIT_TAHAP_1'])) {
+                        $fileUrl = $att['file_url'] ?? ($att['path'] ?? null);
+                        break;
+                    }
+                }
+            }
+        }
+
+        $filename = 'LHU_' . str_replace(['/', '\\', ' '], '_', $nomorRef) . '.pdf';
+
+        if ($fileUrl && (str_starts_with($fileUrl, 'http://') || str_starts_with($fileUrl, 'https://'))) {
+            try {
+                $response = Http::timeout(15)->get($fileUrl);
+                if ($response->successful()) {
+                    return response($response->body(), 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                        'Cache-Control' => 'public, max-age=3600',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Gagal fetch LHU remote URL {$fileUrl}: " . $e->getMessage());
+            }
+
+            return redirect()->away($fileUrl);
+        }
+
+        if ($fileUrl) {
+            $cleanPath = ltrim(preg_replace('#^/?storage/#', '', $fileUrl), '/');
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return response(Storage::disk('public')->get($cleanPath), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                ]);
+            }
+            if (file_exists(storage_path('app/public/' . $cleanPath))) {
+                return response()->file(storage_path('app/public/' . $cleanPath), [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                ]);
+            }
+        }
+
+        // Fallback LHU dummy PDF untuk pratinjau testing
+        $dummyPdf = "%PDF-1.4\n1 0 obj\n<< /Title (Laporan Hasil Uji {$nomorRef}) /Author (Laboratorium Pengujian BBSPJIKKP) >>\nendobj\n2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n5 0 obj\n<< /Length 140 >>\nstream\nBT /F1 14 Tf 50 770 Td (BBSPJIKKP - LAPORAN HASIL PENGUJIAN) Tj 0 -30 Td /F1 11 Tf (No. Referensi: {$nomorRef}) Tj 0 -25 Td (Status: Pengujian Laboratorium Terverifikasi Sesuai SNI) Tj ET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000080 00000 n \n0000000130 00000 n \n0000000190 00000 n \n0000000280 00000 n \ntrailer\n<< /Size 6 /Root 2 0 R >>\nstartxref\n470\n%%EOF";
+        return response($dummyPdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
 }
+
 

@@ -412,6 +412,14 @@ class LSPController extends Controller
             ], 404);
         }
 
+        $userId = auth()->id();
+        if ($permohonan->created_by && $permohonan->created_by !== $userId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses untuk menghapus draft ini'
+            ], 403);
+        }
+
         // hanya draft yang boleh dihapus
         if ($permohonan->status_workflow !== 'DRAFT') {
             return response()->json([
@@ -449,6 +457,7 @@ class LSPController extends Controller
 
             // hapus detail
             DetailPermohonan::where('permohonan_id', $id)->delete();
+            DetailPembayaran::where('permohonan_id', $id)->delete();
 
            
             $permohonan->delete();

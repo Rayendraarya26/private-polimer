@@ -246,7 +246,7 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'REG') => 'pelatihan',
@@ -261,6 +261,7 @@
                                         str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') => 'miniplant',
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
+                                        str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
                                         default => 'default'
                                     };
                                 @endphp
@@ -280,7 +281,7 @@
 
                             @if($detailItems->isEmpty())
                                 @php
-                                    $form = $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first();
+                                    $form = $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
@@ -292,6 +293,7 @@
                                         str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') => 'miniplant',
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
+                                        str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
                                         default => 'default'
                                     };
                                 @endphp

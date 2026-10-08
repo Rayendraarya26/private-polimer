@@ -105,6 +105,8 @@ class PermohonanController extends Controller
                     ?? $detail?->formable->pemohon_pic_nama
                     ?? $detail?->formable->penerima_hasil_nama
                     ?? $detail?->formable->nama_usaha
+                    ?? $detail?->formable->pemohon_nama
+                    ?? $detail?->formable->pelanggan_nama
                     ?? $row->creator?->name
                     ?? '-';
             })
@@ -119,6 +121,10 @@ class PermohonanController extends Controller
                     return 'Inspeksi Teknis';
                 if (str_contains($row->no_permohonan, 'HLL') || str_starts_with($row->no_permohonan, 'HAL'))
                     return 'Sertifikasi Halal (LPH)';
+                if (str_contains($row->no_permohonan, 'ASET'))
+                    return 'Sewa Aset';
+                if (str_contains($row->no_permohonan, 'JASA'))
+                    return 'Jasa Lainnya';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -250,7 +256,7 @@ class PermohonanController extends Controller
                 }
 
                 $formable = $row->detailPermohonan->first()?->formable;
-                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? '-';
+                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? $formable?->pemohon_nama ?? $formable?->pelanggan_nama ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP'))
@@ -261,6 +267,10 @@ class PermohonanController extends Controller
                     return 'Inspeksi Teknis';
                 if (str_contains($row->no_permohonan, 'HLL') || str_starts_with($row->no_permohonan, 'HAL'))
                     return 'Sertifikasi Halal (LPH)';
+                if (str_contains($row->no_permohonan, 'ASET'))
+                    return 'Sewa Aset';
+                if (str_contains($row->no_permohonan, 'JASA'))
+                    return 'Jasa Lainnya';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;
@@ -290,6 +300,8 @@ class PermohonanController extends Controller
             'creator',
             'pelanggan',
             'formSertifikasi',
+            'formAset',
+            'formJasaLainnya',
             'formInspeksi',
             'formHalal',
             'formGrkVerifikasi.emisi',
@@ -365,6 +377,8 @@ class PermohonanController extends Controller
             str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
             str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
             str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
+            str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
+            str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
             default => 'Biaya Layanan',
         };
 
@@ -378,6 +392,8 @@ class PermohonanController extends Controller
         $lsp = $permohonan->formLsp?->first();
         $inspeksi = $permohonan->formInspeksi?->first();
         $halal = $permohonan->formHalal?->first();
+        $formAset = $permohonan->formAset?->first();
+        $formJasa = $permohonan->formJasaLainnya?->first();
         $creator = $permohonan->creator;
 
         $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
@@ -385,6 +401,8 @@ class PermohonanController extends Controller
             ?: ($sertifikasi?->nama_perusahaan ?: $sertifikasi?->kontak_person)
             ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
             ?: ($halal?->nama_usaha ?: $halal?->pj_nama)
+            ?: ($formAset?->pemohon_nama)
+            ?: ($formJasa?->pelanggan_nama)
             ?: ($creator?->name ?: 'Pelanggan BBKKP');
 
         $alamatPemohon = ($pelatihan?->alamat_instansi ?: $pelatihan?->alamat_peserta)
@@ -392,10 +410,12 @@ class PermohonanController extends Controller
             ?: ($sertifikasi?->alamat_kantor)
             ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
             ?: ($halal?->pj_alamat)
+            ?: ($formAset?->pemohon_alamat)
+            ?: ($formJasa?->provinsi_nama)
             ?: '-';
 
-        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak) ?: '081234567890';
-        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
+        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon) ?: '081234567890';
+        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $formAset?->pemohon_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
         try {
             $bniService = new BniVaService();
@@ -713,6 +733,8 @@ class PermohonanController extends Controller
                     str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
                     str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
                     str_starts_with($permohonan->no_permohonan, 'UJI') => 'Biaya Pengujian Laboratorium',
+                    str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
+                    str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
                     default => 'Biaya Layanan (' . $permohonan->no_permohonan . ')',
                 };
 

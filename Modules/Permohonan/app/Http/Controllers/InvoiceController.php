@@ -178,6 +178,14 @@ class InvoiceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Passphrase atau Kode OTP harus diisi'], 422);
             }
 
+            $currentUser = auth()->user();
+            if ($currentUser && method_exists($currentUser, 'hasGroup')) {
+                $isAuthorized = $currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT) || $currentUser->hasGroup(SysGroup::ADMIN);
+                if (!$isAuthorized) {
+                    return response()->json(['success' => false, 'message' => 'Hanya Bendahara atau Administrator yang berwenang menandatangani Invoice TTE'], 403);
+                }
+            }
+
             $pegawai = Pegawai::where('user_id', auth()->id())->first();
             $tteService = new TteService();
             if (!$pegawai || empty($pegawai->nik)) {
@@ -190,9 +198,10 @@ class InvoiceController extends Controller
                 $nik = $pegawai->nik;
             }
 
+            $maskedNik = $nik ? (substr($nik, 0, 6) . '******' . substr($nik, -4)) : null;
             Log::info('InvoiceController::approvalInvoice - NIK dari session', [
                 'user_id' => auth()->id(),
-                'nik'     => $nik,
+                'nik'     => $maskedNik,
             ]);
 
             $permohonan = Permohonan::with([
@@ -540,6 +549,14 @@ class InvoiceController extends Controller
 
         if (empty($input['passphrase']) && empty($input['totp'])) {
             return response()->json(['success' => false, 'message' => 'Passphrase atau Kode OTP harus diisi'], 422);
+        }
+
+        $currentUser = auth()->user();
+        if ($currentUser && method_exists($currentUser, 'hasGroup')) {
+            $isAuthorized = $currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT);
+            if (!$isAuthorized) {
+                return response()->json(['success' => false, 'message' => 'Hanya Bendahara yang berwenang menandatangani Kuitansi TTE'], 403);
+            }
         }
 
         $pegawai = Pegawai::where('user_id', auth()->id())->first();

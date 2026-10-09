@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { Step1JenisLayanan } from "./Step1JenisLayanan"
 import { Step2UnggahDokumen } from "./Step2UnggahDokumen"
+import { submitKonsultasiAt } from "../../../services/konsultasiAt"
 
 const STEPS = [
     {
@@ -39,9 +40,7 @@ export const FormKonsultasiAtWizard: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     // State Step 1 (Jenis Layanan)
-    const [selectedLayanan, setSelectedLayanan] = useState<string>("")
-    const [subKonsultasi, setSubKonsultasi] = useState<string>("")
-    const [subKonsultasiLainnya, setSubKonsultasiLainnya] = useState<string>("")
+    const [layananKode, setLayananKode] = useState<string>("")
     const [layananLainnya, setLayananLainnya] = useState<string>("")
 
     // State Step 2 (Unggah Dokumen)
@@ -50,21 +49,11 @@ export const FormKonsultasiAtWizard: React.FC = () => {
 
     const handleNext = () => {
         if (currentStep === 0) {
-            if (!selectedLayanan) {
-                toast.error("Silakan pilih jenis layanan terlebih dahulu")
+            if (!layananKode) {
+                toast.error("Silakan pilih layanan terlebih dahulu")
                 return
             }
-            if (selectedLayanan === "konsultasi") {
-                if (!subKonsultasi) {
-                    toast.error("Silakan pilih bidang / topik konsultasi")
-                    return
-                }
-                if (subKonsultasi === "konsultasi_lainnya" && !subKonsultasiLainnya.trim()) {
-                    toast.error("Silakan sebutkan topik konsultasi yang Anda butuhkan")
-                    return
-                }
-            }
-            if (selectedLayanan === "lainnya" && !layananLainnya.trim()) {
+            if (layananKode === "lainnya" && !layananLainnya.trim()) {
                 toast.error("Silakan sebutkan jenis layanan yang Anda perlukan")
                 return
             }
@@ -99,18 +88,18 @@ export const FormKonsultasiAtWizard: React.FC = () => {
 
         try {
             setIsSubmitting(true)
-            // TODO: Integrasi submit ke endpoint backend dengan FormData
-            console.log("Submit permohonan konsultasi & AT:", {
-                selectedLayanan,
-                subKonsultasi: selectedLayanan === "konsultasi" ? subKonsultasi : null,
-                subKonsultasiLainnya: subKonsultasi === "konsultasi_lainnya" ? subKonsultasiLainnya : null,
-                layananLainnya: selectedLayanan === "lainnya" ? layananLainnya : null,
-                uploadedFiles,
-                catatanDokumen,
+            const res = await submitKonsultasiAt({
+                layananKode,
+                layananLainnya: layananKode === "lainnya" ? layananLainnya.trim() : undefined,
+                catatanDokumen: catatanDokumen.trim() || undefined,
+                files: uploadedFiles,
             })
-            toast.success("Permohonan Konsultasi & Audit Teknologi berhasil dikirim!")
+            toast.success(res?.message || "Permohonan Konsultasi & Audit Teknologi berhasil dikirim!")
+            navigate("/permohonan")
         } catch (err: any) {
-            toast.error(err?.message || "Terjadi kesalahan saat mengirim permohonan")
+            const errors = err?.response?.data?.errors
+            const firstError = errors ? (Object.values(errors)[0] as string[])?.[0] : null
+            toast.error(firstError || err?.response?.data?.message || err?.message || "Terjadi kesalahan saat mengirim permohonan")
         } finally {
             setIsSubmitting(false)
         }
@@ -175,12 +164,8 @@ export const FormKonsultasiAtWizard: React.FC = () => {
       ========================================================== */}
             {currentStep === 0 && (
                 <Step1JenisLayanan
-                    selectedLayanan={selectedLayanan}
-                    setSelectedLayanan={setSelectedLayanan}
-                    subKonsultasi={subKonsultasi}
-                    setSubKonsultasi={setSubKonsultasi}
-                    subKonsultasiLainnya={subKonsultasiLainnya}
-                    setSubKonsultasiLainnya={setSubKonsultasiLainnya}
+                    layananKode={layananKode}
+                    setLayananKode={setLayananKode}
                     layananLainnya={layananLainnya}
                     setLayananLainnya={setLayananLainnya}
                 />

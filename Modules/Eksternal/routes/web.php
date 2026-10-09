@@ -28,6 +28,7 @@ use Modules\Eksternal\Http\Controllers\Api\PengujianController;
 use Modules\Eksternal\Http\Controllers\Api\KalibrasiController;
 use Modules\Eksternal\Http\Controllers\Api\PupController;
 use Modules\Eksternal\Http\Controllers\Api\InspeksiController;
+use Modules\Eksternal\Http\Controllers\Api\KonsultasiAtController;
 use Modules\Eksternal\Http\Controllers\Api\HalalController;
 use Modules\Eksternal\Http\Controllers\Api\MiniplantController;
 use Modules\Eksternal\Http\Controllers\Api\AsetController;
@@ -250,6 +251,11 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
             Route::put('/{id}', [MiniplantController::class, 'update']);
             Route::post('/{id}', [MiniplantController::class, 'update']);
             Route::post('/{id}/ajukan-ulang', [MiniplantController::class, 'ajukanUlang']);
+        });
+
+        Route::prefix('konsultasi-at')->group(function () {
+            Route::get('/master', [KonsultasiAtController::class, 'getMaster']);
+            Route::post('/', [KonsultasiAtController::class, 'store']);
         });
 
         Route::prefix('pup')->group(function () {

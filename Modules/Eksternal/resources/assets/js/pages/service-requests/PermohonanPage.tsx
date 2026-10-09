@@ -20,6 +20,7 @@ import {
   Sprout,
   MapPinPen,
   PackageCheck,
+  Building2,
 } from "lucide-react"
 import { useProfileStatus } from "../../hooks/usePermohonan"
 import Head from "../../components/common/Head"
@@ -186,6 +187,21 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         icon: <Factory className="w-6 h-6 text-slate-600" />,
         route: "/permohonan/miniplant",
         isAvailable: false,
+      },
+    ],
+  },
+  {
+    title: "6. Pemanfaatan Fasilitas & Sewa Aset",
+    desc: "Penyewaan fasilitas fisik balai meliputi lapangan, aula/gedung, peralatan teknis, dan kendaraan operasional.",
+    items: [
+      {
+        id: "sewa-aset",
+        name: "Pemanfaatan & Sewa Aset Balai",
+        desc: "Sewa lapangan olahraga/upacara, aula pertemuan, alat laboratorium, mobil dinas, dan ruang rapat BBSPJIKKP.",
+        icon: <Building2 className="w-6 h-6 text-brand-600" />,
+        badge: "PNBP Resmi",
+        route: "/permohonan/aset",
+        isAvailable: true,
       },
     ],
   },

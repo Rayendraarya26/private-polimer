@@ -30,6 +30,7 @@ const MiniplatPage = lazy(() => import('./pages/service-requests/MiniplantPage')
 const InspeksiPage = lazy(() => import('./pages/service-requests/InspeksiPage'))
 const HalalPage = lazy(() => import('./pages/service-requests/HalalPage'))
 const KonsultasiAuditTeknologiPage = lazy(() => import('./pages/service-requests/KonsultasiAuditTeknologiPage'))
+const AsetPage = lazy(() => import('./pages/service-requests/AsetPage'))
 
 const AppRoutes: React.FC = () => {
   return (
@@ -70,6 +71,7 @@ const AppRoutes: React.FC = () => {
           </Route>
           <Route path="miniplant" element={<MiniplatPage />} />
           <Route path="konsultasi-at" element={<KonsultasiAuditTeknologiPage />} />
+          <Route path="aset" element={<AsetPage />} />
         </Route>
         <Route path="/service-requests">
           <Route index element={<PermohonanPage />} />
@@ -81,6 +83,7 @@ const AppRoutes: React.FC = () => {
           <Route path="kalibrasi" element={<KalibrasiPage />} />
           <Route path="inspeksi" element={<InspeksiPage />} />
           <Route path="halal" element={<HalalPage />} />
+          <Route path="aset" element={<AsetPage />} />
           <Route path=":id" element={<DetailPermohonanPage />} />
         </Route>
 

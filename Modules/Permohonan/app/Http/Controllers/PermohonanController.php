@@ -499,7 +499,6 @@ class PermohonanController extends Controller
 
             $permohonan->update([
                 'status_workflow' => 'PEMBAYARAN',
-                'total_harga' => $total,
                 'harga_permohonan' => $total,
                 'status_penawaran' => 'proses',
                 'catatan_admin' => $path,
@@ -744,7 +743,6 @@ class PermohonanController extends Controller
                     'status_workflow' => 'PEMBAYARAN',
                     'catatan_admin' => $path,
                     'file_surat_penawaran' => $path,
-                    'total_harga' => $nominal,
                     'harga_permohonan' => $nominal,
                 ]);
 
@@ -912,7 +910,6 @@ class PermohonanController extends Controller
 
             // Update status permohonan dengan kolom flat penawaran
             $permohonan->update([
-                'total_harga' => $request->input('total_biaya'),
                 'harga_permohonan' => $request->input('total_biaya'),
                 'file_surat_penawaran' => $filePath,
                 'status_penawaran' => 'proses',

@@ -343,7 +343,6 @@ class BillingPembayaranController extends Controller
                         'invoice_file' => $uploadedFilePath,
                         'invoice_generated_at' => Carbon::now(),
                         'harga_permohonan' => $totalBiaya,
-                        'total_harga' => $totalBiaya,
                         'status_workflow' => in_array($targetMohon->status_workflow, ['PERMOHONAN', 'IN_REVIEW']) ? 'PEMBAYARAN' : $targetMohon->status_workflow,
                     ]);
                 }

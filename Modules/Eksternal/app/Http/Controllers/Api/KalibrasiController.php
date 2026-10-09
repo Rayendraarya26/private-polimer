@@ -129,7 +129,6 @@ class KalibrasiController extends Controller
                 'is_split_bill' => false,
                 'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => $isInternal ? 'LUNAS' : 'BELUM',
-                'total_harga' => 0, // Akan dihitung dan di-update setelah rincian dihitung
                 'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
@@ -262,9 +261,8 @@ class KalibrasiController extends Controller
                 $totalEstimasiBiaya += $subtotalAlat;
             }
 
-            // Update Total Biaya di Form dan Permohonan
+            // Update Total Biaya di Form
             $formKalibrasi->update(['estimasi_total_tarif' => $totalEstimasiBiaya]);
-            $permohonan->update(['total_harga' => $totalEstimasiBiaya]);
 
             // Inisialisasi Record Pembayaran Awal
             DetailPembayaran::create([
@@ -495,7 +493,6 @@ class KalibrasiController extends Controller
             }
 
             $formKalibrasi->update(['estimasi_total_tarif' => $totalEstimasiBiaya]);
-            $permohonan->update(['total_harga' => $totalEstimasiBiaya]);
 
             // Update DetailPembayaran
             $pembayaran = DetailPembayaran::where('permohonan_id', $permohonan->id)->first();

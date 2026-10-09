@@ -419,7 +419,6 @@ class SertifikasiController extends Controller
                     'no_permohonan' => $noPermohonan,
                     'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                     'status_bayar' => 'BELUM',
-                    'total_harga' => 0,
                     'tgl_order' => $isAjukan ? now() : null,
                     'created_by' => auth()->id() ?? '00000000-0000-0000-0000-000000000000',
                     'ip_address' => $request->ip(),

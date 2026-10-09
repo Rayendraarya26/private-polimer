@@ -168,7 +168,6 @@ class AsetController extends Controller
                 'is_split_bill' => false,
                 'status_workflow' => 'PERMOHONAN',
                 'status_bayar' => 'BELUM',
-                'total_harga' => 0, // Ditetapkan oleh admin saat penawaran/billing
                 'tgl_order' => now(),
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),

@@ -16,7 +16,7 @@ const KonsultasiAuditTeknologi: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 mb-1">
-            <Award className="w-4 h-4" />
+            <Award className="w-4 h-4" /> 
             <span>Jogja Industrial Service</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">

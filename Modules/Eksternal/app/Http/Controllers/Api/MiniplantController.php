@@ -175,7 +175,6 @@ class MiniplantController extends Controller
                 'is_split_bill' => false,
                 'status_workflow' => 'PERMOHONAN',
                 'status_bayar' => 'BELUM',
-                'total_harga' => 0, // Akan dihitung dari rincian perlakuan
                 'tgl_order' => now(),
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
@@ -276,7 +275,6 @@ class MiniplantController extends Controller
 
             // 6. Update Total Biaya Permohonan
             $formMiniplant->update(['estimasi_total_biaya' => $totalEstimasiBiaya]);
-            $permohonan->update(['total_harga' => $totalEstimasiBiaya]);
 
             // 7. Simpan Record Detail Pembayaran
             DetailPembayaran::create([
@@ -484,7 +482,6 @@ class MiniplantController extends Controller
                 }
 
                 $formMiniplant->estimasi_total_biaya = $totalEstimasiBiaya;
-                $permohonan->total_harga = $totalEstimasiBiaya;
             }
 
             $formMiniplant->save();
@@ -497,7 +494,7 @@ class MiniplantController extends Controller
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
-                    'total_harga' => $permohonan->total_harga,
+                    'total_harga' => $formMiniplant->estimasi_total_biaya,
                 ],
             ]);
         } catch (\Exception $e) {

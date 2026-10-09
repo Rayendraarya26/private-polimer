@@ -49,7 +49,6 @@ class Permohonan extends Model
         'feedback_json',
         'feedback_at',
         'file_attachment',
-        'total_harga',
         'harga_permohonan',
         'file_surat_penawaran',
         'status_penawaran',
@@ -73,12 +72,16 @@ class Permohonan extends Model
         'tte_invoice_requested_at' => 'datetime',
         'tte_kuitansi_requested' => 'boolean',
         'tte_kuitansi_requested_at' => 'datetime',
-        'total_harga' => 'decimal:2',
         'sis_synced_at' => 'datetime',
         'tanggal_sertifikat_terbit' => 'date',
         'tanggal_sertifikat_kadaluarsa' => 'date',
         'feedback_json' => 'array',
         'file_attachment' => 'array',
+    ];
+
+    protected $appends = [
+        'penawaran_biaya',
+        'total_harga',
     ];
 
     public function detailPembayaran()
@@ -161,6 +164,11 @@ class Permohonan extends Model
         return $this->hasMany(FormJasaLainnya::class, 'permohonan_id');
     }
 
+    public function formKonsultasiAt()
+    {
+        return $this->hasMany(FormKonsultasiAt::class, 'permohonan_id');
+    }
+
     public function sertifikasi()
     {
         return $this->hasMany(\App\Models\Db1\PelangganSertifikasi::class, 'permohonan_id');
@@ -238,6 +246,24 @@ class Permohonan extends Model
             },
             'alasan_penolakan' => $this->catatan_penawaran,
         ];
+    }
+
+    public function getTotalHargaAttribute(): float
+    {
+        if (isset($this->attributes['harga_permohonan']) && (float) $this->attributes['harga_permohonan'] > 0) {
+            return (float) $this->attributes['harga_permohonan'];
+        }
+
+        if ($this->relationLoaded('detailPembayaran')) {
+            return (float) $this->detailPembayaran->sum('subtotal');
+        }
+
+        return (float) ($this->detailPembayaran()->sum('subtotal') ?? 0);
+    }
+
+    public function setTotalHargaAttribute($value): void
+    {
+        $this->attributes['harga_permohonan'] = $value;
     }
 
     public function integrationLog(): HasMany

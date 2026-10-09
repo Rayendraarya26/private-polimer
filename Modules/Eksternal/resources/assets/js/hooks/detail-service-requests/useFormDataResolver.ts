@@ -1,6 +1,7 @@
 import { resolveGrkFormData } from "../../utils/grkHelpers"
 
 interface PermohonanTypes {
+  isAset?: boolean
   isPup: boolean
   isKalibrasi: boolean
   isInspeksi: boolean
@@ -17,6 +18,16 @@ export function useFormDataResolver(
   types: PermohonanTypes,
   listPabrik?: any
 ) {
+  const formAsetData = types.isAset
+    ? (formData?.jenis_sewa
+      ? formData
+      : (Array.isArray(permohonan?.form_aset) && permohonan.form_aset.length > 0
+        ? permohonan.form_aset[0]
+        : (Array.isArray(permohonan?.formAset) && permohonan.formAset.length > 0
+          ? permohonan.formAset[0]
+          : formData)))
+    : null
+
   const formPupData = types.isPup
     ? (formData?.nama_lab_kalibrasi
       ? formData
@@ -235,6 +246,7 @@ export function useFormDataResolver(
   )
 
   return {
+    formAsetData,
     formPupData,
     formKalibrasiData,
     formInspeksiData,

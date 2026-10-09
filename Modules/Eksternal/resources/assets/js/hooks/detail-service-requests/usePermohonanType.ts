@@ -49,15 +49,28 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
                     ? "Pengujian Laboratorium"
                     : noOrder.includes("HLL") || noOrder.startsWith("HAL")
                       ? "Sertifikasi Halal (LPH BBSPJIKKP)"
-                      : "Layanan BBSPJIKKP")
+                      : noOrder.includes("ASET") || permohonan?.formable_type?.includes("FormAset") || lingkup?.slug?.includes("aset")
+                        ? "Pemanfaatan & Sewa Aset Balai"
+                        : "Layanan BBSPJIKKP")
 
   // Deteksi Tipe / Lingkup Permohonan Secara Akurat (Strict)
+  const isAset = Boolean(
+    noOrder.includes("ASET") ||
+    permohonan?.formable_type?.includes("FormAset") ||
+    lingkup?.slug?.includes("aset") ||
+    Boolean(formData?.jenis_sewa) ||
+    (Array.isArray(permohonan?.form_aset) && permohonan.form_aset.length > 0) ||
+    (Array.isArray(permohonan?.formAset) && permohonan.formAset.length > 0)
+  )
+
   const isPup = Boolean(
-    noOrder.startsWith("PUP") ||
-    permohonan?.formable_type?.includes("FormPup") ||
-    Boolean(formData?.nama_lab_kalibrasi) ||
-    (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0) ||
-    (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0)
+    !isAset && (
+      noOrder.startsWith("PUP") ||
+      permohonan?.formable_type?.includes("FormPup") ||
+      Boolean(formData?.nama_lab_kalibrasi) ||
+      (Array.isArray(permohonan?.form_pup) && permohonan.form_pup.length > 0) ||
+      (Array.isArray(permohonan?.formPup) && permohonan.formPup.length > 0)
+    )
   )
 
   const isLsp = Boolean(
@@ -161,7 +174,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant)
+  const isSertifikasi = Boolean(!isAset && !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant)
 
   return {
     noOrder,
@@ -170,6 +183,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     isDraft,
     isDone,
     layananName,
+    isAset,
     isPup,
     isLsp,
     isPelatihan,

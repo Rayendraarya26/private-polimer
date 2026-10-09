@@ -5,6 +5,7 @@ import EditFormPelatihan from "./EditFormPelatihan"
 import EditFormLSP from "./EditFormLSP"
 import EditFormSertifikasi from "./EditFormSertifikasi"
 import EditFormKalibrasi from "./EditFormKalibrasi"
+import EditFormAset from "./EditFormAset"
 import Head from "../common/Head"
 import { Card } from "../ui/Card"
 import { Button } from "../ui/Button"
@@ -26,10 +27,11 @@ const EditFormRouter: React.FC = () => {
 
         let detectedType = detail?.formable_type || ""
 
-        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK, LABKAL)
+        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK, LABKAL, ASET)
         const noPermohonan = detail?.no_permohonan || ""
         if (!detectedType && noPermohonan) {
-          if (noPermohonan.startsWith("CERT") || noPermohonan.startsWith("SRT")) detectedType = "FormSertifikasi"
+          if (noPermohonan.includes("ASET")) detectedType = "FormAset"
+          else if (noPermohonan.startsWith("CERT") || noPermohonan.startsWith("SRT")) detectedType = "FormSertifikasi"
           else if (noPermohonan.startsWith("LSP")) detectedType = "FormLsp"
           else if (noPermohonan.startsWith("REG") || noPermohonan.startsWith("TRN") || noPermohonan.startsWith("UMK")) detectedType = "FormPelatihan"
           else if (noPermohonan.includes("LABKAL") || noPermohonan.startsWith("KAL")) detectedType = "FormKalibrasi"
@@ -119,6 +121,11 @@ const EditFormRouter: React.FC = () => {
   }
 
   const normalizedType = (formType || "").toLowerCase()
+
+  // FORM SEWA ASET
+  if (normalizedType.includes("aset") || normalizedType.includes("formaset")) {
+    return <EditFormAset />
+  }
 
   // FORM PELATIHAN
   if (normalizedType.includes("pelatihan") || normalizedType.includes("training") || normalizedType.includes("bimtek")) {

@@ -74,7 +74,8 @@ class GroupSeeder extends Seeder
                 $modulePermohonan . '\PermohonanController@detail',
             ])
             ->orWhere('controller', 'LIKE', $modulePermohonan . '\InvoiceController%')
-            ->orWhere('controller', 'LIKE', $modulePermohonan . '\BillingPembayaranController%');
+            ->orWhere('controller', 'LIKE', $modulePermohonan . '\BillingPembayaranController%')
+            ->orWhere('controller', 'LIKE', $modulePermohonan . '\JasaLainnyaController%');
         })->get();
 
         foreach ($bendaharaActions as $action) {

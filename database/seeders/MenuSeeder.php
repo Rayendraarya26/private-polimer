@@ -378,6 +378,23 @@ class MenuSeeder extends Seeder
                             ['name' => 'delete', 'controller' => $modulePermohonan . '\MasterLingkupLayananController@destroy'],
                         ],
                     ],
+                    [
+                        'name' => 'Pencatatan Jasa Lainnya',
+                        'desc' => 'Pencatatan pendapatan jasa lainnya non-layanan utama (Bendahara)',
+                        'is_active' => 'yes',
+                        'order' => 6,
+                        'icon' => 'fa-duotone fa-hand-holding-dollar',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\JasaLainnyaController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\JasaLainnyaController@ajax'],
+                            ['name' => 'create', 'controller' => $modulePermohonan . '\JasaLainnyaController@create'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\JasaLainnyaController@store'],
+                            ['name' => 'show', 'controller' => $modulePermohonan . '\JasaLainnyaController@show'],
+                            ['name' => 'edit', 'controller' => $modulePermohonan . '\JasaLainnyaController@edit'],
+                            ['name' => 'update', 'controller' => $modulePermohonan . '\JasaLainnyaController@update'],
+                            ['name' => 'delete', 'controller' => $modulePermohonan . '\JasaLainnyaController@destroy'],
+                        ],
+                    ],
                 ],
             ],
         ];

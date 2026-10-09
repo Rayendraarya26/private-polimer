@@ -66,6 +66,9 @@ import {
 import {
   SertifikasiDetailSection,
 } from "../../components/detail-service-requests/SertifikasiDetailSection"
+import {
+  KonsultasiATDetailSection,
+} from "../../components/detail-service-requests/KonsultasiATDetailSection"
 import { formatIndoDate } from "../../utils/formatIndoDate"
 import { getFileUrl, getDocLabel } from "../../utils/fileHelpers"
 import { getStatusBadge, getStepIndex } from "../../utils/statusHelpers"
@@ -119,7 +122,7 @@ export const DetailPermohonanPage: React.FC = () => {
     isPup, isLsp, isPelatihan,
     isGrk, isGrkValidasi,
     isKalibrasi, isInspeksi, isPengujian,
-    isHalal, isMiniplant, isSertifikasi,
+    isHalal, isMiniplant, isKonsultasi, isSertifikasi,
     namaPemohon, npwp, nib, noAkta,
     namaPimpinan, wakilManajemen,
     pic, phone, email, alamat, totalKaryawan,
@@ -130,12 +133,13 @@ export const DetailPermohonanPage: React.FC = () => {
   const {
     formPupData, formKalibrasiData, formInspeksiData,
     formPengujianData, formHalalData, formMiniplantData, formGrkData,
+    formKonsultasiData,
     items, pabriks, docs,
     pernyataanFile,
   } = useFormDataResolver(
     permohonan,
     formData,
-    { isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi },
+    { isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi },
     listPabrik,
   )
 
@@ -339,8 +343,19 @@ export const DetailPermohonanPage: React.FC = () => {
         </div>
       )}
 
-      {/* DETAIL CONTENT: Jika Miniplant atau Kalibrasi tampil langsung satu halaman tanpa tab/step-step */}
-      {isMiniplant ? (
+      {isKonsultasi ? (
+        <div className="w-full space-y-6">
+          <KonsultasiATDetailSection
+            permohonan={permohonan}
+            formKonsultasiAt={formKonsultasiData}
+            formatIndoDate={formatIndoDate}
+            openInvoice={openInvoice}
+            openKuitansi={openKuitansi}
+            openSuratPenawaran={openSuratPenawaran}
+            openPdfDoc={openPdfDoc}
+          />
+        </div>
+      ) : isMiniplant ? (
         <div className="w-full space-y-6">
           <MiniplantDetailPermohonanTab
             permohonan={permohonan}

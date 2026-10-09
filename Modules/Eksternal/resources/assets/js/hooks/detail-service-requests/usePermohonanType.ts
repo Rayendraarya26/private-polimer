@@ -31,25 +31,27 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
   const layananName =
     lingkup?.lingkup ||
     lingkup?.nama ||
-    (noOrder.startsWith("CERT")
-      ? "Sertifikasi Produk & Sistem (LSPro)"
-      : noOrder.startsWith("LSP")
-        ? "Sertifikasi Profesi (LSP)"
-        : noOrder.startsWith("REG") || noOrder.startsWith("TRN") || noOrder.startsWith("UMK")
-          ? "Bimbingan Teknis & Pelatihan"
-          : noOrder.startsWith("VAL")
-            ? "Validasi Gas Rumah Kaca (GRK)"
-            : noOrder.startsWith("GRK")
-              ? "Verifikasi Gas Rumah Kaca (GRK)"
-              : noOrder.startsWith("PUP")
-                ? "Penyelenggara Uji Profisiensi (PUP)"
-                : noOrder.includes("LABKAL") || noOrder.startsWith("KLB") || noOrder.startsWith("KAL") || noOrder.startsWith("CAL")
-                  ? "Kalibrasi Alat"
-                  : noOrder.startsWith("UJI") || noOrder.startsWith("TEST")
-                    ? "Pengujian Laboratorium"
-                    : noOrder.includes("HLL") || noOrder.startsWith("HAL")
-                      ? "Sertifikasi Halal (LPH BBSPJIKKP)"
-                      : "Layanan BBSPJIKKP")
+    (noOrder.endsWith("/KAT") || noOrder.includes("KAT")
+      ? "Konsultasi dan Audit Teknologi"
+      : noOrder.startsWith("CERT")
+        ? "Sertifikasi Produk & Sistem (LSPro)"
+        : noOrder.startsWith("LSP")
+          ? "Sertifikasi Profesi (LSP)"
+          : noOrder.startsWith("REG") || noOrder.startsWith("TRN") || noOrder.startsWith("UMK")
+            ? "Bimbingan Teknis & Pelatihan"
+            : noOrder.startsWith("VAL")
+              ? "Validasi Gas Rumah Kaca (GRK)"
+              : noOrder.startsWith("GRK")
+                ? "Verifikasi Gas Rumah Kaca (GRK)"
+                : noOrder.startsWith("PUP")
+                  ? "Penyelenggara Uji Profisiensi (PUP)"
+                  : noOrder.includes("LABKAL") || noOrder.startsWith("KLB") || noOrder.startsWith("KAL") || noOrder.startsWith("CAL")
+                    ? "Kalibrasi Alat"
+                    : noOrder.startsWith("UJI") || noOrder.startsWith("TEST")
+                      ? "Pengujian Laboratorium"
+                      : noOrder.includes("HLL") || noOrder.startsWith("HAL")
+                        ? "Sertifikasi Halal (LPH BBSPJIKKP)"
+                        : "Layanan BBSPJIKKP")
 
   // Deteksi Tipe / Lingkup Permohonan Secara Akurat (Strict)
   const isPup = Boolean(
@@ -161,7 +163,20 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     )
   )
 
-  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant)
+  const isKonsultasi = Boolean(
+    !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isInspeksi && !isPengujian && !isHalal && !isMiniplant && (
+      noOrder.endsWith("/KAT") ||
+      noOrder.includes("KAT") ||
+      permohonan?.formable_type?.includes("FormKonsultasiAt") ||
+      lingkup?.slug?.includes("konsultasi") ||
+      lingkup?.nama_layanan?.toLowerCase()?.includes("konsultasi") ||
+      Boolean(formData?.layanan_kode || formData?.master_konsultasi_at_id) ||
+      (Array.isArray(permohonan?.form_konsultasi_at) && permohonan.form_konsultasi_at.length > 0) ||
+      (Array.isArray(permohonan?.formKonsultasiAt) && permohonan.formKonsultasiAt.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant && !isKonsultasi)
 
   return {
     noOrder,
@@ -180,6 +195,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     isPengujian,
     isHalal,
     isMiniplant,
+    isKonsultasi,
     isSertifikasi,
     namaPemohon,
     npwp,

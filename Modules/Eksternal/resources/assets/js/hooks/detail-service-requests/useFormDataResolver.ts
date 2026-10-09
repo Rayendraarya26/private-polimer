@@ -9,6 +9,7 @@ interface PermohonanTypes {
   isMiniplant: boolean
   isGrk: boolean
   isGrkValidasi: boolean
+  isKonsultasi?: boolean
 }
 
 export function useFormDataResolver(
@@ -78,6 +79,16 @@ export function useFormDataResolver(
     : null
 
   const formGrkData = resolveGrkFormData(permohonan, formData, types.isGrk, types.isGrkValidasi)
+
+  const formKonsultasiData = types.isKonsultasi
+    ? (formData?.layanan_kode
+      ? formData
+      : (Array.isArray(permohonan?.form_konsultasi_at) && permohonan.form_konsultasi_at.length > 0
+        ? permohonan.form_konsultasi_at[0]
+        : (Array.isArray(permohonan?.formKonsultasiAt) && permohonan.formKonsultasiAt.length > 0
+          ? permohonan.formKonsultasiAt[0]
+          : formData)))
+    : null
 
   // Parse Items / Komoditas
   const parseItems = () => {
@@ -242,6 +253,7 @@ export function useFormDataResolver(
     formHalalData,
     formMiniplantData,
     formGrkData,
+    formKonsultasiData,
     items,
     pabriks,
     docs,

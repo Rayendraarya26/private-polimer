@@ -73,15 +73,24 @@ class JasaLainnyaController extends Controller
     {
         $this->checkAccess(false);
 
-        $query = FormJasaLainnya::with(['permohonan', 'pencatat'])->latest();
+        $query = FormJasaLainnya::query()
+            ->leftJoin('permohonan', 'permohonan.id', '=', 'form_jasa_lainnya.permohonan_id')
+            ->select('form_jasa_lainnya.*', 'permohonan.no_permohonan as permohonan_no_permohonan')
+            ->with(['permohonan', 'pencatat']);
 
         $currentUser = auth()->user();
         $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->filterColumn('no_permohonan', function ($q, $keyword) {
+                $q->where('permohonan.no_permohonan', 'like', "%{$keyword}%");
+            })
+            ->orderColumn('no_permohonan', function ($q, $order) {
+                $q->orderBy('permohonan.no_permohonan', $order);
+            })
             ->addColumn('no_permohonan', function ($row) {
-                $no = $row->permohonan?->no_permohonan ?? '-';
+                $no = $row->permohonan?->no_permohonan ?? $row->permohonan_no_permohonan ?? '-';
                 return '<span class="fw-bold text-dark font-monospace">' . e($no) . '</span>';
             })
             ->addColumn('pelanggan_nama', function ($row) {
@@ -159,22 +168,32 @@ class JasaLainnyaController extends Controller
         $this->checkAccess(true);
 
         $validated = $request->validate([
-            'pelanggan_nama'  => 'required|string|max:255',
+            'pelanggan_nama' => 'required|string|max:255',
             'jenis_pelanggan' => 'required|in:perorangan,perusahaan,instansi_pemerintah,lembaga_organisasi',
-            'negara'          => 'required|string|max:100',
-            'provinsi_id'     => 'nullable|string|max:50',
-            'kabupaten_id'    => 'nullable|string|max:50',
-            'uraian'          => 'required|string',
-            'total'           => 'required|numeric|min:0',
-            'tgl_bayar'       => 'required|date',
+            'negara' => 'required|string|max:100',
+            'provinsi_id' => 'nullable|string|max:50',
+            'kabupaten_id' => 'nullable|string|max:50',
+            'uraian' => 'required|string',
+            'total' => 'required|numeric|min:0',
+            'tgl_bayar' => 'required|date',
         ]);
 
         DB::beginTransaction();
         try {
             // Generate Nomor Permohonan Berurutan: 0001/JASA/{BulanRomawi}/{Tahun}
             $romawiMap = [
-                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+                1 => 'I',
+                2 => 'II',
+                3 => 'III',
+                4 => 'IV',
+                5 => 'V',
+                6 => 'VI',
+                7 => 'VII',
+                8 => 'VIII',
+                9 => 'IX',
+                10 => 'X',
+                11 => 'XI',
+                12 => 'XII'
             ];
             $bulanRomawi = $romawiMap[(int) now()->format('n')] ?? 'I';
             $suffix = '/JASA/' . $bulanRomawi . '/' . now()->format('Y');
@@ -216,7 +235,7 @@ class JasaLainnyaController extends Controller
                 'is_split_bill' => false,
                 'status_workflow' => 'DONE',
                 'status_bayar' => 'LUNAS',
-                'total_harga' => $validated['total'],
+                'harga_permohonan' => $validated['total'],
                 'tgl_order' => $validated['tgl_bayar'],
                 'created_by' => auth()->id(),
                 'ip_address' => $request->ip(),
@@ -291,7 +310,7 @@ class JasaLainnyaController extends Controller
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
-                'sumber' => 'INTERNAL_BENDAHARA',
+                'sumber' => 'POLIMER',
                 'milestone_code' => 'JASA_DICATAT',
                 'judul' => 'Penerimaan Jasa Lainnya Dicatat',
                 'deskripsi' => 'Transaksi jasa lainnya #' . $noPermohonan . ' senilai Rp ' . number_format((float) $validated['total'], 0, ',', '.') . ' berhasil dicatat oleh Bendahara.',
@@ -321,9 +340,9 @@ class JasaLainnyaController extends Controller
             'permohonan.detailPembayaranGrup',
             'pencatat',
         ])
-        ->where('id', $id)
-        ->orWhere('permohonan_id', $id)
-        ->firstOrFail();
+            ->where('id', $id)
+            ->orWhere('permohonan_id', $id)
+            ->firstOrFail();
 
         $currentUser = auth()->user();
         $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
@@ -390,14 +409,14 @@ class JasaLainnyaController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'pelanggan_nama'  => 'required|string|max:255',
+            'pelanggan_nama' => 'required|string|max:255',
             'jenis_pelanggan' => 'required|in:perorangan,perusahaan,instansi_pemerintah,lembaga_organisasi',
-            'negara'          => 'required|string|max:100',
-            'provinsi_id'     => 'nullable|string|max:50',
-            'kabupaten_id'    => 'nullable|string|max:50',
-            'uraian'          => 'required|string',
-            'total'           => 'required|numeric|min:0',
-            'tgl_bayar'       => 'required|date',
+            'negara' => 'required|string|max:100',
+            'provinsi_id' => 'nullable|string|max:50',
+            'kabupaten_id' => 'nullable|string|max:50',
+            'uraian' => 'required|string',
+            'total' => 'required|numeric|min:0',
+            'tgl_bayar' => 'required|date',
         ]);
 
         DB::beginTransaction();
@@ -415,30 +434,30 @@ class JasaLainnyaController extends Controller
             }
 
             $jasa->update([
-                'pelanggan_nama'  => $validated['pelanggan_nama'],
+                'pelanggan_nama' => $validated['pelanggan_nama'],
                 'jenis_pelanggan' => $validated['jenis_pelanggan'],
-                'negara'          => $validated['negara'],
-                'provinsi_id'     => $validated['provinsi_id'] ?? null,
-                'provinsi_nama'   => $provinsiNama,
-                'kabupaten_id'    => $validated['kabupaten_id'] ?? null,
-                'kabupaten_nama'  => $kabupatenNama,
-                'uraian'          => $validated['uraian'],
-                'total'           => $validated['total'],
-                'tgl_bayar'       => $validated['tgl_bayar'],
+                'negara' => $validated['negara'],
+                'provinsi_id' => $validated['provinsi_id'] ?? null,
+                'provinsi_nama' => $provinsiNama,
+                'kabupaten_id' => $validated['kabupaten_id'] ?? null,
+                'kabupaten_nama' => $kabupatenNama,
+                'uraian' => $validated['uraian'],
+                'total' => $validated['total'],
+                'tgl_bayar' => $validated['tgl_bayar'],
             ]);
 
             // Update Permohonan header & detail pembayaran jika ada perubahan total
             if ($jasa->permohonan) {
                 $jasa->permohonan->update([
-                    'total_harga' => $validated['total'],
-                    'tgl_order'   => $validated['tgl_bayar'],
+                    'harga_permohonan' => $validated['total'],
+                    'tgl_order' => $validated['tgl_bayar'],
                 ]);
 
                 DetailPembayaran::where('permohonan_id', $jasa->permohonan->id)->update([
-                    'item_bayar'   => $validated['uraian'],
+                    'item_bayar' => $validated['uraian'],
                     'harga_satuan' => $validated['total'],
-                    'subtotal'     => $validated['total'],
-                    'tgl_bayar'    => $validated['tgl_bayar'],
+                    'subtotal' => $validated['total'],
+                    'tgl_bayar' => $validated['tgl_bayar'],
                 ]);
             }
 

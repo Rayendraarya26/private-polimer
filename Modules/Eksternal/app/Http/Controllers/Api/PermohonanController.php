@@ -119,6 +119,8 @@ class PermohonanController extends Controller
 
             $namaPemohon = $form?->nama_perusahaan
                 ?? $form?->nama_lengkap
+                ?? $form?->pemohon_nama
+                ?? $form?->pelanggan_nama
                 ?? $form?->nama_peserta
                 ?? $form?->diajukan_oleh
                 ?? $form?->biaya_ditanggung_oleh
@@ -147,6 +149,10 @@ class PermohonanController extends Controller
                     $layananNama = 'Pengujian Laboratorium';
                 elseif (str_contains($item->no_permohonan, 'INSP') || str_starts_with($item->no_permohonan, 'INS'))
                     $layananNama = 'Inspeksi Teknis (Karung Plastik)';
+                elseif (str_contains($item->no_permohonan, 'ASET'))
+                    $layananNama = 'Pemanfaatan & Sewa Aset Balai';
+                elseif (str_contains($item->no_permohonan, 'JASA') || str_contains($item->no_permohonan, 'LAIN'))
+                    $layananNama = 'Pencatatan Jasa Lainnya (PNBP)';
                 else
                     $layananNama = 'Layanan BBKKP';
             }
@@ -172,6 +178,10 @@ class PermohonanController extends Controller
                 $komoditi = $form->komoditas ?: 'Jasa Inspeksi Kemasan';
             } elseif ($form instanceof \App\Models\Db2\FormHalal) {
                 $komoditi = ($form->jalur_pendaftaran === 'self_declare' ? 'Self Declare (SEHATI)' : 'Reguler (Audit LPH)') . ' - ' . ($form->nama_usaha ?: 'Sertifikasi Halal');
+            } elseif ($form instanceof \App\Models\Db2\FormAset) {
+                $komoditi = ucwords(str_replace('_', ' ', $form->jenis_sewa)) . ($form->durasi_hari ? ' (' . $form->durasi_hari . ' Hari)' : '');
+            } elseif ($form instanceof \App\Models\Db2\FormJasaLainnya) {
+                $komoditi = $form->uraian ?: 'Layanan Jasa Lainnya (PNBP)';
             }
 
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
@@ -527,6 +537,8 @@ class PermohonanController extends Controller
             'formMiniplant.items.masterMiniplant',
             'formKonsultasiAt.dokumen',
             'formKonsultasiAt.master',
+            'formAset',
+            'formJasaLainnya',
             'trackingLogs',
         ]);
 
@@ -589,6 +601,12 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formKonsultasiAt && $permohonan->formKonsultasiAt->isNotEmpty()) {
                 $formData = $permohonan->formKonsultasiAt->first();
                 $formableType = \App\Models\Db2\FormKonsultasiAt::class;
+            } elseif ($permohonan->formAset && $permohonan->formAset->isNotEmpty()) {
+                $formData = $permohonan->formAset->first();
+                $formableType = \App\Models\Db2\FormAset::class;
+            } elseif ($permohonan->formJasaLainnya && $permohonan->formJasaLainnya->isNotEmpty()) {
+                $formData = $permohonan->formJasaLainnya->first();
+                $formableType = \App\Models\Db2\FormJasaLainnya::class;
             }
         }
 

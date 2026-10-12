@@ -62,7 +62,7 @@ class BillingPembayaranController extends Controller
 
         // 2. Ambil data pelanggan perusahaan & permohonan yang belum memiliki billing
         $pelangganRaw = Pelanggan::with(['detail', 'user'])->get();
-        $permohonanList = Permohonan::with(['formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'penawaranBiaya', 'creator', 'detailPermohonan.lingkupLayanan'])
+        $permohonanList = Permohonan::with(['formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formAset', 'penawaranBiaya', 'creator', 'detailPermohonan.lingkupLayanan'])
             ->whereNotIn('id', $billedMohonIds)
             ->latest()
             ->get();
@@ -95,7 +95,8 @@ class BillingPembayaranController extends Controller
             $form = $mohon->formSertifikasi->first();
             $inspeksi = $mohon->formInspeksi->first();
             $halal = $mohon->formHalal->first();
-            $namaPerusahaan = $form?->nama_perusahaan ?? $inspeksi?->biaya_nama ?? $halal?->nama_usaha ?? $mohon->creator?->name;
+            $aset = $mohon->formAset->first();
+            $namaPerusahaan = $form?->nama_perusahaan ?? $inspeksi?->biaya_nama ?? $halal?->nama_usaha ?? $aset?->pemohon_nama ?? $mohon->creator?->name;
             if (!empty($namaPerusahaan)) {
                 $key = strtolower(trim($namaPerusahaan));
                 if (!isset($usedCompanyNames[$key])) {
@@ -104,7 +105,7 @@ class BillingPembayaranController extends Controller
                         'id' => $mohon->id,
                         'user_id' => $mohon->created_by,
                         'nama_perusahaan' => $namaPerusahaan,
-                        'email' => $form?->email ?? $inspeksi?->biaya_email ?? $halal?->pj_email ?? $mohon->creator?->email ?? '-',
+                        'email' => $form?->email ?? $inspeksi?->biaya_email ?? $halal?->pj_email ?? $aset?->pemohon_email ?? $mohon->creator?->email ?? '-',
                     ]);
                 }
             }

@@ -441,7 +441,9 @@ export const DetailPermohonanPage: React.FC = () => {
                                   ? "Data Produk & Bahan Halal"
                                   : isMiniplant
                                     ? "Detail Miniplant & Perlakuan"
-                                    : "Data Permohonan"}
+                                    : isAset
+                                      ? "Rincian Sewa Aset"
+                                      : "Data Permohonan"}
                   </span>
                 </div>
                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
@@ -454,7 +456,9 @@ export const DetailPermohonanPage: React.FC = () => {
                         ? (formHalalData?.produk_json?.length || 1)
                         : isMiniplant
                           ? (formMiniplantData?.items?.length || 1)
-                          : (items.length > 0 ? items.length : 1)}
+                          : isAset
+                            ? (formAsetData?.durasi_hari ? `${formAsetData.durasi_hari} Hari` : "1 Aset")
+                            : (items.length > 0 ? items.length : 1)}
                 </span>
               </button>
 
@@ -475,7 +479,9 @@ export const DetailPermohonanPage: React.FC = () => {
                         ? "Data Instansi / Peserta"
                         : isInspeksi
                           ? "Penerima & Pemohon"
-                          : "Data Perusahaan"}
+                          : isAset
+                            ? "Identitas Pemohon"
+                            : "Data Perusahaan"}
                   </span>
                 </div>
                 {!isPup && !isPelatihan && !isInspeksi && pabriks.length > 0 && (

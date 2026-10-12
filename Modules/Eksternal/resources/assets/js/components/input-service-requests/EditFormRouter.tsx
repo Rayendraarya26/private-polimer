@@ -56,7 +56,8 @@ const EditFormRouter: React.FC = () => {
         // Deteksi dari nama lingkup layanan
         if (!detectedType && detail?.lingkup_layanan) {
           const lNama = (detail.lingkup_layanan.nama || detail.lingkup_layanan.lingkup || "").toLowerCase()
-          if (lNama.includes("lsp") || lNama.includes("profesi")) detectedType = "FormLsp"
+          if (lNama.includes("aset")) detectedType = "FormAset"
+          else if (lNama.includes("lsp") || lNama.includes("profesi")) detectedType = "FormLsp"
           else if (lNama.includes("pelatihan") || lNama.includes("bimtek")) detectedType = "FormPelatihan"
           else if (lNama.includes("sertifikasi") || lNama.includes("sni")) detectedType = "FormSertifikasi"
           else if (lNama.includes("kalibrasi") || lNama.includes("labkal")) detectedType = "FormKalibrasi"
@@ -65,24 +66,31 @@ const EditFormRouter: React.FC = () => {
         // Fallback: probing endpoint spesifik
         if (!detectedType) {
           try {
-            const certRes = await api.get(`/eksternal/sertifikasi/${id}`)
-            if (certRes?.data?.success || certRes?.data?.data) {
-              detectedType = "FormSertifikasi"
+            const asetRes = await api.get(`/eksternal/aset/${id}`)
+            if (asetRes?.data?.success || asetRes?.data?.data) {
+              detectedType = "FormAset"
             }
-          } catch (e) {
+          } catch (eAset) {
             try {
-              const pelRes = await api.get(`/eksternal/pelatihan/${id}`)
-              if (pelRes?.data?.success || pelRes?.data?.data) {
-                detectedType = "FormPelatihan"
+              const certRes = await api.get(`/eksternal/sertifikasi/${id}`)
+              if (certRes?.data?.success || certRes?.data?.data) {
+                detectedType = "FormSertifikasi"
               }
-            } catch (err) {
+            } catch (e) {
               try {
-                const kalRes = await api.get(`/eksternal/kalibrasi/${id}`)
-                if (kalRes?.data?.success || kalRes?.data?.data) {
-                  detectedType = "FormKalibrasi"
+                const pelRes = await api.get(`/eksternal/pelatihan/${id}`)
+                if (pelRes?.data?.success || pelRes?.data?.data) {
+                  detectedType = "FormPelatihan"
                 }
-              } catch (e2) {
-                // ignore
+              } catch (err) {
+                try {
+                  const kalRes = await api.get(`/eksternal/kalibrasi/${id}`)
+                  if (kalRes?.data?.success || kalRes?.data?.data) {
+                    detectedType = "FormKalibrasi"
+                  }
+                } catch (e2) {
+                  // ignore
+                }
               }
             }
           }

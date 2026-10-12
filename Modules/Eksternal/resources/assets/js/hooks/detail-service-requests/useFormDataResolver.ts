@@ -180,7 +180,7 @@ export function useFormDataResolver(
       })
     }
     const legacyFields: { key: string; label: string; val: any }[] = [
-      { key: "surat_permohonan", label: "Surat Permohonan Sertifikasi", val: formData?.file_surat_permohonan },
+      { key: "surat_permohonan", label: types.isAset ? "Surat Permohonan Sewa Aset" : "Surat Permohonan Sertifikasi", val: formData?.file_surat_permohonan },
       { key: "manual_mutu", label: "Manual Mutu / Dokumentasi SM", val: formData?.file_manual_mutu },
       { key: "proses_produksi", label: "Diagram Alir Proses Produksi", val: formData?.file_proses_produksi },
       { key: "denah_lokasi", label: "Denah / Tata Letak Pabrik", val: formData?.file_denah_lokasi },

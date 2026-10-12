@@ -94,25 +94,15 @@ export const usePenawaranBilling = ({
       "PEMBAYARAN",
     ].includes(status)
 
-    const isPendingApproval = Boolean(
-      isStatusTahapPenawaran &&
-        penawaran &&
-        !isPenawaranDisetujui &&
-        !isPenawaranDitolak &&
-        (penawaran?.status_persetujuan === "MENUNGGU" ||
-          penawaran?.status === "MENUNGGU_PERSETUJUAN" ||
-          status === "MENUNGGU_PERSETUJUAN_PELANGGAN" ||
-          status === "PENAWARAN_BIAYA")
-    )
+    const isPendingApproval = false
 
     const isLunas = permohonan?.status_bayar === "LUNAS" || status === "LUNAS"
     const isDitolak = status === "DITOLAK" || isPenawaranDitolak
 
     const isSiapBayar =
-      !isPendingApproval &&
-      (isPenawaranDisetujui ||
-        ["PEMBAYARAN", "PROCESS", "LUNAS", "DONE", "SELESAI"].includes(status) ||
-        isLunas)
+      ["PEMBAYARAN", "PROCESS", "LUNAS", "DONE", "SELESAI"].includes(status) ||
+      isPenawaranDisetujui ||
+      isLunas
 
     const rawRincian =
       penawaran?.rincian_json ||

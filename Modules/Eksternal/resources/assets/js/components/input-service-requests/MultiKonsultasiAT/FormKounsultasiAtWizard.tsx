@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../../ui/Button"
 import { toast } from "react-hot-toast"
@@ -11,10 +11,15 @@ import {
     Save,
     Cpu,
     UploadCloud,
+    FileEdit,
+    Trash2,
+    RefreshCw,
 } from "lucide-react"
 import { Step1JenisLayanan } from "./Step1JenisLayanan"
 import { Step2UnggahDokumen } from "./Step2UnggahDokumen"
 import { submitKonsultasiAt } from "../../../services/konsultasiAt"
+import useProfile from "../../../hooks/useProfile"
+import { useKonsultasiAtDraft } from "../../../hooks/useKonsultasiAtDraft"
 
 const STEPS = [
     {
@@ -35,9 +40,15 @@ const TOTAL_STEPS = STEPS.length
 
 export const FormKonsultasiAtWizard: React.FC = () => {
     const navigate = useNavigate()
+    const { profile } = useProfile()
+    const userId = profile?.id || (profile?.detail as any)?.id || "guest"
+
+    const { existingDraft, autoSave, saveManual, clearDraft, isSaving } = useKonsultasiAtDraft(String(userId))
 
     const [currentStep, setCurrentStep] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [draftDismissed, setDraftDismissed] = useState(false)
+    const draftClearedRef = useRef(false)
 
     // State Step 1 (Jenis Layanan)
     const [layananKode, setLayananKode] = useState<string>("")
@@ -46,6 +57,77 @@ export const FormKonsultasiAtWizard: React.FC = () => {
     // State Step 2 (Unggah Dokumen)
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
     const [catatanDokumen, setCatatanDokumen] = useState<string>("")
+
+    // Auto-save form data changes to IndexedDB
+    useEffect(() => {
+        if (draftClearedRef.current) return
+        if (layananKode || layananLainnya || catatanDokumen || uploadedFiles.length > 0) {
+            autoSave({
+                layananKode,
+                layananLainnya,
+                catatanDokumen,
+                uploadedFiles,
+                currentStep,
+            })
+        }
+    }, [layananKode, layananLainnya, uploadedFiles, catatanDokumen, currentStep, autoSave])
+
+    // Re-enable auto-save saat ada perubahan data baru setelah discard
+    useEffect(() => {
+        if (!draftClearedRef.current) return
+        if (layananKode || layananLainnya || catatanDokumen || uploadedFiles.length > 0) {
+            draftClearedRef.current = false
+        }
+    }, [layananKode, layananLainnya, uploadedFiles, catatanDokumen])
+
+    const handleRestoreDraft = () => {
+        if (existingDraft) {
+            draftClearedRef.current = false
+            if (existingDraft.layananKode) setLayananKode(existingDraft.layananKode)
+            if (existingDraft.layananLainnya) setLayananLainnya(existingDraft.layananLainnya)
+            if (existingDraft.catatanDokumen) setCatatanDokumen(existingDraft.catatanDokumen)
+            if (Array.isArray(existingDraft.uploadedFiles) && existingDraft.uploadedFiles.length > 0) {
+                const restored = existingDraft.uploadedFiles.map((f: any) => {
+                    if (f instanceof File) return f
+                    if (f instanceof Blob) return new File([f], (f as any).name || "dokumen.pdf", { type: f.type })
+                    return f
+                })
+                setUploadedFiles(restored)
+            }
+            if (typeof existingDraft.currentStep === "number") {
+                setCurrentStep(existingDraft.currentStep)
+            }
+            toast.success("Draf permohonan berhasil dipulihkan.")
+            setDraftDismissed(true)
+        }
+    }
+
+    const handleDiscardDraft = async () => {
+        draftClearedRef.current = true
+        await clearDraft()
+        setLayananKode("")
+        setLayananLainnya("")
+        setUploadedFiles([])
+        setCatatanDokumen("")
+        setCurrentStep(0)
+        setDraftDismissed(true)
+        toast.success("Draf permohonan dibuang.")
+    }
+
+    const handleManualSave = async () => {
+        const success = await saveManual({
+            layananKode,
+            layananLainnya,
+            catatanDokumen,
+            uploadedFiles,
+            currentStep,
+        })
+        if (success) {
+            toast.success("Draf permohonan berhasil disimpan di peramban ini.")
+        } else {
+            toast.error("Gagal menyimpan draf.")
+        }
+    }
 
     const handleNext = () => {
         if (currentStep === 0) {
@@ -94,6 +176,8 @@ export const FormKonsultasiAtWizard: React.FC = () => {
                 catatanDokumen: catatanDokumen.trim() || undefined,
                 files: uploadedFiles,
             })
+            draftClearedRef.current = true
+            await clearDraft()
             toast.success(res?.message || "Permohonan Konsultasi & Audit Teknologi berhasil dikirim!")
             navigate("/permohonan")
         } catch (err: any) {
@@ -107,7 +191,43 @@ export const FormKonsultasiAtWizard: React.FC = () => {
 
     return (
         <div className="space-y-4">
-           
+            {/* Banner Pemulihan Draf Offline (IndexedDB) */}
+            {existingDraft && !draftDismissed && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-brand-50 via-sky-50 to-indigo-50 border border-brand-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <FileEdit className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold text-slate-900">
+                                Draf Permohonan Tersimpan Ditemukan
+                            </h4>
+                            <p className="text-[11px] text-slate-600">
+                                Anda memiliki draf pengisian formulir Konsultasi & Audit Teknologi di peramban ini ({existingDraft.updatedAt ? new Date(existingDraft.updatedAt).toLocaleString("id-ID") : "Sebelumnya"}).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            onClick={handleDiscardDraft}
+                            className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            Buang Draf
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleRestoreDraft}
+                            className="px-3.5 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Lanjutkan Draf
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* Stepper Progress Bar */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
                 <div className="grid grid-cols-2 gap-3">
@@ -212,15 +332,12 @@ export const FormKonsultasiAtWizard: React.FC = () => {
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                                console.log("Simpan draft permohonan konsultasi & AT")
-                                toast.success("Draf permohonan berhasil disimpan")
-                            }}
-                            disabled={isSubmitting}
-                            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-700 shadow-xs"
+                            onClick={handleManualSave}
+                            disabled={isSubmitting || isSaving}
+                            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-700 shadow-xs cursor-pointer"
                         >
                             <Save className="w-4 h-4 text-slate-500" />
-                            Simpan Draf
+                            {isSaving ? "Menyimpan..." : "Simpan Draf"}
                         </Button>
 
                         {/* Submit */}

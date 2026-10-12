@@ -160,13 +160,13 @@ class KalibrasiController extends Controller
                 'estimasi_total_tarif' => 0,
                 'setuju_pernyataan' => (bool) ($request->input('setujuPernyataan') ?? false),
                 'pernyataan_at' => $isAjukan ? now() : null,
-                'status_sinkronisasi_sis' => 'PENDING',
             ]);
 
             // Hubungkan ke detail_permohonan (pastikan selalu tersimpan)
-            $lingkup = MasterLingkupLayanan::where('slug', 'kalibrasi')
-                ->orWhere('slug', 'laboratorium-kalibrasi-labkal')
-                ->orWhere('lingkup', 'LIKE', '%kalibrasi%')
+            $lingkup = MasterLingkupLayanan::where('slug', 'laboratorium-kalibrasi-labkal')
+                ->orWhere('slug', 'kalibrasi')
+                ->orWhere('lingkup', 'Laboratorium Kalibrasi (LABKAL)')
+                ->orWhere('lingkup', 'Kalibrasi')
                 ->first();
 
             if (!$lingkup) {

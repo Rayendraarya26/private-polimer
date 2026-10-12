@@ -102,24 +102,14 @@ export const getStatusInfo = (input?: StatusBadgeInput): StatusInfo => {
     }
   }
 
-  // 6. Kondisi Menunggu Persetujuan Penawaran Biaya
-  if (
-    isPendingApproval ||
-    normalized === "MENUNGGU_PERSETUJUAN" ||
-    (!isPenawaranDisetujui && (normalized === "PENAWARAN_BIAYA" || normalized === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
-  ) {
-    return {
-      label: "Menunggu Persetujuan",
-      variant: "warning",
-      dot: false,
-      textColor: "text-amber-600",
-    }
-  }
-
-  // 7. Kondisi Pembayaran
+  // 6. Kondisi Pembayaran (Langsung Pembayaran setelah di-ACC oleh marketing)
   if (
     normalized === "PEMBAYARAN" ||
-    (isPenawaranDisetujui && (normalized === "PENAWARAN_BIAYA" || normalized === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
+    normalized === "MENUNGGU_PERSETUJUAN" ||
+    normalized === "PENAWARAN_BIAYA" ||
+    normalized === "MENUNGGU_PERSETUJUAN_PELANGGAN" ||
+    isPendingApproval ||
+    isPenawaranDisetujui
   ) {
     if (isLunas) {
       return {
@@ -250,13 +240,12 @@ export const getStepIndex = ({
   if (status === "IN_REVIEW" || status === "KAJIAN_TEKNIS" || status === "REVISI") return 1
 
   if (
-    isPendingApproval ||
-    (!isPenawaranDisetujui && (status === "PENAWARAN_BIAYA" || status === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
-  ) return 2
-
-  if (
     status === "PEMBAYARAN" ||
-    (isPenawaranDisetujui && (status === "PENAWARAN_BIAYA" || status === "MENUNGGU_PERSETUJUAN_PELANGGAN"))
+    status === "MENUNGGU_PERSETUJUAN" ||
+    status === "PENAWARAN_BIAYA" ||
+    status === "MENUNGGU_PERSETUJUAN_PELANGGAN" ||
+    isPendingApproval ||
+    isPenawaranDisetujui
   ) {
     return isLunas ? 4 : 3
   }

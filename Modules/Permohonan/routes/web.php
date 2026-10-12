@@ -54,6 +54,11 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::post('{id}/kirim-penawaran-biaya', [PermohonanController::class, 'kirimPenawaranBiaya'])
         ->name('permohonan.kirim-penawaran-biaya');
 
+    // TESTING ONLY: Simulasi selesai permohonan (bypass Restriction RBAC agar tidak 401 Unauthorized)
+    Route::match(['get', 'post'], '{id}/simulasi-selesai', [PermohonanController::class, 'simulasiSelesai'])
+        ->withoutMiddleware([Restriction::class])
+        ->name('permohonan.simulasi-selesai');
+
 
     Route::post('layanan/tte/request-otp', [InvoiceController::class, 'requestOtp'])
         ->name('permohonan.tte.request-otp');

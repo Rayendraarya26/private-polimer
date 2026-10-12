@@ -15,10 +15,12 @@ use Modules\Integration\Http\Controllers\SipptAdminController;
 |
 */
 
-Route::middleware(['auth'])->group(function () {
+use App\Http\Middleware\CustomAuthMiddleware;
+
+Route::middleware([CustomAuthMiddleware::class])->group(function () {
     Route::post('integrasi/sync-manual-sis/{id}', [IntegrationController::class, 'syncManualSis']);
 
-    // SIPPT BSKJI Monitoring & Proyeksi
+    // SIPPT BSKJI Monitoring & Proyeksi (Mendukung /integrasi/sippt dan alias /integration/sippt)
     Route::prefix('integrasi/sippt')->name('sippt.')->group(function () {
         Route::get('/', [SipptAdminController::class, 'index'])->name('index');
         Route::get('/proyeksi', [SipptAdminController::class, 'proyeksiForm'])->name('proyeksi');
@@ -27,4 +29,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/retry/{id}', [SipptAdminController::class, 'retry'])->name('retry');
         Route::post('/retry-all', [SipptAdminController::class, 'retryAll'])->name('retryAll');
     });
+
+    // Alias redirect dari /integration/sippt
+    Route::redirect('integration/sippt', '/integrasi/sippt');
+    Route::redirect('integration/sippt/{any}', '/integrasi/sippt/{any}');
 });

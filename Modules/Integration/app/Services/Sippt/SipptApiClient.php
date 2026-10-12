@@ -97,44 +97,28 @@ class SipptApiClient
      *
      * @throws Exception
      */
-    protected function sendRequest(string $method, string $path, array $data = []): Response
+    protected function sendRequest(string $method, string $path, array $data = []): SipptResponse
     {
         $url = $this->resolveFullUrl($path);
         $timeout = config('sippt.timeout', 30);
         $sslVerify = config('sippt.ssl_verify', false);
         $token = $this->authService->getToken();
 
-        $client = Http::withToken($token)
-            ->withHeaders([
-                'Accept'       => 'application/json',
-                'Content-Type' => 'application/json',
-            ])
-            ->withOptions(['verify' => $sslVerify])
-            ->timeout($timeout);
+        $headers = [
+            'Accept'        => 'application/json',
+            'Content-Type'  => 'application/json',
+            'Authorization' => "Bearer {$token}",
+        ];
 
-        $response = match (strtoupper($method)) {
-            'GET'  => $client->get($url, $data),
-            'POST' => $client->post($url, $data),
-            default => throw new Exception("Metode HTTP {$method} tidak didukung."),
-        };
+        $response = SipptHttpTransport::request($method, $url, $headers, $data, $timeout, $sslVerify);
 
         // Jika token kedaluwarsa (401), refresh token sekali dan coba ulang request
         if ($response->status() === 401) {
             Log::warning("[SIPPT API] 401 Unauthorized terdeteksi pada {$url}. Memperbarui token dan mencoba ulang...");
             $newToken = $this->authService->refreshToken();
 
-            $client = Http::withToken($newToken)
-                ->withHeaders([
-                    'Accept'       => 'application/json',
-                    'Content-Type' => 'application/json',
-                ])
-                ->withOptions(['verify' => $sslVerify])
-                ->timeout($timeout);
-
-            $response = match (strtoupper($method)) {
-                'GET'  => $client->get($url, $data),
-                'POST' => $client->post($url, $data),
-            };
+            $headers['Authorization'] = "Bearer {$newToken}";
+            $response = SipptHttpTransport::request($method, $url, $headers, $data, $timeout, $sslVerify);
         }
 
         return $response;

@@ -17,12 +17,24 @@ class VerifikasiMapper extends SipptFieldMapper
         $inputJenis = strtoupper($form?->jenis_verifikasi ?? 'GRK DAN NEK');
         $jenis = in_array($inputJenis, $validJenis) ? $inputJenis : 'GRK DAN NEK';
 
+        $uraian = $form?->ruang_lingkup_diajukan ?: ($form?->merek_sample ?: ($form?->ruang_lingkup ?: 'Verifikasi GRK & Validasi Teknis'));
+        $keterangan = $form?->uraian_kebutuhan ?: ($form?->deskripsi_aktivitas ?: ($form?->keterangan ?: 'Verifikasi / Validasi Nilai Emisi GRK BBKKP'));
+        $catatan = !empty($form?->acuan_peraturan) ? "Acuan: {$form->acuan_peraturan}" : ($form?->catatan ?: '');
+        
+        $jmlSample = 1;
+        if ($form) {
+            $jmlSample = (int) ($form->jumlah_fasilitas ?? 0);
+            if ($jmlSample <= 0 && method_exists($form, 'dokumenItems') && $form->dokumenItems()->exists()) {
+                $jmlSample = $form->dokumenItems()->count();
+            }
+        }
+
         return [
             'jenis_verifikasi'      => $jenis,
-            'keterangan_verifikasi' => (string) ($form?->keterangan ?: 'Verifikasi / Validasi Nilai Emisi GRK BBKKP'),
-            'keterangan_lainnya'    => (string) ($form?->catatan ?: ''),
-            'uraian_verifikasi'     => (string) ($form?->ruang_lingkup ?: 'Verifikasi GRK & Validasi Teknis'),
-            'jml_sample'            => (string) max(1, (int) ($form?->jumlah_dokumen ?? 1)),
+            'keterangan_verifikasi' => (string) $keterangan,
+            'keterangan_lainnya'    => (string) $catatan,
+            'uraian_verifikasi'     => (string) $uraian,
+            'jml_sample'            => (string) max(1, $jmlSample),
         ];
     }
 }

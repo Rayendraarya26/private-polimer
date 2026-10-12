@@ -44,33 +44,25 @@ class SipptAuthService
         }
 
         $loginUrl = "{$baseUrl}/login";
-
-        // Upaya 1: Kirim dalam format object JSON standar {"username": "...", "password": "..."}
-        $response = Http::withHeaders([
+        $headers = [
             'Accept'       => 'application/json',
             'Content-Type' => 'application/json',
-        ])
-        ->withOptions(['verify' => $sslVerify])
-        ->timeout($timeout)
-        ->post($loginUrl, [
+        ];
+
+        // Upaya 1: Kirim dalam format object JSON standar {"username": "...", "password": "..."}
+        $response = SipptHttpTransport::request('POST', $loginUrl, $headers, [
             'username' => $username,
             'password' => $password,
-        ]);
+        ], $timeout, $sslVerify);
 
         // Jika tidak sukses dan mengindikasikan format salah, coba format Array sesuai dokumentasi PDF SIPPT v13
         if (!$response->successful()) {
-            $altResponse = Http::withHeaders([
-                'Accept'       => 'application/json',
-                'Content-Type' => 'application/json',
-            ])
-            ->withOptions(['verify' => $sslVerify])
-            ->timeout($timeout)
-            ->post($loginUrl, [
+            $altResponse = SipptHttpTransport::request('POST', $loginUrl, $headers, [
                 [
                     'username' => $username,
                     'password' => $password,
                 ],
-            ]);
+            ], $timeout, $sslVerify);
 
             if ($altResponse->successful()) {
                 $response = $altResponse;

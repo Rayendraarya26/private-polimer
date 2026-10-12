@@ -95,9 +95,7 @@ class SipptSyncService
         $moduleName = $lastLog->modul;
         $endpoint = $this->apiClient->buildModuleEndpoint($moduleName, 'non_aktif');
         $payload = [
-            [
-                'no_order' => (string) $permohonan->no_permohonan,
-            ],
+            'no_order' => (string) $permohonan->no_permohonan,
         ];
 
         $result = $this->apiClient->executeRequest('POST', $endpoint, $payload);

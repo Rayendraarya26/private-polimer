@@ -32,8 +32,8 @@ abstract class SipptFieldMapper
             $this->mapSpecificFields($permohonan, $form)
         );
 
-        // SIPPT API mengharapkan payload berupa array of objects: [ { ... } ]
-        return [$record];
+        // SIPPT API mengharapkan payload JSON object { "no_order": "...", ... }
+        return $record;
     }
 
     /**

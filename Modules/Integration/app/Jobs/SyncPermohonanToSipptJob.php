@@ -41,7 +41,12 @@ class SyncPermohonanToSipptJob implements ShouldQueue
         $log = $syncService->syncPermohonan($this->permohonan, $this->force);
 
         if ($log->status === 'failed') {
-            throw new Exception("Sinkronisasi ke SIPPT gagal: " . ($log->last_error ?? 'Unknown error'));
+            Log::warning("[SIPPT Queue] Sinkronisasi ke SIPPT belum berhasil untuk {$this->permohonan->no_permohonan}: " . ($log->last_error ?? 'Unknown error'));
+
+            // Hanya lempar exception untuk auto-retry jika berjalan di background worker (bukan driver sync)
+            if (config('queue.default') !== 'sync') {
+                throw new Exception("Sinkronisasi ke SIPPT gagal: " . ($log->last_error ?? 'Unknown error'));
+            }
         }
     }
 

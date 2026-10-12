@@ -31,7 +31,6 @@ return new class extends Migration {
             $table->text('catatan_dokumen')->nullable();
 
             $table->string('status_layanan', 30)->default('pengajuan')->index();
-            $table->timestamp('sis_synced_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

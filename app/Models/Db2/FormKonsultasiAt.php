@@ -13,9 +13,7 @@ class FormKonsultasiAt extends Model
     protected $table = 'form_konsultasi_at';
     protected $guarded = ['id'];
 
-    protected $casts = [
-        'sis_synced_at' => 'datetime',
-    ];
+    protected $casts = [];
 
     protected $with = ['dokumen'];
 

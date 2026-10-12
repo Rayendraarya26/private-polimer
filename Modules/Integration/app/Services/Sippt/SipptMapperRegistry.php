@@ -9,6 +9,7 @@ use App\Models\Db2\FormHalal;
 use App\Models\Db2\FormInspeksi;
 use App\Models\Db2\FormJasaLainnya;
 use App\Models\Db2\FormKalibrasi;
+use App\Models\Db2\FormKonsultasiAt;
 use App\Models\Db2\FormLsp;
 use App\Models\Db2\FormMiniplant;
 use App\Models\Db2\FormPelatihan;
@@ -22,6 +23,7 @@ use Modules\Integration\Services\Sippt\Mappers\InkubatorMapper;
 use Modules\Integration\Services\Sippt\Mappers\InspeksiMapper;
 use Modules\Integration\Services\Sippt\Mappers\JasaLainnyaMapper;
 use Modules\Integration\Services\Sippt\Mappers\KalibrasiMapper;
+use Modules\Integration\Services\Sippt\Mappers\KonsultasiMapper;
 use Modules\Integration\Services\Sippt\Mappers\PBAMapper;
 use Modules\Integration\Services\Sippt\Mappers\PelatihanMapper;
 use Modules\Integration\Services\Sippt\Mappers\PengujianMapper;
@@ -79,6 +81,9 @@ class SipptMapperRegistry
         if ($permohonan->formMiniplant()->exists()) {
             return new TekProMapper();
         }
+        if ($permohonan->formKonsultasiAt()->exists()) {
+            return new KonsultasiMapper();
+        }
         if ($permohonan->formAset()->exists() || $permohonan->formJasaLainnya()->exists()) {
             return new JasaLainnyaMapper();
         }
@@ -104,6 +109,7 @@ class SipptMapperRegistry
             FormGrkVerifikasi::class => new VerifikasiMapper(),
             FormGrkValidasi::class   => new VerifikasiMapper(),
             FormMiniplant::class     => new TekProMapper(),
+            FormKonsultasiAt::class  => new KonsultasiMapper(),
             FormAset::class          => new JasaLainnyaMapper(),
             FormJasaLainnya::class   => new JasaLainnyaMapper(),
             default                  => null,

@@ -75,6 +75,10 @@ abstract class SipptFieldMapper
             return $form->nama_pelanggan;
         }
 
+        if (!empty($form?->nama_pemohon)) {
+            return $form->nama_pemohon;
+        }
+
         if (!empty($form?->diajukan_oleh)) {
             return $form->diajukan_oleh;
         }
@@ -124,6 +128,11 @@ abstract class SipptFieldMapper
             return (string) $form->provinsi_id;
         }
 
+        $pelanggan = Pelanggan::where('user_id', $p->created_by)->with('detail')->first();
+        if (!empty($pelanggan?->detail?->prov_id)) {
+            return (string) $pelanggan->detail->prov_id;
+        }
+
         return '34';
     }
 
@@ -134,6 +143,11 @@ abstract class SipptFieldMapper
     {
         if (!empty($form?->kabupaten_id)) {
             return (string) $form->kabupaten_id;
+        }
+
+        $pelanggan = Pelanggan::where('user_id', $p->created_by)->with('detail')->first();
+        if (!empty($pelanggan?->detail?->kab_id)) {
+            return (string) $pelanggan->detail->kab_id;
         }
 
         return '3471';
@@ -169,6 +183,20 @@ abstract class SipptFieldMapper
             return $detail->formable;
         }
 
-        return null;
+        // Fallback cek relasi formulir langsung pada Permohonan
+        return $p->formPengujian()->first()
+            ?: $p->formKalibrasi()->first()
+            ?: $p->formSertifikasi()->first()
+            ?: $p->formLsp()->first()
+            ?: $p->formPelatihan()->first()
+            ?: $p->formInspeksi()->first()
+            ?: $p->formHalal()->first()
+            ?: $p->formPup()->first()
+            ?: $p->formGrkVerifikasi()->first()
+            ?: $p->formGrkValidasi()->first()
+            ?: $p->formMiniplant()->first()
+            ?: $p->formKonsultasiAt()->first()
+            ?: $p->formAset()->first()
+            ?: $p->formJasaLainnya()->first();
     }
 }

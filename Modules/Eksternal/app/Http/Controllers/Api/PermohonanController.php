@@ -129,7 +129,15 @@ class PermohonanController extends Controller
                 ?? $item->creator?->name
                 ?? '-';
 
-            $layananNama = $lingkup?->lingkup;
+            $layananNama = null;
+            if (str_contains($item->no_permohonan, 'LABKAL') || str_starts_with($item->no_permohonan, 'KLB') || ($form instanceof \App\Models\Db2\FormKalibrasi)) {
+                $layananNama = 'Kalibrasi';
+            } elseif (str_starts_with($item->no_permohonan, 'PUP') || ($form instanceof \App\Models\Db2\FormPup)) {
+                $layananNama = $lingkup?->lingkup ?: 'Penyelenggara Uji Profisiensi (PUP)';
+            } else {
+                $layananNama = $lingkup?->lingkup;
+            }
+
             if (!$layananNama) {
                 if (str_starts_with($item->no_permohonan, 'CERT'))
                     $layananNama = 'Sertifikasi Produk & Sistem (LSPro)';
@@ -531,6 +539,7 @@ class PermohonanController extends Controller
             'formPup.items',
             'formKalibrasi.alatList.nomorSeriList',
             'formKalibrasi.alatList.kalibrasiItems.masterKalibrasi',
+            'formKalibrasi.masterKlasifikasi',
             'formPengujian.samples.parameters',
             'formInspeksi',
             'formHalal',

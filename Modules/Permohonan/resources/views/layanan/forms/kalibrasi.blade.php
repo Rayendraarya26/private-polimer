@@ -145,6 +145,16 @@
             </div>
 
             <div class="detail-kal-row">
+                <div class="detail-kal-label">Jenis Klasifikasi</div>
+                <div>:</div>
+                <div class="detail-kal-value">
+                    <span class="badge bg-primary text-white">
+                        {{ $form->masterKlasifikasi?->klasifikasi ?? '-' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-kal-row">
                 <div class="detail-kal-label">Bahasa Laporan</div>
                 <div>:</div>
                 <div class="detail-kal-value text-capitalize">

@@ -163,6 +163,18 @@ export const KalibrasiDetailSection: React.FC<KalibrasiDetailSectionProps> = ({
               </div>
 
               <div>
+                <span className="text-slate-400 block font-medium">Jenis Klasifikasi:</span>
+                <span className="mt-1 inline-block">
+                  <Badge
+                    variant="neutral"
+                    className="font-bold text-[11px] px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200"
+                  >
+                    {formKalibrasi?.master_klasifikasi?.klasifikasi || formKalibrasi?.masterKlasifikasi?.klasifikasi || "-"}
+                  </Badge>
+                </span>
+              </div>
+
+              <div>
                 <span className="text-slate-400 block font-medium">Bahasa Sertifikat / Laporan:</span>
                 <span className="font-semibold text-slate-800 mt-1 inline-flex items-center gap-1">
                   <Languages className="w-3.5 h-3.5 text-slate-500" />
@@ -194,15 +206,6 @@ export const KalibrasiDetailSection: React.FC<KalibrasiDetailSectionProps> = ({
                 {formKalibrasi?.alamat_pengiriman || formKalibrasi?.alamat_pemohon || "-"}
               </span>
             </div>
-
-            {formKalibrasi?.no_order_sis && (
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Nomor Order SIS:</span>
-                <span className="font-mono font-bold text-slate-800 text-[11px] bg-slate-100 px-2 py-0.5 rounded">
-                  {formKalibrasi.no_order_sis}
-                </span>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
@@ -415,94 +418,6 @@ export const KalibrasiDetailSection: React.FC<KalibrasiDetailSectionProps> = ({
           )}
         </CardContent>
       </Card>
-
-      {/* 4. INFORMASI TAGIHAN & FINANSIAL (Terintegrasi Langsung Tanpa Tab) */}
-      {(permohonan?.invoice_number || permohonan?.va || hasPenawaran || permohonan?.total_harga > 0) && (
-        <Card className="rounded-2xl border-slate-200 shadow-soft">
-          <CardHeader className="border-b border-slate-100 pb-3 bg-slate-50/60">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-brand-600" />
-                <CardTitle className="text-sm font-bold text-slate-800">
-                  Informasi Pembayaran & Dokumen Finansial
-                </CardTitle>
-              </div>
-              <Badge
-                variant={isLunas ? "success" : "warning"}
-                className="font-bold text-[11px]"
-              >
-                {isLunas ? "Lunas" : "Menunggu Pembayaran"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <span className="text-slate-400 block font-medium">Nomor Invoice:</span>
-                <span className="font-semibold text-slate-900 mt-0.5 block font-mono">
-                  {permohonan?.invoice_number || "Belum Diterbitkan"}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block font-medium">Virtual Account BNI:</span>
-                <span className="font-bold text-brand-700 mt-0.5 block font-mono text-sm">
-                  {permohonan?.va || "Belum Terbit"}
-                </span>
-                {permohonan?.va_expired_at && (
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
-                    Berlaku s/d: {defaultFormatDate(permohonan.va_expired_at)}
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <span className="text-slate-400 block font-medium">Total Tagihan:</span>
-                <span className="font-bold text-slate-900 mt-0.5 block text-sm">
-                  Rp {grandTotalBiaya.toLocaleString("id-ID")}
-                </span>
-              </div>
-            </div>
-
-            {/* Tombol Dokumen Finansial */}
-            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2.5">
-              {hasPenawaran && openSuratPenawaran && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
-                  leftIcon={<FileText className="w-3.5 h-3.5 text-indigo-600" />}
-                  onClick={() => openSuratPenawaran(permohonan)}
-                >
-                  Lihat Surat Penawaran Biaya
-                </Button>
-              )}
-
-              {permohonan?.invoice_number && openInvoice && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  leftIcon={<Receipt className="w-3.5 h-3.5" />}
-                  onClick={() => openInvoice(permohonan)}
-                >
-                  Buka Invoice Resmi
-                </Button>
-              )}
-
-              {isLunas && openKuitansi && (
-                <Button
-                  size="sm"
-                  variant="success"
-                  leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
-                  onClick={() => openKuitansi(permohonan)}
-                >
-                  Buka Kuitansi Resmi
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }

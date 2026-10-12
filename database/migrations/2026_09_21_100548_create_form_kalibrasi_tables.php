@@ -29,6 +29,7 @@ return new class extends Migration {
             $table->enum('ruang_lingkup_akreditasi', ['Masuk Ruang Lingkup', 'Tidak Masuk Ruang Lingkup'])
                 ->default('Masuk Ruang Lingkup')
                 ->comment('Status akreditasi: Masuk Ruang Lingkup / Tidak Masuk Ruang Lingkup');
+            $table->uuid('jenis_klasifikasi')->nullable()->comment('ID Master Klasifikasi Kalibrasi SIPPT');
             $table->text('uraian_kalibrasi')->nullable()->comment('Catatan khusus / titik uji yang dikehendaki');
             $table->enum('bahasa_laporan', ['indonesia', 'inggris'])->default('indonesia');
             $table->string('nama_penerima_kirim', 255)->nullable()->comment('Nama penerima laporan hasil');
@@ -39,11 +40,6 @@ return new class extends Migration {
             $table->decimal('estimasi_total_tarif', 15, 2)->default(0);
             $table->boolean('setuju_pernyataan')->default(false);
             $table->timestampTz('pernyataan_at')->nullable();
-
-            // Kolom Bridging / Integrasi SIS
-            $table->string('status_sinkronisasi_sis', 50)->default('PENDING')->index();
-            $table->string('no_order_sis', 100)->nullable()->index();
-            $table->timestampTz('sis_synced_at')->nullable();
 
             $table->timestampsTz();
             $table->softDeletesTz();

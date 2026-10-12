@@ -6,6 +6,13 @@
         || str_starts_with($permohonan->no_permohonan, 'SRT')
         || ($permohonan->detailPermohonan->first()?->formable_type === 'App\Models\Db2\FormSertifikasi');
 
+
+    $isKalibrasi = str_contains($kode, 'LABKAL') || $permohonan->formKalibrasi()->exists();
+    $isSertifikasi = str_starts_with($kode, 'CERT') || str_starts_with($kode, 'SRT') || $permohonan->formSertifikasi()->exists();
+    $isInspeksi = str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || $permohonan->formInspeksi()->exists();
+    $isHalal = str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || $permohonan->formHalal()->exists();
+    $isGrk = str_starts_with($kode, 'GRK');
+
     $grupPermohonan = !empty($permohonan->id_pt_ins)
         ? \App\Models\Db2\Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
             ->with(['detailPermohonan.formable'])
@@ -14,6 +21,14 @@
         : collect([$permohonan]);
 
     $isTogether = !$isSplit && !empty($permohonan->id_pt_ins) && $grupPermohonan->count() > 1;
+
+    $existingTotal = (float) (
+        ($permohonan->relationLoaded('detailPembayaran') ? $permohonan->detailPembayaran->sum('subtotal') : $permohonan->detailPembayaran()->sum('subtotal'))
+        ?: $permohonan->formKalibrasi?->first()?->estimasi_total_tarif
+        ?: $permohonan->formMiniplant?->first()?->estimasi_total_biaya
+        ?: 0
+    );
+    $hasFixedTariff = $existingTotal > 0;
 @endphp
 
 
@@ -90,9 +105,9 @@
                                     <div class="d-flex align-items-center gap-2 mb-2 pb-2"
                                         style="border-bottom:1px solid #f1f5f9">
                                         <div id="circleSelectAllApprove" onclick="toggleSelectAll('approve')" style="width:22px;height:22px;border-radius:50%;
-                                                border:1.5px solid #cbd5e1;background:#fff;
-                                                cursor:pointer;display:flex;align-items:center;
-                                                justify-content:center;flex-shrink:0;transition:all .15s">
+                                                                border:1.5px solid #cbd5e1;background:#fff;
+                                                                cursor:pointer;display:flex;align-items:center;
+                                                                justify-content:center;flex-shrink:0;transition:all .15s">
                                             <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                         </div>
                                         <span class="text-muted small">Pilih semua</span>
@@ -101,7 +116,7 @@
 
                                     {{-- List peserta dengan scroll --}}
                                     <div style="max-height:180px;overflow-y:auto;
-                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
+                                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
                                         @foreach($grupPermohonan as $gp)
                                             @php
                                                 $gpNama = $gp->detailPermohonan->first()?->formable?->nama_lengkap ?? '-';
@@ -112,17 +127,18 @@
 
 
                                                 @if($bisaAksi)
-                                                    <div class="circle-approve-item" onclick="toggleCircleItem(this, 'approve')" style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #cbd5e1;background:#fff;
-                                                                    cursor:pointer;display:flex;align-items:center;
-                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
+                                                    <div class="circle-approve-item" onclick="toggleCircleItem(this, 'approve')"
+                                                        style="width:22px;height:22px;border-radius:50%;
+                                                                                                    border:1.5px solid #cbd5e1;background:#fff;
+                                                                                                    cursor:pointer;display:flex;align-items:center;
+                                                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
                                                         <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                                     </div>
                                                 @else
                                                     <div style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
-                                                                    display:flex;align-items:center;justify-content:center;
-                                                                    flex-shrink:0;opacity:.5">
+                                                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
+                                                                                                    display:flex;align-items:center;justify-content:center;
+                                                                                                    flex-shrink:0;opacity:.5">
                                                         <i class="fas fa-check" style="font-size:10px;color:#94a3b8"></i>
                                                     </div>
                                                 @endif
@@ -146,27 +162,59 @@
                                 </div>
                             @endif
 
+                            @if($isKalibrasi)
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        Ruang Lingkup Akreditasi<span class="text-danger">*</span>
+                                    </label>
+                                    <select name="ruang_lingkup_akreditasi" class="form-select" required>
+                                        <option value="">-- Pilih Ruang Lingkup Akreditasi --</option>
+                                        <option value="Masuk Ruang Lingkup">Masuk Ruang Lingkup</option>
+                                        <option value="Tidak Masuk Ruang Lingkup">Tidak Masuk Ruang Lingkup</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        Jenis Klasifikasi<span class="text-danger">*</span>
+                                    </label>
+                                    <select name="klasifikasi_kalibrasi" class="form-select" required>
+                                        <option value="">-- Pilih Jenis Klasifikasi --</option>
+                                        @foreach(\App\Models\Db2\MasterKlasifikasiKalibrasi::orderBy('klasifikasi')->get() as $item)
+                                            <option value="{{ $item->id }}">{{ $item->klasifikasi }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">
-                                    Total Nominal Biaya (Rp) <span class="text-danger">*</span>
+                                    Total Nominal Biaya (Rp)
+                                    @if(!$hasFixedTariff)
+                                        <span class="text-danger">*</span>
+                                    @endif
                                 </label>
                                 @if($isTogether)
                                     <small class="d-block text-muted mb-1">
                                         Berlaku sama untuk semua peserta yang dipilih
                                     </small>
                                 @endif
-                                <input type="number" name="nominal" class="form-control" min="1"
-                                    placeholder="Contoh: 15000000" required>
+                                <input type="number" name="nominal" class="form-control" min="0"
+                                    value="{{ $hasFixedTariff ? $existingTotal : old('nominal') }}"
+                                    placeholder="Contoh: 15000000" {{ $hasFixedTariff ? '' : 'required' }}>
                             </div>
-
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">
-                                    Dokumen Surat Penawaran Biaya (PDF) <span class="text-danger">*</span>
+                                    Dokumen Surat Penawaran Biaya (PDF)
+                                    @if(!$hasFixedTariff)
+                                        <span class="text-danger">*</span>
+                                    @else
+                                        <small class="text-muted fw-normal">(Opsional)</small>
+                                    @endif
                                 </label>
                                 <input type="file" name="dok_penawaran" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
-                                    required>
+                                    {{ $hasFixedTariff ? '' : 'required' }}>
                             </div>
 
 
@@ -222,9 +270,9 @@
                                     <div class="d-flex align-items-center gap-2 mb-2 pb-2"
                                         style="border-bottom:1px solid #f1f5f9">
                                         <div id="circleSelectAllReject" onclick="toggleSelectAll('reject')" style="width:22px;height:22px;border-radius:50%;
-                                                border:1.5px solid #cbd5e1;background:#fff;
-                                                cursor:pointer;display:flex;align-items:center;
-                                                justify-content:center;flex-shrink:0;transition:all .15s">
+                                                                border:1.5px solid #cbd5e1;background:#fff;
+                                                                cursor:pointer;display:flex;align-items:center;
+                                                                justify-content:center;flex-shrink:0;transition:all .15s">
                                             <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                         </div>
                                         <span class="text-muted small">Pilih semua</span>
@@ -233,7 +281,7 @@
 
                                     {{-- List peserta dengan scroll --}}
                                     <div style="max-height:180px;overflow-y:auto;
-                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
+                                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
                                         @foreach($grupPermohonan as $gp)
                                             @php
                                                 $gpNama = $gp->detailPermohonan->first()?->formable?->nama_lengkap ?? '-';
@@ -244,17 +292,18 @@
 
 
                                                 @if($bisaAksi)
-                                                    <div class="circle-reject-item" onclick="toggleCircleItem(this, 'reject')" style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #cbd5e1;background:#fff;
-                                                                    cursor:pointer;display:flex;align-items:center;
-                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
+                                                    <div class="circle-reject-item" onclick="toggleCircleItem(this, 'reject')"
+                                                        style="width:22px;height:22px;border-radius:50%;
+                                                                                                    border:1.5px solid #cbd5e1;background:#fff;
+                                                                                                    cursor:pointer;display:flex;align-items:center;
+                                                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
                                                         <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                                     </div>
                                                 @else
                                                     <div style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
-                                                                    display:flex;align-items:center;justify-content:center;
-                                                                    flex-shrink:0;opacity:.5">
+                                                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
+                                                                                                    display:flex;align-items:center;justify-content:center;
+                                                                                                    flex-shrink:0;opacity:.5">
                                                         <i class="fas fa-check" style="font-size:10px;color:#94a3b8"></i>
                                                     </div>
                                                 @endif
@@ -339,9 +388,9 @@
                                     <div class="d-flex align-items-center gap-2 mb-2 pb-2"
                                         style="border-bottom:1px solid #f1f5f9">
                                         <div id="circleSelectAllRevisi" onclick="toggleSelectAll('revisi')" style="width:22px;height:22px;border-radius:50%;
-                                                border:1.5px solid #cbd5e1;background:#fff;
-                                                cursor:pointer;display:flex;align-items:center;
-                                                justify-content:center;flex-shrink:0;transition:all .15s">
+                                                                border:1.5px solid #cbd5e1;background:#fff;
+                                                                cursor:pointer;display:flex;align-items:center;
+                                                                justify-content:center;flex-shrink:0;transition:all .15s">
                                             <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                         </div>
                                         <span class="text-muted small">Pilih semua</span>
@@ -350,7 +399,7 @@
 
                                     {{-- List peserta dengan scroll --}}
                                     <div style="max-height:180px;overflow-y:auto;
-                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
+                                                            border:1px solid #f1f5f9;border-radius:8px;padding:0 4px">
                                         @foreach($grupPermohonan as $gp)
                                             @php
                                                 $gpNama = $gp->detailPermohonan->first()?->formable?->nama_lengkap ?? '-';
@@ -361,17 +410,18 @@
 
 
                                                 @if($bisaAksi)
-                                                    <div class="circle-revisi-item" onclick="toggleCircleItem(this, 'revisi')" style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #cbd5e1;background:#fff;
-                                                                    cursor:pointer;display:flex;align-items:center;
-                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
+                                                    <div class="circle-revisi-item" onclick="toggleCircleItem(this, 'revisi')"
+                                                        style="width:22px;height:22px;border-radius:50%;
+                                                                                                    border:1.5px solid #cbd5e1;background:#fff;
+                                                                                                    cursor:pointer;display:flex;align-items:center;
+                                                                                                    justify-content:center;flex-shrink:0;transition:all .15s">
                                                         <i class="fas fa-check" style="font-size:10px;display:none;color:#fff"></i>
                                                     </div>
                                                 @else
                                                     <div style="width:22px;height:22px;border-radius:50%;
-                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
-                                                                    display:flex;align-items:center;justify-content:center;
-                                                                    flex-shrink:0;opacity:.5">
+                                                                                                    border:1.5px solid #e2e8f0;background:#f8fafc;
+                                                                                                    display:flex;align-items:center;justify-content:center;
+                                                                                                    flex-shrink:0;opacity:.5">
                                                         <i class="fas fa-check" style="font-size:10px;color:#94a3b8"></i>
                                                     </div>
                                                 @endif

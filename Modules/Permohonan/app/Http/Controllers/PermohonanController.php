@@ -353,16 +353,41 @@ class PermohonanController extends Controller
             'formLsp',
             'formInspeksi',
             'formHalal',
+            'formKalibrasi',
+            'formMiniplant',
             'creator'
         ])->findOrFail($id);
 
-        $request->validate([
-            'nominal' => 'required|numeric|min:1',
-            'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ]);
+        // 1. Deteksi apakah sudah ada tarif tetap terhitung
+        $existingTotal = (float) (
+            $permohonan->detailPembayaran()->sum('subtotal')
+            ?: $permohonan->formKalibrasi?->first()?->estimasi_total_tarif
+            ?: $permohonan->formMiniplant?->first()?->estimasi_total_biaya
+            ?: 0
+        );
+        $hasFixedTariff = $existingTotal > 0;
 
-        $path = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
-        $total = (float) $request->nominal;
+        // 2. Jika ada tarif tetap, nominal dan dok_penawaran tidak wajib (nullable)
+        if ($hasFixedTariff) {
+            $request->validate([
+                'nominal'       => 'nullable|numeric|min:0',
+                'dok_penawaran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            ]);
+
+            // Gunakan nominal input jika diisi manual, atau default ke tarif tetap yang ada
+            $total = $request->filled('nominal') ? (float) $request->nominal : $existingTotal;
+            $path  = $request->hasFile('dok_penawaran')
+                ? $request->file('dok_penawaran')->store('surat_penawaran', 'public')
+                : 'TARIF_TETAP';
+        } else {
+            // Layanan yang belum ada tarifnya (SNI, Halal, Inspeksi, GRK) wajib input nominal & file penawaran
+            $request->validate([
+                'nominal'       => 'required|numeric|min:1',
+                'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            ]);
+            $total = (float) $request->nominal;
+            $path  = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
+        }
 
         $itemBayar = match (true) {
             str_starts_with($permohonan->no_permohonan, 'CERT') || str_starts_with($permohonan->no_permohonan, 'SRT') => 'Biaya Sertifikasi Industri (' . $permohonan->no_permohonan . ')',
@@ -511,6 +536,17 @@ class PermohonanController extends Controller
                 'va_expired_at' => $vaExpiredAt,
                 'va_status' => 'ACTIVE',
             ]);
+
+            $kalibrasiUpdate = [];
+            if ($request->filled('klasifikasi_kalibrasi')) {
+                $kalibrasiUpdate['jenis_klasifikasi'] = $request->klasifikasi_kalibrasi;
+            }
+            if ($request->filled('ruang_lingkup_akreditasi')) {
+                $kalibrasiUpdate['ruang_lingkup_akreditasi'] = $request->ruang_lingkup_akreditasi;
+            }
+            if (!empty($kalibrasiUpdate)) {
+                $permohonan->formKalibrasi()->update($kalibrasiUpdate);
+            }
 
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
@@ -954,6 +990,76 @@ class PermohonanController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * TESTING ONLY: Simulasi penyelesaian permohonan untuk pengujian alur akhir.
+     */
+    public function simulasiSelesai(Request $request, $id)
+    {
+        $permohonan = Permohonan::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $nomorSertifikat = $permohonan->nomor_sertifikat ?: ('CERT-TEST/' . date('Ymd') . '/' . strtoupper(Str::random(4)));
+            $tglTerbit = $permohonan->tanggal_sertifikat_terbit ?: now();
+            $tglKadaluarsa = $permohonan->tanggal_sertifikat_kadaluarsa ?: now()->addYears(3);
+
+            $permohonan->update([
+                'status_workflow'               => 'DONE',
+                'status_bayar'                  => 'LUNAS',
+                'nomor_sertifikat'              => $nomorSertifikat,
+                'tanggal_sertifikat_terbit'     => $tglTerbit,
+                'tanggal_sertifikat_kadaluarsa' => $tglKadaluarsa,
+            ]);
+
+            PermohonanTrackingLog::create([
+                'id'             => (string) Str::uuid(),
+                'permohonan_id'  => $permohonan->id,
+                'sumber'         => 'POLIMER',
+                'milestone_code' => 'SELESAI',
+                'judul'          => 'Layanan Selesai & Sertifikat Diterbitkan (Simulasi Testing)',
+                'deskripsi'      => 'Permohonan telah diselesaikan via simulasi testing admin. Sertifikat dummy telah diterbitkan.',
+                'metadata'       => [
+                    'actor_name'       => auth()->user()?->name ?? 'Admin Tester',
+                    'nomor_sertifikat' => $nomorSertifikat,
+                ],
+            ]);
+
+            SysUserNotif::create([
+                'user_id' => $permohonan->created_by,
+                'title'   => 'Layanan Telah Selesai (Testing)',
+                'content' => 'Permohonan Anda telah berstatus SELESAI (DONE) dengan nomor sertifikat: ' . $nomorSertifikat,
+                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'is_read' => 'no',
+            ]);
+
+            DB::commit();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Simulasi sukses! Status permohonan sekarang DONE dan LUNAS.',
+                    'data'    => $permohonan,
+                ]);
+            }
+
+            return redirect()
+                ->route('permohonan.layanan.detail', ['id' => $id])
+                ->with('success', 'Simulasi sukses! Status permohonan berhasil diubah menjadi DONE dan LUNAS.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('PermohonanController@simulasiSelesai error: ' . $e->getMessage());
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menjalankan simulasi: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal menjalankan simulasi: ' . $e->getMessage());
         }
     }
 }

@@ -18,7 +18,6 @@ class FormKalibrasi extends Model
         'estimasi_total_tarif' => 'decimal:2',
         'setuju_pernyataan' => 'boolean',
         'pernyataan_at' => 'datetime',
-        'sis_synced_at' => 'datetime',
     ];
 
     public function permohonan()
@@ -34,5 +33,10 @@ class FormKalibrasi extends Model
     public function detailPermohonan()
     {
         return $this->morphOne(DetailPermohonan::class, 'formable');
+    }
+
+    public function masterKlasifikasi()
+    {
+        return $this->belongsTo(MasterKlasifikasiKalibrasi::class, 'jenis_klasifikasi');
     }
 }

@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Send,
   Loader2,
-  CheckCircle2,
+  Check,
 } from 'lucide-react'
 import { Button } from '../../ui/Button'
 import { useAset } from '../../../hooks/service-requests/useAset'
@@ -181,46 +181,55 @@ export const FormAsetWizard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Stepper Progress Bar */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-soft">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 relative">
-          {STEPS.map((step, idx) => {
-            const Icon = step.icon
-            const isDone = currentStep > idx
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {STEPS.map((s, idx) => {
+            const Icon = s.icon
             const isActive = currentStep === idx
+            const isDone = currentStep > idx
 
             return (
-              <div
-                key={step.id}
+              <button
+                type="button"
+                key={s.id}
                 onClick={() => {
-                  if (idx < currentStep) setCurrentStep(idx)
+                  if (idx <= currentStep) {
+                    setCurrentStep(idx)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }
                 }}
-                className={`flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 p-2 rounded-xl transition-all ${
-                  idx < currentStep ? 'cursor-pointer hover:bg-slate-50' : ''
+                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                  isActive
+                    ? 'bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20'
+                    : isDone
+                    ? 'bg-slate-50 border border-slate-200 hover:bg-slate-100/70 cursor-pointer'
+                    : 'bg-slate-50/50 border border-slate-200/50 opacity-60 cursor-not-allowed'
                 }`}
               >
                 <div
-                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all font-bold text-xs ${
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
                     isDone
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : isActive
-                      ? 'bg-brand-600 text-white shadow-sm ring-4 ring-brand-500/20'
-                      : 'bg-slate-100 text-slate-400'
+                      ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30'
+                      : 'bg-slate-200 text-slate-600'
                   }`}
                 >
-                  {isDone ? <CheckCircle2 className="w-5 h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                 </div>
 
-                <div className="text-center sm:text-left min-w-0 hidden sm:block">
-                  <p
-                    className={`text-xs font-bold leading-tight ${
-                      isActive ? 'text-brand-700' : isDone ? 'text-slate-800' : 'text-slate-400'
+                <div className="min-w-0">
+                  <span
+                    className={`text-[10px] font-bold tracking-wider uppercase block ${
+                      isActive ? 'text-brand-600' : isDone ? 'text-emerald-600' : 'text-slate-500'
                     }`}
                   >
-                    {step.title}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{step.desc}</p>
+                    Langkah {idx + 1}
+                  </span>
+                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
+                  <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
                 </div>
-              </div>
+              </button>
             )
           })}
         </div>

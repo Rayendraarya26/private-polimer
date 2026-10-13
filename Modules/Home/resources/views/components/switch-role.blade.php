@@ -1,4 +1,4 @@
-@if(count(session('group_available')) > 1)
+@if(!empty(session('group_available')) && count(session('group_available')) > 1)
     <div class="menu-item px-5 my-1">
         <a href="#" class="menu-link px-5" data-bs-target="#modalSwitchRole" data-bs-toggle="modal">
             Switch Role

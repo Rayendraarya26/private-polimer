@@ -187,15 +187,6 @@ export const DetailPermohonanPage: React.FC = () => {
           >
             Kembali
           </Button>
-          <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {isSiapBayar && (
-                <Badge variant={isLunas ? "success" : "warning"}>
-                  {isLunas ? "LUNAS" : "BELUM LUNAS"}
-                </Badge>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Action Buttons */}
@@ -225,14 +216,16 @@ export const DetailPermohonanPage: React.FC = () => {
             </Button>
           )}
 
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<FileText className="w-3.5 h-3.5" />}
-            onClick={() => openInvoice({ id, no_permohonan: noOrder })}
-          >
-            Invoice
-          </Button>
+          {Boolean(permohonan?.invoice_file || permohonan?.invoice_number) && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<FileText className="w-3.5 h-3.5" />}
+              onClick={() => openInvoice({ id, no_permohonan: noOrder })}
+            >
+              Invoice
+            </Button>
+          )}
 
           {isLunas && (
             <Button
@@ -245,14 +238,16 @@ export const DetailPermohonanPage: React.FC = () => {
             </Button>
           )}
 
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-            onClick={() => openLhu({ id, no_permohonan: noOrder })}
-          >
-            LHU / Draft
-          </Button>
+          {isDone && (
+            <Button
+              size="sm"
+              variant="outline"
+              leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+              onClick={() => openLhu({ id, no_permohonan: noOrder })}
+            >
+              LHU
+            </Button>
+          )}
 
           {isDone && (
             <Button
@@ -280,7 +275,7 @@ export const DetailPermohonanPage: React.FC = () => {
 
         {/* Content */}
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
 
             {/* No. Permohonan */}
             <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
@@ -307,10 +302,34 @@ export const DetailPermohonanPage: React.FC = () => {
               </p>
             </div>
 
+            
+            {/* Status Bayar */}
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+              <p className="text-xs font-medium text-slate-400">
+                Status Bayar
+              </p>
+
+              <div className="mt-1">
+                {(() => {
+                  const statusBayar = (permohonan?.status_bayar || "").toUpperCase()
+                  if (statusBayar === "LUNAS" || isLunas) {
+                    return <Badge variant="success">Lunas</Badge>
+                  }
+                  if (statusBayar === "BATAL") {
+                    return <Badge variant="danger">Batal</Badge>
+                  }
+                  if (statusBayar === "EXPIRED") {
+                    return <Badge variant="danger">Kadaluarsa</Badge>
+                  }
+                  return <Badge variant="warning">Belum Lunas</Badge>
+                })()}
+              </div>
+            </div>
+
             {/* Status */}
             <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
               <p className="text-xs font-medium text-slate-400">
-                Status Workflow
+                Status Proses
               </p>
 
               <div className="mt-1">

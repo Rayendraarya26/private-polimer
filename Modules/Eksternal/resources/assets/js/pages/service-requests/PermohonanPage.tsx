@@ -175,7 +175,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
       {
         id: "konsultasi_at",
         name: "Konsultasi & Audit Teknologi",
-        desc: "Pemecahan masalah cacat produksi, formulasi bahan baku, dan efisiensi lini produksi.",
+        desc: "Konsultasi penyusunan dokumen & implementasi sistem manajemen (ISO, Industri Hijau, Halal), audit teknologi, dan asesmen INDI 4.0.",
         icon: <Cpu className="w-6 h-6 text-amber-600" />,
         route: "/permohonan/konsultasi-at",
         isAvailable: true,

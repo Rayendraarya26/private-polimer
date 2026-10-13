@@ -234,6 +234,10 @@ class PermohonanController extends Controller
 
                 'is_given_feedback' => (bool) ($item->is_given_feedback ?? false),
 
+                'invoice_number' => $item->invoice_number,
+                'invoice_file' => $item->invoice_file,
+                'has_invoice' => !empty($item->invoice_number) || !empty($item->invoice_file),
+
                 'file_attachment' => $attachments,
             ];
         });

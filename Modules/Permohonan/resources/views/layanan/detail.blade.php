@@ -74,6 +74,8 @@
                                 str_contains($kode, 'LABKAL') => 'Kalibrasi',
                                 str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') => 'Inspeksi Teknis (Karung Plastik)',
                                 str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') => 'Sertifikasi Halal (LPH BBSPJIKKP)',
+                                str_contains($kode, 'KAT') || str_starts_with($kode, 'KAT') || ($permohonan->relationLoaded('formKonsultasiAt') && $permohonan->formKonsultasiAt->isNotEmpty()) => 'Konsultasi & Audit Teknologi',
+                                str_contains($kode, 'ASET') || ($permohonan->relationLoaded('formAset') && $permohonan->formAset->isNotEmpty()) => 'Pemanfaatan & Sewa Aset',
                                 default => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                             };
 
@@ -246,7 +248,7 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'REG') => 'pelatihan',
@@ -262,6 +264,7 @@
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
+                                        str_contains($kode, 'KAT') || ($form instanceof \App\Models\Db2\FormKonsultasiAt) => 'konsultasi-at',
                                         default => 'default'
                                     };
                                 @endphp
@@ -281,7 +284,7 @@
 
                             @if($detailItems->isEmpty())
                                 @php
-                                    $form = $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first();
+                                    $form = $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
@@ -294,6 +297,7 @@
                                         str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || ($form instanceof \App\Models\Db2\FormInspeksi) => 'inspeksi',
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
+                                        str_contains($kode, 'KAT') || ($form instanceof \App\Models\Db2\FormKonsultasiAt) => 'konsultasi-at',
                                         default => 'default'
                                     };
                                 @endphp

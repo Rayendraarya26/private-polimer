@@ -8,6 +8,8 @@ use App\Libraries\Notification;
 use App\Libraries\WhatsappService;
 use App\Models\Db1\SysUserFbtoken;
 use App\Models\Db1\SysUserNotif;
+use App\Helpers\NotifHelper;
+use App\Enums\SysGroup;
 use Illuminate\Http\Request;
 
 class NotificationController
@@ -47,7 +49,14 @@ class NotificationController
             $dataNotif->updated_at = now();
             $dataNotif->save();
 
-            return redirect(url($dataNotif->link));
+            $targetUrl = $dataNotif->link;
+
+            // Jika user adalah pelanggan, pastikan link diarahkan ke portal pelanggan
+            if (auth()->check() && (session('group_selected') === SysGroup::PELANGGAN->value || auth()->user()->hasGroup(SysGroup::PELANGGAN))) {
+                $targetUrl = NotifHelper::resolveCustomerUrl($targetUrl);
+            }
+
+            return redirect(url($targetUrl));
         } else {
             abort(404);
         }

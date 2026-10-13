@@ -348,7 +348,7 @@ const DashboardPage: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <CardTitle>Riwayat Permohonan Terkini</CardTitle>
+            <CardTitle>Riwayat Permohonan Layanan</CardTitle>
             <CardDescription>
               Menampilkan {data.length} dari total {total} permohonan
             </CardDescription>
@@ -406,9 +406,6 @@ const DashboardPage: React.FC = () => {
                         <span className="font-medium text-slate-800 block">
                           {item.layanan || item.nama_layanan || 'Uji & Kalibrasi'}
                         </span>
-                        {item.komoditi && (
-                          <span className="text-[11px] text-slate-500 block">{item.komoditi}</span>
-                        )}
                       </td>
                       <td className="px-5 py-4 text-slate-500">
                         {getDateDisplay(item.tanggal_order || item.created_at || item.tanggal_permohonan)}
@@ -462,33 +459,42 @@ const DashboardPage: React.FC = () => {
                               Detail
                             </Button>
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              leftIcon={<FileText className="w-3.5 h-3.5" />}
-                              onClick={() =>
-                                openInvoice({
-                                  id: item.id,
-                                  no_permohonan: item.kode_order || item.nomor_order,
-                                })
-                              }
-                            >
-                              Invoice
-                            </Button>
+                            {/* Tombol Invoice: hanya muncul jika invoice sudah digenerate */}
+                            {Boolean(item.has_invoice || item.invoice_file || item.invoice_number) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<FileText className="w-3.5 h-3.5" />}
+                                onClick={() =>
+                                  openInvoice({
+                                    id: item.id,
+                                    no_permohonan: item.kode_order || item.nomor_order,
+                                  })
+                                }
+                              >
+                                Invoice
+                              </Button>
+                            )}
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-                              onClick={() =>
-                                openLhu({
-                                  id: item.id,
-                                  no_permohonan: item.kode_order || item.nomor_order,
-                                })
-                              }
-                            >
-                              LHU
-                            </Button>
+                            {/* Tombol LHU: hanya muncul jika sudah selesai (tidak muncul saat masih proses/sebelumnya) */}
+                            {Boolean(
+                              String(item.status_workflow || item.status_order || item.status || '').toUpperCase() === 'DONE' ||
+                              String(item.status_workflow || item.status_order || item.status || '').toUpperCase() === 'SELESAI'
+                            ) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+                                onClick={() =>
+                                  openLhu({
+                                    id: item.id,
+                                    no_permohonan: item.kode_order || item.nomor_order,
+                                  })
+                                }
+                              >
+                                LHU
+                              </Button>
+                            )}
                           </>
                         )}
 

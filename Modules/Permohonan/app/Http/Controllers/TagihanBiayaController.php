@@ -7,6 +7,7 @@ use App\Models\Db1\SysUserNotif;
 use App\Models\Db2\DetailPembayaran;
 use App\Models\Db2\Permohonan;
 use App\Models\Db2\PermohonanPenawaranBiaya;
+use App\Helpers\NotifHelper;
 use App\Models\Db2\PermohonanTrackingLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -186,7 +187,7 @@ class TagihanBiayaController extends Controller
             'user_id' => $permohonan->created_by,
             'title' => 'Surat Penawaran Biaya Diterbitkan',
             'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diterbitkan surat penawaran biaya. Silakan lakukan pembayaran.',
-            'link' => route('permohonan.layanan.detail', $permohonan->id),
+            'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
 

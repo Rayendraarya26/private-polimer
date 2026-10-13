@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Db2\PermohonanPenawaranBiaya;
 use App\Models\Db2\PermohonanTrackingLog;
 use Modules\Webhook\Services\SisSyncBridgingService;
+use App\Helpers\NotifHelper;
 
 
 class PermohonanController extends Controller
@@ -106,6 +107,7 @@ class PermohonanController extends Controller
                     ?? $detail?->formable->penerima_hasil_nama
                     ?? $detail?->formable->nama_usaha
                     ?? $detail?->formable->pemohon_nama
+                    ?? $detail?->formable->nama_pemohon
                     ?? $detail?->formable->pelanggan_nama
                     ?? $row->creator?->name
                     ?? '-';
@@ -123,6 +125,8 @@ class PermohonanController extends Controller
                     return 'Sertifikasi Halal (LPH)';
                 if (str_contains($row->no_permohonan, 'ASET'))
                     return 'Sewa Aset';
+                if (str_contains($row->no_permohonan, 'KAT'))
+                    return 'Konsultasi & Audit Teknologi';
                 if (str_contains($row->no_permohonan, 'JASA'))
                     return 'Jasa Lainnya';
                 foreach ($row->detailPermohonan as $detail) {
@@ -256,7 +260,7 @@ class PermohonanController extends Controller
                 }
 
                 $formable = $row->detailPermohonan->first()?->formable;
-                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? $formable?->pemohon_nama ?? $formable?->pelanggan_nama ?? '-';
+                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? $formable?->pemohon_nama ?? $formable?->nama_pemohon ?? $formable?->pelanggan_nama ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP'))
@@ -269,6 +273,8 @@ class PermohonanController extends Controller
                     return 'Sertifikasi Halal (LPH)';
                 if (str_contains($row->no_permohonan, 'ASET'))
                     return 'Sewa Aset';
+                if (str_contains($row->no_permohonan, 'KAT'))
+                    return 'Konsultasi & Audit Teknologi';
                 if (str_contains($row->no_permohonan, 'JASA'))
                     return 'Jasa Lainnya';
                 foreach ($row->detailPermohonan as $detail) {
@@ -306,12 +312,16 @@ class PermohonanController extends Controller
             'formHalal',
             'formGrkVerifikasi.emisi',
             'formGrkVerifikasi.dokumen',
+            'formKonsultasiAt.master',
+            'formKonsultasiAt.dokumen',
         ])->findOrFail($id);
 
 
         $detail = $request->query('d', 'overview');
         $detailPermohonan = $permohonan->detailPermohonan->first();
-        $form = $detailPermohonan?->formable ?? $permohonan->formGrkVerifikasi?->first();
+        $form = $detailPermohonan?->formable
+            ?? $permohonan->formGrkVerifikasi?->first()
+            ?? $permohonan->formKonsultasiAt?->first();
 
         if ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
             $form->loadMissing(['emisi', 'dokumen']);
@@ -323,6 +333,10 @@ class PermohonanController extends Controller
 
         if ($form instanceof \App\Models\Db2\FormMiniplant) {
             $form->loadMissing(['items.masterMiniplant']);
+        }
+
+        if ($form instanceof \App\Models\Db2\FormKonsultasiAt) {
+            $form->loadMissing(['dokumen', 'master']);
         }
 
 
@@ -355,6 +369,7 @@ class PermohonanController extends Controller
             'formHalal',
             'formKalibrasi',
             'formMiniplant',
+            'formKonsultasiAt',
             'creator'
         ])->findOrFail($id);
 
@@ -583,7 +598,7 @@ class PermohonanController extends Controller
             'user_id' => $permohonan->created_by,
             'title' => 'Permohonan Disetujui & Tagihan Diterbitkan',
             'content' => 'Permohonan Anda telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
-            'link' => route('permohonan.layanan.detail', $permohonan->id),
+            'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
 
@@ -614,7 +629,7 @@ class PermohonanController extends Controller
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
             'title' => 'Permohonan Ditolak',
-            'link' => route('permohonan.layanan.detail', $permohonan->id),
+            'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
 
@@ -643,7 +658,7 @@ class PermohonanController extends Controller
             'user_id' => $permohonan->created_by,
             'title' => 'Permohonan Perlu Revisi',
             'content' => 'Permohonan Anda perlu revisi. Catatan: ' . $request->catatan_revisi,
-            'link' => route('permohonan.layanan.detail', $permohonan->id),
+            'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
 
@@ -838,7 +853,7 @@ class PermohonanController extends Controller
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
                     'title' => 'Permohonan Ditolak',
-                    'link' => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
                     'is_read' => 'no',
                 ]);
             }
@@ -886,7 +901,7 @@ class PermohonanController extends Controller
                     'user_id' => $permohonan->created_by,
                     'title' => 'Permohonan Perlu Revisi',
                     'content' => 'Catatan: ' . $request->catatan_revisi,
-                    'link' => route('permohonan.layanan.detail', $permohonan->id),
+                    'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
                     'is_read' => 'no',
                 ]);
             }
@@ -1031,7 +1046,7 @@ class PermohonanController extends Controller
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Layanan Telah Selesai (Testing)',
                 'content' => 'Permohonan Anda telah berstatus SELESAI (DONE) dengan nomor sertifikat: ' . $nomorSertifikat,
-                'link'    => route('permohonan.layanan.detail', $permohonan->id),
+                'link'    => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
                 'is_read' => 'no',
             ]);
 

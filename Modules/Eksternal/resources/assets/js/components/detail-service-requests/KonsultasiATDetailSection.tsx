@@ -382,7 +382,7 @@ export const KonsultasiATDetailSection: React.FC<KonsultasiATDetailSectionProps>
                   leftIcon={<FileText className="w-3.5 h-3.5 text-indigo-600" />}
                   onClick={() => openSuratPenawaran(permohonan)}
                 >
-                  Lihat Surat Penawaran Biaya
+                  Surat Penawaran Biaya
                 </Button>
               )}
 
@@ -393,7 +393,7 @@ export const KonsultasiATDetailSection: React.FC<KonsultasiATDetailSectionProps>
                   leftIcon={<Receipt className="w-3.5 h-3.5" />}
                   onClick={() => openInvoice(permohonan)}
                 >
-                  Buka Invoice Resmi
+                  Invoice
                 </Button>
               )}
 
@@ -404,8 +404,8 @@ export const KonsultasiATDetailSection: React.FC<KonsultasiATDetailSectionProps>
                   leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
                   onClick={() => openKuitansi(permohonan)}
                 >
-                  Buka Kuitansi Resmi
-                </Button>
+                  Kuitansi
+                </Button> 
               )}
             </div>
           </CardContent>

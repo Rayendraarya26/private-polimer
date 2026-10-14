@@ -1,22 +1,23 @@
 <style>
-.detail-row {
-    display: grid;
-    grid-template-columns: 200px 10px 1fr;
-    margin-bottom: 8px;
-}
+    .detail-row {
+        display: grid;
+        grid-template-columns: 200px 10px 1fr;
+        margin-bottom: 8px;
+    }
 
-.detail-label {
-    color: #6c757d;
-}
+    .detail-label {
+        color: #6c757d;
+    }
 
-.detail-value {
-    word-break: break-word;
-}
+    .detail-value {
+        word-break: break-word;
+    }
 </style>
 
 @php
-    $getFileUrl = function($path) {
-        if (empty($path)) return null;
+    $getFileUrl = function ($path) {
+        if (empty($path))
+            return null;
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/storage/')) {
             return $path;
         }
@@ -102,15 +103,15 @@
 
 <!-- ================= CATATAN PEMOHON ================= -->
 @if(!empty($form->catatan_dokumen))
-<div class="mt-4">
-    <h6 class="text-primary border-bottom pb-2 mb-3">Catatan / Keterangan Dokumen</h6>
+    <div class="mt-4">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Catatan / Keterangan Dokumen</h6>
 
-    <div class="detail-row">
-        <div class="detail-label">Catatan Tambahan</div>
-        <div>:</div>
-        <div class="detail-value" style="white-space: pre-line;">{{ $form->catatan_dokumen }}</div>
+        <div class="detail-row">
+            <div class="detail-label">Catatan Tambahan</div>
+            <div>:</div>
+            <div class="detail-value" style="white-space: pre-line;">{{ $form->catatan_dokumen }}</div>
+        </div>
     </div>
-</div>
 @endif
 
 <!-- ================= FILE & DOKUMEN PENDUKUNG ================= -->
@@ -128,13 +129,11 @@
                         <div>:</div>
                         <div class="detail-value d-flex align-items-center gap-2">
                             @if(!empty($doc->file_path))
-                                <button type="button"
-                                    class="btn btn-sm btn-primary preview-btn py-1 px-3"
+                                <button type="button" class="btn btn-sm btn-primary preview-btn py-1 px-3"
                                     data-file="{{ $getFileUrl($doc->file_path) }}">
                                     Lihat file <i class="fa fa-eye ms-1"></i>
                                 </button>
-                                <a href="{{ $getFileUrl($doc->file_path) }}"
-                                    download="{{ $doc->nama_file_asli }}"
+                                <a href="{{ $getFileUrl($doc->file_path) }}" download="{{ $doc->nama_file_asli }}"
                                     class="btn btn-sm btn-outline-secondary py-1 px-3">
                                     Unduh <i class="fa fa-download ms-1"></i>
                                 </a>

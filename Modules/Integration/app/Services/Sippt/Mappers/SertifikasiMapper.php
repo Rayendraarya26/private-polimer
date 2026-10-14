@@ -2,6 +2,7 @@
 
 namespace Modules\Integration\Services\Sippt\Mappers;
 
+use App\Models\Db2\FormLsp;
 use App\Models\Db2\Permohonan;
 
 class SertifikasiMapper extends SipptFieldMapper
@@ -13,6 +14,22 @@ class SertifikasiMapper extends SipptFieldMapper
 
     protected function mapSpecificFields(Permohonan $permohonan, mixed $form): array
     {
+        // 1. Khusus Permohonan LSP (Sertifikasi Kompetensi Profesi BNSP)
+        if ($form instanceof FormLsp || $permohonan->formLsp()->exists()) {
+            $formLsp = $form instanceof FormLsp ? $form : $permohonan->formLsp()->first();
+            $skema = $formLsp?->jenis_produk ?: ($formLsp?->jabatan ? 'Skema Profesi ' . $formLsp->jabatan : 'Sertifikasi Kompetensi Profesi LSP BBSPJIKKP');
+            $instansi = $formLsp?->nama_instansi ? 'Instansi: ' . $formLsp->nama_instansi : 'Peserta Mandiri';
+
+            return [
+                'jenis_sertifikasi'      => 'PROFESI',
+                'keterangan_sertifikasi' => (string) $skema,
+                'keterangan_lainnya'     => (string) $instansi,
+                'uraian_sertifikasi'     => 'Sertifikasi Kompetensi Profesi (LSP BNSP)',
+                'jml_sertifikat'         => '1',
+            ];
+        }
+
+        // 2. Permohonan Sertifikasi Produk / Sistem Manajemen (SPPT SNI dll)
         $jmlSertifikat = 1;
         if ($form && method_exists($form, 'items')) {
             $jmlSertifikat = max(1, $form->items()->count());

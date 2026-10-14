@@ -67,12 +67,32 @@ export const AdminDashboardPage: React.FC = () => {
       <Head title="Admin Workspace Dashboard" />
 
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-2xl space-y-2">
+      <div
+        className="rounded-2xl p-6 sm:p-8 text-white shadow-soft relative overflow-hidden bg-cover bg-center min-h-[190px] flex items-center"
+        style={{ backgroundImage: "url('/images/gedung-jis/NrAV6m9zWfjfwYhrKiHWopInSH8RHYOCG8K5a2Aq.png')" }}
+      >
+        {/* Overlay gelap transparan */}
+        <div className="absolute inset-0 bg-brand-900/80 backdrop-blur-[1px]" />
+
+        {/* Logo Brand Resmi di Kanan Atas */}
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-7 z-20 flex items-center gap-2.5 sm:gap-4">
+          <img
+            src="/assets/media/logos/logo-jis-white.png"
+            alt="Logo JIS"
+            className="h-7 sm:h-8 md:h-9 w-auto max-w-[100px] sm:max-w-[130px] object-contain drop-shadow"
+          />
+          <div className="h-5 sm:h-6 w-px bg-white/30" aria-hidden="true" />
+          <img
+            src="/assets/media/logos/logo-kemenperin.png"
+            alt="Logo Kemenperin"
+            className="h-6 sm:h-7 md:h-8 w-auto max-w-[110px] sm:max-w-[140px] object-contain drop-shadow brightness-0 invert opacity-95"
+          />
+        </div>
+
+        <div className="relative z-10 max-w-xl lg:max-w-2xl space-y-2 pt-6 sm:pt-0">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 text-brand-200 border border-brand-400/30 text-xs font-semibold">
-              <Building2 className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 text-xs font-semibold backdrop-blur-sm">
+              <Building2 className="w-3.5 h-3.5 text-warning" />
               <span>Workspace Operasional BBKKP</span>
             </span>
             {loading && (
@@ -81,10 +101,10 @@ export const AdminDashboardPage: React.FC = () => {
               </span>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-sm">
             Selamat Datang di Command Center Admin
           </h1>
-          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed drop-shadow-sm">
             Pantau antrean permohonan layanan, disposisi tim verifikator, validasi pengujian laboratorium, dan penagihan invoice PNBP secara real-time dari database.
           </p>
         </div>

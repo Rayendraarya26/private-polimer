@@ -67,16 +67,24 @@ abstract class SipptFieldMapper
      */
     protected function resolveCustomerName(Permohonan $p, mixed $form, ?SysUser $creator): string
     {
-        if (!empty($form?->nama_perusahaan)) {
-            return $form->nama_perusahaan;
+        if (!empty($form?->pelanggan_nama)) {
+            return $form->pelanggan_nama;
         }
 
         if (!empty($form?->nama_pelanggan)) {
             return $form->nama_pelanggan;
         }
 
+        if (!empty($form?->nama_perusahaan)) {
+            return $form->nama_perusahaan;
+        }
+
         if (!empty($form?->nama_pemohon)) {
             return $form->nama_pemohon;
+        }
+
+        if (!empty($form?->nama_lengkap)) {
+            return $form->nama_lengkap;
         }
 
         if (!empty($form?->diajukan_oleh)) {
@@ -97,7 +105,11 @@ abstract class SipptFieldMapper
     {
         if (!empty($form?->jenis_pelanggan)) {
             $val = strtoupper($form->jenis_pelanggan);
-            if (str_contains($val, 'NON') || $val === 'NON-INDUSTRI') {
+            if (
+                str_contains($val, 'NON') || 
+                $val === 'NON-INDUSTRI' ||
+                in_array(strtolower($form->jenis_pelanggan), ['perorangan', 'instansi_pemerintah', 'lembaga_organisasi', 'instansi', 'lembaga', 'pribadi', 'individu'])
+            ) {
                 return 'NON-INDUSTRI';
             }
             return 'INDUSTRI';

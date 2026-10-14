@@ -14,8 +14,8 @@ const TOTAL_STEPS = 4
 
 const STEPS = [
   { id: 0, title: "Alat & Kalibrasi", icon: Toolbox, desc: "Data alat, no. seri & kalibrasi" },
-  { id: 1, title: "Pelaksanaan Kalibrasi", icon: UserCheck, desc: "Bahasa & pengiriman hasil" },
-  { id: 2, title: "Informasi Pelanggan", icon: MapPinHouse, desc: "Data pemohon & sertifikat" },
+  { id: 1, title: "Pelaksanaan Kalibrasi", icon: UserCheck, desc: "Lokasi & bahasa kalibrasi" },
+  { id: 2, title: "Informasi Pelanggan", icon: MapPinHouse, desc: "Data pemohon & alamat pengiriman" },
   { id: 3, title: "Pernyataan", icon: ShieldCheck, desc: "Pernyataan pemohon kalibrasi" },
 ]
 
@@ -35,6 +35,9 @@ const DEFAULT_PELANGGAN: PelangganData = {
   no_telp: "",
   hasilKalibrasiUntuk: "",
   alamatPemohon: "",
+  namaKirim: "",
+  alamatKirim: "",
+  opsiAlamatKirim: "pemohon",
 }
 
 export const FormKalibrasiWizard: React.FC = () => {
@@ -271,6 +274,17 @@ export const FormKalibrasiWizard: React.FC = () => {
         toast.error("Alamat pemohon wajib diisi.")
         return false
       }
+      const opsi = dataPelanggan.opsiAlamatKirim || "pemohon"
+      if (opsi === "manual") {
+        if (!dataPelanggan.namaKirim?.trim()) {
+          toast.error("Nama penerima pengiriman laporan hasil kalibrasi wajib diisi.")
+          return false
+        }
+        if (!dataPelanggan.alamatKirim?.trim()) {
+          toast.error("Alamat pengiriman laporan hasil kalibrasi wajib diisi.")
+          return false
+        }
+      }
     }
     return true
   }
@@ -316,6 +330,14 @@ export const FormKalibrasiWizard: React.FC = () => {
 
     try {
       setIsSubmitting(true)
+      const opsi = dataPelanggan.opsiAlamatKirim || "pemohon"
+      const finalAlamatKirim = opsi === "pemohon"
+        ? (dataPelanggan.alamatPemohon || "")
+        : (dataPelanggan.alamatKirim || dataPelanggan.alamatPemohon || "")
+      const finalNamaKirim = dataPelanggan.namaKirim?.trim()
+        ? dataPelanggan.namaKirim
+        : (dataPelanggan.namaPemohon || "")
+
       const payload = {
         aksi,
         dataAlat: dataAlat.length > 0 ? dataAlat : [
@@ -330,12 +352,18 @@ export const FormKalibrasiWizard: React.FC = () => {
             kalibrasiList: [],
           }
         ],
-        dataPelaksanaan,
+        dataPelaksanaan: {
+          ...dataPelaksanaan,
+          namaKirim: finalNamaKirim,
+          alamatKirim: finalAlamatKirim,
+        },
         dataPelanggan: {
           ...dataPelanggan,
           namaPemohon: dataPelanggan.namaPemohon || "Draft Pemohon",
           hasilKalibrasiUntuk: dataPelanggan.hasilKalibrasiUntuk || dataPelanggan.namaPemohon || "Draft",
           alamatPemohon: dataPelanggan.alamatPemohon || "-",
+          namaKirim: finalNamaKirim,
+          alamatKirim: finalAlamatKirim,
         },
         setujuPernyataan: isAjukan ? true : Boolean(setujuPernyataan),
       }

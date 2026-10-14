@@ -123,8 +123,8 @@ export const FormPernyataan: React.FC<FormPernyataanProps> = ({
               <div>
                 <span className="text-slate-500 block text-[11px]">Penerima & Alamat Kirim:</span>
                 <span className="text-slate-700">
-                  {dataPelaksanaan?.namaKirim ? `${dataPelaksanaan.namaKirim} - ` : ""}
-                  {dataPelaksanaan?.alamatKirim || "-"}
+                  {(dataPelanggan?.namaKirim || dataPelaksanaan?.namaKirim) ? `${dataPelanggan?.namaKirim || dataPelaksanaan?.namaKirim} - ` : ""}
+                  {dataPelanggan?.alamatKirim || dataPelaksanaan?.alamatKirim || "-"}
                 </span>
               </div>
               {dataPelaksanaan?.uraian && (

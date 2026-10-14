@@ -10,21 +10,14 @@ import {
   User,
   Phone,
   Mail,
-  MapPin,
-  Calendar,
-  Sparkles,
-  HelpCircle,
   Eye,
   Download,
   CreditCard,
   Receipt,
   FileCheck2,
-  Layers,
-  Award,
   BookOpen,
-  Briefcase,
   X,
-  ExternalLink,
+  Info,
   ShieldCheck,
 } from "lucide-react"
 import { getFileUrl } from "../../utils/fileHelpers"
@@ -306,15 +299,11 @@ export const BimtekDetailSection: React.FC<BimtekDetailSectionProps> = ({
                   Kebutuhan Kurikulum & Topik Bimbingan Teknis
                 </CardTitle>
               </div>
-              <Badge variant="outline" className="text-[11px] font-bold border-brand-200 text-brand-700 bg-brand-50/50">
-                Kurikulum Kustom
-              </Badge>
             </CardHeader>
             <CardContent className="pt-4 space-y-4 flex-1 text-xs">
               {/* Masalah Materi */}
               <div>
                 <span className="text-slate-500 font-bold uppercase text-[11px] tracking-wider flex items-center gap-1.5 mb-1.5">
-                  <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
                   Kendala / Permasalahan yang Dihadapi:
                 </span>
                 <p className="text-slate-700 leading-relaxed whitespace-pre-wrap pl-5 font-normal">
@@ -325,7 +314,6 @@ export const BimtekDetailSection: React.FC<BimtekDetailSectionProps> = ({
               {/* Hal yang Ingin Dipelajari */}
               <div className="pt-3 border-t border-slate-100">
                 <span className="text-slate-500 font-bold uppercase text-[11px] tracking-wider flex items-center gap-1.5 mb-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-600" />
                   Materi Khusus / Kompetensi yang Ingin Dikuasai:
                 </span>
                 <p className="text-slate-700 leading-relaxed whitespace-pre-wrap pl-5 font-normal">
@@ -334,7 +322,7 @@ export const BimtekDetailSection: React.FC<BimtekDetailSectionProps> = ({
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-1.5 pl-1">
-                <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span>
                   Materi akan diselaraskan oleh instruktur balai sesuai dengan kebutuhan dan kapabilitas peserta bimbingan teknis.
                 </span>

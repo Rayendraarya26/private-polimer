@@ -67,6 +67,46 @@ class FormHalal extends Model
         'penyelia_tgl_sertifikat' => 'date',
     ];
 
+    public function setPenyeliaTglSkAttribute($value): void
+    {
+        $this->attributes['penyelia_tgl_sk'] = !empty($value) ? $value : null;
+    }
+
+    public function setPenyeliaTglSertifikatAttribute($value): void
+    {
+        $this->attributes['penyelia_tgl_sertifikat'] = !empty($value) ? $value : null;
+    }
+
+    public function setKodeFasilitasiAttribute($value): void
+    {
+        $this->attributes['kode_fasilitasi'] = !empty($value) ? $value : null;
+    }
+
+    public function setNpwpAttribute($value): void
+    {
+        $this->attributes['npwp'] = !empty($value) ? $value : null;
+    }
+
+    public function setPjEmailAttribute($value): void
+    {
+        $this->attributes['pj_email'] = !empty($value) ? $value : null;
+    }
+
+    public function setPjAlamatAttribute($value): void
+    {
+        $this->attributes['pj_alamat'] = !empty($value) ? $value : null;
+    }
+
+    public function setPenyeliaNoSkAttribute($value): void
+    {
+        $this->attributes['penyelia_no_sk'] = !empty($value) ? $value : null;
+    }
+
+    public function setPenyeliaNoSertifikatAttribute($value): void
+    {
+        $this->attributes['penyelia_no_sertifikat'] = !empty($value) ? $value : null;
+    }
+
     public function permohonan(): BelongsTo
     {
         return $this->belongsTo(Permohonan::class, 'permohonan_id');

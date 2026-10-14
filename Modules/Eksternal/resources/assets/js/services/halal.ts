@@ -5,16 +5,39 @@ export const submitPermohonanHalal = async (payload: FormHalalPayload) => {
   const formData = new FormData()
 
   // 1. Data Pengajuan
-  formData.append("dataPengajuan", JSON.stringify(payload.dataPengajuan))
+  formData.append(
+    "dataPengajuan",
+    JSON.stringify({
+      ...payload.dataPengajuan,
+      kode_fasilitasi: payload.dataPengajuan.kode_fasilitasi || null,
+    })
+  )
 
   // 2. Data Pelaku Usaha
-  formData.append("dataPelakuUsaha", JSON.stringify(payload.dataPelakuUsaha))
+  formData.append(
+    "dataPelakuUsaha",
+    JSON.stringify({
+      ...payload.dataPelakuUsaha,
+      npwp: payload.dataPelakuUsaha.npwp || null,
+      pj_email: payload.dataPelakuUsaha.pj_email || null,
+      pj_alamat: payload.dataPelakuUsaha.pj_alamat || null,
+    })
+  )
 
   // 3. Data Fasilitas (Pabrik & Outlet)
   formData.append("dataFasilitas", JSON.stringify(payload.dataFasilitas))
 
   // 4. Data Penyelia Halal
-  formData.append("dataPenyelia", JSON.stringify(payload.dataPenyelia))
+  formData.append(
+    "dataPenyelia",
+    JSON.stringify({
+      ...payload.dataPenyelia,
+      penyelia_no_sk: payload.dataPenyelia.penyelia_no_sk || null,
+      penyelia_tgl_sk: payload.dataPenyelia.penyelia_tgl_sk || null,
+      penyelia_no_sertifikat: payload.dataPenyelia.penyelia_no_sertifikat || null,
+      penyelia_tgl_sertifikat: payload.dataPenyelia.penyelia_tgl_sertifikat || null,
+    })
+  )
 
   // 5. Data Bahan
   formData.append("dataBahan", JSON.stringify(payload.dataBahan))

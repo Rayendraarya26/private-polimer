@@ -51,6 +51,32 @@ class HalalController extends Controller
             ? json_decode($request->input('dataProduk'), true)
             : $request->input('dataProduk', []);
 
+        // Sanitasi field bertipe date dan nullable agar string kosong "" menjadi null
+        if (isset($dataPengajuan['kode_fasilitasi']) && trim((string)$dataPengajuan['kode_fasilitasi']) === '') {
+            $dataPengajuan['kode_fasilitasi'] = null;
+        }
+        if (isset($dataPelakuUsaha['npwp']) && trim((string)$dataPelakuUsaha['npwp']) === '') {
+            $dataPelakuUsaha['npwp'] = null;
+        }
+        if (isset($dataPelakuUsaha['pj_email']) && trim((string)$dataPelakuUsaha['pj_email']) === '') {
+            $dataPelakuUsaha['pj_email'] = null;
+        }
+        if (isset($dataPelakuUsaha['pj_alamat']) && trim((string)$dataPelakuUsaha['pj_alamat']) === '') {
+            $dataPelakuUsaha['pj_alamat'] = null;
+        }
+        if (isset($dataPenyelia['penyelia_no_sk']) && trim((string)$dataPenyelia['penyelia_no_sk']) === '') {
+            $dataPenyelia['penyelia_no_sk'] = null;
+        }
+        if (isset($dataPenyelia['penyelia_tgl_sk']) && trim((string)$dataPenyelia['penyelia_tgl_sk']) === '') {
+            $dataPenyelia['penyelia_tgl_sk'] = null;
+        }
+        if (isset($dataPenyelia['penyelia_no_sertifikat']) && trim((string)$dataPenyelia['penyelia_no_sertifikat']) === '') {
+            $dataPenyelia['penyelia_no_sertifikat'] = null;
+        }
+        if (isset($dataPenyelia['penyelia_tgl_sertifikat']) && trim((string)$dataPenyelia['penyelia_tgl_sertifikat']) === '') {
+            $dataPenyelia['penyelia_tgl_sertifikat'] = null;
+        }
+
         $request->merge([
             'dataPengajuan' => $dataPengajuan,
             'dataPelakuUsaha' => $dataPelakuUsaha,
@@ -187,15 +213,15 @@ class HalalController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'jalur_pendaftaran' => $dataPengajuan['jalur_pendaftaran'] ?? 'reguler',
                 'jenis_pendaftaran' => $dataPengajuan['jenis_pendaftaran'] ?? 'baru',
-                'kode_fasilitasi' => $dataPengajuan['kode_fasilitasi'] ?? null,
+                'kode_fasilitasi' => !empty($dataPengajuan['kode_fasilitasi']) ? $dataPengajuan['kode_fasilitasi'] : null,
                 'nama_usaha' => $dataPelakuUsaha['nama_usaha'],
                 'skala_usaha' => $dataPelakuUsaha['skala_usaha'] ?? 'mikro',
                 'nib' => $dataPelakuUsaha['nib'],
-                'npwp' => $dataPelakuUsaha['npwp'] ?? null,
+                'npwp' => !empty($dataPelakuUsaha['npwp']) ? $dataPelakuUsaha['npwp'] : null,
                 'pj_nama' => $dataPelakuUsaha['pj_nama'],
                 'pj_kontak' => $dataPelakuUsaha['pj_kontak'],
-                'pj_email' => $dataPelakuUsaha['pj_email'] ?? null,
-                'pj_alamat' => $dataPelakuUsaha['pj_alamat'] ?? null,
+                'pj_email' => !empty($dataPelakuUsaha['pj_email']) ? $dataPelakuUsaha['pj_email'] : null,
+                'pj_alamat' => !empty($dataPelakuUsaha['pj_alamat']) ? $dataPelakuUsaha['pj_alamat'] : null,
                 'pabrik_json' => $dataFasilitas['pabrik'] ?? [],
                 'outlet_json' => $dataFasilitas['outlet'] ?? [],
                 'file_denah_lokasi' => $pathDenah,
@@ -203,16 +229,16 @@ class HalalController extends Controller
                 'penyelia_nik' => $dataPenyelia['penyelia_nik'],
                 'penyelia_agama' => $dataPenyelia['penyelia_agama'] ?? 'Islam',
                 'penyelia_kontak' => $dataPenyelia['penyelia_kontak'],
-                'penyelia_no_sk' => $dataPenyelia['penyelia_no_sk'] ?? null,
-                'penyelia_tgl_sk' => $dataPenyelia['penyelia_tgl_sk'] ?? null,
-                'penyelia_no_sertifikat' => $dataPenyelia['penyelia_no_sertifikat'] ?? null,
-                'penyelia_tgl_sertifikat' => $dataPenyelia['penyelia_tgl_sertifikat'] ?? null,
+                'penyelia_no_sk' => !empty($dataPenyelia['penyelia_no_sk']) ? $dataPenyelia['penyelia_no_sk'] : null,
+                'penyelia_tgl_sk' => !empty($dataPenyelia['penyelia_tgl_sk']) ? $dataPenyelia['penyelia_tgl_sk'] : null,
+                'penyelia_no_sertifikat' => !empty($dataPenyelia['penyelia_no_sertifikat']) ? $dataPenyelia['penyelia_no_sertifikat'] : null,
+                'penyelia_tgl_sertifikat' => !empty($dataPenyelia['penyelia_tgl_sertifikat']) ? $dataPenyelia['penyelia_tgl_sertifikat'] : null,
                 'file_sk_penyelia' => $pathSkPenyelia,
                 'file_ktp_penyelia' => $pathKtpPenyelia,
                 'file_sertifikat_penyelia' => $pathSertifikatPenyelia,
                 'bahan_json' => $dataBahan,
                 'produk_json' => $dataProduk,
-                'alur_proses' => $dataProduk['alur_proses'] ?? null,
+                'alur_proses' => !empty($dataProduk['alur_proses']) ? $dataProduk['alur_proses'] : null,
                 'file_alur_proses' => $pathAlurProses,
                 'file_surat_permohonan' => $pathSuratPermohonan,
                 'file_manual_sjph' => $pathManualSjph,
@@ -438,16 +464,16 @@ class HalalController extends Controller
 
             if (!empty($dataPengajuan['jalur_pendaftaran'])) $formHalal->jalur_pendaftaran = $dataPengajuan['jalur_pendaftaran'];
             if (!empty($dataPengajuan['jenis_pendaftaran'])) $formHalal->jenis_pendaftaran = $dataPengajuan['jenis_pendaftaran'];
-            if (isset($dataPengajuan['kode_fasilitasi'])) $formHalal->kode_fasilitasi = $dataPengajuan['kode_fasilitasi'];
+            if (isset($dataPengajuan['kode_fasilitasi'])) $formHalal->kode_fasilitasi = !empty($dataPengajuan['kode_fasilitasi']) ? $dataPengajuan['kode_fasilitasi'] : null;
 
             if (!empty($dataPelakuUsaha['nama_usaha'])) $formHalal->nama_usaha = $dataPelakuUsaha['nama_usaha'];
             if (!empty($dataPelakuUsaha['skala_usaha'])) $formHalal->skala_usaha = $dataPelakuUsaha['skala_usaha'];
             if (!empty($dataPelakuUsaha['nib'])) $formHalal->nib = $dataPelakuUsaha['nib'];
-            if (isset($dataPelakuUsaha['npwp'])) $formHalal->npwp = $dataPelakuUsaha['npwp'];
+            if (isset($dataPelakuUsaha['npwp'])) $formHalal->npwp = !empty($dataPelakuUsaha['npwp']) ? $dataPelakuUsaha['npwp'] : null;
             if (!empty($dataPelakuUsaha['pj_nama'])) $formHalal->pj_nama = $dataPelakuUsaha['pj_nama'];
             if (!empty($dataPelakuUsaha['pj_kontak'])) $formHalal->pj_kontak = $dataPelakuUsaha['pj_kontak'];
-            if (isset($dataPelakuUsaha['pj_email'])) $formHalal->pj_email = $dataPelakuUsaha['pj_email'];
-            if (isset($dataPelakuUsaha['pj_alamat'])) $formHalal->pj_alamat = $dataPelakuUsaha['pj_alamat'];
+            if (isset($dataPelakuUsaha['pj_email'])) $formHalal->pj_email = !empty($dataPelakuUsaha['pj_email']) ? $dataPelakuUsaha['pj_email'] : null;
+            if (isset($dataPelakuUsaha['pj_alamat'])) $formHalal->pj_alamat = !empty($dataPelakuUsaha['pj_alamat']) ? $dataPelakuUsaha['pj_alamat'] : null;
 
             if (!empty($dataFasilitas['pabrik'])) $formHalal->pabrik_json = $dataFasilitas['pabrik'];
             if (isset($dataFasilitas['outlet'])) $formHalal->outlet_json = $dataFasilitas['outlet'];
@@ -456,10 +482,10 @@ class HalalController extends Controller
             if (!empty($dataPenyelia['penyelia_nik'])) $formHalal->penyelia_nik = $dataPenyelia['penyelia_nik'];
             if (!empty($dataPenyelia['penyelia_agama'])) $formHalal->penyelia_agama = $dataPenyelia['penyelia_agama'];
             if (!empty($dataPenyelia['penyelia_kontak'])) $formHalal->penyelia_kontak = $dataPenyelia['penyelia_kontak'];
-            if (isset($dataPenyelia['penyelia_no_sk'])) $formHalal->penyelia_no_sk = $dataPenyelia['penyelia_no_sk'];
-            if (isset($dataPenyelia['penyelia_tgl_sk'])) $formHalal->penyelia_tgl_sk = $dataPenyelia['penyelia_tgl_sk'];
-            if (isset($dataPenyelia['penyelia_no_sertifikat'])) $formHalal->penyelia_no_sertifikat = $dataPenyelia['penyelia_no_sertifikat'];
-            if (isset($dataPenyelia['penyelia_tgl_sertifikat'])) $formHalal->penyelia_tgl_sertifikat = $dataPenyelia['penyelia_tgl_sertifikat'];
+            if (isset($dataPenyelia['penyelia_no_sk'])) $formHalal->penyelia_no_sk = !empty($dataPenyelia['penyelia_no_sk']) ? $dataPenyelia['penyelia_no_sk'] : null;
+            if (isset($dataPenyelia['penyelia_tgl_sk'])) $formHalal->penyelia_tgl_sk = !empty($dataPenyelia['penyelia_tgl_sk']) ? $dataPenyelia['penyelia_tgl_sk'] : null;
+            if (isset($dataPenyelia['penyelia_no_sertifikat'])) $formHalal->penyelia_no_sertifikat = !empty($dataPenyelia['penyelia_no_sertifikat']) ? $dataPenyelia['penyelia_no_sertifikat'] : null;
+            if (isset($dataPenyelia['penyelia_tgl_sertifikat'])) $formHalal->penyelia_tgl_sertifikat = !empty($dataPenyelia['penyelia_tgl_sertifikat']) ? $dataPenyelia['penyelia_tgl_sertifikat'] : null;
 
             if (!empty($dataBahan)) $formHalal->bahan_json = $dataBahan;
             if (!empty($dataProduk)) {

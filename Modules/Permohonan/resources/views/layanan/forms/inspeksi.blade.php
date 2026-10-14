@@ -1,305 +1,231 @@
 <style>
-    .detail-insp-row {
+    .detail-row {
         display: grid;
         grid-template-columns: 200px 10px 1fr;
         margin-bottom: 8px;
-        font-size: 13px;
     }
 
-    .detail-insp-label {
-        color: #64748b;
-        font-weight: 500;
+    .detail-label {
+        color: #6c757d;
     }
 
-    .detail-insp-value {
+    .detail-value {
         word-break: break-word;
-        color: #1e293b;
-    }
-
-    .insp-section-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #0f172a;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 8px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .insp-stat-card {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 14px 18px;
     }
 </style>
 
 @php
+    $getFileUrl = function ($path) {
+        if (empty($path))
+            return null;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/storage/')) {
+            return $path;
+        }
+        return asset('storage/' . $path);
+    };
+
     $jenisInspeksi = is_array($form->jenis_inspeksi) 
         ? $form->jenis_inspeksi 
         : (is_string($form->jenis_inspeksi) ? json_decode($form->jenis_inspeksi, true) ?? [$form->jenis_inspeksi] : []);
 @endphp
 
-<div class="space-y-4">
+<!-- ================= BARIS 1: OBJEK & PELAKSANAAN ================= -->
+<div class="row g-4 mb-4">
+    <!-- Kiri: Objek & Spesifikasi Inspeksi -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Objek & Lingkup Inspeksi</h6>
 
-    {{-- ── 1. STATISTIC HIGHLIGHT CARDS ── --}}
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="insp-stat-card border-start border-4 border-primary">
-                <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Komoditas Objek</span>
-                <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 13px;">
-                    {{ $form->komoditas ?: '-' }}
-                </h6>
-                <small class="text-muted">Kapasitas: {{ $form->kapasitas_karung ?: '-' }}</small>
+        <div class="detail-row">
+            <div class="detail-label">Jenis Inspeksi</div>
+            <div>:</div>
+            <div class="detail-value">
+                @forelse($jenisInspeksi as $jenis)
+                    <span class="badge bg-light-primary text-primary border me-1 text-uppercase">
+                        {{ $jenis }}
+                    </span>
+                @empty
+                    <span class="text-muted">-</span>
+                @endforelse
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="insp-stat-card border-start border-4 border-info">
-                <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Jumlah Partai / Lot</span>
-                <h4 class="fw-bold text-info mb-0 mt-1">
-                    {{ $form->jumlah_partai_lot ?? 1 }}
-                    <small class="fs-6 text-muted fw-normal">Lot / Partai</small>
-                </h4>
-            </div>
+        <div class="detail-row">
+            <div class="detail-label">Komoditas / Objek</div>
+            <div>:</div>
+            <div class="detail-value fw-bold text-dark">{{ $form->komoditas ?: '-' }}</div>
         </div>
 
-        <div class="col-md-3">
-            <div class="insp-stat-card border-start border-4 border-success">
-                <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Rencana Inspeksi</span>
-                <h6 class="fw-bold text-success mb-0 mt-1" style="font-size: 13px;">
-                    {{ $form->tgl_rencana_inspeksi ? \Carbon\Carbon::parse($form->tgl_rencana_inspeksi)->translatedFormat('d F Y') : '-' }}
-                </h6>
-                <small class="text-muted">Bahasa: {{ ucfirst($form->bahasa_laporan ?? 'Indonesia') }}</small>
-            </div>
+        <div class="detail-row">
+            <div class="detail-label">Kapasitas / Satuan</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold">{{ $form->kapasitas_karung ?: '-' }}</div>
         </div>
 
-        <div class="col-md-3">
-            <div class="insp-stat-card border-start border-4 border-warning">
-                <span class="text-uppercase text-muted" style="font-size: 10px; letter-spacing: 0.5px;">Penerima Hasil</span>
-                <h6 class="fw-bold text-dark mb-0 mt-1" style="font-size: 13px;">
-                    {{ $form->penerima_hasil_nama ?: '-' }}
-                </h6>
-                <small class="text-muted">Tujuan: {{ Str::limit($form->tujuan_inspeksi ?: '-', 25) }}</small>
-            </div>
+        <div class="detail-row">
+            <div class="detail-label">Jumlah Partai / Lot</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold">{{ $form->jumlah_partai_lot ?? 1 }} Partai / Lot</div>
         </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Bahasa Laporan</div>
+            <div>:</div>
+            <div class="detail-value text-capitalize">{{ $form->bahasa_laporan ?? 'Indonesia' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Tujuan Inspeksi</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->tujuan_inspeksi ?? '-' }}</div>
+        </div>
+
+        @if(!empty($form->spesifikasi_dimensi))
+            <div class="detail-row">
+                <div class="detail-label">Spesifikasi Dimensi</div>
+                <div>:</div>
+                <div class="detail-value" style="white-space: pre-line;">{{ $form->spesifikasi_dimensi }}</div>
+            </div>
+        @endif
     </div>
 
-    {{-- ── 2. OBJEK & PELAKSANAAN LAPANGAN ── --}}
-    <div class="row g-4 mb-4">
-        {{-- Kiri: Spesifikasi Karung & Lingkup --}}
-        <div class="col-md-6">
-            <div class="insp-section-title text-primary">
-                <i class="fas fa-cubes"></i> Spesifikasi & Lingkup Inspeksi
-            </div>
+    <!-- Kanan: Pelaksanaan Lapangan & Berkas -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Pelaksanaan Lapangan & Berkas</h6>
 
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Jenis Inspeksi</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    @forelse($jenisInspeksi as $jenis)
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1 text-uppercase" style="font-size: 11px;">
-                            {{ $jenis }}
-                        </span>
-                    @empty
-                        <span class="text-muted">-</span>
-                    @endforelse
-                </div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Komoditas Karung</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->komoditas ?: '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Kapasitas Karung</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->kapasitas_karung ?: '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Jumlah Partai / Lot</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->jumlah_partai_lot ?? 1 }} Partai</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Bahasa Laporan</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-semibold text-capitalize">{{ $form->bahasa_laporan ?? 'Indonesia' }}</div>
-            </div>
-
-            @if(!empty($form->spesifikasi_dimensi))
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Spesifikasi Dimensi</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    <div class="p-2 rounded bg-light border text-secondary" style="font-size: 12px; line-height: 1.5;">
-                        {{ $form->spesifikasi_dimensi }}
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Tujuan Inspeksi</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->tujuan_inspeksi ?? '-' }}</div>
+        <div class="detail-row">
+            <div class="detail-label">Rencana Tgl Inspeksi</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold text-primary">
+                {{ $form->tgl_rencana_inspeksi ? \Carbon\Carbon::parse($form->tgl_rencana_inspeksi)->translatedFormat('l, d F Y') : '-' }}
             </div>
         </div>
 
-        {{-- Kanan: Pelaksanaan & Berkas Surat Klien --}}
-        <div class="col-md-6">
-            <div class="insp-section-title text-primary">
-                <i class="fas fa-calendar-alt"></i> Pelaksanaan Lapangan & Berkas
-            </div>
+        <div class="detail-row">
+            <div class="detail-label">Lokasi Gudang / Pabrik</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->lokasi_inspeksi ?? '-' }}</div>
+        </div>
 
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Rencana Tgl Inspeksi</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-bold text-primary">
-                    {{ $form->tgl_rencana_inspeksi ? \Carbon\Carbon::parse($form->tgl_rencana_inspeksi)->translatedFormat('l, d F Y') : '-' }}
-                </div>
-            </div>
+        <div class="detail-row">
+            <div class="detail-label">No. Surat Pemohon</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->no_surat_pemohon ?: '-' }}</div>
+        </div>
 
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Lokasi Gudang / Pabrik</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    <div class="d-flex align-items-start gap-1">
-                        <i class="fas fa-map-marker-alt text-danger mt-1"></i>
-                        <span>{{ $form->lokasi_inspeksi ?? '-' }}</span>
-                    </div>
-                </div>
+        <div class="detail-row">
+            <div class="detail-label">Tgl. Surat Pemohon</div>
+            <div>:</div>
+            <div class="detail-value">
+                {{ $form->tgl_surat_pemohon ? \Carbon\Carbon::parse($form->tgl_surat_pemohon)->translatedFormat('d F Y') : '-' }}
             </div>
+        </div>
 
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">No. Surat Klien</div>
-                <div>:</div>
-                <div class="detail-insp-value font-monospace">{{ $form->no_surat_pemohon ?: 'Tidak Ada Nomor' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Tgl. Surat Klien</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    {{ $form->tgl_surat_pemohon ? \Carbon\Carbon::parse($form->tgl_surat_pemohon)->translatedFormat('d F Y') : '-' }}
-                </div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Berkas Surat Klien</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    @if(!empty($form->file_surat_permohonan))
-                        <a href="{{ asset('storage/' . $form->file_surat_permohonan) }}" target="_blank"
-                            class="btn btn-xs btn-outline-primary d-inline-flex align-items-center gap-1 py-1 px-2.5 rounded-2">
-                            <i class="fas fa-file-pdf text-danger"></i>
-                            <span>Buka / Unduh Berkas Surat</span>
+        <div class="detail-row">
+            <div class="detail-label">Berkas Surat Pemohon</div>
+            <div>:</div>
+            <div class="detail-value">
+                @if(!empty($form->file_surat_permohonan))
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button"
+                            class="btn btn-sm btn-primary preview-btn py-1 px-3"
+                            data-file="{{ $getFileUrl($form->file_surat_permohonan) }}"
+                            data-name="Surat_Permohonan_Inspeksi_{{ $form->no_surat_pemohon ?: 'Klien' }}">
+                            Lihat file <i class="fa fa-eye ms-1"></i>
+                        </button>
+                        <a href="{{ $getFileUrl($form->file_surat_permohonan) }}"
+                            download="Surat_Permohonan_Inspeksi"
+                            class="btn btn-sm btn-outline-secondary py-1 px-3">
+                            Unduh <i class="fa fa-download ms-1"></i>
                         </a>
-                    @else
-                        <span class="text-muted fst-italic">Tidak ada file terunggah</span>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ── 3. PIHAK TERKAIT: PENERIMA & PENANGGUNG BIAYA ── --}}
-    <div class="row g-4 mb-4">
-        {{-- Kiri: Hasil Dibuat Untuk --}}
-        <div class="col-md-6">
-            <div class="insp-section-title text-primary">
-                <i class="fas fa-building"></i> Hasil Inspeksi Dibuat Untuk
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Nama Lembaga / Instansi</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-bold text-dark">{{ $form->penerima_hasil_nama ?: '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Alamat Instansi</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->penerima_hasil_alamat ?? '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Email Instansi</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->penerima_hasil_email ?? '-' }}</div>
-            </div>
-        </div>
-
-        {{-- Kanan: Biaya Ditanggung Oleh & PIC Pemohon --}}
-        <div class="col-md-6">
-            <div class="insp-section-title text-primary">
-                <i class="fas fa-wallet"></i> Penanggung Biaya & Kontak PIC
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Penanggung Biaya</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-bold text-dark">{{ $form->biaya_nama ?? '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Alamat Penanggung Biaya</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->biaya_alamat ?? '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Email Penanggung Biaya</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->biaya_email ?? '-' }}</div>
-            </div>
-
-            <hr class="my-2 border-slate-200">
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Nama Personel PIC</div>
-                <div>:</div>
-                <div class="detail-insp-value fw-semibold">{{ $form->pemohon_pic_nama ?? '-' }}</div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Kontak / WhatsApp PIC</div>
-                <div>:</div>
-                <div class="detail-insp-value">
-                    <span class="text-success fw-semibold">
-                        <i class="fab fa-whatsapp me-1"></i>{{ $form->pemohon_pic_kontak ?? '-' }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="detail-insp-row">
-                <div class="detail-insp-label">Alamat PIC</div>
-                <div>:</div>
-                <div class="detail-insp-value">{{ $form->pemohon_pic_alamat ?? '-' }}</div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ── 4. STATUS PERNYATAAN & INTEGRITAS ── --}}
-    <div class="alert alert-success border-0 bg-success-subtle text-success-emphasis p-3 rounded-3 d-flex align-items-center gap-3">
-        <i class="fas fa-shield-alt fa-2x text-success"></i>
-        <div>
-            <h6 class="fw-bold mb-1">Pernyataan & Klausul Integritas Pemohon</h6>
-            <p class="mb-0 small text-secondary">
-                Pemohon menyatakan menyetujui seluruh ketentuan pemeriksaan teknis, independensi lembaga inspeksi BBSPJIKKP, dan kebenaran data objek inspeksi.
-                @if($form->pernyataan_at)
-                    <span class="d-block mt-1 text-muted fst-italic">
-                        Dikonfirmasi secara digital pada: {{ \Carbon\Carbon::parse($form->pernyataan_at)->translatedFormat('d F Y, H:i') }} WIB
-                    </span>
+                    </div>
+                @else
+                    <span class="text-muted">-</span>
                 @endif
-            </p>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Pernyataan Pemohon</div>
+            <div>:</div>
+            <div class="detail-value">
+                @if($form->setuju_pernyataan)
+                    <span class="badge bg-light-success text-success"><i class="fa fa-check-circle me-1"></i> Disetujui</span>
+                    @if($form->pernyataan_at)
+                        <small class="text-muted d-block mt-1">Pada {{ \Carbon\Carbon::parse($form->pernyataan_at)->translatedFormat('d F Y, H:i') }} WIB</small>
+                    @endif
+                @else
+                    <span class="badge bg-light-danger text-danger"><i class="fa fa-times-circle me-1"></i> Belum Disetujui</span>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= BARIS 2: PIHAK TERKAIT ================= -->
+<div class="row g-4 mb-4">
+    <!-- Kiri: Instansi Penerima Hasil Inspeksi -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Hasil Inspeksi Ditujukan Kepada</h6>
+
+        <div class="detail-row">
+            <div class="detail-label">Nama Lembaga / Instansi</div>
+            <div>:</div>
+            <div class="detail-value fw-bold text-dark">{{ $form->penerima_hasil_nama ?: '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Alamat Instansi</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->penerima_hasil_alamat ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Email Instansi</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->penerima_hasil_email ?? '-' }}</div>
         </div>
     </div>
 
+    <!-- Kanan: Penanggung Biaya & Kontak PIC -->
+    <div class="col-md-6">
+        <h6 class="text-primary border-bottom pb-2 mb-3">Penanggung Biaya & Kontak PIC</h6>
+
+        <div class="detail-row">
+            <div class="detail-label">Penanggung Biaya</div>
+            <div>:</div>
+            <div class="detail-value fw-bold text-dark">{{ $form->biaya_nama ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Alamat Penanggung Biaya</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->biaya_alamat ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Email Penanggung Biaya</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->biaya_email ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row mt-3">
+            <div class="detail-label">Nama PIC Lapangan</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold">{{ $form->pemohon_pic_nama ?? '-' }}</div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">No. Kontak / WhatsApp</div>
+            <div>:</div>
+            <div class="detail-value fw-semibold text-dark">
+                {{ $form->pemohon_pic_kontak ?? '-' }}
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label">Alamat PIC</div>
+            <div>:</div>
+            <div class="detail-value">{{ $form->pemohon_pic_alamat ?? '-' }}</div>
+        </div>
+    </div>
 </div>

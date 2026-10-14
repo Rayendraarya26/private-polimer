@@ -5,23 +5,24 @@
 @push('styles')
     <style>
         .dashboard-hero {
-            background: var(--bbkkp-hero-bg);
+            background-image: url('{{ asset("images/gedung-jis/NrAV6m9zWfjfwYhrKiHWopInSH8RHYOCG8K5a2Aq.png") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             border-radius: 1.25rem;
             position: relative;
             overflow: hidden;
             color: #ffffff;
+            min-height: 190px;
         }
 
         .dashboard-hero::before {
             content: '';
             position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, var(--bbkkp-hero-glow) 0%, rgba(255, 255, 255, 0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(20, 48, 90, 0.82) 0%, rgba(15, 30, 60, 0.86) 100%);
+            backdrop-filter: blur(1px);
+            z-index: 1;
         }
 
         .kpi-card {
@@ -62,20 +63,33 @@
         {{-- ======================================================== --}}
         {{-- 1. HERO COMMAND CENTER WELCOME BANNER --}}
         {{-- ======================================================== --}}
-        <div class="dashboard-hero p-6 p-lg-8 shadow-sm">
-            <div class="row align-items-center position-relative z-index-1">
-                <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="dashboard-hero p-6 p-lg-8 shadow-sm d-flex align-items-center position-relative">
+            {{-- Logo Brand Resmi di Kanan Atas --}}
+            <div class="position-absolute top-0 end-0 p-4 p-lg-6 d-flex align-items-center gap-2 gap-sm-3" style="z-index: 2;">
+                <img src="{{ asset('assets/media/logos/logo-jis-white.png') }}"
+                     alt="Logo JIS"
+                     class="img-fluid"
+                     style="max-height: 36px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));" />
+                <div style="width: 1px; height: 24px; background-color: rgba(255, 255, 255, 0.35);" aria-hidden="true"></div>
+                <img src="{{ asset('assets/media/logos/logo-kemenperin.png') }}"
+                     alt="Logo Kemenperin"
+                     class="img-fluid"
+                     style="max-height: 32px; width: auto; filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.35)); opacity: 0.95;" />
+            </div>
+
+            <div class="row align-items-center w-100 position-relative" style="z-index: 2;">
+                <div class="col-lg-8 col-xl-7 pt-5 pt-sm-0">
                     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                        <span class="badge bg-white bg-opacity-10 text-white-50 px-3 py-2 rounded-pill fs-8">
+                        <span class="badge bg-white bg-opacity-20 text-white px-3 py-2 rounded-pill fs-8" style="backdrop-filter: blur(4px);">
                             <i class="fa-regular fa-calendar-days text-warning me-1"></i>
                             {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
                         </span>
                     </div>
 
-                    <h1 class="text-white fw-bold fs-2x mb-2">
+                    <h1 class="text-white fw-bold fs-2x mb-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.25);">
                         Selamat Datang, {{ Auth::user()->name }}! 👋
                     </h1>
-                    <p class="text-white-50 fs-6 mb-0 pe-lg-10 leading-relaxed">
+                    <p class="text-white text-opacity-85 fs-6 mb-0 pe-lg-5 leading-relaxed" style="text-shadow: 0 1px 3px rgba(0,0,0,0.25);">
                         Portal Layanan dan Informasi Terintegrasi Balai Besar Standarisai dan Pelayanan Jasa Industri Kulit,
                         Karet, dan Plastik (BBSPJIKKP)
                     </p>

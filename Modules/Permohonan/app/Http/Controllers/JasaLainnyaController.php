@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
+use Modules\Integration\Jobs\SyncPermohonanToSipptJob;
 
 class JasaLainnyaController extends Controller
 {
@@ -317,6 +318,14 @@ class JasaLainnyaController extends Controller
             ]);
 
             DB::commit();
+
+            // Kirim permohonan jasa lainnya langsung ke antrean sinkronisasi SIPPT
+            try {
+                SyncPermohonanToSipptJob::dispatch($permohonan);
+            } catch (\Throwable $e) {
+                Log::warning("[JasaLainnya] Gagal dispatch SyncPermohonanToSipptJob: " . $e->getMessage());
+            }
+
 
             return redirect()->route('permohonan.jasa-lainnya.index')
                 ->with('success', "Pencatatan jasa lainnya #{$noPermohonan} berhasil disimpan!");

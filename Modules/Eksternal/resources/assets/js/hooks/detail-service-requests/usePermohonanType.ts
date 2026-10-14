@@ -88,10 +88,19 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
       noOrder.startsWith("REG") ||
       noOrder.startsWith("TRN") ||
       noOrder.startsWith("UMK") ||
+      noOrder.startsWith("BIM") ||
+      noOrder.startsWith("BM") ||
       permohonan?.formable_type?.includes("FormPelatihan") ||
-      lingkup?.slug?.includes("pelatihan")
+      lingkup?.slug?.includes("pelatihan") ||
+      lingkup?.slug?.includes("bimtek") ||
+      lingkup?.nama_layanan?.toLowerCase()?.includes("bimtek") ||
+      lingkup?.nama_layanan?.toLowerCase()?.includes("pelatihan") ||
+      Boolean(formData?.masalah_materi || formData?.hal_dipelajari || formData?.nik_peserta) ||
+      (Array.isArray(permohonan?.form_pelatihan) && permohonan.form_pelatihan.length > 0) ||
+      (Array.isArray(permohonan?.formPelatihan) && permohonan.formPelatihan.length > 0)
     )
   )
+  const isBimtek = isPelatihan
 
   const isGrk = Boolean(
     !isPup && !isLsp && !isPelatihan && (
@@ -202,6 +211,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     isPup,
     isLsp,
     isPelatihan,
+    isBimtek,
     isGrk,
     isGrkValidasi,
     isKalibrasi,

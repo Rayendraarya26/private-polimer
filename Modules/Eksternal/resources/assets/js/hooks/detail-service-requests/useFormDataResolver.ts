@@ -11,6 +11,8 @@ interface PermohonanTypes {
   isGrk: boolean
   isGrkValidasi: boolean
   isKonsultasi?: boolean
+  isPelatihan?: boolean
+  isBimtek?: boolean
 }
 
 export function useFormDataResolver(
@@ -98,6 +100,16 @@ export function useFormDataResolver(
         ? permohonan.form_konsultasi_at[0]
         : (Array.isArray(permohonan?.formKonsultasiAt) && permohonan.formKonsultasiAt.length > 0
           ? permohonan.formKonsultasiAt[0]
+          : formData)))
+    : null
+
+  const formPelatihanData = (types.isPelatihan || types.isBimtek)
+    ? (formData?.nama_instansi || formData?.nik_peserta || formData?.masalah_materi
+      ? formData
+      : (Array.isArray(permohonan?.form_pelatihan) && permohonan.form_pelatihan.length > 0
+        ? permohonan.form_pelatihan[0]
+        : (Array.isArray(permohonan?.formPelatihan) && permohonan.formPelatihan.length > 0
+          ? permohonan.formPelatihan[0]
           : formData)))
     : null
 
@@ -266,6 +278,7 @@ export function useFormDataResolver(
     formMiniplantData,
     formGrkData,
     formKonsultasiData,
+    formPelatihanData,
     items,
     pabriks,
     docs,

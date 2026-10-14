@@ -67,6 +67,7 @@
 
                             $namaLayanan = match (true) {
                                 str_starts_with($kode, 'LSP') => 'Sertifikasi Profesi (LSP)',
+                                str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') => 'Bimbingan Teknis (Bimtek)',
                                 str_starts_with($kode, 'REG') => 'Pelatihan Reguler',
                                 str_starts_with($kode, 'UMK') => 'Pelatihan UMK',
                                 str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'Sertifikasi Industri',
@@ -151,7 +152,7 @@
                                         Tagihan</div>
                                     <div class="fw-semibold"
                                         style="font-size:13px;
-                                                                            {{ $totalTagihan > 0 ? 'color:#1d4ed8' : 'color:#94a3b8' }}">
+                                                                                        {{ $totalTagihan > 0 ? 'color:#1d4ed8' : 'color:#94a3b8' }}">
                                         {{ $totalTagihan > 0
                     ? 'Rp ' . number_format($totalTagihan, 0, ',', '.')
                     : '— belum diisi' }}
@@ -180,7 +181,7 @@
                             @if(!$isSplit && $grupPermohonan->count() > 1)
                                 <div class="px-4 py-2"
                                     style="background:#fafbfc;border-bottom:1px solid #e2e8f0;
-                                                                                    font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8">
+                                                                                                    font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8">
                                     Peserta dalam satu tagihan ini
                                 </div>
                                 @foreach($grupPermohonan as $gp)
@@ -201,10 +202,10 @@
                                     @endphp
                                     <div class="d-flex align-items-center px-4 py-2"
                                         style="border-bottom:1px solid #f1f5f9;
-                                                                                                    background:{{ $isAktif ? '#eff6ff' : '#fff' }}">
+                                                                                                                        background:{{ $isAktif ? '#eff6ff' : '#fff' }}">
                                         <div class="me-3 rounded-circle flex-shrink-0"
                                             style="width:6px;height:6px;
-                                                                                                        background:{{ $isAktif ? '#3b82f6' : '#cbd5e1' }}">
+                                                                                                                            background:{{ $isAktif ? '#3b82f6' : '#cbd5e1' }}">
                                         </div>
                                         <span class="text-muted me-3" style="font-size:12px;min-width:170px">
                                             {{ $gp->no_permohonan }}
@@ -233,10 +234,10 @@
                                     @foreach($detailItems as $idx => $di)
                                         <button type="button"
                                             class="peserta-tab-btn btn btn-link text-decoration-none px-3 py-2 border-0
-                                                                                                       {{ $idx === 0 ? 'fw-semibold' : 'text-muted' }}"
+                                                                                                                           {{ $idx === 0 ? 'fw-semibold' : 'text-muted' }}"
                                             style="border-radius:0;font-size:13px;white-space:nowrap;
-                                                                                                       color:{{ $idx === 0 ? '#1d4ed8' : '' }};
-                                                                                                       border-bottom:{{ $idx === 0 ? '2px solid #3b82f6' : '2px solid transparent' }}"
+                                                                                                                           color:{{ $idx === 0 ? '#1d4ed8' : '' }};
+                                                                                                                           border-bottom:{{ $idx === 0 ? '2px solid #3b82f6' : '2px solid transparent' }}"
                                             onclick="switchPeserta({{ $idx }}, this)">
                                             {{ $di->formable?->nama_lengkap ?? $di->lingkupLayanan?->lingkup ?? 'Layanan ' . ($idx + 1) }}
                                         </button>
@@ -248,11 +249,13 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
+                                        str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') => 'pelatihan',
                                         str_starts_with($kode, 'REG') => 'pelatihan',
                                         str_starts_with($kode, 'UMK') => 'pelatihan',
+                                        ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
                                         str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'sertifikasi-industri',
                                         str_starts_with($kode, 'GRK') => 'grk-verifikasi',
                                         str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
@@ -265,6 +268,7 @@
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
                                         str_contains($kode, 'KAT') || ($form instanceof \App\Models\Db2\FormKonsultasiAt) => 'konsultasi-at',
+                                        str_contains($kode, 'JASA') => 'jasa-lainnya',
                                         default => 'default'
                                     };
                                 @endphp
@@ -284,10 +288,10 @@
 
                             @if($detailItems->isEmpty())
                                 @php
-                                    $form = $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formPelatihan?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
-                                        str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
+                                        str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') || str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
                                         str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') || ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
                                         str_starts_with($kode, 'GRK') || ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                         str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
@@ -306,7 +310,7 @@
                                     @if($form)
                                         @includeFirst(
                                             ["permohonan::layanan.forms.{$viewName}", "permohonan::layanan.forms.default"],
-                                            ['form' => $form, 'detail' => (object)['lingkupLayanan' => null]]
+                                            ['form' => $form, 'detail' => (object) ['lingkupLayanan' => null]]
                                         )
                                     @else
                                         <div class="alert alert-warning mb-0">Data formulir tidak ditemukan.</div>
@@ -356,9 +360,9 @@
 
 
     {{-- ============================================================
-         KHUSUS TESTING: Simulasi Selesai Permohonan
-         (Hapus 1 baris @include di bawah ini jika testing selesai)
-         ============================================================ --}}
+    KHUSUS TESTING: Simulasi Selesai Permohonan
+    (Hapus 1 baris @include di bawah ini jika testing selesai)
+    ============================================================ --}}
     @include('permohonan::layanan.components.simulasi-selesai-testing')
 
 

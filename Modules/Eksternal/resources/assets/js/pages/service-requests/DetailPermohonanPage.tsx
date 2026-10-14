@@ -72,6 +72,9 @@ import {
 import {
   KonsultasiATDetailSection,
 } from "../../components/detail-service-requests/KonsultasiATDetailSection"
+import {
+  BimtekDetailSection,
+} from "../../components/detail-service-requests/BimtekDetailSection"
 import { formatIndoDate } from "../../utils/formatIndoDate"
 import { getFileUrl, getDocLabel } from "../../utils/fileHelpers"
 import { getStatusBadge, getStepIndex } from "../../utils/statusHelpers"
@@ -138,13 +141,13 @@ export const DetailPermohonanPage: React.FC = () => {
     formAsetData,
     formPupData, formKalibrasiData, formInspeksiData,
     formPengujianData, formHalalData, formMiniplantData, formGrkData,
-    formKonsultasiData,
+    formKonsultasiData, formPelatihanData,
     items, pabriks, docs,
     pernyataanFile,
   } = useFormDataResolver(
     permohonan,
     formData,
-    { isAset, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi },
+    { isAset, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi, isPelatihan },
     listPabrik,
   )
 
@@ -398,6 +401,18 @@ export const DetailPermohonanPage: React.FC = () => {
             openSuratPenawaran={openSuratPenawaran}
           />
         </div>
+      ) : isPelatihan ? (
+        <div className="w-full space-y-6">
+          <BimtekDetailSection
+            permohonan={permohonan}
+            formPelatihan={formPelatihanData || formData}
+            formatIndoDate={formatIndoDate}
+            openInvoice={openInvoice}
+            openKuitansi={openKuitansi}
+            openSuratPenawaran={openSuratPenawaran}
+            openPdfDoc={openPdfDoc}
+          />
+        </div>
       ) : isSertifikasi ? (
         <div className="w-full space-y-6">
           <SertifikasiDetailSection
@@ -585,107 +600,15 @@ export const DetailPermohonanPage: React.FC = () => {
                   formatIndoDate={formatIndoDate}
                 />
               ) : isPelatihan ? (
-                <div className="space-y-6 animate-in fade-in-50 duration-200">
-                  <Card className="rounded-2xl border-slate-200 shadow-soft">
-                    <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                        <FileText className="w-4 h-4 text-brand-600" />
-                        Parameter & Skema Bimbingan Teknis
-                      </CardTitle>
-                      <Badge variant="outline">{layananName}</Badge>
-                    </CardHeader>
-                    <CardContent className="p-5 pt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
-                          <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Tanggal Pendaftaran:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Fokus / Bidang Industri:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formData?.jenis_produk || "Bimbingan Teknis & Pelatihan Industri"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Instansi / Asal Peserta:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formData?.nama_instansi || namaPemohon}
-                          </span>
-                        </div>
-                        {formData?.masalah_materi && (
-                          <div className="sm:col-span-2 p-3.5 bg-slate-50 rounded-xl border border-slate-200 mt-1">
-                            <span className="text-slate-500 font-bold block mb-1 text-[11px] uppercase tracking-wider">
-                              Masalah / Kebutuhan Materi yang Dihadapi:
-                            </span>
-                            <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{formData.masalah_materi}</p>
-                          </div>
-                        )}
-                        {formData?.hal_dipelajari && (
-                          <div className="sm:col-span-2 p-3.5 bg-brand-50/50 rounded-xl border border-brand-200/60 mt-1">
-                            <span className="text-brand-900 font-bold block mb-1 text-[11px] uppercase tracking-wider">
-                              Hal Khusus yang Ingin Dipelajari:
-                            </span>
-                            <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{formData.hal_dipelajari}</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Data Peserta Pelatihan */}
-                  <Card className="rounded-2xl border-slate-200 shadow-soft">
-                    <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                        <Users className="w-4 h-4 text-brand-600" />
-                        Data Peserta Bimbingan Teknis
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-5 pt-4 text-xs">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <div>
-                          <span className="text-slate-400 block font-medium">Nama Lengkap Peserta:</span>
-                          <span className="font-bold text-slate-900 mt-0.5 block text-sm">{formData?.nama_lengkap || namaPemohon}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">NIK:</span>
-                          <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{formData?.nik_peserta || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Jenis Kelamin:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.gender || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Tempat / Tgl Lahir:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formData?.tempat_lahir || "-"}, {formData?.tanggal_lahir ? formatIndoDate(formData.tanggal_lahir) : "-"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Pendidikan Terakhir:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pendidikan || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Kontak WhatsApp:</span>
-                          <span className="font-semibold text-brand-700 mt-0.5 block">{formData?.whatsapp || phone}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Email:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.email || email}</span>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <span className="text-slate-400 block font-medium">Pengalaman Kerja:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pengalaman_kerja || "-"}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <BimtekDetailSection
+                  permohonan={permohonan}
+                  formPelatihan={formPelatihanData || formData}
+                  formatIndoDate={formatIndoDate}
+                  openInvoice={openInvoice}
+                  openKuitansi={openKuitansi}
+                  openSuratPenawaran={openSuratPenawaran}
+                  openPdfDoc={openPdfDoc}
+                />
               ) : isLsp ? (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   <Card className="rounded-2xl border-slate-200 shadow-soft">

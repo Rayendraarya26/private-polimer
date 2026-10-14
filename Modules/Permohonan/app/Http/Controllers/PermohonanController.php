@@ -306,6 +306,7 @@ class PermohonanController extends Controller
             'creator',
             'pelanggan',
             'formSertifikasi',
+            'formPelatihan',
             'formAset',
             'formJasaLainnya',
             'formInspeksi',
@@ -321,7 +322,8 @@ class PermohonanController extends Controller
         $detailPermohonan = $permohonan->detailPermohonan->first();
         $form = $detailPermohonan?->formable
             ?? $permohonan->formGrkVerifikasi?->first()
-            ?? $permohonan->formKonsultasiAt?->first();
+            ?? $permohonan->formKonsultasiAt?->first()
+            ?? $permohonan->formPelatihan?->first();
 
         if ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
             $form->loadMissing(['emisi', 'dokumen']);

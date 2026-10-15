@@ -11,6 +11,8 @@ const useHookForm = <T extends object>(
   const form = useForm({
     ...useFormConfig,
     defaultValues: defaultValue,
+    values: defaultValue,
+    resetOptions: { keepDefaultValues: true },
     resolver: yupResolver(validationSchema)
   })
   const {

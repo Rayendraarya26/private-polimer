@@ -33,8 +33,15 @@ const FormPerusahaan: React.FC = () => {
     rhf.watch("kab_id")
   )
   const watchAlamat = rhf.watch("alamat")
+  const watchProvinsi = rhf.watch("prov_id")
+  const watchKabupaten = rhf.watch("kab_id")
   const watchKecamatan = rhf.watch("kec_id")
-  const isRegionLocked = !!watchAlamat && watchAlamat.trim().length > 0
+  const isRegionLocked =
+    !!watchAlamat &&
+    watchAlamat.trim().length > 0 &&
+    !!watchProvinsi &&
+    !!watchKabupaten &&
+    !!watchKecamatan
   const isAddressDisabled = !watchKecamatan
 
   const { requesting, isRequested, getWhatsappOTP } = useRequestOTP()
@@ -260,7 +267,7 @@ const FormPerusahaan: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                   <span>Provinsi</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>
@@ -285,7 +292,7 @@ const FormPerusahaan: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                   <span>Kabupaten / Kota</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>
@@ -309,7 +316,7 @@ const FormPerusahaan: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
                   <span>Kecamatan</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>

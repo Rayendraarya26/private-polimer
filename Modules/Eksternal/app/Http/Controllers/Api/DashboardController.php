@@ -67,9 +67,10 @@ class DashboardController extends Controller
             $listSso = OauthClient::query()
                 ->orderBy('name')
                 ->where('revoked', 0)
+                ->where('accessibility', 'public')
                 ->get();
 
-            $items = $listSso->map(function ($item) {
+            return $listSso->map(function ($item) {
                 return [
                     'id'            => $item->id,
                     'name'          => $item->name,
@@ -78,17 +79,6 @@ class DashboardController extends Controller
                     'accessibility' => $item->accessibility,
                 ];
             })->toArray();
-
-            // Tambahkan PNBP Monitoring Capaian
-            $items[] = [
-                'id'            => 'pnbp',
-                'name'          => 'PNBP',
-                'name_full'     => 'Monitoring Capaian PNBP',
-                'url'           => 'https://lookerstudio.google.com/u/0/reporting/413af404-7305-44e6-9914-b3d2ef0e0ab7/page/JAy8D',
-                'accessibility' => 'private',
-            ];
-
-            return $items;
         });
 
         return responseJSON('Data Found', $apps);

@@ -15,12 +15,15 @@ import {
   Send,
   Pencil,
   FileCheck2,
+  ShieldCheck,
+  ExternalLink,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import Swal from "sweetalert2"
 import { useQueryClient } from "@tanstack/react-query"
 import api from "../../utils/api"
 import { getDateDisplay } from "../../utils/date"
+import SsoAppsSection from "../../components/dashboard/SsoAppsSection"
 import { titleCase } from "../../utils/string"
 import { getStatusBadge } from "../../utils/statusHelpers"
 import { FeedbackItemStatusOrder, SertifikatItem } from "../../types/feedbacks"
@@ -283,6 +286,9 @@ const DashboardPage: React.FC = () => {
           Ajukan Permohonan Baru
         </Button>
       </div>
+
+      {/* Daftar Aplikasi Terhubung */}
+      <SsoAppsSection />
 
       {/* Statistics Section */}
       <div className="space-y-3">

@@ -16,12 +16,15 @@ import {
   Loader2,
   Boxes,
   Globe,
+  ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { Badge } from '../ui/Badge';
 import NotificationPopover from '../common/NotificationPopover';
 import ProfilePopover from '../common/ProfilePopover';
+import AppLauncherDropdown from '../common/AppLauncherDropdown';
 
 export interface NavItem {
   title: string;
@@ -125,10 +128,11 @@ export const AppShell: React.FC = () => {
         </div>
 
         {/* Right Action Icons & User Dropdown */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <AppLauncherDropdown hideDirectoryLink customerOnly />
           <NotificationPopover />
 
-          <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-200 mx-0.5 sm:mx-1 hidden sm:block" />
 
           {/* User Profile Popover */}
           <ProfilePopover />
@@ -187,14 +191,43 @@ export const AppShell: React.FC = () => {
           </nav>
 
           {/* Sidebar Footer */}
-          {isSidebarOpen && (
+          {isSidebarOpen ? (
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+              <a
+                href="http://localhost:5100/auth/sso/redirect"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-blue-50/90 hover:bg-blue-100 text-blue-900 text-xs font-semibold transition-all border border-blue-200/80 shadow-2xs group"
+                title="Buka Portal Sistem Informasi Sertifikasi (SER)"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <ShieldCheck className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform shrink-0" />
+                  <span className="truncate font-bold">Portal SER</span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600 text-white">SSO</span>
+                  <ExternalLink className="w-3 h-3 text-blue-500" />
+                </div>
+              </a>
+
               <a
                 href="/"
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors border border-slate-200 shadow-2xs"
               >
                 <Globe className="w-3.5 h-3.5 text-brand-600" />
                 <span>Buka Homepage</span>
+              </a>
+            </div>
+          ) : (
+            <div className="p-2 border-t border-slate-100 flex flex-col items-center gap-2 bg-slate-50/50">
+              <a
+                href="http://localhost:5100/auth/sso/redirect"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Buka Portal SER (Sistem Informasi Sertifikasi)"
+                className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors"
+              >
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
               </a>
             </div>
           )}

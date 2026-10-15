@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useMemo } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
   Grid,
@@ -95,7 +95,7 @@ export const defaultSsoApps: SsoAppItem[] = [
     id: "ser",
     name: "SER",
     name_full: "Sistem Informasi Sertifikasi",
-    url: "http://localhost:4800/auth/sso/redirect",
+    url: "http://localhost:5100/auth/sso/redirect",
     category: "Pelayanan",
   },
   {
@@ -114,12 +114,25 @@ export const defaultSsoApps: SsoAppItem[] = [
   },
 ]
 
-export const AppLauncherDropdown: React.FC = () => {
+export interface AppLauncherDropdownProps {
+  hideDirectoryLink?: boolean
+  customerOnly?: boolean
+}
+
+export const AppLauncherDropdown: React.FC<AppLauncherDropdownProps> = ({
+  hideDirectoryLink = false,
+  customerOnly = false,
+}) => {
   const { pathname } = useLocation()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const directoryUrl = '/admin/ekosistem-aplikasi'
+
+  const appsToDisplay = useMemo(() => {
+    if (!customerOnly) return defaultSsoApps
+    return defaultSsoApps.filter((app) => app.category === "Pelayanan")
+  }, [customerOnly])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -147,16 +160,18 @@ export const AppLauncherDropdown: React.FC = () => {
         <div className="absolute right-0 mt-2 w-84 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200/90 z-50 p-4 space-y-3 animate-in fade-in-50 zoom-in-95 duration-150">
           <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
             <div>
-              <h4 className="text-xs font-bold text-slate-900">Daftar Aplikasi Terintegrasi</h4>
+              <h4 className="text-xs font-bold text-slate-900">
+                {customerOnly ? "Layanan Terintegrasi" : "Daftar Aplikasi Terintegrasi"}
+              </h4>
               <p className="text-[10px] text-slate-500">Ekosistem SSO BBKKP Kemenperin</p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full border border-brand-200">
-              9 Aplikasi
+              {appsToDisplay.length} {customerOnly ? "Layanan" : "Aplikasi"}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200">
-            {defaultSsoApps.map((app) => (
+            {appsToDisplay.map((app) => (
               <a
                 key={app.id}
                 href={app.url}
@@ -182,15 +197,17 @@ export const AppLauncherDropdown: React.FC = () => {
             ))}
           </div>
 
-          <div className="pt-2 border-t border-slate-100 text-center">
-            <Link
-              to={directoryUrl}
-              onClick={() => setIsOpen(false)}
-              className="text-[11px] font-semibold text-brand-600 hover:text-brand-800 transition-colors inline-flex items-center gap-1"
-            >
-              Lihat Direktori Seluruh Aplikasi →
-            </Link>
-          </div>
+          {!hideDirectoryLink && (
+            <div className="pt-2 border-t border-slate-100 text-center">
+              <Link
+                to={directoryUrl}
+                onClick={() => setIsOpen(false)}
+                className="text-[11px] font-semibold text-brand-600 hover:text-brand-800 transition-colors inline-flex items-center gap-1"
+              >
+                Lihat Direktori Seluruh Aplikasi →
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

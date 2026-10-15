@@ -31,7 +31,9 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
   const layananName =
     lingkup?.lingkup ||
     lingkup?.nama ||
-    (noOrder.endsWith("/KAT") || noOrder.includes("KAT")
+    (noOrder.startsWith("PBA") || permohonan?.formable_type?.includes("FormPba") || lingkup?.slug?.includes("pba") || lingkup?.slug?.includes("bahan-acuan")
+      ? "Produsen Bahan Acuan (PBA)"
+      : noOrder.endsWith("/KAT") || noOrder.includes("KAT")
       ? "Konsultasi dan Audit Teknologi"
       : noOrder.startsWith("CERT")
         ? "Sertifikasi Produk & Sistem (LSPro)"
@@ -198,7 +200,19 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     )
   )
 
-  const isSertifikasi = Boolean(!isAset && !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant && !isKonsultasi)
+  const isPba = Boolean(
+    !isAset && (
+      noOrder.startsWith("PBA") ||
+      permohonan?.formable_type?.includes("FormPba") ||
+      lingkup?.slug?.includes("pba") ||
+      lingkup?.slug?.includes("bahan-acuan") ||
+      Boolean(formData?.produk_pesanan) ||
+      (Array.isArray(permohonan?.form_pba) && permohonan.form_pba.length > 0) ||
+      (Array.isArray(permohonan?.formPba) && permohonan.formPba.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isAset && !isPba && !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant && !isKonsultasi)
 
   return {
     noOrder,
@@ -208,6 +222,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     isDone,
     layananName,
     isAset,
+    isPba,
     isPup,
     isLsp,
     isPelatihan,

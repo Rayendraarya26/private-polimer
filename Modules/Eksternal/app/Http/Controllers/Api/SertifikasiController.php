@@ -404,7 +404,7 @@ class SertifikasiController extends Controller
             }
 
             // 3. Loop Setiap Item Pengajuan
-            foreach ($pengajuansInput as $itemPengajuan) {
+            foreach ($pengajuansInput as $pIdx => $itemPengajuan) {
                 $lingkupId = $itemPengajuan['lingkup_id'] ?? $itemPengajuan['skema_id'] ?? null;
                 $lingkup = $lingkupId ? MasterLingkupLayanan::find($lingkupId) : null;
 
@@ -426,6 +426,49 @@ class SertifikasiController extends Controller
 
                 $komoditasList = $itemPengajuan['komoditas'] ?? $itemPengajuan['items'] ?? [];
                 $jenisPengajuan = strtolower($itemPengajuan['jenis_pengajuan'] ?? 'baru');
+
+                // Ekstraksi berkas jika diunggah per-pengajuan dari dokumen_list wizard
+                $fileSuratMohonItem = $request->file("pengajuan.{$pIdx}.surat_permohonan")
+                    ?? $request->file("pengajuan.{$pIdx}.file_surat_permohonan");
+                $pathSuratMohonItem = $fileSuratMohonItem ? $this->saveCustomerFile($fileSuratMohonItem, 'surat_permohonan') : $pathSuratMohon;
+
+                $fileManualMutuItem = $request->file("pengajuan.{$pIdx}.sistem_mutu")
+                    ?? $request->file("pengajuan.{$pIdx}.dok_manual_mutu")
+                    ?? $request->file("pengajuan.{$pIdx}.file_manual_mutu");
+                $pathManualMutuItem = $fileManualMutuItem ? $this->saveCustomerFile($fileManualMutuItem, 'manual_mutu') : $pathManualMutu;
+
+                $fileProsesItem = $request->file("pengajuan.{$pIdx}.alur_produksi")
+                    ?? $request->file("pengajuan.{$pIdx}.dok_diagram_alir")
+                    ?? $request->file("pengajuan.{$pIdx}.file_proses_produksi");
+                $pathProsesProduksiItem = $fileProsesItem ? $this->saveCustomerFile($fileProsesItem, 'proses_produksi') : $pathProsesProduksi;
+
+                $fileDenahItem = $request->file("pengajuan.{$pIdx}.denah_lokasi")
+                    ?? $request->file("pengajuan.{$pIdx}.file_denah_lokasi");
+                $pathDenahLokasiItem = $fileDenahItem ? $this->saveCustomerFile($fileDenahItem, 'denah') : $pathDenahLokasi;
+
+                $fileAlatItem = $request->file("pengajuan.{$pIdx}.daftar_peralatan")
+                    ?? $request->file("pengajuan.{$pIdx}.file_daftar_peralatan");
+                $pathDaftarAlatItem = $fileAlatItem ? $this->saveCustomerFile($fileAlatItem, 'peralatan') : $pathDaftarAlat;
+
+                // Dokumen Legalitas per pengajuan
+                $dokumenPendukungItem = $dokumenPendukung;
+                $fileAkta = $request->file("pengajuan.{$pIdx}.legalitas_perusahaan")
+                    ?? $request->file("pengajuan.{$pIdx}.dok_legalitas");
+                if ($fileAkta) {
+                    $dokumenPendukungItem['dok_akta_pendirian'] = $this->saveCustomerFile($fileAkta, 'legalitas');
+                }
+                $fileNib = $request->file("pengajuan.{$pIdx}.nib_iui");
+                if ($fileNib) {
+                    $dokumenPendukungItem['dok_nib'] = $this->saveCustomerFile($fileNib, 'legalitas');
+                }
+                $fileNpwp = $request->file("pengajuan.{$pIdx}.npwp_perusahaan");
+                if ($fileNpwp) {
+                    $dokumenPendukungItem['dok_npwp'] = $this->saveCustomerFile($fileNpwp, 'legalitas');
+                }
+                $fileMerek = $request->file("pengajuan.{$pIdx}.sertifikat_merek");
+                if ($fileMerek) {
+                    $dokumenPendukungItem['dok_merek'] = $this->saveCustomerFile($fileMerek, 'legalitas');
+                }
 
                 // B. Record Tabel Teknis: FormSertifikasi
                 $form = FormSertifikasi::create([
@@ -460,13 +503,13 @@ class SertifikasiController extends Controller
                     'luas_bangunan' => $validated['luas_bangunan'] ?? 0,
                     'pabrik_json' => $pabrikDataList,
                     'file_pertanyaan_tambahan' => $pathKuesioner,
-                    'file_manual_mutu' => $pathManualMutu,
-                    'file_proses_produksi' => $pathProsesProduksi,
-                    'file_daftar_peralatan' => $pathDaftarAlat,
-                    'file_denah_lokasi' => $pathDenahLokasi,
-                    'file_surat_permohonan' => $pathSuratMohon,
-                    'file_dokumen_pendukung_json' => $dokumenPendukung,
-                    'file_dokumen_pendukung' => $dokumenPendukung,
+                    'file_manual_mutu' => $pathManualMutuItem,
+                    'file_proses_produksi' => $pathProsesProduksiItem,
+                    'file_daftar_peralatan' => $pathDaftarAlatItem,
+                    'file_denah_lokasi' => $pathDenahLokasiItem,
+                    'file_surat_permohonan' => $pathSuratMohonItem,
+                    'file_dokumen_pendukung_json' => $dokumenPendukungItem,
+                    'file_dokumen_pendukung' => $dokumenPendukungItem,
                     'setuju_pernyataan' => $setuju,
                 ]);
 

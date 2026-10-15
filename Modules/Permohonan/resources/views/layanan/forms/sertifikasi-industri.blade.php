@@ -360,8 +360,8 @@
 
     @php
         $dokumenTeknis = [
+            'file_pertanyaan_tambahan' => 'Berkas Gabungan (Form 1, 2, 3)',
             'file_surat_permohonan'    => 'Surat Permohonan Sertifikasi',
-            'file_pertanyaan_tambahan' => 'Kuesioner / Pertanyaan Tambahan',
             'file_manual_mutu'         => 'Manual Sistem Manajemen Mutu',
             'file_proses_produksi'     => 'Diagram Alir Proses Produksi',
             'file_daftar_peralatan'    => 'Daftar Peralatan Pabrik / Lab',
@@ -389,6 +389,8 @@
                                 data-file="{{ $getFileUrl($filePath) }}">
                                 Lihat file <i class="fa fa-eye ms-1"></i>
                             </button>
+                        @elseif($field === 'file_surat_permohonan' && !empty($form->file_pertanyaan_tambahan))
+                            <span class="text-muted fst-italic" style="font-size: 11px;">(Tercakup di Berkas Gabungan)</span>
                         @else
                             <span class="text-muted">-</span>
                         @endif

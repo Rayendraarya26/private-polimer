@@ -58,6 +58,9 @@ import {
   AsetDetailSection,
 } from "../../components/detail-service-requests/AsetDetailSection"
 import {
+  PbaDetailSection,
+} from "../../components/detail-service-requests/PbaDetailSection"
+import {
   MiniplantDetailPermohonanTab,
 } from "../../components/detail-service-requests/MiniplantDetailSection"
 import {
@@ -126,6 +129,7 @@ export const DetailPermohonanPage: React.FC = () => {
     noOrder, status, isRevisi, isDraft, isDone,
     layananName,
     isAset,
+    isPba,
     isPup, isLsp, isPelatihan,
     isGrk, isGrkValidasi,
     isKalibrasi, isInspeksi, isPengujian,
@@ -139,6 +143,7 @@ export const DetailPermohonanPage: React.FC = () => {
   // ── Hook 3: form data resolvers, parsed collections, tracking logs ─────────
   const {
     formAsetData,
+    formPbaData,
     formPupData, formKalibrasiData, formInspeksiData,
     formPengujianData, formHalalData, formMiniplantData, formGrkData,
     formKonsultasiData, formPelatihanData,
@@ -147,7 +152,7 @@ export const DetailPermohonanPage: React.FC = () => {
   } = useFormDataResolver(
     permohonan,
     formData,
-    { isAset, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi, isPelatihan },
+    { isAset, isPba, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi, isPelatihan },
     listPabrik,
   )
 
@@ -569,7 +574,13 @@ export const DetailPermohonanPage: React.FC = () => {
           <div className="w-full space-y-6">
             {/* TAB 1: DATA PERMOHONAN */}
             {activeTab === "permohonan" && (
-              isAset ? (
+              isPba ? (
+                <PbaDetailSection
+                  permohonan={permohonan}
+                  formPba={formPbaData}
+                  formatIndoDate={formatIndoDate}
+                />
+              ) : isAset ? (
                 <AsetDetailSection
                   permohonan={permohonan}
                   formAset={formAsetData}

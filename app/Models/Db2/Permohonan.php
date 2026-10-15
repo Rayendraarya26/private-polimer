@@ -164,6 +164,11 @@ class Permohonan extends Model
         return $this->hasMany(FormJasaLainnya::class, 'permohonan_id');
     }
 
+    public function formPba()
+    {
+        return $this->hasMany(FormPba::class, 'permohonan_id');
+    }
+
     public function formKonsultasiAt()
     {
         return $this->hasMany(FormKonsultasiAt::class, 'permohonan_id');

@@ -241,8 +241,33 @@ export const AdminPermohonanDetailPage: React.FC = () => {
     if (dokPendukung.dok_npwp) sertifikasiDokumenList.push({ label: "NPWP Perusahaan", file_path: dokPendukung.dok_npwp })
   }
   const isGrk = noOrder.startsWith("GRK") || noOrder.startsWith("VAL") || String(permohonan?.formable_type || "").toLowerCase().includes("grk") || formData?.merek_sample !== undefined
+  const isValidasiGrk = noOrder.startsWith("VAL") || String(permohonan?.formable_type || "").toLowerCase().includes("validasi")
   const grkEmisiList = formData?.emisi || formData?.emisi_items || []
   const grkDokumenList = formData?.dokumen || formData?.dokumen_items || []
+
+  // Perhitungan Emisi Validasi GRK
+  const baselineKg = Number(formData?.jumlah_emisi_baseline_kgco2e || 0)
+  const proyekKg = Number(formData?.jumlah_emisi_proyek_kgco2e || 0)
+  const reduksiKg = baselineKg - proyekKg
+  const baselineTon = baselineKg / 1000
+  const proyekTon = proyekKg / 1000
+  const reduksiTon = reduksiKg / 1000
+
+  const parseJsonArray = (val: any): string[] => {
+    if (Array.isArray(val)) return val
+    if (typeof val === "string") {
+      try {
+        const parsed = JSON.parse(val)
+        if (Array.isArray(parsed)) return parsed
+      } catch {
+        return val.split(",").map((s: string) => s.trim()).filter(Boolean)
+      }
+    }
+    return []
+  }
+
+  const jenisProyekList = parseJsonArray(formData?.jenis_proyek_grk)
+  const jenisGasList = parseJsonArray(formData?.jenis_gas_emisi)
   const pembayarans = permohonan?.pembayaran || rawPermohonan?.detail_pembayaran || []
   const totalBiaya = pembayarans.reduce((acc: number, curr: any) => acc + Number(curr.subtotal || 0), 0)
 
@@ -632,62 +657,171 @@ export const AdminPermohonanDetailPage: React.FC = () => {
                 <CardHeader className="pb-3 border-b border-slate-100">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                    <span>Parameter Verifikasi Gas Rumah Kaca (GRK)</span>
+                    <span>{isValidasiGrk ? "Parameter Validasi Gas Rumah Kaca (GRK)" : "Parameter Verifikasi Gas Rumah Kaca (GRK)"}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-400 font-medium">Merek / Sampel Diajukan:</span>
-                    <p className="font-bold text-slate-800 mt-0.5">{formData?.merek_sample || "-"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Acuan Standar / Regulasi:</span>
-                    <p className="font-bold text-emerald-700 mt-0.5">{formData?.acuan_peraturan || "ISO 14064-1 / ISO 14064-3"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Kriteria Verifikasi:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.kriteria_verifikasi || "ISO 14064-1"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Tingkat Jaminan (Assurance):</span>
-                    <p className="font-bold text-brand-700 mt-0.5 capitalize">{formData?.tingkat_jaminan || "Reasonable"} Assurance</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Batasan Organisasi:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5 capitalize">{formData?.organization_boundary || "Internal"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Ambang Materialitas:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.materialitas_tipe === "custom" ? (formData?.materialitas_custom || "-") : "Standar Default (5%)"}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Periode Pemantauan Emisi:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">
-                      {formData?.periode_mulai || "-"} s.d. {formData?.periode_selesai || "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Total Akumulasi Emisi:</span>
-                    <p className="font-extrabold text-emerald-700 text-sm mt-0.5">
-                      {Number(formData?.total_emisi_ton_co2e || 0).toLocaleString("id-ID", { maximumFractionDigits: 4 })} ton CO₂e
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Fasilitas / Lokasi Produksi:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_fasilitas || 1} Site / Lokasi</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-medium">Jumlah Karyawan:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_karyawan ? `${formData.jumlah_karyawan} Orang` : "-"}</p>
-                  </div>
-                  <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-slate-500 font-medium">Keterlibatan Konsultan:</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">
-                      {formData?.use_konsultan
-                        ? `Menggunakan Jasa Konsultan: ${formData?.konsultan_nama || "-"} (${formData?.konsultan_institusi || "-"})`
-                        : "Pelaksanaan Mandiri (Tanpa Konsultan Eksternal)"}
-                    </p>
-                  </div>
+                  {isValidasiGrk ? (
+                    <>
+                      {/* STATS HIGHLIGHT VALIDASI */}
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                        <div>
+                          <span className="text-[11px] font-medium text-emerald-800 uppercase tracking-wider">Estimasi Reduksi Emisi</span>
+                          <p className="text-base font-extrabold text-emerald-700 mt-0.5">
+                            {reduksiTon.toLocaleString("id-ID", { maximumFractionDigits: 4 })} <span className="text-xs font-normal">ton CO₂e</span>
+                          </p>
+                          <span className="text-[10px] text-emerald-600">({reduksiKg.toLocaleString("id-ID", { maximumFractionDigits: 2 })} kgCO₂e)</span>
+                        </div>
+                        <div>
+                          <span className="text-[11px] font-medium text-rose-800 uppercase tracking-wider">Emisi Baseline</span>
+                          <p className="text-base font-extrabold text-rose-700 mt-0.5">
+                            {baselineTon.toLocaleString("id-ID", { maximumFractionDigits: 4 })} <span className="text-xs font-normal">ton CO₂e</span>
+                          </p>
+                          <span className="text-[10px] text-rose-600">({baselineKg.toLocaleString("id-ID", { maximumFractionDigits: 2 })} kgCO₂e)</span>
+                        </div>
+                        <div>
+                          <span className="text-[11px] font-medium text-blue-800 uppercase tracking-wider">Emisi Skenario Proyek</span>
+                          <p className="text-base font-extrabold text-blue-700 mt-0.5">
+                            {proyekTon.toLocaleString("id-ID", { maximumFractionDigits: 4 })} <span className="text-xs font-normal">ton CO₂e</span>
+                          </p>
+                          <span className="text-[10px] text-blue-600">({proyekKg.toLocaleString("id-ID", { maximumFractionDigits: 2 })} kgCO₂e)</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-slate-400 font-medium">Merek / Judul Proyek:</span>
+                        <p className="font-bold text-slate-800 mt-0.5">{formData?.merek_sample || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Acuan Standar / Metodologi:</span>
+                        <p className="font-bold text-emerald-700 mt-0.5">{formData?.acuan_peraturan || "ISO 14064-2 / Metodologi Terakreditasi"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Kriteria Validasi:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.kriteria_verifikasi || "ISO 14064-2"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Tingkat Jaminan (Assurance):</span>
+                        <p className="font-bold text-brand-700 mt-0.5 capitalize">{formData?.tingkat_jaminan || "Reasonable"} Assurance</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Batasan Proyek:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.batasan_proyek || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Ambang Materialitas:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.materialitas_tipe === "custom" ? (formData?.materialitas_custom || "-") : "Standar Default (5%)"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Periode Implementasi Proyek:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">
+                          {formData?.periode_mulai || "-"} s.d. {formData?.periode_selesai || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Ruang Lingkup Proyek:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.ruang_lingkup_diajukan || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Metode SSR (Source, Sink, Reservoir):</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.ssr_kuantifikasi || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Jumlah Karyawan Terkait:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_karyawan ? `${formData.jumlah_karyawan} Orang` : "-"}</p>
+                      </div>
+
+                      {jenisProyekList.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <span className="text-slate-400 font-medium">Jenis Proyek Validasi GRK:</span>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {jenisProyekList.map((jp, i) => (
+                              <Badge key={i} variant="outline" className="text-[11px] bg-slate-50 border-slate-200 text-slate-700">
+                                {jp}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {jenisGasList.length > 0 && (
+                        <div className="sm:col-span-2">
+                          <span className="text-slate-400 font-medium">Jenis Gas Rumah Kaca yang Dikurangi:</span>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {jenisGasList.map((jg, i) => (
+                              <Badge key={i} variant="outline" className="text-[11px] bg-emerald-50 border-emerald-200 text-emerald-800 font-medium">
+                                {jg}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-medium">Keterlibatan Konsultan:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">
+                          {formData?.use_konsultan
+                            ? `Menggunakan Jasa Konsultan: ${formData?.konsultan_nama || "-"} (${formData?.konsultan_institusi || "-"})`
+                            : "Pelaksanaan Mandiri (Tanpa Konsultan Eksternal)"}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-slate-400 font-medium">Merek / Sampel Diajukan:</span>
+                        <p className="font-bold text-slate-800 mt-0.5">{formData?.merek_sample || "-"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Acuan Standar / Regulasi:</span>
+                        <p className="font-bold text-emerald-700 mt-0.5">{formData?.acuan_peraturan || "ISO 14064-1 / ISO 14064-3"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Kriteria Verifikasi:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.kriteria_verifikasi || "ISO 14064-1"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Tingkat Jaminan (Assurance):</span>
+                        <p className="font-bold text-brand-700 mt-0.5 capitalize">{formData?.tingkat_jaminan || "Reasonable"} Assurance</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Batasan Organisasi:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5 capitalize">{formData?.organization_boundary || "Internal"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Ambang Materialitas:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.materialitas_tipe === "custom" ? (formData?.materialitas_custom || "-") : "Standar Default (5%)"}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Periode Pemantauan Emisi:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">
+                          {formData?.periode_mulai || "-"} s.d. {formData?.periode_selesai || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Total Akumulasi Emisi:</span>
+                        <p className="font-extrabold text-emerald-700 text-sm mt-0.5">
+                          {Number(formData?.total_emisi_ton_co2e || 0).toLocaleString("id-ID", { maximumFractionDigits: 4 })} ton CO₂e
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Fasilitas / Lokasi Produksi:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_fasilitas || 1} Site / Lokasi</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 font-medium">Jumlah Karyawan:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">{formData?.jumlah_karyawan ? `${formData.jumlah_karyawan} Orang` : "-"}</p>
+                      </div>
+                      <div className="sm:col-span-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <span className="text-slate-500 font-medium">Keterlibatan Konsultan:</span>
+                        <p className="font-semibold text-slate-800 mt-0.5">
+                          {formData?.use_konsultan
+                            ? `Menggunakan Jasa Konsultan: ${formData?.konsultan_nama || "-"} (${formData?.konsultan_institusi || "-"})`
+                            : "Pelaksanaan Mandiri (Tanpa Konsultan Eksternal)"}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}

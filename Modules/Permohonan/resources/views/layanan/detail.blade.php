@@ -71,7 +71,8 @@
                                 str_starts_with($kode, 'REG') => 'Pelatihan Reguler',
                                 str_starts_with($kode, 'UMK') => 'Pelatihan UMK',
                                 str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'Sertifikasi Industri',
-                                str_starts_with($kode, 'GRK') => 'Validasi & Verifikasi GRK',
+                                str_starts_with($kode, 'VAL') => 'Validasi Gas Rumah Kaca (GRK)',
+                                str_starts_with($kode, 'GRK') => 'Verifikasi Gas Rumah Kaca (GRK)',
                                 str_contains($kode, 'LABKAL') => 'Kalibrasi',
                                 str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') => 'Inspeksi Teknis (Karung Plastik)',
                                 str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') => 'Sertifikasi Halal (LPH BBSPJIKKP)',
@@ -249,7 +250,7 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') => 'pelatihan',
@@ -257,10 +258,10 @@
                                         str_starts_with($kode, 'UMK') => 'pelatihan',
                                         ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
                                         str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') => 'sertifikasi-industri',
-                                        str_starts_with($kode, 'GRK') => 'grk-verifikasi',
+                                        str_starts_with($kode, 'VAL') || ($form instanceof \App\Models\Db2\FormGrkValidasi) => 'grk-validasi',
+                                        str_starts_with($kode, 'GRK') || ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                         str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
                                         ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
-                                        ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                         str_starts_with($kode, 'PUP') => 'uji-profisiensi',
                                         str_starts_with($kode, 'PBA') || ($form instanceof \App\Models\Db2\FormPba) => 'produsen-bahan-acuan',
                                         str_starts_with($kode, 'UJI') => 'pengujian',
@@ -289,11 +290,12 @@
 
                             @if($detailItems->isEmpty())
                                 @php
-                                    $form = $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') || str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
                                         str_starts_with($kode, 'SRT') || str_starts_with($kode, 'CERT') || ($form instanceof \App\Models\Db2\FormSertifikasi) => 'sertifikasi-industri',
+                                        str_starts_with($kode, 'VAL') || ($form instanceof \App\Models\Db2\FormGrkValidasi) => 'grk-validasi',
                                         str_starts_with($kode, 'GRK') || ($form instanceof \App\Models\Db2\FormGrkVerifikasi) => 'grk-verifikasi',
                                         str_contains($kode, 'LABKAL') || ($form instanceof \App\Models\Db2\FormKalibrasi) => 'kalibrasi',
                                         str_starts_with($kode, 'PUP') => 'uji-profisiensi',

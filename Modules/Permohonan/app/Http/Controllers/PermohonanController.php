@@ -313,6 +313,7 @@ class PermohonanController extends Controller
             'formHalal',
             'formGrkVerifikasi.emisi',
             'formGrkVerifikasi.dokumen',
+            'formGrkValidasi.dokumen',
             'formKonsultasiAt.master',
             'formKonsultasiAt.dokumen',
         ])->findOrFail($id);
@@ -321,9 +322,14 @@ class PermohonanController extends Controller
         $detail = $request->query('d', 'overview');
         $detailPermohonan = $permohonan->detailPermohonan->first();
         $form = $detailPermohonan?->formable
+            ?? $permohonan->formGrkValidasi?->first()
             ?? $permohonan->formGrkVerifikasi?->first()
             ?? $permohonan->formKonsultasiAt?->first()
             ?? $permohonan->formPelatihan?->first();
+
+        if ($form instanceof \App\Models\Db2\FormGrkValidasi) {
+            $form->loadMissing(['dokumen']);
+        }
 
         if ($form instanceof \App\Models\Db2\FormGrkVerifikasi) {
             $form->loadMissing(['emisi', 'dokumen']);

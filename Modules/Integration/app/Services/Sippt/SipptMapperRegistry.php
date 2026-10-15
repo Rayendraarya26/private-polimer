@@ -12,6 +12,7 @@ use App\Models\Db2\FormKalibrasi;
 use App\Models\Db2\FormKonsultasiAt;
 use App\Models\Db2\FormLsp;
 use App\Models\Db2\FormMiniplant;
+use App\Models\Db2\FormPba;
 use App\Models\Db2\FormPelatihan;
 use App\Models\Db2\FormPengujian;
 use App\Models\Db2\FormPup;
@@ -72,6 +73,9 @@ class SipptMapperRegistry
         if ($permohonan->formHalal()->exists()) {
             return new HalalMapper();
         }
+        if ($permohonan->formPba()->exists()) {
+            return new PBAMapper();
+        }
         if ($permohonan->formPup()->exists()) {
             return new UjiProfisiensiMapper();
         }
@@ -105,6 +109,7 @@ class SipptMapperRegistry
             FormPelatihan::class     => new PelatihanMapper(),
             FormInspeksi::class      => new InspeksiMapper(),
             FormHalal::class         => new HalalMapper(),
+            FormPba::class           => new PBAMapper(),
             FormPup::class           => new UjiProfisiensiMapper(),
             FormGrkVerifikasi::class => new VerifikasiMapper(),
             FormGrkValidasi::class   => new VerifikasiMapper(),

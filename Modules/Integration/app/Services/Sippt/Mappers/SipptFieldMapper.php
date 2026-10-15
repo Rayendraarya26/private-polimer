@@ -209,6 +209,7 @@ abstract class SipptFieldMapper
             ?: $p->formMiniplant()->first()
             ?: $p->formKonsultasiAt()->first()
             ?: $p->formAset()->first()
+            ?: $p->formPba()->first()
             ?: $p->formJasaLainnya()->first();
     }
 }

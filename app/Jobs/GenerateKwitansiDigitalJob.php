@@ -138,6 +138,13 @@ class GenerateKwitansiDigitalJob implements ShouldQueue
                 'file_path'       => $filePath,
             ]);
 
+            // Sinkronkan update kuitansi dan status pelunasan ke SIS
+            try {
+                app(\Modules\Webhook\Services\SisSyncBridgingService::class)->syncPermohonanToSis($permohonan->fresh());
+            } catch (\Throwable $sisErr) {
+                Log::warning('GenerateKwitansiDigitalJob - Gagal sinkron pelunasan ke SIS: ' . $sisErr->getMessage());
+            }
+
         } catch (\Throwable $e) {
             Log::error('GenerateKwitansiDigitalJob - Failed to generate PDF: ' . $e->getMessage());
         }

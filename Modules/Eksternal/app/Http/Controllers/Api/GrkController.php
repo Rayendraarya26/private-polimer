@@ -122,8 +122,29 @@ class GrkController extends Controller
                 $lingkupId = $lingkup?->id;
             }
 
-            // C. Generate No Permohonan: GRK + YYYYMMDD + 5 Random Digit
-            $noPermohonan = 'GRK' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+            // C. Generate Nomor Permohonan Berurutan: 0001/GRK-VER/{BulanRomawi}/{Tahun}
+            $romawiMap = [
+                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            ];
+            $bulanRomawi = $romawiMap[(int) now()->format('n')] ?? 'I';
+            $suffix = '/GRK-VER/' . $bulanRomawi . '/' . now()->format('Y');
+
+            $lastPermohonan = Permohonan::withTrashed()
+                ->where('no_permohonan', 'LIKE', "%{$suffix}")
+                ->lockForUpdate()
+                ->orderBy('no_permohonan', 'desc')
+                ->first();
+
+            if ($lastPermohonan) {
+                $parts = explode('/', $lastPermohonan->no_permohonan);
+                $lastNumber = (int) $parts[0];
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 1;
+            }
+
+            $noPermohonan = str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . $suffix;
             $user = auth()->user();
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
 

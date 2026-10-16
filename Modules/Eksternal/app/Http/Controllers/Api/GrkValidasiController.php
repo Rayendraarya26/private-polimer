@@ -103,8 +103,33 @@ class GrkValidasiController extends Controller
                 $lingkupId = $lingkup?->id;
             }
 
-            // 4. Generate Nomor Permohonan Unik: VAL + YYYYMMDD + 5 Random Digit
-            $noPermohonan = 'VAL' . now()->format('Ymd') . str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+            // Generate Nomor Permohonan Berurutan: 0001/GRK-VAL/{BulanRomawi}/{Tahun}
+            $romawiMap = [
+                1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            ];
+            $bulanRomawi = $romawiMap[(int) now()->format('n')] ?? 'I';
+            $suffix = '/GRK-VAL/' . $bulanRomawi . '/' . now()->format('Y');
+
+            $lastPermohonan = Permohonan::withTrashed()
+                ->where('no_permohonan', 'LIKE', "%{$suffix}")
+                ->lockForUpdate()
+                ->orderBy('no_permohonan', 'desc')
+                ->first();
+
+            if ($lastPermohonan) {
+                // Mengambil nomor urut di depan tanda '/' lalu ditambah 1
+                $parts = explode('/', $lastPermohonan->no_permohonan);
+                $lastNumber = (int) $parts[0];
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 1;
+            }
+
+            $noPermohonan = str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . $suffix;
+            
+            
+            
             $user = auth()->user();
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
 

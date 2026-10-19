@@ -54,6 +54,9 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::post('{id}/kirim-penawaran-biaya', [PermohonanController::class, 'kirimPenawaranBiaya'])
         ->name('permohonan.kirim-penawaran-biaya');
 
+    Route::get('{id}/download-sertifikat', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'downloadSertifikat'])
+        ->name('permohonan.download-sertifikat');
+
     // TESTING ONLY: Simulasi selesai permohonan (bypass Restriction RBAC agar tidak 401 Unauthorized)
     Route::match(['get', 'post'], '{id}/simulasi-selesai', [PermohonanController::class, 'simulasiSelesai'])
         ->withoutMiddleware([Restriction::class])

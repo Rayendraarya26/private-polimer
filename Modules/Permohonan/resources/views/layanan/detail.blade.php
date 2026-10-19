@@ -104,6 +104,44 @@
                         @endphp
 
 
+                        {{-- ── CARD E-SERTIFIKAT RESMI (SIS) ── --}}
+                        @if(!empty($permohonan->nomor_sertifikat) || !empty($permohonan->file_sertifikat_final))
+                            <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #10b981 !important;">
+                                <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; background: #dcfce7; color: #059669;">
+                                            <i class="fa-solid fa-award fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="badge bg-success text-white px-2 py-1 rounded-pill" style="font-size: 11px;">e-Sertifikat Terbit</span>
+                                                <span class="text-muted" style="font-size: 12px;">Disinkronkan dari SIS</span>
+                                            </div>
+                                            <h6 class="fw-bold mb-1 text-dark" style="font-size: 15px;">
+                                                No. Sertifikat: {{ $permohonan->nomor_sertifikat ?: '-' }}
+                                            </h6>
+                                            <div class="text-muted small">
+                                                Masa Berlaku:
+                                                <span class="fw-medium text-dark">
+                                                    {{ $permohonan->tanggal_sertifikat_terbit ? \Carbon\Carbon::parse($permohonan->tanggal_sertifikat_terbit)->translatedFormat('d M Y') : '-' }}
+                                                </span>
+                                                s/d
+                                                <span class="fw-medium text-dark">
+                                                    {{ $permohonan->tanggal_sertifikat_kadaluarsa ? \Carbon\Carbon::parse($permohonan->tanggal_sertifikat_kadaluarsa)->translatedFormat('d M Y') : '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('permohonan.download-sertifikat', $permohonan->id) }}" target="_blank" class="btn btn-success d-flex align-items-center gap-2 px-3 py-2 fw-semibold" style="font-size: 13px;">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                            <span>Lihat / Unduh Sertifikat</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- ── BLOK UTAMA ── --}}
                         <div class="rounded-3 overflow-hidden mb-4" style="border:1px solid #e2e8f0">
 

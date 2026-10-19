@@ -192,6 +192,19 @@ class PermohonanController extends Controller
                 $komoditi = $form->uraian ?: 'Layanan Jasa Lainnya (PNBP)';
             }
 
+            $sertifikatData = null;
+            if (!empty($item->file_sertifikat_final) || !empty($item->nomor_sertifikat)) {
+                $nomorSertifikat = $item->nomor_sertifikat ?: ($item->no_permohonan ?? 'BBSPJIKKP');
+                $sertifikatData = [
+                    'id' => $item->id,
+                    'nomor_sertifikat' => $item->nomor_sertifikat,
+                    'nama' => 'Sertifikat - ' . $nomorSertifikat,
+                    'file_name' => 'Sertifikat-' . str_replace(['/', '\\', ' '], '-', $nomorSertifikat) . '.pdf',
+                    'download_link' => "/eksternal/sertifikasi/{$item->id}/download-sertifikat",
+                    'file_url' => $item->file_sertifikat_final ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
+                ];
+            }
+
             $totalNominal = $item->detailPembayaran->sum('subtotal') ?: 0;
 
             return [
@@ -237,6 +250,10 @@ class PermohonanController extends Controller
                 'invoice_number' => $item->invoice_number,
                 'invoice_file' => $item->invoice_file,
                 'has_invoice' => !empty($item->invoice_number) || !empty($item->invoice_file),
+
+                'nomor_sertifikat' => $item->nomor_sertifikat,
+                'file_sertifikat_final' => $item->file_sertifikat_final ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
+                'sertifikat' => $sertifikatData,
 
                 'file_attachment' => $attachments,
             ];

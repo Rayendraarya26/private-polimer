@@ -23,6 +23,8 @@ import {
     Briefcase,
     AlertCircle,
     Hash,
+    Award,
+    Download,
 } from "lucide-react"
 import { getFileUrl } from "../../utils/fileHelpers"
 
@@ -246,7 +248,6 @@ export const SertifikasiDetailSection: React.FC<SertifikasiDetailSectionProps> =
 
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
-
             {/* Data Perusahaan */}
             <Card className="rounded-2xl border-slate-200 shadow-soft">
                 <CardHeader className="border-b border-slate-100 pb-3">

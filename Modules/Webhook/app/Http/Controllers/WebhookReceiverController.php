@@ -10,6 +10,9 @@ use App\Models\Db1\SysUserNotif;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 
@@ -215,7 +218,7 @@ class WebhookReceiverController extends Controller
     }
 
     /**
-     * Menerima notifikasi penerbitan e-Sertifikat resmi dari SIS
+     * Menerima notifikasi penerbitan e-Sertifikat resmi dari SIS dan menyimpan berkas sertifikat ke storage Polimer
      */
     public function handleCertificateIssued(Request $request): JsonResponse
     {
@@ -225,7 +228,9 @@ class WebhookReceiverController extends Controller
             'nomor_sertifikat' => 'required|string',
             'tanggal_terbit' => 'required|date',
             'tanggal_kadaluarsa' => 'required|date',
-            'sertifikat_file_url' => 'required|url',
+            'sertifikat_file_url' => 'nullable|url',
+            'file_name' => 'nullable|string',
+            'file_base64' => 'nullable|string',
         ]);
 
         $permohonan = null;
@@ -240,15 +245,66 @@ class WebhookReceiverController extends Controller
             return response()->json(['success' => false, 'message' => 'Permohonan tidak ditemukan'], 404);
         }
 
+        $finalFileStoragePath = null;
+        $nomorSlug = Str::slug(str_replace(['/', '\\'], '-', $validated['nomor_sertifikat'])) ?: 'sertifikat';
+
+        // 1. Prioritas Utama: Simpan langsung berkas PDF yang dikirim SIS dalam Base64
+        if (!empty($validated['file_base64'])) {
+            $binaryContent = base64_decode($validated['file_base64']);
+            if ($binaryContent !== false && strlen($binaryContent) > 0) {
+                $ext = 'pdf';
+                if (!empty($validated['file_name'])) {
+                    $ext = pathinfo($validated['file_name'], PATHINFO_EXTENSION) ?: 'pdf';
+                }
+                $filename = 'sertifikat_' . $nomorSlug . '_' . $permohonan->id . '.' . $ext;
+                $savePath = 'sertifikat/' . $filename;
+                Storage::disk('public')->put($savePath, $binaryContent);
+                $finalFileStoragePath = 'storage/' . $savePath;
+            }
+        }
+
+        // 2. Fallback: Unduh dari remote URL jika berkas base64 belum disertakan
+        if (!$finalFileStoragePath && !empty($validated['sertifikat_file_url'])) {
+            $remoteUrl = $validated['sertifikat_file_url'];
+            try {
+                $fetchUrl = $remoteUrl;
+                $sisInternal = config('services.sis.internal_url') ?: env('SIS_INTERNAL_URL');
+                if ($sisInternal) {
+                    $parsed = parse_url($remoteUrl);
+                    $fetchUrl = rtrim($sisInternal, '/') . ($parsed['path'] ?? '') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+                } elseif (str_contains($fetchUrl, 'localhost:5100') || str_contains($fetchUrl, '127.0.0.1:5100')) {
+                    $fetchUrl = str_replace(
+                        ['http://localhost:5100', 'http://127.0.0.1:5100'],
+                        'http://private-sis-wsl',
+                        $fetchUrl
+                    );
+                }
+
+                $dlResponse = Http::timeout(20)->get($fetchUrl);
+                if ($dlResponse->successful() && strlen($dlResponse->body()) > 0) {
+                    $filename = 'sertifikat_' . $nomorSlug . '_' . $permohonan->id . '.pdf';
+                    $savePath = 'sertifikat/' . $filename;
+                    Storage::disk('public')->put($savePath, $dlResponse->body());
+                    $finalFileStoragePath = 'storage/' . $savePath;
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Gagal mengunduh berkas sertifikat dari SIS URL [{$remoteUrl}]: " . $e->getMessage());
+            }
+
+            if (!$finalFileStoragePath) {
+                $finalFileStoragePath = $remoteUrl;
+            }
+        }
+
         DB::beginTransaction();
         try {
-            // Update tabel permohonan ke status selesai
+            // Update tabel permohonan ke status selesai dengan file sertifikat tersimpan di Polimer
             $permohonan->update([
                 'status_workflow' => 'DONE',
                 'nomor_sertifikat' => $validated['nomor_sertifikat'],
                 'tanggal_sertifikat_terbit' => $validated['tanggal_terbit'],
                 'tanggal_sertifikat_kadaluarsa' => $validated['tanggal_kadaluarsa'],
-                'file_sertifikat_final' => $validated['sertifikat_file_url'],
+                'file_sertifikat_final' => $finalFileStoragePath,
             ]);
 
             // Catat milestone selesai 
@@ -258,8 +314,11 @@ class WebhookReceiverController extends Controller
                 'sumber' => 'SIS',
                 'milestone_code' => 'SERTIFIKAT_DITERBITKAN',
                 'judul' => 'Sertifikasi Selesai - e-Sertifikat Terbit',
-                'deskripsi' => 'Sertifikat resmi dengan nomor ' . $validated['nomor_sertifikat'] . ' telah terbit dan siap diunduh',
-                'metadata' => ['file_url' => $validated['sertifikat_file_url']],
+                'deskripsi' => 'Sertifikat resmi dengan nomor ' . $validated['nomor_sertifikat'] . ' telah terbit dan tersimpan di Polimer',
+                'metadata' => [
+                    'file_url' => $finalFileStoragePath,
+                    'original_sis_url' => $validated['sertifikat_file_url'] ?? null,
+                ],
                 'created_at' => now(),
             ]);
 
@@ -272,9 +331,12 @@ class WebhookReceiverController extends Controller
                 'is_read' => 'no',
             ]);
 
-
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Sertifikat berhasil disinkronkan ke Polimer']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Sertifikat berhasil disinkronkan dan disimpan di Polimer',
+                'stored_file' => $finalFileStoragePath,
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();

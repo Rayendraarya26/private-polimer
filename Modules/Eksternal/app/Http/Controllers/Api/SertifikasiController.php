@@ -1203,33 +1203,29 @@ class SertifikasiController extends Controller
         $nomorClean = str_replace(['/', '\\', ' '], '_', $permohonan->nomor_sertifikat ?: ($sertifikat?->nomor_sertifikat ?: $permohonan->no_permohonan));
         $filename = 'Sertifikat_' . $nomorClean . '.pdf';
 
-        // 2. Jika merupakan URL remote (misal dari SIS atau cloud storage)
-        if ($fileUrl && (str_starts_with($fileUrl, 'http://') || str_starts_with($fileUrl, 'https://'))) {
-            try {
-                $response = Http::timeout(15)->get($fileUrl);
-                if ($response->successful()) {
-                    return response($response->body(), 200, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'inline; filename="' . $filename . '"',
-                        'Cache-Control' => 'public, max-age=3600',
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                Log::warning("Gagal fetch sertifikat remote URL {$fileUrl}: " . $e->getMessage());
-            }
-
-            return redirect()->away($fileUrl);
-        }
-
-        // 3. Jika berkas tersimpan di storage lokal (public / S3)
+        // 2. Cek jika berkas sudah tersimpan di storage lokal Polimer (public / S3 / storage)
         if ($fileUrl) {
-            $cleanPath = ltrim(preg_replace('#^/?storage/#', '', $fileUrl), '/');
+            $cleanPath = $fileUrl;
+            if (preg_match('#storage/(.+)$#', $cleanPath, $matches)) {
+                $cleanPath = $matches[1];
+            } else {
+                $cleanPath = ltrim(preg_replace('#^/?storage/#', '', $cleanPath), '/');
+            }
 
             if (Storage::disk('public')->exists($cleanPath)) {
                 $content = Storage::disk('public')->get($cleanPath);
                 return response($content, 200, [
                     'Content-Type' => 'application/pdf',
                     'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                    'Cache-Control' => 'public, max-age=86400',
+                ]);
+            }
+
+            if (file_exists(storage_path('app/public/' . $cleanPath))) {
+                return response()->file(storage_path('app/public/' . $cleanPath), [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                    'Cache-Control' => 'public, max-age=86400',
                 ]);
             }
 
@@ -1238,14 +1234,42 @@ class SertifikasiController extends Controller
                 return response($content, 200, [
                     'Content-Type' => 'application/pdf',
                     'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                    'Cache-Control' => 'public, max-age=86400',
                 ]);
             }
+        }
 
-            if (file_exists(storage_path('app/public/' . $cleanPath))) {
-                return response()->file(storage_path('app/public/' . $cleanPath), [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
-                ]);
+        // 3. Jika merupakan URL remote (misal dari SIS atau cloud storage) yang belum diunduh ke Polimer
+        if ($fileUrl && (str_starts_with($fileUrl, 'http://') || str_starts_with($fileUrl, 'https://'))) {
+            $fetchUrl = $fileUrl;
+            $sisInternalHost = config('services.sis.internal_url') ?: env('SIS_INTERNAL_URL');
+            if ($sisInternalHost) {
+                $parsed = parse_url($fileUrl);
+                $fetchUrl = rtrim($sisInternalHost, '/') . ($parsed['path'] ?? '') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+            } elseif (str_contains($fetchUrl, 'localhost:5100') || str_contains($fetchUrl, '127.0.0.1:5100')) {
+                $fetchUrl = str_replace(
+                    ['http://localhost:5100', 'http://127.0.0.1:5100'],
+                    'http://private-sis-wsl',
+                    $fetchUrl
+                );
+            }
+
+            try {
+                $response = Http::timeout(20)->get($fetchUrl);
+                if ($response->successful() && strlen($response->body()) > 0) {
+                    // Simpan permanen ke storage Polimer agar request berikutnya dilayani langsung dari storage lokal
+                    $savePath = 'sertifikat/' . $filename;
+                    Storage::disk('public')->put($savePath, $response->body());
+                    $permohonan->update(['file_sertifikat_final' => 'storage/' . $savePath]);
+
+                    return response($response->body(), 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                        'Cache-Control' => 'public, max-age=86400',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Gagal fetch sertifikat remote URL {$fetchUrl} (original: {$fileUrl}): " . $e->getMessage());
             }
 
             if (file_exists(public_path($fileUrl))) {

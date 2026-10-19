@@ -17,6 +17,10 @@ import {
   FileCheck2,
   ShieldCheck,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import Swal from "sweetalert2"
@@ -55,12 +59,17 @@ const DashboardPage: React.FC = () => {
 
   const {
     loading: loadingHistory,
+    isFetching: isFetchingHistory,
     data,
     total,
+    page,
+    totalPages,
+    setPage,
+    rows,
     status,
     getFeedbacks,
     changeStatus,
-  } = useFeedbacks({ useLoadMore: true })
+  } = useFeedbacks({ useLoadMore: false, defaultRowSize: 10 })
 
   const [modalFile, setModalFile] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -288,7 +297,7 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Daftar Aplikasi Terhubung */}
-      <SsoAppsSection />
+      {/* <SsoAppsSection /> */}
 
       {/* Statistics Section */}
       <div className="space-y-3">
@@ -356,7 +365,9 @@ const DashboardPage: React.FC = () => {
           <div>
             <CardTitle>Riwayat Permohonan Layanan</CardTitle>
             <CardDescription>
-              Menampilkan {data.length} dari total {total} permohonan
+              {total === 0
+                ? "Menampilkan 0 dari 0 permohonan"
+                : `Menampilkan ${(page - 1) * rows + 1} - ${Math.min(page * rows, total)} dari total ${total} permohonan`}
             </CardDescription>
           </div>
 
@@ -539,6 +550,92 @@ const DashboardPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */}
+          {total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between px-5 py-3 border-t border-slate-100 gap-3 bg-white">
+              <span className="text-xs text-slate-500">
+                Menampilkan <span className="font-semibold text-slate-700">{(page - 1) * rows + 1}</span> -{" "}
+                <span className="font-semibold text-slate-700">{Math.min(page * rows, total)}</span> dari{" "}
+                <span className="font-semibold text-slate-700">{total}</span> permohonan
+              </span>
+
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page <= 1 || isFetchingHistory}
+                  onClick={() => setPage(1)}
+                  className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                  title="Halaman Pertama"
+                >
+                  <ChevronsLeft className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page <= 1 || isFetchingHistory}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                    .reduce<(number | string)[]>((acc, cur, idx, arr) => {
+                      if (idx > 0 && (cur as number) - (arr[idx - 1] as number) > 1) {
+                        acc.push("...")
+                      }
+                      acc.push(cur)
+                      return acc
+                    }, [])
+                    .map((item, idx) =>
+                      typeof item === "string" ? (
+                        <span key={`dots-${idx}`} className="px-1 text-xs text-slate-400 select-none">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={item}
+                          disabled={isFetchingHistory}
+                          onClick={() => setPage(item)}
+                          className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-lg transition-colors ${
+                            item === page
+                              ? "bg-brand-600 text-white font-semibold shadow-xs"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      )
+                    )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page >= totalPages || isFetchingHistory}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                  title="Halaman Berikutnya"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={page >= totalPages || isFetchingHistory}
+                  onClick={() => setPage(totalPages)}
+                  className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                  title="Halaman Terakhir"
+                >
+                  <ChevronsRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

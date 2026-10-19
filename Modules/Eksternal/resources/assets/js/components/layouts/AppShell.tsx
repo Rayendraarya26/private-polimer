@@ -52,7 +52,19 @@ export const AppShell: React.FC = () => {
       }
     };
     fetchCounts();
+    setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   const profile = useSelector(({ profile }: RootState) => profile?.profile);
 
@@ -144,8 +156,10 @@ export const AppShell: React.FC = () => {
         {/* Sidebar */}
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] flex flex-col shrink-0',
-            isSidebarOpen ? 'w-64' : 'w-20',
+            'fixed top-16 bottom-0 left-0 z-30 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out flex flex-col shrink-0',
+            'w-72 max-w-[85vw] shadow-xl md:shadow-none',
+            'md:sticky md:top-16 md:bottom-auto md:h-[calc(100vh-4rem)]',
+            isSidebarOpen ? 'md:w-64' : 'md:w-20',
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           )}
         >
@@ -176,11 +190,11 @@ export const AppShell: React.FC = () => {
                     {item.icon}
                   </span>
 
-                  {isSidebarOpen && (
+                  {(isSidebarOpen || isMobileMenuOpen) && (
                     <span className="truncate flex-1">{item.title}</span>
                   )}
 
-                  {isSidebarOpen && item.badge && (
+                  {(isSidebarOpen || isMobileMenuOpen) && item.badge && (
                     <Badge variant={isActive ? 'neutral' : 'primary'} size="sm">
                       {item.badge}
                     </Badge>
@@ -191,25 +205,8 @@ export const AppShell: React.FC = () => {
           </nav>
 
           {/* Sidebar Footer */}
-          {isSidebarOpen ? (
+          {isSidebarOpen || isMobileMenuOpen ? (
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
-              <a
-                href="http://localhost:5100/auth/sso/redirect"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-blue-50/90 hover:bg-blue-100 text-blue-900 text-xs font-semibold transition-all border border-blue-200/80 shadow-2xs group"
-                title="Buka Portal Sistem Informasi Sertifikasi (SER)"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <ShieldCheck className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform shrink-0" />
-                  <span className="truncate font-bold">Portal SER</span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600 text-white">SSO</span>
-                  <ExternalLink className="w-3 h-3 text-blue-500" />
-                </div>
-              </a>
-
               <a
                 href="/"
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors border border-slate-200 shadow-2xs"

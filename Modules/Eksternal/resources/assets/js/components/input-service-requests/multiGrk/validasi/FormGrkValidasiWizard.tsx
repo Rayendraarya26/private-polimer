@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../../ui/Button"
 import {
   ArrowLeft,
   ArrowRight,
   Send,
+  Save,
   Loader2,
   UserCog,
   Building,
@@ -38,15 +39,21 @@ const STEPS = [
 
 export const FormGrkValidasiWizard: React.FC = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const editId = searchParams.get("id")
+    const [permohonanId, setPermohonanId] = useState<string | null>(editId || null)
+    const [isLoadingEdit, setIsLoadingEdit] = useState<boolean>(!!editId)
     const [currentStep, setCurrentStep] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [formData, setFormData] = useState<GrkValidasiFormData>(() => {
         try {
-            const savedDraft = localStorage.getItem(STORAGE_KEY)
-            if (savedDraft) {
-                const parsed = JSON.parse(savedDraft)
-                return { ...INITIAL_VALIDASI_FORM_DATA, ...parsed }
+            if (!editId) {
+                const savedDraft = localStorage.getItem(STORAGE_KEY)
+                if (savedDraft) {
+                    const parsed = JSON.parse(savedDraft)
+                    return { ...INITIAL_VALIDASI_FORM_DATA, ...parsed }
+                }
             }
         } catch (error) {
             console.error("Error loading draft:", error)
@@ -54,14 +61,67 @@ export const FormGrkValidasiWizard: React.FC = () => {
         return INITIAL_VALIDASI_FORM_DATA
     })
 
+    // Load existing draft/permohonan data jika ada editId
+    useEffect(() => {
+        if (!editId) return
+        const fetchEditData = async () => {
+            try {
+                setIsLoadingEdit(true)
+                const res = await api.get(`/eksternal/grk/validasi/${editId}`)
+                const data = res?.data?.data
+                const form = data?.detail_permohonan?.formable || data?.detailPermohonan?.formable || data
+                if (form) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        merekSample: form.merek_sample || form.merekSample || prev.merekSample,
+                        acuan: form.acuan_peraturan || form.acuan || prev.acuan,
+                        keterangan: form.ruang_lingkup_diajukan || form.keterangan || prev.keterangan,
+                        uraianKebutuhan: form.uraian_kebutuhan || form.uraianKebutuhan || prev.uraianKebutuhan,
+                        namaPemilik: form.nama_pemilik || form.namaPemilik || prev.namaPemilik,
+                        namaPimpinan: form.nama_pimpinan || form.namaPimpinan || prev.namaPimpinan,
+                        namaPj: form.nama_pj || form.namaPj || prev.namaPj,
+                        deskripsiAktivitas: form.deskripsi_aktivitas || form.deskripsiAktivitas || prev.deskripsiAktivitas,
+                        batasanProyek: form.batasan_proyek || form.batasanProyek || prev.batasanProyek,
+                        jenisProyekGrk: Array.isArray(form.jenis_proyek_grk) ? form.jenis_proyek_grk : prev.jenisProyekGrk,
+                        periodeMulai: form.periode_mulai || form.periodeMulai || prev.periodeMulai,
+                        periodeSelesai: form.periode_selesai || form.periodeSelesai || prev.periodeSelesai,
+                        kriteriaVerifikasi: form.kriteria_verifikasi || form.kriteriaVerifikasi || prev.kriteriaVerifikasi,
+                        kriteriaLainnyaText: form.kriteria_lainnya || form.kriteriaLainnyaText || prev.kriteriaLainnyaText,
+                        jumlahKaryawan: form.jumlah_karyawan || form.jumlahKaryawan || prev.jumlahKaryawan,
+                        ssrKuantifikasi: form.ssr_kuantifikasi || form.ssrKuantifikasi || prev.ssrKuantifikasi,
+                        jenisGasEmisi: Array.isArray(form.jenis_gas_emisi) ? form.jenis_gas_emisi : prev.jenisGasEmisi,
+                        jumlahEmisiProyek: form.jumlah_emisi_proyek_kgco2e || form.jumlahEmisiProyek || prev.jumlahEmisiProyek,
+                        jumlahEmisiBaseline: form.jumlah_emisi_baseline_kgco2e || form.jumlahEmisiBaseline || prev.jumlahEmisiBaseline,
+                        materialitas: form.materialitas_tipe || form.materialitas || prev.materialitas,
+                        materialitasCustom: form.materialitas_custom || form.materialitasCustom || prev.materialitasCustom,
+                        useKonsultan: form.use_konsultan ? "ya" : (form.use_konsultan === false ? "tidak" : prev.useKonsultan),
+                        konsultanNama: form.konsultan_nama || prev.konsultanNama,
+                        konsultanInstitusi: form.konsultan_institusi || prev.konsultanInstitusi,
+                        isShareExternal: form.is_share_external ? "ya" : (form.is_share_external === false ? "tidak" : prev.isShareExternal),
+                        pihakEksternal: form.pihak_eksternal || prev.pihakEksternal,
+                        pernyataanPerubahan: Boolean(form.pernyataan_perubahan),
+                        pernyataanPemohon: Boolean(form.pernyataan_pemohon),
+                    }))
+                }
+            } catch (err) {
+                console.error("Gagal memuat data draft validasi GRK:", err)
+                toast.error("Gagal memuat data draft permohonan.")
+            } finally {
+                setIsLoadingEdit(false)
+            }
+        }
+        fetchEditData()
+    }, [editId])
 
     useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
-        } catch (error) {
-            console.error("Error saving draft:", error)
+        if (!editId) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+            } catch (error) {
+                console.error("Error saving draft:", error)
+            }
         }
-    }, [formData])
+    }, [formData, editId])
 
 
 
@@ -139,22 +199,42 @@ export const FormGrkValidasiWizard: React.FC = () => {
         }
     }
 
-    const handleSubmit = async () => {
-        if (!formData.pernyataanPerubahan || !formData.pernyataanPemohon) {
-            toast.error("Harap setujui semua pernyataan terlebih dahulu.")
-            return
+    const handleSubmit = async (aksi: "draft" | "ajukan" = "ajukan") => {
+        const isAjukan = aksi === "ajukan"
+
+        if (isAjukan) {
+            if (!formData.pernyataanPerubahan || !formData.pernyataanPemohon) {
+                toast.error("Harap setujui semua pernyataan terlebih dahulu.")
+                return
+            }
         }
 
         setIsSubmitting(true)
         try {
-            const response = await api.post("/eksternal/grk/validasi", formData)
+            const payload = {
+                ...formData,
+                merekSample: formData.merekSample?.trim() || (aksi === "draft" ? "Draft Validasi GRK" : ""),
+                aksi,
+                is_draft: !isAjukan,
+            }
+
+            const endpoint = permohonanId
+                ? `/eksternal/grk/validasi/${permohonanId}`
+                : `/eksternal/grk/validasi`
+
+            const response = await api.post(endpoint, payload)
 
             if (response.data?.success) {
                 localStorage.removeItem(STORAGE_KEY)
-                toast.success(response.data?.message || "Permohonan validasi GRK berhasil diajukan!")
+                toast.success(
+                    response.data?.message ||
+                        (isAjukan
+                            ? "Permohonan validasi GRK berhasil diajukan!"
+                            : "Draft permohonan validasi GRK berhasil disimpan!")
+                )
                 navigate("/permohonan")
             } else {
-                toast.error(response.data?.message || "Gagal mengajukan permohonan validasi GRK.")
+                toast.error(response.data?.message || "Gagal memproses permohonan validasi GRK.")
             }
         } catch (error: any) {
             console.error("Error submitting permohonan validasi GRK:", error)
@@ -168,11 +248,20 @@ export const FormGrkValidasiWizard: React.FC = () => {
                     : validationErrors[firstErrorKey]
                 toast.error(firstErrorMsg || "Validasi data gagal.")
             } else {
-                toast.error(serverMessage || "Terjadi kesalahan saat mengajukan permohonan validasi GRK.")
+                toast.error(serverMessage || "Terjadi kesalahan saat memproses permohonan validasi GRK.")
             }
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    if (isLoadingEdit) {
+        return (
+            <div className="w-full h-80 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                <span className="text-xs font-medium text-slate-500">Memuat data draf validasi GRK...</span>
+            </div>
+        )
     }
 
     return (
@@ -262,6 +351,7 @@ export const FormGrkValidasiWizard: React.FC = () => {
                         {currentStep === 0 ? "Batal" : "Sebelumnya"}
                     </Button>
 
+                <div className="flex items-center gap-2 sm:gap-3">
                     {currentStep < TOTAL_STEPS - 1 ? (
                         <Button
                             type="button"
@@ -272,25 +362,40 @@ export const FormGrkValidasiWizard: React.FC = () => {
                             <ArrowRight className="w-4 h-4" />
                         </Button>
                     ) : (
-                        <Button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Mengirim...
-                                </>
-                            ) : (
-                                <>
-                                    Kirim Permohonan
-                                    <Send className="w-4 h-4" />
-                                </>
-                            )}
-                        </Button>
+                        <>
+                            {/* Tombol Simpan Draft hanya muncul pada step terakhir */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleSubmit("draft")}
+                                disabled={isSubmitting}
+                                className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 text-slate-700 shadow-2xs"
+                            >
+                                <Save className="w-4 h-4 text-slate-600" />
+                                <span>Simpan Draft</span>
+                            </Button>
+
+                            <Button
+                                type="button"
+                                onClick={() => handleSubmit("ajukan")}
+                                disabled={isSubmitting || !formData.pernyataanPemohon || !formData.pernyataanPerubahan}
+                                className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Mengirim...
+                                    </>
+                                ) : (
+                                    <>
+                                        Kirim Permohonan
+                                        <Send className="w-4 h-4" />
+                                    </>
+                                )}
+                            </Button>
+                        </>
                     )}
+                </div>
                 </div>
             </div>
         </>

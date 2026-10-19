@@ -148,13 +148,15 @@ class GrkController extends Controller
             $user = auth()->user();
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
 
+            $isDraft = (bool) ($request->input('is_draft') ?? $request->input('isDraft', false)) || ($request->input('aksi') === 'draft');
+
             // 2. Simpan Header: permohonan
             $permohonan = Permohonan::create([
                 'id'              => (string) Str::uuid(),
                 'id_pt_ins'       => $user?->id_pt_ins ?? null,
                 'no_permohonan'   => $noPermohonan,
                 'is_split_bill'   => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isDraft ? 'DRAFT' : 'PERMOHONAN',
                 'status_bayar'    => 'BELUM',
                 'tgl_order'       => now(),
                 'created_by'      => $userId,
@@ -285,32 +287,37 @@ class GrkController extends Controller
                 'id'             => (string) Str::uuid(),
                 'permohonan_id'  => $permohonan->id,
                 'sumber'         => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul'          => 'Permohonan Verifikasi GRK Diajukan',
-                'deskripsi'      => 'Permohonan verifikasi emisi GRK #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi marketing.',
+                'milestone_code' => $isDraft ? 'PERMOHONAN_DRAFT' : 'PERMOHONAN_MASUK',
+                'judul'          => $isDraft ? 'Draft Permohonan Disimpan' : 'Permohonan Verifikasi GRK Diajukan',
+                'deskripsi'      => $isDraft
+                    ? 'Permohonan verifikasi emisi GRK #' . $permohonan->no_permohonan . ' disimpan sebagai draft oleh pemohon.'
+                    : 'Permohonan verifikasi emisi GRK #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi marketing.',
             ]);
 
             DB::commit();
 
-            // Kirim Notifikasi ke Marketing
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Permohonan Verifikasi GRK Baru',
-                    'Permohonan baru #' . $permohonan->no_permohonan . ' dari ' . $namaPemilik,
-                    route('permohonan.layanan.detail', $permohonan->id)
-                );
-            } catch (\Exception $notifEx) {
-                Log::warning('Gagal kirim notifikasi admin GRK: ' . $notifEx->getMessage());
+            // Kirim Notifikasi ke Marketing jika bukan draft
+            if (!$isDraft) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Verifikasi GRK Baru',
+                        'Permohonan baru #' . $permohonan->no_permohonan . ' dari ' . $namaPemilik,
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin GRK: ' . $notifEx->getMessage());
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan verifikasi GRK berhasil diajukan!',
+                'message' => $isDraft ? 'Draft permohonan verifikasi GRK berhasil disimpan!' : 'Permohonan verifikasi GRK berhasil diajukan!',
                 'data'    => [
-                    'id'            => $permohonan->id,
-                    'no_permohonan' => $permohonan->no_permohonan,
+                    'id'              => $permohonan->id,
+                    'no_permohonan'   => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -484,15 +491,45 @@ class GrkController extends Controller
                 }
             }
 
+            $aksi = $request->input('aksi');
+            if ($aksi === 'ajukan' && $permohonan->status_workflow === 'DRAFT') {
+                $permohonan->update([
+                    'status_workflow' => 'PERMOHONAN',
+                    'tgl_order' => now(),
+                ]);
+
+                PermohonanTrackingLog::create([
+                    'id'             => (string) Str::uuid(),
+                    'permohonan_id'  => $permohonan->id,
+                    'sumber'         => 'POLIMER',
+                    'milestone_code' => 'PERMOHONAN_MASUK',
+                    'judul'          => 'Permohonan Diajukan',
+                    'deskripsi'      => 'Permohonan verifikasi emisi GRK #' . $permohonan->no_permohonan . ' resmi diajukan dari status draft.',
+                ]);
+
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Verifikasi GRK Baru',
+                        'Permohonan #' . $permohonan->no_permohonan . ' telah diajukan dari status draft.',
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin GRK: ' . $notifEx->getMessage());
+                }
+            }
+
             $form->save();
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan verifikasi GRK berhasil diperbarui!',
+                'message' => ($aksi === 'ajukan') ? 'Permohonan verifikasi GRK berhasil diajukan!' : 'Perubahan formulir verifikasi GRK berhasil disimpan!',
                 'data'    => [
-                    'id'            => $permohonan->id,
-                    'no_permohonan' => $permohonan->no_permohonan,
+                    'id'              => $permohonan->id,
+                    'no_permohonan'   => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ]);
         } catch (\Exception $e) {

@@ -27,10 +27,12 @@ const EditFormRouter: React.FC = () => {
 
         let detectedType = detail?.formable_type || ""
 
-        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK, LABKAL, ASET)
+        // Deteksi dari nomor permohonan (CERT, LSP, REG/TRN/UMK, LABKAL, ASET, GRK)
         const noPermohonan = detail?.no_permohonan || ""
         if (!detectedType && noPermohonan) {
-          if (noPermohonan.includes("ASET")) detectedType = "FormAset"
+          if (noPermohonan.includes("GRK-VAL")) detectedType = "FormGrkValidasi"
+          else if (noPermohonan.includes("GRK-VER") || noPermohonan.includes("GRK")) detectedType = "FormGrkVerifikasi"
+          else if (noPermohonan.includes("ASET")) detectedType = "FormAset"
           else if (noPermohonan.startsWith("CERT") || noPermohonan.startsWith("SRT")) detectedType = "FormSertifikasi"
           else if (noPermohonan.startsWith("LSP")) detectedType = "FormLsp"
           else if (noPermohonan.startsWith("REG") || noPermohonan.startsWith("TRN") || noPermohonan.startsWith("UMK")) detectedType = "FormPelatihan"
@@ -56,7 +58,9 @@ const EditFormRouter: React.FC = () => {
         // Deteksi dari nama lingkup layanan
         if (!detectedType && detail?.lingkup_layanan) {
           const lNama = (detail.lingkup_layanan.nama || detail.lingkup_layanan.lingkup || "").toLowerCase()
-          if (lNama.includes("aset")) detectedType = "FormAset"
+          if (lNama.includes("validasi") && lNama.includes("grk")) detectedType = "FormGrkValidasi"
+          else if (lNama.includes("grk")) detectedType = "FormGrkVerifikasi"
+          else if (lNama.includes("aset")) detectedType = "FormAset"
           else if (lNama.includes("lsp") || lNama.includes("profesi")) detectedType = "FormLsp"
           else if (lNama.includes("pelatihan") || lNama.includes("bimtek")) detectedType = "FormPelatihan"
           else if (lNama.includes("sertifikasi") || lNama.includes("sni")) detectedType = "FormSertifikasi"
@@ -129,6 +133,18 @@ const EditFormRouter: React.FC = () => {
   }
 
   const normalizedType = (formType || "").toLowerCase()
+
+  // FORM GRK VALIDASI
+  if (normalizedType.includes("grkvalidasi") || normalizedType.includes("grk-val")) {
+    navigate(`/permohonan/grk/validasi?id=${id}`, { replace: true })
+    return null
+  }
+
+  // FORM GRK VERIFIKASI
+  if (normalizedType.includes("grkverifikasi") || normalizedType.includes("grk-ver") || normalizedType.includes("grk")) {
+    navigate(`/permohonan/grk/verifikasi?id=${id}`, { replace: true })
+    return null
+  }
 
   // FORM SEWA ASET
   if (normalizedType.includes("aset") || normalizedType.includes("formaset")) {

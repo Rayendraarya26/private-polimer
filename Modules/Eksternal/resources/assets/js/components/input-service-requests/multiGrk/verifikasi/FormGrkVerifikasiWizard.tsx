@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../../ui/Button"
 import {
     ArrowLeft,
     ArrowRight,
     Send,
+    Save,
     Loader2,
     UserCog,
     Building,
@@ -78,15 +79,21 @@ const INITIAL_FORM_DATA: GrkVerifikasiFormData = {
 
 export const FormGrkVerifikasiWizard: React.FC = () => {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+    const editId = searchParams.get("id")
+    const [permohonanId, setPermohonanId] = useState<string | null>(editId || null)
+    const [isLoadingEdit, setIsLoadingEdit] = useState<boolean>(!!editId)
     const [currentStep, setCurrentStep] = useState(0)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [formData, setFormData] = useState<GrkVerifikasiFormData>(() => {
         try {
-            const savedDraft = localStorage.getItem(STORAGE_KEY)
-            if (savedDraft) {
-                const parsed = JSON.parse(savedDraft)
-                return { ...INITIAL_FORM_DATA, ...parsed }
+            if (!editId) {
+                const savedDraft = localStorage.getItem(STORAGE_KEY)
+                if (savedDraft) {
+                    const parsed = JSON.parse(savedDraft)
+                    return { ...INITIAL_FORM_DATA, ...parsed }
+                }
             }
         } catch (error) {
             console.error("Error loading draft:", error)
@@ -94,14 +101,69 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
         return INITIAL_FORM_DATA
     })
 
+    // Load existing draft/permohonan data jika ada editId
+    useEffect(() => {
+        if (!editId) return
+        const fetchEditData = async () => {
+            try {
+                setIsLoadingEdit(true)
+                const res = await api.get(`/eksternal/grk/verifikasi/${editId}`)
+                const data = res?.data?.data
+                const form = data?.detail_permohonan?.formable || data?.detailPermohonan?.formable || data
+                if (form) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        merekSample: form.merek_sample || form.merekSample || prev.merekSample,
+                        acuan: form.acuan_peraturan || form.acuan || prev.acuan,
+                        keterangan: form.ruang_lingkup_diajukan || form.keterangan || prev.keterangan,
+                        uraianKebutuhan: form.uraian_kebutuhan || form.uraianKebutuhan || prev.uraianKebutuhan,
+                        namaPemilik: form.nama_pemilik || form.namaPemilik || prev.namaPemilik,
+                        namaPimpinan: form.nama_pimpinan || form.namaPimpinan || prev.namaPimpinan,
+                        namaPj: form.nama_pj || form.namaPj || prev.namaPj,
+                        jumlahFasilitas: form.jumlah_fasilitas || form.jumlahFasilitas || prev.jumlahFasilitas,
+                        kriteriaVerifikasi: form.kriteria_verifikasi || form.kriteriaVerifikasi || prev.kriteriaVerifikasi,
+                        kriteriaLainnyaText: form.kriteria_lainnya || form.kriteriaLainnyaText || prev.kriteriaLainnyaText,
+                        periodeMulai: form.periode_mulai || form.periodeMulai || prev.periodeMulai,
+                        periodeSelesai: form.periode_selesai || form.periodeSelesai || prev.periodeSelesai,
+                        jumlahKaryawan: form.jumlah_karyawan || form.jumlahKaryawan || prev.jumlahKaryawan,
+                        deskripsiAktivitas: form.deskripsi_aktivitas || form.deskripsiAktivitas || prev.deskripsiAktivitas,
+                        organizationBoundary: form.organization_boundary || form.organizationBoundary || prev.organizationBoundary,
+                        reportingBoundary: Array.isArray(form.reporting_boundary) ? form.reporting_boundary : prev.reportingBoundary,
+                        jenisInventarisasi: Array.isArray(form.jenis_inventarisasi) ? form.jenis_inventarisasi : prev.jenisInventarisasi,
+                        jenisGasEmisi: Array.isArray(form.jenis_gas_emisi) ? form.jenis_gas_emisi : prev.jenisGasEmisi,
+                        metodologiPengumpulan: form.metodologi_pengumpulan || form.metodologiPengumpulan || prev.metodologiPengumpulan,
+                        tingkatTransferData: form.tingkat_transfer_data || form.tingkatTransferData || prev.tingkatTransferData,
+                        materialitas: form.materialitas_tipe || form.materialitas || prev.materialitas,
+                        materialitasCustom: form.materialitas_custom || form.materialitasCustom || prev.materialitasCustom,
+                        tingkatJaminan: form.tingkat_jaminan || form.tingkatJaminan || prev.tingkatJaminan,
+                        useKonsultan: form.use_konsultan ? "ya" : (form.use_konsultan === false ? "tidak" : prev.useKonsultan),
+                        konsultanNama: form.konsultan_nama || prev.konsultanNama,
+                        konsultanInstitusi: form.konsultan_institusi || prev.konsultanInstitusi,
+                        isShareExternal: form.is_share_external ? "ya" : (form.is_share_external === false ? "tidak" : prev.isShareExternal),
+                        pihakEksternal: form.pihak_eksternal || prev.pihakEksternal,
+                        pernyataanPerubahan: Boolean(form.pernyataan_perubahan),
+                        pernyataanPemohon: Boolean(form.pernyataan_pemohon),
+                    }))
+                }
+            } catch (err) {
+                console.error("Gagal memuat data draft GRK:", err)
+                toast.error("Gagal memuat data draft permohonan.")
+            } finally {
+                setIsLoadingEdit(false)
+            }
+        }
+        fetchEditData()
+    }, [editId])
 
     useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
-        } catch (error) {
-            console.error("Error saving draft:", error)
+        if (!editId) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+            } catch (error) {
+                console.error("Error saving draft:", error)
+            }
         }
-    }, [formData])
+    }, [formData, editId])
 
 
 
@@ -297,25 +359,44 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
         }
     }
 
-    const handleSubmit = async () => {
-        if (!formData.pernyataanPerubahan || !formData.pernyataanPemohon) {
-            toast.error("Harap setujui semua pernyataan sebelum mengirim permohonan.")
-            return
+    const handleSubmit = async (aksi: "draft" | "ajukan" = "ajukan") => {
+        const isAjukan = aksi === "ajukan"
+
+        if (isAjukan) {
+            if (!formData.pernyataanPerubahan || !formData.pernyataanPemohon) {
+                toast.error("Harap setujui semua pernyataan sebelum mengirim permohonan.")
+                return
+            }
         }
 
         try {
             setIsSubmitting(true)
 
+            const payload = {
+                ...formData,
+                merekSample: formData.merekSample?.trim() || (aksi === "draft" ? "Draft Verifikasi GRK" : ""),
+                aksi,
+                is_draft: !isAjukan,
+            }
+
             // Kirim payload formData ke endpoint API GRK Verifikasi
-            const response = await api.post("/eksternal/grk/verifikasi", formData)
+            const endpoint = permohonanId
+                ? `/eksternal/grk/verifikasi/${permohonanId}`
+                : `/eksternal/grk/verifikasi`
+
+            const response = await api.post(endpoint, payload)
 
             if (response.data?.success) {
-                // Hapus draf lokal jika pengajuan sukses
                 localStorage.removeItem(STORAGE_KEY)
-                toast.success(response.data?.message || "Permohonan verifikasi GRK berhasil diajukan!")
+                toast.success(
+                    response.data?.message ||
+                        (isAjukan
+                            ? "Permohonan verifikasi GRK berhasil diajukan!"
+                            : "Draft permohonan verifikasi GRK berhasil disimpan!")
+                )
                 navigate("/permohonan")
             } else {
-                toast.error(response.data?.message || "Gagal mengajukan permohonan verifikasi GRK.")
+                toast.error(response.data?.message || "Gagal memproses permohonan verifikasi GRK.")
             }
         } catch (error: any) {
             console.error("Error submitting permohonan GRK:", error)
@@ -329,11 +410,20 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                     : validationErrors[firstErrorKey]
                 toast.error(firstErrorMsg || "Validasi data gagal.")
             } else {
-                toast.error(serverMessage || "Terjadi kesalahan saat mengajukan permohonan.")
+                toast.error(serverMessage || "Terjadi kesalahan saat memproses permohonan.")
             }
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    if (isLoadingEdit) {
+        return (
+            <div className="w-full h-80 flex flex-col items-center justify-center gap-3 text-slate-400">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+                <span className="text-xs font-medium text-slate-500">Memuat data draf verifikasi GRK...</span>
+            </div>
+        )
     }
 
     return (
@@ -424,35 +514,51 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                     {currentStep === 0 ? "Batal" : "Sebelumnya"}
                 </Button>
 
-                {currentStep < TOTAL_STEPS - 1 ? (
-                    <Button
-                        type="button"
-                        onClick={handleNext}
-                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-                    >
-                        Selanjutnya
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                ) : (
-                    <Button
-                        type="button"
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Mengirim...
-                            </>
-                        ) : (
-                            <>
-                                Kirim Permohonan
-                                <Send className="w-4 h-4" />
-                            </>
-                        )}
-                    </Button>
-                )}
+                <div className="flex items-center gap-2 sm:gap-3">
+                    {currentStep < TOTAL_STEPS - 1 ? (
+                        <Button
+                            type="button"
+                            onClick={handleNext}
+                            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+                        >
+                            Selanjutnya
+                            <ArrowRight className="w-4 h-4" />
+                        </Button>
+                    ) : (
+                        <>
+                            {/* Tombol Simpan Draft hanya muncul pada step terakhir */}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleSubmit("draft")}
+                                disabled={isSubmitting}
+                                className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 text-slate-700 shadow-2xs"
+                            >
+                                <Save className="w-4 h-4 text-slate-600" />
+                                <span>Simpan Draft</span>
+                            </Button>
+
+                            <Button
+                                type="button"
+                                onClick={() => handleSubmit("ajukan")}
+                                disabled={isSubmitting || !formData.pernyataanPemohon || !formData.pernyataanPerubahan}
+                                className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Mengirim...
+                                    </>
+                                ) : (
+                                    <>
+                                        Kirim Permohonan
+                                        <Send className="w-4 h-4" />
+                                    </>
+                                )}
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
         </>

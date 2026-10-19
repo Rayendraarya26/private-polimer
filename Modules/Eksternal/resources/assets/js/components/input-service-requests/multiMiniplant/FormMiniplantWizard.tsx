@@ -257,20 +257,12 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
         return false
       }
     } else if (currentStep === 1) {
-      if (!detailPermohonan.jasaDiminta) {
-        toast.error("Harap pilih jasa yang diminta (proses atau mesin).")
-        return false
-      }
       if (!detailPermohonan.jenisBarang?.trim()) {
         toast.error("Jenis barang wajib diisi.")
         return false
       }
       if (!detailPermohonan.jumlahBarang || Number(detailPermohonan.jumlahBarang) < 1) {
         toast.error("Jumlah barang minimal 1.")
-        return false
-      }
-      if (detailPermohonan.jasaDiminta === "proses" && !detailPermohonan.perlakuanDiminta?.trim()) {
-        toast.error("Perlakuan yang diminta wajib diisi untuk jenis jasa proses.")
         return false
       }
     } else if (currentStep === 2) {

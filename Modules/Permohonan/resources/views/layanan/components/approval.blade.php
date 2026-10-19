@@ -8,6 +8,7 @@
 
 
     $isKalibrasi = str_contains($kode, 'LABKAL') || $permohonan->formKalibrasi()->exists();
+    $isMiniplant = str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') || $permohonan->formMiniplant()->exists();
     $isSertifikasi = str_starts_with($kode, 'CERT') || str_starts_with($kode, 'SRT') || $permohonan->formSertifikasi()->exists();
     $isInspeksi = str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || $permohonan->formInspeksi()->exists();
     $isHalal = str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || $permohonan->formHalal()->exists();
@@ -182,6 +183,22 @@
                                         @foreach(\App\Models\Db2\MasterKlasifikasiKalibrasi::orderBy('klasifikasi')->get() as $item)
                                             <option value="{{ $item->id }}">{{ $item->klasifikasi }}</option>
                                         @endforeach
+                                    </select>
+                                </div>
+                            @endif
+
+                            @if($isMiniplant)
+                                @php
+                                    $currentJasa = $permohonan->formMiniplant?->first()?->jasa_diminta;
+                                @endphp
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        Jasa Yang Diminta<span class="text-danger">*</span>
+                                    </label>
+                                    <select name="jasa_diminta" class="form-select" required>
+                                        <option value="">-- Pilih Jasa Yang Diminta --</option>
+                                        <option value="proses" {{ $currentJasa === 'proses' ? 'selected' : '' }}>Proses</option>
+                                        <option value="mesin" {{ $currentJasa === 'mesin' ? 'selected' : '' }}>Mesin</option>
                                     </select>
                                 </div>
                             @endif

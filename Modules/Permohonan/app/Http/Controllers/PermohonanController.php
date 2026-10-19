@@ -571,6 +571,12 @@ class PermohonanController extends Controller
                 $permohonan->formKalibrasi()->update($kalibrasiUpdate);
             }
 
+            if ($request->filled('jasa_diminta')) {
+                $permohonan->formMiniplant()->update([
+                    'jasa_diminta' => $request->jasa_diminta,
+                ]);
+            }
+
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,

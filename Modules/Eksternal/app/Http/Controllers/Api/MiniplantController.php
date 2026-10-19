@@ -62,7 +62,7 @@ class MiniplantController extends Controller
 
             // Detail Permohonan
             'detailPermohonan' => 'required|array',
-            'detailPermohonan.jasaDiminta' => 'required|string|in:proses,mesin',
+            'detailPermohonan.jasaDiminta' => 'nullable|string|in:proses,mesin',
             'detailPermohonan.jenisBarang' => 'required|string|max:255',
             'detailPermohonan.jumlahBarang' => 'required|numeric|min:1',
             'detailPermohonan.perlakuanDiminta' => 'nullable|string',
@@ -85,7 +85,6 @@ class MiniplantController extends Controller
             // Persetujuan Pernyataan
             'setujuPernyataan' => 'required|boolean|accepted',
         ], [
-            'detailPermohonan.jasaDiminta.required' => 'Jenis jasa wajib dipilih (proses atau mesin).',
             'detailPermohonan.jenisBarang.required' => 'Jenis bahan/barang wajib diisi.',
             'detailPermohonan.jumlahBarang.min' => 'Jumlah barang minimal 1.',
             'selectedPerlakuan.required' => 'Pilih minimal satu perlakuan yang diminta.',
@@ -186,7 +185,7 @@ class MiniplantController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'jenis_layanan_kode' => $jenisLayananKode,
                 'jenis_layanan_nama' => $jenisLayananMap[$jenisLayananKode] ?? $jenisLayananKode,
-                'jasa_diminta' => $detailPermohonan['jasaDiminta'],
+                'jasa_diminta' => $detailPermohonan['jasaDiminta'] ?? null,
                 'jenis_barang' => $detailPermohonan['jenisBarang'],
                 'jumlah_barang' => (int) $detailPermohonan['jumlahBarang'],
                 'perlakuan_diminta' => $detailPermohonan['perlakuanDiminta'] ?? null,

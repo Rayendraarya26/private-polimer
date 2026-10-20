@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
 import { User, KeyRound, LogOut, ChevronDown, ShieldCheck, Mail } from "lucide-react"
-import Swal from "sweetalert2"
 import { RootState } from "../../store"
 import { getAvatar } from "../../utils/avatar"
 
@@ -71,31 +70,11 @@ export const ProfilePopover: React.FC = () => {
     }
   }, [isOpen])
 
-  // Konfirmasi sebelum logout
+  // Logout langsung tanpa modal konfirmasi
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsOpen(false)
-
-    Swal.fire({
-      title: "Keluar dari Akun?",
-      text: "Anda akan mengakhiri sesi dan diarahkan kembali ke halaman login portal BBKKP.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#64748b",
-      confirmButtonText: "Ya, Keluar",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-      customClass: {
-        popup: "rounded-2xl",
-        confirmButton: "rounded-xl font-semibold px-4 py-2",
-        cancelButton: "rounded-xl font-semibold px-4 py-2",
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.href = "/auth/logout"
-      }
-    })
+    window.location.href = "/auth/logout"
   }
 
   return (

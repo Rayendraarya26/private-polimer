@@ -103,15 +103,22 @@ class SisSyncBridgingService
                 'mohon_cust_nama_pemilik'          => $form->nama_pemilik ?? null,
                 'mohon_cust_nama_pimpinan'         => $form->nama_pimpinan ?? null,
                 'mohon_cust_nama_wakil_manajemen'  => $form->nama_wakil_manajemen ?? null,
-                'mohon_cust_jumlah_bagian'         => $form->jumlah_bagian ?? null,
-                'mohon_cust_jumlah_manajemen'      => $form->jumlah_manajemen ?? null,
-                'mohon_cust_jumlah_administrasi'   => $form->jumlah_administrasi ?? null,
-                'mohon_cust_jumlah_part_time'      => $form->jumlah_part_time ?? null,
-                'mohon_cust_jumlah_operasional'    => $form->jumlah_operasional ?? null,
-                'mohon_cust_jumlah_shift_1'        => $form->jumlah_shift_1 ?? null,
-                'mohon_cust_jumlah_shift_2'        => $form->jumlah_shift_2 ?? null,
-                'mohon_cust_jumlah_shift_3'        => $form->jumlah_shift_3 ?? null,
-                'mohon_cust_jumlah_non_permanen'   => $form->jumlah_non_permanen ?? null,
+                'badan_hukum_id'                   => 1, // PT
+                'negara_id'                        => 1, // Indonesia
+                'cust_asing'                       => 'tidak',
+                'prov_id'                          => $form->pabrik_json[0]['provinsi_id'] ?? 32,
+                'kab_id'                           => $form->pabrik_json[0]['kabupaten_id'] ?? 3216,
+                'kec_id'                           => $form->pabrik_json[0]['kecamatan_id'] ?? 3216022,
+                'mohon_cust_shif_kerja'            => ((int)($form->jumlah_shift_3 ?? 0) > 0) ? 3 : (((int)($form->jumlah_shift_2 ?? 0) > 0) ? 2 : 1),
+                'mohon_cust_jumlah_bagian'         => $form->jumlah_bagian ?? 1,
+                'mohon_cust_jumlah_manajemen'      => $form->jumlah_manajemen ?? 0,
+                'mohon_cust_jumlah_administrasi'   => $form->jumlah_administrasi ?? 0,
+                'mohon_cust_jumlah_part_time'      => $form->jumlah_part_time ?? 0,
+                'mohon_cust_jumlah_operasional'    => $form->jumlah_operasional ?? 0,
+                'mohon_cust_jumlah_shift_1'        => $form->jumlah_shift_1 ?? 0,
+                'mohon_cust_jumlah_shift_2'        => $form->jumlah_shift_2 ?? 0,
+                'mohon_cust_jumlah_shift_3'        => $form->jumlah_shift_3 ?? 0,
+                'mohon_cust_jumlah_non_permanen'   => $form->jumlah_non_permanen ?? 0,
                 'mohon_cust_luas_tanah'            => $form->luas_tanah ?? null,
                 'mohon_cust_luas_bangunan'         => $form->luas_bangunan ?? null,
                 'updated_at'                       => now(),
@@ -154,29 +161,33 @@ class SisSyncBridgingService
                 if (!empty($komoditasList) && is_array($komoditasList)) {
                     foreach ($komoditasList as $item) {
                         $sis->table('sis_permohonan_komoditi')->insert([
-                            'mohon_id'             => $permohonanId,
-                            'mohon_det_id'         => $mohonDetId,
-                            'komodt_id'            => $item['komoditi_id'] ?? ($item['id'] ?? 1),
-                            'mohon_kmditi_merk'    => $item['merk'] ?? ($item['merk_dagang'] ?? ($item['nama'] ?? ($item['nama_produk'] ?? '-'))),
-                            'mohon_kmditi_tipe'    => $item['tipe'] ?? ($item['tipe_jenis'] ?? '-'),
-                            'mohon_kmditi_sni'     => $item['noSni'] ?? ($item['sni'] ?? ($item['standar_sni_iso'] ?? '-')),
-                            'mohon_kmditi_ukuran'  => $item['ukuran'] ?? null,
-                            'created_at'           => now(),
-                            'updated_at'           => now(),
+                            'mohon_id'                                       => $permohonanId,
+                            'mohon_det_id'                                   => $mohonDetId,
+                            'komodt_id'                                      => $item['komoditi_id'] ?? ($item['id'] ?? 1),
+                            'mohon_kmditi_merk'                              => $item['merk_dagang'] ?? ($item['merk'] ?? ($item['merek'] ?? ($item['nama_produk'] ?? '-'))),
+                            'mohon_kmditi_tipe'                              => $item['tipe_jenis'] ?? ($item['tipe'] ?? '-'),
+                            'mohon_kmditi_sni'                               => $item['standar_sni_iso'] ?? ($item['noSni'] ?? ($item['sni'] ?? ($item['nomor_sni'] ?? '-'))),
+                            'mohon_kmditi_ukuran'                            => $item['ukuran'] ?? null,
+                            'mohon_kmditi_kapasitas_produksi_tahunan'        => (int) ($item['kapasitas_produksi'] ?? ($item['kapasitas_produksi_tahunan'] ?? ($item['jumlah_produksi'] ?? 0))),
+                            'mohon_kmditi_kapasitas_produksi_tahunan_satuan' => $item['satuan_produksi'] ?? ($item['satuanProduksi'] ?? 'Unit'),
+                            'created_at'                                     => now(),
+                            'updated_at'                                     => now(),
                         ]);
                     }
                 } elseif ($form->items && $form->items->count() > 0) {
                     foreach ($form->items as $item) {
                         $sis->table('sis_permohonan_komoditi')->insert([
-                            'mohon_id'             => $permohonanId,
-                            'mohon_det_id'         => $mohonDetId,
-                            'komodt_id'            => $item->komoditi_id ?: 1,
-                            'mohon_kmditi_merk'    => $item->merk_dagang ?: $item->nama_produk,
-                            'mohon_kmditi_tipe'    => $item->tipe_jenis,
-                            'mohon_kmditi_sni'     => $item->standar_sni_iso,
-                            'mohon_kmditi_ukuran'  => $item->ukuran ?? null,
-                            'created_at'           => now(),
-                            'updated_at'           => now(),
+                            'mohon_id'                                       => $permohonanId,
+                            'mohon_det_id'                                   => $mohonDetId,
+                            'komodt_id'                                      => $item->komoditi_id ?: 1,
+                            'mohon_kmditi_merk'                              => $item->merk_dagang ?: $item->nama_produk,
+                            'mohon_kmditi_tipe'                              => $item->tipe_jenis,
+                            'mohon_kmditi_sni'                               => $item->standar_sni_iso,
+                            'mohon_kmditi_ukuran'                            => $item->ukuran ?? null,
+                            'mohon_kmditi_kapasitas_produksi_tahunan'        => (int) ($item->kapasitas_produksi ?? 0),
+                            'mohon_kmditi_kapasitas_produksi_tahunan_satuan' => $item->satuan_produksi ?? 'Unit',
+                            'created_at'                                     => now(),
+                            'updated_at'                                     => now(),
                         ]);
                     }
                 }
@@ -189,14 +200,26 @@ class SisSyncBridgingService
                 $pabrikList = $form->pabrik_json ?: [];
                 if (!empty($pabrikList) && is_array($pabrikList)) {
                     foreach ($pabrikList as $pabrik) {
+                        $pProv = !empty($pabrik['provinsi_id']) ? (int) $pabrik['provinsi_id'] : 32;
+                        $pKab = !empty($pabrik['kabupaten_id']) ? (int) $pabrik['kabupaten_id'] : 3216;
+                        $pKec = !empty($pabrik['kecamatan_id']) ? (int) $pabrik['kecamatan_id'] : 3216022;
+
                         $sis->table('sis_permohonan_pabrik')->insert([
                             'mohon_id'                       => $permohonanId,
-                            'mohon_pabrik_nama'              => $pabrik['namaPabrik'] ?? ($pabrik['nama_pabrik'] ?? '-'),
+                            'mohon_pabrik_nama'              => $pabrik['namaPabrik'] ?? ($pabrik['nama_pabrik'] ?? 'Pabrik Utama'),
                             'mohon_pabrik_alamat'            => $pabrik['alamatPabrik'] ?? ($pabrik['alamat_pabrik'] ?? '-'),
-                            'mohon_pabrik_nomor_telp'        => $pabrik['noTelp'] ?? ($pabrik['kontak_pabrik'] ?? null),
-                            'mohon_pabrik_nomor_hp'          => $pabrik['noHp'] ?? ($pabrik['kontak_pabrik'] ?? null),
-                            'mohon_pabrik_jumlah_karyawan'   => $pabrik['jumlahKaryawan'] ?? ($pabrik['jumlah_karyawan'] ?? null),
-                            'mohon_pabrik_luas_tanah'        => $pabrik['luasTanah'] ?? ($pabrik['luas_fasilitas'] ?? null),
+                            'mohon_pabrik_nomor_telp'        => $pabrik['noTelp'] ?? ($pabrik['kontak_pabrik'] ?? '-'),
+                            'mohon_pabrik_nomor_hp'          => $pabrik['noHp'] ?? ($pabrik['kontak_pabrik'] ?? '-'),
+                            'mohon_pabrik_nomor_fax'         => $pabrik['fax'] ?? ($pabrik['nomorFax'] ?? '-'),
+                            'mohon_pabrik_kode_pos'          => $pabrik['kode_pos'] ?? ($pabrik['kodePos'] ?? '-'),
+                            'mohon_pabrik_jumlah_karyawan'   => (int) ($pabrik['jumlahKaryawan'] ?? ($pabrik['jumlah_karyawan'] ?? ($form->jumlah_operasional ?? 0))),
+                            'mohon_pabrik_kegiatan_utama'    => $pabrik['kegiatan_utama'] ?? ($pabrik['kegiatanUtama'] ?? 'Produksi'),
+                            'mohon_pabrik_luas_tanah'        => (string) ($pabrik['luasTanah'] ?? ($pabrik['luas_fasilitas'] ?? ($pabrik['luas_tanah'] ?? '0'))),
+                            'mohon_pabrik_luas_bangunan'     => (string) ($pabrik['luasBangunan'] ?? ($pabrik['luas_bangunan'] ?? '0')),
+                            'negara_id'                      => 1,
+                            'prov_id'                        => $pProv,
+                            'kab_id'                         => $pKab,
+                            'kec_id'                         => $pKec,
                             'created_at'                     => now(),
                             'updated_at'                     => now(),
                         ]);
@@ -215,6 +238,123 @@ class SisSyncBridgingService
                             'updated_at'                     => now(),
                         ]);
                     }
+                }
+            }
+
+            // 8. Sync Dokumen to sis_permohonan_dokumen
+            if ($permohonanId) {
+                $sis->table('sis_permohonan_dokumen')->where('mohon_id', $permohonanId)->delete();
+
+                $resolveFileUrl = function (?string $path): ?string {
+                    if (!$path) return null;
+                    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                        return $path;
+                    }
+                    return asset('storage/' . ltrim($path, '/'));
+                };
+
+                $dokumenList = [];
+                if (!empty($form->file_pertanyaan_tambahan)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 69,
+                        'mohon_dok_deskripsi'     => 'Berkas Gabungan Formulir Permohonan & Kuesioner (F.01.01 - F.01.03)',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_pertanyaan_tambahan),
+                    ];
+                }
+                if (!empty($form->file_surat_permohonan)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 41,
+                        'mohon_dok_deskripsi'     => 'Surat Permohonan Sertifikasi',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_surat_permohonan),
+                    ];
+                }
+                if (!empty($form->file_manual_mutu)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 57,
+                        'mohon_dok_deskripsi'     => 'Dokumen Sistem Manajemen Mutu',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_manual_mutu),
+                    ];
+                }
+                if (!empty($form->file_proses_produksi)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 8,
+                        'mohon_dok_deskripsi'     => 'Diagram Alir Proses Produksi',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_proses_produksi),
+                    ];
+                }
+                if (!empty($form->file_daftar_peralatan)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 24,
+                        'mohon_dok_deskripsi'     => 'Daftar jenis dan jumlah peralatan proses',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_daftar_peralatan),
+                    ];
+                }
+                if (!empty($form->file_denah_lokasi)) {
+                    $dokumenList[] = [
+                        'jenis_dok_perusahaan_id' => 7,
+                        'mohon_dok_deskripsi'     => 'Peta areal pabrik (lay out pabrik)',
+                        'mohon_dok_filepath'      => $resolveFileUrl($form->file_denah_lokasi),
+                    ];
+                }
+
+                $pendukung = $form->file_dokumen_pendukung_json ?: ($form->file_dokumen_pendukung ?: []);
+                if (is_array($pendukung)) {
+                    foreach ($pendukung as $k => $val) {
+                        if (is_string($val) && !empty($val)) {
+                            $jenisDokId = match ($k) {
+                                'dok_akta_pendirian', 'akta_pendirian' => 1,
+                                'dok_npwp', 'npwp' => 5,
+                                'dok_nib', 'nib' => 79,
+                                'dok_merek', 'sertifikat_merek' => 78,
+                                default => 69,
+                            };
+                            $dokumenList[] = [
+                                'jenis_dok_perusahaan_id' => $jenisDokId,
+                                'mohon_dok_deskripsi'     => is_string($k) ? ucwords(str_replace(['_', '-'], ' ', $k)) : 'Dokumen Pendukung',
+                                'mohon_dok_filepath'      => $resolveFileUrl($val),
+                            ];
+                        }
+                    }
+                }
+
+                $perusahaan = $creator?->pelanggan?->detail;
+                if ($perusahaan) {
+                    $hasAkta = collect($dokumenList)->contains(fn($d) => $d['jenis_dok_perusahaan_id'] === 1);
+                    $hasNpwp = collect($dokumenList)->contains(fn($d) => $d['jenis_dok_perusahaan_id'] === 5);
+                    $hasNib  = collect($dokumenList)->contains(fn($d) => $d['jenis_dok_perusahaan_id'] === 79);
+
+                    if (!$hasAkta && !empty($perusahaan->dok_akta_pendirian)) {
+                        $dokumenList[] = [
+                            'jenis_dok_perusahaan_id' => 1,
+                            'mohon_dok_deskripsi'     => 'Akte Perusahaan',
+                            'mohon_dok_filepath'      => $resolveFileUrl($perusahaan->dok_akta_pendirian),
+                        ];
+                    }
+                    if (!$hasNpwp && !empty($perusahaan->dok_npwp)) {
+                        $dokumenList[] = [
+                            'jenis_dok_perusahaan_id' => 5,
+                            'mohon_dok_deskripsi'     => 'Nomor Pokok Wajib Pajak (NPWP)',
+                            'mohon_dok_filepath'      => $resolveFileUrl($perusahaan->dok_npwp),
+                        ];
+                    }
+                    if (!$hasNib && !empty($perusahaan->dok_nib)) {
+                        $dokumenList[] = [
+                            'jenis_dok_perusahaan_id' => 79,
+                            'mohon_dok_deskripsi'     => 'Nomor Induk Berusaha (NIB)',
+                            'mohon_dok_filepath'      => $resolveFileUrl($perusahaan->dok_nib),
+                        ];
+                    }
+                }
+
+                foreach ($dokumenList as $dok) {
+                    $sis->table('sis_permohonan_dokumen')->insert([
+                        'mohon_id'                => $permohonanId,
+                        'jenis_dok_perusahaan_id' => $dok['jenis_dok_perusahaan_id'],
+                        'mohon_dok_deskripsi'     => $dok['mohon_dok_deskripsi'],
+                        'mohon_dok_filepath'      => $dok['mohon_dok_filepath'],
+                        'created_at'              => now(),
+                        'updated_at'              => now(),
+                    ]);
                 }
             }
 

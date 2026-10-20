@@ -32,10 +32,16 @@
 @php
     $getFileUrl = function($path) {
         if (empty($path)) return null;
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/storage/')) {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
-        return Storage::url($path);
+        if (str_starts_with($path, '/storage/')) {
+            return $path;
+        }
+        if (str_starts_with($path, 'storage/')) {
+            return '/' . $path;
+        }
+        return '/storage/' . ltrim($path, '/');
     };
 
     $komoditasList = $form->komoditas_json ?? [];
@@ -51,6 +57,22 @@
     $dokumenPendukung = $form->file_dokumen_pendukung_json ?? $form->file_dokumen_pendukung ?? [];
     if (is_string($dokumenPendukung)) {
         $dokumenPendukung = json_decode($dokumenPendukung, true) ?? [];
+    }
+
+    $perusahaan = (isset($permohonan) && $permohonan?->creator?->pelanggan) ? $permohonan->creator->pelanggan->detail : null;
+    if ($perusahaan) {
+        if (empty($dokumenPendukung['dok_akta_pendirian']) && !empty($perusahaan->dok_akta_pendirian)) {
+            $dokumenPendukung['dok_akta_pendirian'] = $perusahaan->dok_akta_pendirian;
+        }
+        if (empty($dokumenPendukung['dok_nib']) && !empty($perusahaan->dok_nib)) {
+            $dokumenPendukung['dok_nib'] = $perusahaan->dok_nib;
+        }
+        if (empty($dokumenPendukung['dok_npwp']) && !empty($perusahaan->dok_npwp)) {
+            $dokumenPendukung['dok_npwp'] = $perusahaan->dok_npwp;
+        }
+        if (empty($dokumenPendukung['dok_iup']) && !empty($perusahaan->dok_iup)) {
+            $dokumenPendukung['dok_iup'] = $perusahaan->dok_iup;
+        }
     }
 @endphp
 
@@ -372,6 +394,7 @@
             'dok_akta_pendirian' => 'Akta Pendirian Perusahaan',
             'dok_nib'            => 'Nomor Induk Berusaha (NIB)',
             'dok_npwp'           => 'NPWP Perusahaan',
+            'dok_iup'            => 'Izin Usaha / IUI',
         ];
     @endphp
 
@@ -412,7 +435,7 @@
                             <div>:</div>
                             <div class="detail-value">
                                 <button type="button"
-                                    class="btn btn-sm btn-outline-primary preview-btn py-1 px-3"
+                                    class="btn btn-sm btn-primary preview-btn py-1 px-3"
                                     data-file="{{ $getFileUrl($docPath) }}">
                                     Lihat file <i class="fa fa-eye ms-1"></i>
                                 </button>

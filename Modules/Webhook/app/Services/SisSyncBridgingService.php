@@ -45,6 +45,126 @@ class SisSyncBridgingService
             $statusPenawaranSis = 'proses';
         }
 
+        $resolveFileUrl = function (?string $path): ?string {
+            if (!$path) return null;
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                return $path;
+            }
+            return asset('storage/' . ltrim($path, '/'));
+        };
+
+        $dokumenBerkas = [];
+        if (!empty($form?->file_pertanyaan_tambahan)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Berkas Gabungan Formulir Permohonan & Kuesioner (F.01.01 - F.01.03)',
+                'file_url' => $resolveFileUrl($form->file_pertanyaan_tambahan),
+                'jenis_dok_perusahaan_id' => 69,
+                'kode' => 'berkas_gabungan',
+            ];
+        }
+        if (!empty($form?->file_surat_permohonan)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Surat Permohonan Sertifikasi',
+                'file_url' => $resolveFileUrl($form->file_surat_permohonan),
+                'jenis_dok_perusahaan_id' => 41,
+                'kode' => 'surat_permohonan',
+            ];
+        }
+        if (!empty($form?->file_manual_mutu)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Dokumen Sistem Manajemen Mutu',
+                'file_url' => $resolveFileUrl($form->file_manual_mutu),
+                'jenis_dok_perusahaan_id' => 57,
+                'kode' => 'manual_mutu',
+            ];
+        }
+        if (!empty($form?->file_proses_produksi)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Diagram Alir Proses Produksi',
+                'file_url' => $resolveFileUrl($form->file_proses_produksi),
+                'jenis_dok_perusahaan_id' => 8,
+                'kode' => 'proses_produksi',
+            ];
+        }
+        if (!empty($form?->file_daftar_peralatan)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Daftar jenis dan jumlah peralatan proses',
+                'file_url' => $resolveFileUrl($form->file_daftar_peralatan),
+                'jenis_dok_perusahaan_id' => 24,
+                'kode' => 'daftar_peralatan',
+            ];
+        }
+        if (!empty($form?->file_denah_lokasi)) {
+            $dokumenBerkas[] = [
+                'nama' => 'Peta areal pabrik (lay out pabrik)',
+                'file_url' => $resolveFileUrl($form->file_denah_lokasi),
+                'jenis_dok_perusahaan_id' => 7,
+                'kode' => 'denah_lokasi',
+            ];
+        }
+
+        $pendukung = $form?->file_dokumen_pendukung_json ?? ($form?->file_dokumen_pendukung ?? []);
+        if (is_array($pendukung)) {
+            foreach ($pendukung as $k => $val) {
+                if (is_string($val) && !empty($val)) {
+                    $jenisDokId = match ($k) {
+                        'dok_akta_pendirian', 'akta_pendirian' => 1,
+                        'dok_npwp', 'npwp' => 5,
+                        'dok_nib', 'nib' => 79,
+                        'dok_merek', 'sertifikat_merek' => 78,
+                        default => null,
+                    };
+                    $dokumenBerkas[] = [
+                        'nama' => is_string($k) ? ucwords(str_replace(['_', '-'], ' ', $k)) : 'Dokumen Pendukung',
+                        'file_url' => $resolveFileUrl($val),
+                        'jenis_dok_perusahaan_id' => $jenisDokId,
+                        'kode' => is_string($k) ? $k : 'pendukung',
+                    ];
+                }
+            }
+        }
+
+        // Dokumen Legalitas Perusahaan dari profil perusahaan jika belum tercantum
+        if ($perusahaan) {
+            $hasAkta = collect($dokumenBerkas)->contains(fn($d) => in_array($d['kode'] ?? '', ['dok_akta_pendirian', 'akta_pendirian']));
+            $hasNpwp = collect($dokumenBerkas)->contains(fn($d) => in_array($d['kode'] ?? '', ['dok_npwp', 'npwp']));
+            $hasNib  = collect($dokumenBerkas)->contains(fn($d) => in_array($d['kode'] ?? '', ['dok_nib', 'nib']));
+            $hasIup  = collect($dokumenBerkas)->contains(fn($d) => in_array($d['kode'] ?? '', ['dok_iup', 'iup', 'izin_usaha']));
+
+            if (!$hasAkta && !empty($perusahaan->dok_akta_pendirian)) {
+                $dokumenBerkas[] = [
+                    'nama' => 'Akte Perusahaan',
+                    'file_url' => $resolveFileUrl($perusahaan->dok_akta_pendirian),
+                    'jenis_dok_perusahaan_id' => 1,
+                    'kode' => 'dok_akta_pendirian',
+                ];
+            }
+            if (!$hasNpwp && !empty($perusahaan->dok_npwp)) {
+                $dokumenBerkas[] = [
+                    'nama' => 'Nomor Pokok Wajib Pajak (NPWP)',
+                    'file_url' => $resolveFileUrl($perusahaan->dok_npwp),
+                    'jenis_dok_perusahaan_id' => 5,
+                    'kode' => 'dok_npwp',
+                ];
+            }
+            if (!$hasNib && !empty($perusahaan->dok_nib)) {
+                $dokumenBerkas[] = [
+                    'nama' => 'Nomor Induk Berusaha (NIB)',
+                    'file_url' => $resolveFileUrl($perusahaan->dok_nib),
+                    'jenis_dok_perusahaan_id' => 79,
+                    'kode' => 'dok_nib',
+                ];
+            }
+            if (!$hasIup && !empty($perusahaan->dok_iup)) {
+                $dokumenBerkas[] = [
+                    'nama' => 'Ijin Usaha Industri (IUI)',
+                    'file_url' => $resolveFileUrl($perusahaan->dok_iup),
+                    'jenis_dok_perusahaan_id' => 3,
+                    'kode' => 'dok_iup',
+                ];
+            }
+        }
+
         $payload = [
             'external_permohonan_id' => $permohonan->id,
             'no_permohonan' => $permohonan->no_permohonan,
@@ -67,6 +187,11 @@ class SisSyncBridgingService
                 'no_telp' => $form?->no_telp ?? $perusahaan?->telepon,
                 'no_whatsapp' => $form?->no_whatsapp ?? $perusahaan?->whatsapp,
                 'alamat' => $form?->alamat_kantor ?? $perusahaan?->alamat,
+                'negara_id' => 1,
+                'negara' => 'Indonesia',
+                'provinsi_id' => $form?->pabrik_json[0]['provinsi_id'] ?? null,
+                'kabupaten_id' => $form?->pabrik_json[0]['kabupaten_id'] ?? null,
+                'kecamatan_id' => $form?->pabrik_json[0]['kecamatan_id'] ?? null,
             ],
             'ketenagakerjaan' => [
                 'jumlah_karyawan_total' => $form?->jumlah_karyawan_total ?? 0,
@@ -77,13 +202,16 @@ class SisSyncBridgingService
                 'jumlah_shift_1' => $form?->jumlah_shift_1 ?? 0,
                 'jumlah_shift_2' => $form?->jumlah_shift_2 ?? 0,
                 'jumlah_shift_3' => $form?->jumlah_shift_3 ?? 0,
+                'jumlah_non_permanen' => $form?->jumlah_non_permanen ?? 0,
+                'jumlah_bagian' => $form?->jumlah_bagian ?? 1,
+                'shif_kerja' => ((int)($form?->jumlah_shift_3 ?? 0) > 0) ? 3 : (((int)($form?->jumlah_shift_2 ?? 0) > 0) ? 2 : 1),
                 'luas_tanah' => $form?->luas_tanah ?? 0,
                 'luas_bangunan' => $form?->luas_bangunan ?? 0,
             ],
             'pabrik' => $form?->pabrik_json ?? [],
             'komoditas' => $form?->komoditas_json ?? [],
-            'dokumen_berkas' => $form?->file_dokumen_pendukung_json ?? [],
-            'file_kuesioner' => $form?->file_pertanyaan_tambahan ?? null,
+            'dokumen_berkas' => $dokumenBerkas,
+            'file_kuesioner' => $resolveFileUrl($form?->file_pertanyaan_tambahan),
             'tagihan_biaya' => [
                 'total_nominal' => $totalNominal,
                 'file_penawaran_url' => $filePenawaranUrl,

@@ -23,6 +23,7 @@ import PhoneInputWithCountrySelect from "react-phone-number-input"
 import "react-phone-number-input/style.css"
 import useRegions from "../../hooks/profile/useRegions"
 import { Button } from "../ui/Button"
+import { SearchableSelect } from "../ui/SearchableSelect"
 
 const FormInstansi: React.FC = () => {
   const { profile } = useProfile()
@@ -208,24 +209,25 @@ const FormInstansi: React.FC = () => {
                   <span>Provinsi</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>
-                <select
+                <SearchableSelect
                   disabled={isRegionLocked}
+                  placeholder="-- Pilih Provinsi --"
+                  searchPlaceholder="Cari provinsi..."
+                  options={provinces.map((p) => ({ value: p.id, label: p.nama }))}
                   value={rhf.watch("prov_id") || ""}
-                  onChange={(e) => {
-                    rhf.setValue("prov_id", e.target.value)
+                  onChange={(val) => {
+                    rhf.setValue("prov_id", String(val))
                     rhf.setValue("kab_id", "")
                     rhf.setValue("kec_id", "")
                     rhf.setValue("alamat", "")
                   }}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
-                >
-                  <option value="">-- Pilih Provinsi --</option>
-                  {provinces.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nama}
-                    </option>
-                  ))}
-                </select>
+                  onClear={() => {
+                    rhf.setValue("prov_id", "")
+                    rhf.setValue("kab_id", "")
+                    rhf.setValue("kec_id", "")
+                    rhf.setValue("alamat", "")
+                  }}
+                />
               </div>
 
               <div>
@@ -233,23 +235,23 @@ const FormInstansi: React.FC = () => {
                   <span>Kabupaten / Kota</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>
-                <select
+                <SearchableSelect
                   disabled={isRegionLocked || !rhf.watch("prov_id")}
+                  placeholder="-- Pilih Kabupaten/Kota --"
+                  searchPlaceholder="Cari kabupaten/kota..."
+                  options={regencies.map((k) => ({ value: k.id, label: k.nama }))}
                   value={rhf.watch("kab_id") || ""}
-                  onChange={(e) => {
-                    rhf.setValue("kab_id", e.target.value)
+                  onChange={(val) => {
+                    rhf.setValue("kab_id", String(val))
                     rhf.setValue("kec_id", "")
                     rhf.setValue("alamat", "")
                   }}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
-                >
-                  <option value="">-- Pilih Kabupaten/Kota --</option>
-                  {regencies.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.nama}
-                    </option>
-                  ))}
-                </select>
+                  onClear={() => {
+                    rhf.setValue("kab_id", "")
+                    rhf.setValue("kec_id", "")
+                    rhf.setValue("alamat", "")
+                  }}
+                />
               </div>
 
               <div>
@@ -257,22 +259,21 @@ const FormInstansi: React.FC = () => {
                   <span>Kecamatan</span>
                   {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
                 </label>
-                <select
+                <SearchableSelect
                   disabled={isRegionLocked || !rhf.watch("kab_id")}
+                  placeholder="-- Pilih Kecamatan --"
+                  searchPlaceholder="Cari kecamatan..."
+                  options={districts.map((d) => ({ value: d.id, label: d.nama }))}
                   value={rhf.watch("kec_id") || ""}
-                  onChange={(e) => {
-                    rhf.setValue("kec_id", e.target.value)
+                  onChange={(val) => {
+                    rhf.setValue("kec_id", String(val))
                     rhf.setValue("alamat", "")
                   }}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
-                >
-                  <option value="">-- Pilih Kecamatan --</option>
-                  {districts.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nama}
-                    </option>
-                  ))}
-                </select>
+                  onClear={() => {
+                    rhf.setValue("kec_id", "")
+                    rhf.setValue("alamat", "")
+                  }}
+                />
               </div>
             </div>
 

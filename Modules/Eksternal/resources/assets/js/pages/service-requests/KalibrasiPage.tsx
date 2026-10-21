@@ -22,11 +22,11 @@ const KalibrasiPage: React.FC = () => {
   const selectedData = KALIBRASI_CATEGORIES.find((c) => c.id === selectedKategori)
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-4 max-w-6xl mx-auto">
       <Head title="Permintaan Kalibrasi Instrumen" />
 
       {/* Header & Back Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 mb-1">
             <Gauge className="w-4 h-4" />

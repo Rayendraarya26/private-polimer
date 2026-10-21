@@ -4,8 +4,6 @@ import {
   Plus,
   ArrowRight,
   ArrowLeft,
-  GraduationCap,
-  CheckCircle2,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import {
@@ -17,7 +15,13 @@ import { useMasterKomoditiQuery } from "../../../hooks/queries/usePengujianQuery
 import { SampleCardItem } from "./components/SampleCardItem"
 import { CostEstimationSummary } from "./components/CostEstimationSummary"
 import { Button } from "../../ui/Button"
-import { Badge } from "../../ui/Badge"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../ui/Card"
 
 interface Step3ParameterUjiProps {
   samples: PengujianSampleItem[]
@@ -91,129 +95,121 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Step Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600">
-              <FlaskConical className="w-5 h-5" />
-            </div>
+      <Card className="border-brand-100 shadow-sm overflow-hidden">
+        {/* Step Header */}
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+          <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Tahap 3: Pendaftaran Sampel & Parameter Uji
-              </h2>
-              <p className="text-xs text-slate-500">
+              <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+                <FlaskConical className="w-4 h-4 text-brand-600 shrink-0" />
+                <span>Pendaftaran Sampel & Parameter Uji</span>
+              </CardTitle>
+              <CardDescription>
                 Pilih komoditas, centang parameter uji dengan metode acuan standar, dan tentukan jumlah sampel.
-              </p>
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0 divide-y divide-slate-200">
+          {/* Kategori Tarif Selector */}
+          <div className="p-6 space-y-3 bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label className="text-xs font-bold text-slate-800">
+                Kategori Tarif PNBP Pengujian <span className="text-rose-500">*</span>
+              </label>
+
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Opsi 1: Tarif Umum (Standard) */}
+              <label
+                className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${kategoriTarif === "umum"
+                  ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                  : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="kategoriTarif"
+                  value="umum"
+                  checked={kategoriTarif === "umum"}
+                  onChange={() => setKategoriTarif("umum")}
+                  className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div className="text-xs min-w-0">
+                  <span className="font-bold block text-slate-800 mb-0.5">
+                    Tarif Umum (Standard)
+                  </span>
+                  <span className="text-[11px] text-slate-500 block leading-relaxed">
+                    Berlaku untuk industri, perusahaan BUMN/swasta, institusi litbang, dan pemohon perorangan.
+                  </span>
+                </div>
+              </label>
+
+              {/* Opsi 2: Tarif Mahasiswa (PP RI No. 54) */}
+              <label
+                className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${kategoriTarif === "mahasiswa_pp54"
+                  ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                  : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  name="kategoriTarif"
+                  value="mahasiswa_pp54"
+                  checked={kategoriTarif === "mahasiswa_pp54"}
+                  onChange={() => setKategoriTarif("mahasiswa_pp54")}
+                  className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div className="text-xs min-w-0">
+                  <span className="font-bold block text-slate-800 mb-0.5">
+                    Tarif Mahasiswa (PP RI No. 54)
+                  </span>
+                  <span className="text-[11px] text-slate-500 block leading-relaxed">
+                    Diskon tarif pendidikan khusus untuk penelitian skripsi/tugas akhir mahasiswa aktif.
+                  </span>
+                  <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 rounded-md">
+                    Wajib Unggah KTM pada Tahap 4
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            onClick={handleAddSample}
-            leftIcon={<Plus className="w-4 h-4" />}
-            className="shrink-0"
-          >
-            Tambah Sampel Lainnya
-          </Button>
-        </div>
-      </div>
-
-      {/* Kategori Tarif Selector Banner */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-800">
-            Kategori Tarif PNBP Pengujian:
-          </label>
-          <span className="text-[11px] text-slate-500">
-            Tarif parameter uji akan otomatis menyesuaikan dengan kategori di bawah
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div
-            onClick={() => setKategoriTarif("umum")}
-            className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-              kategoriTarif === "umum"
-                ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
-                : "bg-white border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-slate-900">Tarif Umum (Standard)</span>
-              {kategoriTarif === "umum" && (
-                <CheckCircle2 className="w-4 h-4 text-brand-600" />
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 leading-snug">
-              Berlaku untuk industri, perusahaan BUMN/swasta, institusi litbang, dan pemohon perorangan.
-            </p>
+          {/* Samples List */}
+          <div className="divide-y divide-slate-200">
+            {samples.map((sample, idx) => (
+              <SampleCardItem
+                key={sample.id}
+                sample={sample}
+                index={idx}
+                komoditiList={komoditiList}
+                kategoriTarif={kategoriTarif}
+                canDelete={samples.length > 1}
+                onUpdate={handleUpdateSample}
+                onDelete={handleDeleteSample}
+              />
+            ))}
           </div>
 
-          <div
-            onClick={() => setKategoriTarif("mahasiswa_pp54")}
-            className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-              kategoriTarif === "mahasiswa_pp54"
-                ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
-                : "bg-white border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4 text-brand-600" />
-                Tarif Mahasiswa (PP RI No. 54)
-              </span>
-              {kategoriTarif === "mahasiswa_pp54" && (
-                <CheckCircle2 className="w-4 h-4 text-brand-600" />
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 leading-snug">
-              Diskon tarif pendidikan khusus untuk penelitian skripsi/tugas akhir mahasiswa aktif.
-            </p>
-            <Badge variant="warning" size="sm" className="mt-1.5 text-[10px]">
-              Wajib Unggah KTM pada Tahap 4
-            </Badge>
+          {/* Tombol Tambah Sampel Baru di dalam Card */}
+          <div className="flex justify-center p-4 bg-slate-50/50 border-t border-slate-200">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddSample}
+              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold border-brand-300 text-brand-700 hover:bg-brand-50 hover:border-brand-400 shadow-xs bg-white"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Sampel
+            </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Real-time Cost Estimation Summary Widget */}
       <CostEstimationSummary samples={samples} kategoriTarif={kategoriTarif} />
-
-      {/* Samples List */}
-      <div className="space-y-4">
-        {samples.map((sample, idx) => (
-          <SampleCardItem
-            key={sample.id}
-            sample={sample}
-            index={idx}
-            komoditiList={komoditiList}
-            kategoriTarif={kategoriTarif}
-            canDelete={samples.length > 1}
-            onUpdate={handleUpdateSample}
-            onDelete={handleDeleteSample}
-          />
-        ))}
-      </div>
-
-      {/* Bottom Action: Add Another Sample Button */}
-      <div className="p-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-50 text-center transition-colors">
-        <p className="text-xs text-slate-600 mb-2">
-          Memiliki varian spesimen lain yang ingin diuji dalam permohonan yang sama?
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddSample}
-          leftIcon={<Plus className="w-4 h-4 text-brand-600" />}
-          className="text-xs font-semibold"
-        >
-          + Tambah Sampel Pengujian Baru
-        </Button>
-      </div>
 
       {/* Navigation Buttons */}
       <div className="flex items-center justify-between pt-2">
@@ -224,7 +220,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="px-5 py-2.5 font-semibold text-xs"
         >
-          Kembali ke Data Permintaan
+          Sebelumnya
         </Button>
 
         <Button
@@ -234,7 +230,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
           rightIcon={<ArrowRight className="w-4 h-4" />}
           className="px-6 py-2.5 font-semibold text-xs shadow-xs"
         >
-          Lanjut ke Dokumen & Konfirmasi
+          Selanjutnya
         </Button>
       </div>
     </div>

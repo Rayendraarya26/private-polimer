@@ -1,20 +1,20 @@
 import React, { useEffect } from "react"
 import {
   FileText,
-  Calendar,
-  Building2,
-  Send,
-  User,
+  Truck,
   ArrowRight,
   ArrowLeft,
-  CheckSquare,
-  Square,
-  Sparkles,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { PengujianSharedData } from "../../../types/pengujian"
-import { Input } from "../../ui/Input"
 import { Button } from "../../ui/Button"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../ui/Card"
 import useProfile from "../../../hooks/useProfile"
 
 interface Step2DataPermintaanProps {
@@ -31,12 +31,23 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
   onBack,
 }) => {
   const { profile } = useProfile()
+  const userObj = profile as Record<string, any> | null
 
-  // Ambil nama identitas pemohon dari profil yang login
+  const detail = (profile?.detail || {}) as Record<string, any>
+  const profileAlamat =
+    detail?.alamat ||
+    detail?.alamat_lengkap ||
+    detail?.alamat_perusahaan ||
+    detail?.pabrik_alamat ||
+    detail?.alamat_pabrik ||
+    userObj?.alamat_lengkap ||
+    userObj?.alamat ||
+    ""
   const applicantName =
-    profile?.detail?.nama ||
-    (profile as any)?.company_name ||
+    detail?.nama ||
+    userObj?.company_name ||
     profile?.name ||
+    userObj?.nama ||
     "Pemohon / Klien"
 
   // Autofill data profil pemohon saat pertama kali dimuat
@@ -45,10 +56,15 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
 
     setSharedData((prev) => {
       const companyOrPerson =
-        profile.detail?.nama ||
-        (profile as any)?.company_name ||
+        detail?.nama ||
+        userObj?.company_name ||
         profile.name ||
+        userObj?.nama ||
         ""
+
+      const targetAlamat = profileAlamat
+        ? `${companyOrPerson} - ${profileAlamat}`
+        : companyOrPerson
 
       return {
         ...prev,
@@ -57,13 +73,11 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
           ? companyOrPerson
           : prev.biaya_ditanggung_oleh,
         laporan_dialamatkan_kepada: prev.alamat_sama_dengan_pemohon
-          ? companyOrPerson
-            ? `Up. Pimpinan / Bagian QC - ${companyOrPerson}`
-            : ""
+          ? targetAlamat
           : prev.laporan_dialamatkan_kepada,
       }
     })
-  }, [profile, setSharedData])
+  }, [profile, profileAlamat, setSharedData])
 
   const handleValidateAndNext = () => {
     const finalBiaya = sharedData.biaya_sama_dengan_pemohon
@@ -71,16 +85,16 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
       : sharedData.biaya_ditanggung_oleh.trim()
 
     const finalAlamat = sharedData.alamat_sama_dengan_pemohon
-      ? `Up. Pimpinan / Bagian QC - ${applicantName}`
+      ? (profileAlamat ? `${applicantName} - ${profileAlamat}` : applicantName)
       : sharedData.laporan_dialamatkan_kepada.trim()
 
     if (!finalBiaya) {
-      toast.error("Kolom 'Biaya Pengujian Ditanggung Oleh' wajib diisi")
+      toast.error("Kolom 'Penanggung Biaya Pengujian' wajib diisi")
       return
     }
 
     if (!finalAlamat) {
-      toast.error("Kolom 'Laporan Pengujian Dialamatkan Kepada' wajib diisi")
+      toast.error("Kolom 'Alamat Pengiriman Laporan Hasil Pengujian' wajib diisi")
       return
     }
 
@@ -96,55 +110,29 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Header Info */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Tahap 2: Data Permintaan & Administrasi
-            </h2>
-            <p className="text-xs text-slate-500">
-              Konfirmasi data pemohon, penanggung jawab pembiayaan pengujian, dan tujuan pengiriman laporan.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Card: Data Permintaan */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Tanggal Permohonan (Auto-lock / Readonly) */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Tanggal Permohonan <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <input
-                type="text"
-                readOnly
-                value={sharedData.tanggal_permohonan}
-                className="w-full bg-slate-50 text-slate-600 text-xs rounded-lg border border-slate-200 pl-10 pr-3.5 py-2.5 cursor-not-allowed font-medium"
-              />
+    <div className="space-y-6">
+      <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+                <FileText className="w-4 h-4 text-brand-600 shrink-0" />
+                <span>Data Permintaan & Administrasi</span>
+              </CardTitle>
+              <CardDescription>
+                Data pemohon, penanggung jawab pembiayaan pengujian, dan tujuan pengiriman laporan hasil pengujian
+              </CardDescription>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Tercatat otomatis sesuai tanggal akses sistem balai</p>
           </div>
+        </CardHeader>
 
-          {/* Permintaan Pengujian Diajukan Kepada BBKKP Oleh */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Diajukan Kepada BBSPJIKKP Oleh <span className="text-rose-500">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-                <User className="w-4 h-4" />
-              </div>
+        <CardContent className="pt-6 space-y-6">
+          {/* SECTION 1: DATA IDENTITAS PEMOHON */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Nama Pemohon <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 value={sharedData.diajukan_oleh || applicantName}
@@ -154,151 +142,237 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
                     diajukan_oleh: e.target.value,
                   }))
                 }
-                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
                 placeholder="Nama Pemohon / Perusahaan"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Nama pemohon terdaftar di portal BBSPJIKKP</p>
           </div>
-        </div>
 
-        {/* Biaya Pengujian Ditanggung Oleh */}
-        <div className="p-4.5 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <label className="text-xs font-bold text-slate-800 block">
-                Biaya Pengujian Ditanggung Oleh <span className="text-rose-500">*</span>
+          {/* Penanggung Biaya Pengujian */}
+          <div>
+            <label className="block text-xs font-bold text-slate-800 mb-2">
+              Penanggung Biaya Pengujian <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Opsi 1: Pemohon */}
+              <label
+                className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                  sharedData.biaya_sama_dengan_pemohon
+                    ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="opsiBiaya"
+                  checked={sharedData.biaya_sama_dengan_pemohon}
+                  onChange={() => {
+                    setSharedData((prev) => ({
+                      ...prev,
+                      biaya_sama_dengan_pemohon: true,
+                      biaya_ditanggung_oleh: applicantName,
+                    }))
+                  }}
+                  className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div className="text-xs min-w-0">
+                  <span className="font-semibold block text-slate-800">Pemohon</span>
+                  <span className="text-[11px] text-slate-500 truncate block">
+                    {applicantName}
+                  </span>
+                </div>
               </label>
-              <p className="text-[11px] text-slate-500">
-                Pihak atau badan usaha yang bertanggung jawab atas pelunasan tarif pengujian.
+
+              {/* Opsi 2: Pihak Lain */}
+              <label
+                className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                  !sharedData.biaya_sama_dengan_pemohon
+                    ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="opsiBiaya"
+                  checked={!sharedData.biaya_sama_dengan_pemohon}
+                  onChange={() => {
+                    setSharedData((prev) => ({
+                      ...prev,
+                      biaya_sama_dengan_pemohon: false,
+                      biaya_ditanggung_oleh: prev.biaya_sama_dengan_pemohon ? "" : prev.biaya_ditanggung_oleh,
+                    }))
+                  }}
+                  className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                />
+                <div className="text-xs min-w-0">
+                  <span className="font-semibold block text-slate-800">Pihak Lain</span>
+                  <span className="text-[11px] text-slate-500 block">
+                    Ketik nama pihak penanggung biaya
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {!sharedData.biaya_sama_dengan_pemohon && (
+              <div className="mt-2.5 animate-in fade-in-50 duration-200">
+                <input
+                  type="text"
+                  placeholder="Masukkan nama pihak lain penanggung biaya..."
+                  value={sharedData.biaya_ditanggung_oleh}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      biaya_ditanggung_oleh: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ================= ALAMAT PENGIRIMAN LAPORAN HASIL PENGUJIAN ================= */}
+          <div className="pt-4 border-t border-slate-200 space-y-4">
+            <div>
+              <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-brand-600" />
+                Alamat Pengiriman Laporan Hasil Pengujian <span className="text-rose-500">*</span>
+              </h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Tentukan penerima dan alamat tujuan pengiriman fisik dokumen sertifikat atau laporan hasil pengujian
               </p>
             </div>
 
-            {/* Checkbox Relasi Pihak */}
-            <label className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 bg-brand-50/70 px-3 py-1.5 rounded-lg border border-brand-200/80 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={sharedData.biaya_sama_dengan_pemohon}
-                onChange={(e) => {
-                  const checked = e.target.checked
-                  setSharedData((prev) => ({
-                    ...prev,
-                    biaya_sama_dengan_pemohon: checked,
-                    biaya_ditanggung_oleh: checked ? applicantName : "",
-                  }))
-                }}
-                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
-              />
-              <span>Sama dengan pemohon / instansi sendiri</span>
-            </label>
-          </div>
-
-          {/* Form Input Dinamis (Muncul bila Checkbox Tidak Dicentang) */}
-          {!sharedData.biaya_sama_dengan_pemohon ? (
-            <div className="pt-1 animate-in fade-in-50 duration-200">
-              <Input
-                label="Nama Penanggung Jawab Biaya (Pihak Ketiga / Instansi Lain)"
-                required
-                leftIcon={<Building2 className="w-4 h-4" />}
-                placeholder="Masukkan nama perusahaan / sponsor penanggung jawab biaya..."
-                value={sharedData.biaya_ditanggung_oleh}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    biaya_ditanggung_oleh: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          ) : (
-            <div className="text-xs text-slate-600 bg-white/80 p-2.5 rounded-lg border border-slate-200 font-medium flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-brand-600 shrink-0" />
-              <span>
-                Penanggung jawab biaya: <strong className="text-slate-900">{applicantName}</strong>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Laporan Pengujian Minta Dialamatkan Kepada */}
-        <div className="p-4.5 rounded-xl bg-slate-50/70 border border-slate-200/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* Opsi Pilihan Alamat Pengiriman */}
             <div>
-              <label className="text-xs font-bold text-slate-800 block">
-                Laporan Pengujian Minta Dialamatkan Kepada <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                Pilihan Alamat Pengiriman:
               </label>
-              <p className="text-[11px] text-slate-500">
-                Nama pejabat, divisi teknis, atau alamat tujuan pengiriman fisik/dokumen LHU.
-              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Opsi 1: Sesuai Alamat Pemohon */}
+                <label
+                  className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                    sharedData.alamat_sama_dengan_pemohon
+                      ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="opsiAlamat"
+                    checked={sharedData.alamat_sama_dengan_pemohon}
+                    onChange={() => {
+                      setSharedData((prev) => ({
+                        ...prev,
+                        alamat_sama_dengan_pemohon: true,
+                        laporan_dialamatkan_kepada: profileAlamat ? `${applicantName} - ${profileAlamat}` : applicantName,
+                      }))
+                    }}
+                    className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <div className="text-xs min-w-0">
+                    <span className="font-semibold block text-slate-800">Sesuai Alamat Pemohon</span>
+                    <span className="text-[11px] text-slate-500 truncate block">
+                      {profileAlamat || "Gunakan alamat pemohon di atas"}
+                    </span>
+                  </div>
+                </label>
+
+                {/* Opsi 2: Alamat Lainnya (Kustom) */}
+                <label
+                  className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                    !sharedData.alamat_sama_dengan_pemohon
+                      ? "bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="opsiAlamat"
+                    checked={!sharedData.alamat_sama_dengan_pemohon}
+                    onChange={() => {
+                      setSharedData((prev) => ({
+                        ...prev,
+                        alamat_sama_dengan_pemohon: false,
+                        laporan_dialamatkan_kepada: prev.alamat_sama_dengan_pemohon ? "" : prev.laporan_dialamatkan_kepada,
+                      }))
+                    }}
+                    className="mt-0.5 text-brand-600 focus:ring-brand-500 border-slate-300"
+                  />
+                  <div className="text-xs min-w-0">
+                    <span className="font-semibold block text-slate-800">Alamat Lainnya (Kustom)</span>
+                    <span className="text-[11px] text-slate-500 block">Ketik alamat pengiriman lain</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
-            {/* Checkbox Relasi Pihak */}
-            <label className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 bg-brand-50/70 px-3 py-1.5 rounded-lg border border-brand-200/80 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={sharedData.alamat_sama_dengan_pemohon}
-                onChange={(e) => {
-                  const checked = e.target.checked
-                  setSharedData((prev) => ({
-                    ...prev,
-                    alamat_sama_dengan_pemohon: checked,
-                    laporan_dialamatkan_kepada: checked
-                      ? `Up. Pimpinan / Bagian QC - ${applicantName}`
-                      : "",
-                  }))
-                }}
-                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
-              />
-              <span>Sama dengan pemohon / instansi sendiri</span>
-            </label>
+            {/* Tampilan Kondisional Berdasarkan Opsi yang Dipilih */}
+            {sharedData.alamat_sama_dengan_pemohon ? (
+              <div className="rounded-xl border border-brand-200/90 bg-brand-50/40 p-4 space-y-3 animate-in fade-in-50 duration-200">
+                <div className="flex items-center gap-2 text-xs font-semibold text-brand-900">
+                  <span>Dokumen sertifikat / laporan akan dikirimkan ke alamat pemohon:</span>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-brand-100/80 text-xs space-y-1.5 shadow-xs">
+                  <div className="flex items-start gap-2">
+                    <span className="text-slate-500 w-32 shrink-0">Nama Penerima:</span>
+                    <span className="font-semibold text-slate-800">
+                      {applicantName}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-slate-500 w-32 shrink-0">Alamat Pengiriman:</span>
+                    <span className="text-slate-700 leading-relaxed">
+                      {profileAlamat || "(Alamat pemohon belum diisi pada profil)"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-4 animate-in fade-in-50 duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Alamat Pengiriman <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Masukkan alamat lengkap tujuan pengiriman sertifikat / laporan hasil pengujian..."
+                      value={sharedData.laporan_dialamatkan_kepada}
+                      onChange={(e) =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          laporan_dialamatkan_kepada: e.target.value,
+                        }))
+                      }
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Form Input Dinamis (Muncul bila Checkbox Tidak Dicentang) */}
-          {!sharedData.alamat_sama_dengan_pemohon ? (
-            <div className="pt-1 animate-in fade-in-50 duration-200">
-              <Input
-                label="Nama / Alamat Tujuan Laporan (Pihak Ketiga)"
-                required
-                leftIcon={<Send className="w-4 h-4" />}
-                placeholder="Contoh: Up. Manajer Pengendalian Mutu (QA/QC) - PT XYZ, Jl. Raya..."
-                value={sharedData.laporan_dialamatkan_kepada}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    laporan_dialamatkan_kepada: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          ) : (
-            <div className="text-xs text-slate-600 bg-white/80 p-2.5 rounded-lg border border-slate-200 font-medium flex items-center gap-2">
-              <Send className="w-4 h-4 text-brand-600 shrink-0" />
-              <span>
-                Tujuan pengiriman LHU: <strong className="text-slate-900">Up. Pimpinan / Bagian QC - {applicantName}</strong>
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Keterangan Permintaan */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Keterangan Permintaan (Opsional)
-          </label>
-          <textarea
-            rows={3}
-            placeholder="Tuliskan catatan atau instruksi umum permohonan pengujian jika ada..."
-            value={sharedData.keterangan_permintaan}
-            onChange={(e) =>
-              setSharedData((prev) => ({
-                ...prev,
-                keterangan_permintaan: e.target.value,
-              }))
-            }
-            className="w-full text-xs rounded-lg border border-slate-300 p-3 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
-          />
-        </div>
-      </div>
+          {/* SECTION 4: KETERANGAN PERMINTAAN */}
+          <div className="pt-4 border-t border-slate-200 space-y-2">
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              Keterangan / Catatan Permintaan <span className="text-slate-400 font-normal">(Opsional)</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Tuliskan catatan atau instruksi umum permohonan pengujian jika ada..."
+              value={sharedData.keterangan_permintaan}
+              onChange={(e) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  keterangan_permintaan: e.target.value,
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors placeholder:text-slate-400"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Footer Navigation Buttons */}
       <div className="flex items-center justify-between pt-2">
@@ -309,7 +383,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="px-5 py-2.5 font-semibold text-xs"
         >
-          Kembali ke Pemilihan Bahasa
+          Sebelumnya
         </Button>
 
         <Button
@@ -319,7 +393,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
           rightIcon={<ArrowRight className="w-4 h-4" />}
           className="px-6 py-2.5 font-semibold text-xs shadow-xs"
         >
-          Lanjut ke Contoh Uji
+          Selanjutnya
         </Button>
       </div>
     </div>

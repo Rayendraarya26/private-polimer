@@ -121,8 +121,16 @@ class PenerbitanSertifikasiControllerTest extends TestCase
             'status_workflow' => 'SELESAI',
         ]);
 
-        // Test Download by Client
+        // Test Download by Client (Harus gagal 403 jika belum mengisi feedback)
         $this->actingAs($this->clientUser);
+        $downloadUnauthorized = $this->get("/api/eksternal/sertifikasi/{$this->permohonan->id}/download-sertifikat", [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+        $downloadUnauthorized->assertStatus(403);
+
+        // Setelah klien mengisi feedback
+        $this->permohonan->update(['is_given_feedback' => true]);
+
         $downloadResponse = $this->get("/api/eksternal/sertifikasi/{$this->permohonan->id}/download-sertifikat", [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);

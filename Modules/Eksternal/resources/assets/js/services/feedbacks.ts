@@ -16,7 +16,7 @@ export const getAllFeedbacks = async (params: FeedbacksListQuery) => {
 
 export const getFeedbackDetail = async (uuid: string) => {
   try {
-    const { data } = await api.get<DefaultApiResponse<FeedbackStructure[]>>(`/eksternal/layanan/${uuid}/feedback`)
+    const { data } = await api.get<DefaultApiResponse<FeedbackStructure[]>>(`/eksternal/permohonan/${uuid}/feedback`)
     return data.results
   } catch (error) {
     return Promise.reject(error)
@@ -25,7 +25,7 @@ export const getFeedbackDetail = async (uuid: string) => {
 
 export const submitFeedback = async (uuid: string, feedbacks: object) => {
   try {
-    const { data } = await api.post<DefaultApiResponse<unknown>>(`/eksternal/layanan/${uuid}/feedback`, { feedbacks })
+    const { data } = await api.post<DefaultApiResponse<unknown>>(`/eksternal/permohonan/${uuid}/feedback`, { feedbacks })
     return data.results
   } catch (error) {
     return Promise.reject(error)

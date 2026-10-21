@@ -1153,9 +1153,26 @@ class SertifikasiController extends Controller
             ->firstOrFail();
 
         $user = Auth::user();
-        if ($user && method_exists($user, 'isPegawai') && !$user->isPegawai()) {
-            if ($permohonan->created_by && $permohonan->created_by !== $user->id) {
+        $isPegawai = $user && method_exists($user, 'isPegawai') && $user->isPegawai();
+        if (!$isPegawai) {
+            if ($permohonan->created_by && $permohonan->created_by !== $user?->id) {
+                if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki hak akses untuk mengunduh sertifikat ini.'
+                    ], 403);
+                }
                 abort(403, 'Anda tidak memiliki hak akses untuk mengunduh sertifikat ini.');
+            }
+
+            if (!$permohonan->is_given_feedback) {
+                if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda belum memberikan feedback untuk permohonan ini. Silakan isi survei kepuasan terlebih dahulu.'
+                    ], 403);
+                }
+                abort(403, 'Anda belum memberikan feedback untuk permohonan ini. Silakan isi survei kepuasan terlebih dahulu.');
             }
         }
 

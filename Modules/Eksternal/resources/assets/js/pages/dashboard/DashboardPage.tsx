@@ -21,6 +21,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Lock,
+  MessageSquare,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import Swal from "sweetalert2"
@@ -520,8 +522,22 @@ const DashboardPage: React.FC = () => {
                         {/* Pratinjau LHU jika status pengujian/sertifikasi selesai */}
 
 
-                        {/* Download Certificate if Done */}
-                        {item.sertifikat && (
+                        {/* Tombol Beri Feedback jika permohonan selesai namun belum diisi feedback */}
+                        {!item.is_given_feedback &&
+                          (String(item.status_workflow || item.status_order || item.status || "").toUpperCase() === "DONE" ||
+                           String(item.status_workflow || item.status_order || item.status || "").toUpperCase() === "SELESAI") && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            leftIcon={<MessageSquare className="w-3.5 h-3.5" />}
+                            onClick={() => navigate(`/feedbacks/${item.id}`)}
+                          >
+                            Feedback
+                          </Button>
+                        )}
+
+                        {/* Download Certificate if Done & Feedback is completed */}
+                        {item.sertifikat && item.is_given_feedback && (
                           <Button
                             variant="success"
                             size="sm"

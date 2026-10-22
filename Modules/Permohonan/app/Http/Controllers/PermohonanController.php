@@ -66,7 +66,7 @@ class PermohonanController extends Controller
 
         $query = Permohonan::query()
             ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable'])
-            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by'])
+            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'is_given_feedback'])
             ->whereNotNull('tgl_order');
 
 
@@ -91,6 +91,10 @@ class PermohonanController extends Controller
                 $statusWorkflowList[] = 'SELESAI';
             }
             $query->whereIn('status_workflow', $statusWorkflowList);
+        }
+
+        if ($request->has('feedback') && $request->feedback !== null && $request->feedback !== '') {
+            $query->where('is_given_feedback', (bool) $request->feedback);
         }
 
 
@@ -139,6 +143,7 @@ class PermohonanController extends Controller
                 return '-';
             })
             ->editColumn('status_workflow', fn($row) => strtolower($row->status_workflow))
+            ->editColumn('is_given_feedback', fn($row) => (int) ($row->is_given_feedback ?? 0))
             ->addColumn('aksi', function ($row) {
                 $url = route('permohonan.layanan.detail', $row->id);
                 return '<a href="' . $url . '" class="btn btn-sm btn-primary">Detail</a>';
@@ -395,23 +400,23 @@ class PermohonanController extends Controller
         // 2. Jika ada tarif tetap, nominal dan dok_penawaran tidak wajib (nullable)
         if ($hasFixedTariff) {
             $request->validate([
-                'nominal'       => 'nullable|numeric|min:0',
+                'nominal' => 'nullable|numeric|min:0',
                 'dok_penawaran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             ]);
 
             // Gunakan nominal input jika diisi manual, atau default ke tarif tetap yang ada
             $total = $request->filled('nominal') ? (float) $request->nominal : $existingTotal;
-            $path  = $request->hasFile('dok_penawaran')
+            $path = $request->hasFile('dok_penawaran')
                 ? $request->file('dok_penawaran')->store('surat_penawaran', 'public')
                 : 'TARIF_TETAP';
         } else {
             // Layanan yang belum ada tarifnya (SNI, Halal, Inspeksi, GRK) wajib input nominal & file penawaran
             $request->validate([
-                'nominal'       => 'required|numeric|min:1',
+                'nominal' => 'required|numeric|min:1',
                 'dok_penawaran' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             ]);
             $total = (float) $request->nominal;
-            $path  = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
+            $path = $request->file('dok_penawaran')->store('surat_penawaran', 'public');
         }
 
         $itemBayar = match (true) {
@@ -1066,31 +1071,31 @@ class PermohonanController extends Controller
             $tglKadaluarsa = $permohonan->tanggal_sertifikat_kadaluarsa ?: now()->addYears(3);
 
             $permohonan->update([
-                'status_workflow'               => 'DONE',
-                'status_bayar'                  => 'LUNAS',
-                'nomor_sertifikat'              => $nomorSertifikat,
-                'tanggal_sertifikat_terbit'     => $tglTerbit,
+                'status_workflow' => 'DONE',
+                'status_bayar' => 'LUNAS',
+                'nomor_sertifikat' => $nomorSertifikat,
+                'tanggal_sertifikat_terbit' => $tglTerbit,
                 'tanggal_sertifikat_kadaluarsa' => $tglKadaluarsa,
             ]);
 
             PermohonanTrackingLog::create([
-                'id'             => (string) Str::uuid(),
-                'permohonan_id'  => $permohonan->id,
-                'sumber'         => 'POLIMER',
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
                 'milestone_code' => 'SELESAI',
-                'judul'          => 'Layanan Selesai & Sertifikat Diterbitkan (Simulasi Testing)',
-                'deskripsi'      => 'Permohonan telah diselesaikan via simulasi testing admin. Sertifikat dummy telah diterbitkan.',
-                'metadata'       => [
-                    'actor_name'       => auth()->user()?->name ?? 'Admin Tester',
+                'judul' => 'Layanan Selesai & Sertifikat Diterbitkan (Simulasi Testing)',
+                'deskripsi' => 'Permohonan telah diselesaikan via simulasi testing admin. Sertifikat dummy telah diterbitkan.',
+                'metadata' => [
+                    'actor_name' => auth()->user()?->name ?? 'Admin Tester',
                     'nomor_sertifikat' => $nomorSertifikat,
                 ],
             ]);
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Layanan Telah Selesai (Testing)',
+                'title' => 'Layanan Telah Selesai (Testing)',
                 'content' => 'Permohonan Anda telah berstatus SELESAI (DONE) dengan nomor sertifikat: ' . $nomorSertifikat,
-                'link'    => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
+                'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
                 'is_read' => 'no',
             ]);
 
@@ -1100,7 +1105,7 @@ class PermohonanController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Simulasi sukses! Status permohonan sekarang DONE dan LUNAS.',
-                    'data'    => $permohonan,
+                    'data' => $permohonan,
                 ]);
             }
 

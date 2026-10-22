@@ -45,6 +45,12 @@
                         <a class="nav-link {{ $detail == 'files' ? 'active' : '' }}"
                             href="{{ url()->current() }}?d=files">Files</a>
                     </li>
+                    @if($permohonan->is_given_feedback)
+                        <li class="nav-item">
+                            <a class="nav-link {{ $detail == 'feedback' ? 'active' : '' }}"
+                                href="{{ url()->current() }}?d=feedback">Feedback</a>
+                        </li>
+                    @endif
                 </ul>
             </div>
 
@@ -362,6 +368,13 @@
                         'permohonan' => $permohonan
                     ])
 
+                {{-- ============================================================
+                FEEDBACK
+                ============================================================ --}}
+                @elseif($detail == 'feedback')
+                    @include('permohonan::layanan.components.detail-feedback', [
+                        'permohonan' => $permohonan
+                    ])
 
                 @endif
 

@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SysGroup;
+use App\Models\Db1\SysGroup as Db1SysGroup;
 use App\Models\Db1\SysUser;
+use App\Models\Db1\SysUserGroup;
 use App\Models\Db2\Permohonan;
 use App\Models\Db2\FormPba;
 use App\Models\Db2\DetailPermohonan;
 use App\Models\Db2\DetailPembayaran;
 use App\Models\Db2\PermohonanTrackingLog;
-use Modules\Eksternal\Http\Controllers\Api\PbaController;
+use Modules\Permohonan\Http\Controllers\PbaController as InternalPbaController;
 use Modules\Integration\Services\Sippt\SipptMapperRegistry;
 use Modules\Integration\Services\Sippt\Mappers\PBAMapper;
 use Illuminate\Http\Request;
@@ -27,13 +30,21 @@ class PbaSubmissionE2ETest extends TestCase
 
         $this->user = SysUser::first();
         if ($this->user) {
+            Db1SysGroup::firstOrCreate(
+                ['id' => SysGroup::MARKETING->value],
+                ['name' => 'Marketing', 'is_active' => 'yes']
+            );
+            SysUserGroup::firstOrCreate([
+                'user_id'  => $this->user->id,
+                'group_id' => SysGroup::MARKETING->value,
+            ]);
             Auth::login($this->user);
         }
     }
 
     protected function tearDown(): void
     {
-        // Pastikan setelah testing tidak meninggalkan trace apa pun di database & storage
+        // Pastikan setelah testing tidak meninggalkan trace di database & storage
         if (!empty($this->createdPermohonanIds)) {
             foreach ($this->createdPermohonanIds as $pId) {
                 $formPbas = FormPba::where('permohonan_id', $pId)->get();
@@ -66,37 +77,38 @@ class PbaSubmissionE2ETest extends TestCase
     }
 
     /**
-     * Test Katalog Produk Produsen Bahan Acuan (PBA)
+     * Test Form Input PBA Internal Marketing dapat diakses dan memuat data pendukung
      */
-    public function test_katalog_produk_pba_berhasil_dimuat()
+    public function test_form_create_pba_marketing_berhasil_dimuat()
     {
-        $controller = new PbaController();
-        $response = $controller->getCatalog();
-        $data = $response->getData(true);
+        $controller = new InternalPbaController();
+        $response = $controller->create();
 
-        $this->assertTrue($data['success']);
-        $this->assertNotEmpty($data['data']['products']);
+        $this->assertEquals('permohonan::pba.create', $response->name());
+        $viewData = $response->getData();
 
-        $productNames = array_column($data['data']['products'], 'nama');
+        $this->assertArrayHasKey('provinces', $viewData);
+        $this->assertArrayHasKey('pelangganList', $viewData);
+        $this->assertArrayHasKey('catalogProducts', $viewData);
+
+        $productNames = array_column($viewData['catalogProducts'], 'nama');
         $this->assertContains('Plastisitas', $productNames);
         $this->assertContains('Viskositas Mooney', $productNames);
     }
 
     /**
-     * Test Pendaftaran Permohonan PBA End-to-End beserta verifikasi SIPPT Mapper
+     * Test Marketing menginput Permohonan PBA End-to-End beserta verifikasi SIPPT Mapper
      */
-    public function test_pendaftaran_pba_berhasil_disimpan_dan_terintegrasi_ke_sippt_mapper()
+    public function test_marketing_input_pba_berhasil_disimpan_dan_terintegrasi_ke_sippt_mapper()
     {
-        $controller = new PbaController();
+        $controller = new InternalPbaController();
 
         $request = new Request([
             'nama_perusahaan'       => 'PT Rubber Standard Nusantara',
             'alamat_perusahaan'     => 'Jl. Industri Karet No. 45, Kawasan Industri Cikarang',
             'alamat_pengiriman'     => 'Gedung Laboratorium Pengujian Mutu Karet, Jl. Kimia Raya No. 10, Bekasi',
             'provinsi_id'           => '32',
-            'provinsi_nama'         => 'Jawa Barat',
             'kabupaten_id'          => '3216',
-            'kabupaten_nama'        => 'Kabupaten Bekasi',
             'contact_person'        => 'Budi Santoso',
             'no_kontak'             => '081234567890',
             'email'                 => 'budi.santoso@rubberstandard.co.id',
@@ -105,26 +117,19 @@ class PbaSubmissionE2ETest extends TestCase
             'jumlah'                => 5,
             'satuan'                => 'Sampel/Unit',
             'catatan'               => 'Mohon sertakan sertifikat CoA dan dikemas kedap udara.',
-            'pernyataan_konfirmasi' => true,
         ]);
 
         $response = $controller->store($request);
-        $result = $response->getData(true);
 
-        $this->assertTrue($result['success']);
-        $this->assertEquals(201, $response->getStatusCode());
-        $this->assertArrayHasKey('id', $result['data']);
-        $this->assertArrayHasKey('no_permohonan', $result['data']);
-        $this->assertStringStartsWith('PBA', $result['data']['no_permohonan']);
+        $this->assertTrue($response->isRedirection());
 
-        // Catat id permohonan untuk dibersihkan di tearDown
-        $permohonanId = $result['data']['id'];
+        // Ambil permohonan yang baru dibuat
+        $permohonan = Permohonan::where('no_permohonan', 'like', 'PBA%')->latest()->first();
+        $this->assertNotNull($permohonan);
+
+        $permohonanId = $permohonan->id;
         $this->createdPermohonanIds[] = $permohonanId;
 
-        // Verifikasi database
-        $permohonan = Permohonan::with(['formPba', 'detailPermohonan', 'detailPembayaran', 'trackingLogs'])->find($permohonanId);
-
-        $this->assertNotNull($permohonan);
         $this->assertEquals('PERMOHONAN', $permohonan->status_workflow);
         $this->assertEquals('BELUM', $permohonan->status_bayar);
 
@@ -151,12 +156,18 @@ class PbaSubmissionE2ETest extends TestCase
         $this->assertEquals('5', $sipptPayload['jml_sample']);
         $this->assertStringContainsString('Alamat Pengiriman', $sipptPayload['keterangan_lainnya']);
         $this->assertStringContainsString('Bekasi', $sipptPayload['keterangan_lainnya']);
+    }
 
-        // Test Ambil Detail Permohonan PBA via API
-        $detailResp = $controller->show($permohonanId);
-        $detailResult = $detailResp->getData(true);
+    /**
+     * Test memastikan endpoint POST client api/eksternal/pba tidak lagi tersedia untuk umum
+     */
+    public function test_endpoint_post_client_pba_dinonaktifkan()
+    {
+        $response = $this->postJson('/api/eksternal/pba', [
+            'nama_perusahaan' => 'Test Client Direct Submit',
+        ]);
 
-        $this->assertTrue($detailResult['success']);
-        $this->assertEquals($permohonan->no_permohonan, $detailResult['data']['no_permohonan']);
+        // Karena route POST di api/eksternal/pba sudah dihapus, request akan ditolak (405 Method Not Allowed atau 404 Not Found)
+        $this->assertTrue(in_array($response->getStatusCode(), [404, 405]));
     }
 }

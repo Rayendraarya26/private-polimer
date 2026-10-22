@@ -79,15 +79,6 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         route: "/permohonan/profisiensi",
         isAvailable: true,
       },
-      {
-        id: "bahanacuan",
-        name: "Produsen Bahan Acuan",
-        desc: "Penyediaan material referensi standar tersertifikasi untuk kalibrasi metode uji.",
-        icon: <Boxes className="w-6 h-6 text-sky-600" />,
-        badge: "PBA",
-        route: "/permohonan/bahan-acuan",
-        isAvailable: true,
-      },
     ],
   },
   {

@@ -295,13 +295,11 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
 
         Route::prefix('pba')->group(function () {
             Route::get('/catalog', [PbaController::class, 'getCatalog']);
-            Route::post('/', [PbaController::class, 'store']);
             Route::get('/{id}', [PbaController::class, 'show']);
         });
 
         Route::prefix('bahan-acuan')->group(function () {
             Route::get('/catalog', [PbaController::class, 'getCatalog']);
-            Route::post('/', [PbaController::class, 'store']);
             Route::get('/{id}', [PbaController::class, 'show']);
         });
 

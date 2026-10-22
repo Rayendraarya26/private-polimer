@@ -51,8 +51,8 @@
 
 @section('content')
     <div class="w-100 d-flex flex-column align-items-center faq-container">
-        <h1 class="faq-title">FAQ Layanan</h1>
-        <h2 class="faq-subtitle">Telusuri Layanan</h2>
+        <h1 class="faq-title">{{ app()->getLocale() == 'en' ? 'Service FAQs' : 'FAQ Layanan' }}</h1>
+        <h2 class="faq-subtitle">{{ app()->getLocale() == 'en' ? 'Browse Services' : 'Telusuri Layanan' }}</h2>
         <div class="row w-100 justify-content-center">
             @foreach($listLayanan as $layanan)
                 <div class="col-12 col-md-6 col-lg-4 col-xl-3 p-2 p-lg-4">
@@ -68,7 +68,7 @@
                                     />
                                 @endif
                                 <h3 class="mb-0">
-                                    {{ $layanan->name }}
+                                    {{ $layanan->localized_name }}
                                 </h3>
                             </div>
                         </div>

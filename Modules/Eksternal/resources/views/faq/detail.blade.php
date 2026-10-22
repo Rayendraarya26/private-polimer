@@ -1,6 +1,6 @@
 @extends('layouts.no_header')
 
-@section('title', "FAQ $layanan->name :: $faq->question")
+@section('title', "FAQ " . $layanan->localized_name . " :: " . $faq->localized_question)
 
 @push('styles')
     <style>
@@ -96,15 +96,15 @@
                     class="faq-layanan-icon"
                 />
             @endif
-            <h3 class="faq-title mb-0">{{ $layanan->name }}</h3>
+            <h3 class="faq-title mb-0">{{ $layanan->localized_name }}</h3>
         </div>
         <h2 class="faq-subtitle text-left">
             <a href="{{ route('faq') }}">FAQ</a> / <a
-                href="{{ route('faq.topic', $layanan->slug) }}"> {{ $layanan->name }}</a> / {{ $faq->question }}
+                href="{{ route('faq.topic', $layanan->slug) }}"> {{ $layanan->localized_name }}</a> / {{ $faq->localized_question }}
         </h2>
         <div class="d-flex flex-column gap-2 text-left">
-            <h1 class="faq-question">{{ $faq->question }}</h1>
-            <p class="faq-answer">{!! $faq->answer !!}</p>
+            <h1 class="faq-question">{{ $faq->localized_question }}</h1>
+            <p class="faq-answer">{!! $faq->localized_answer !!}</p>
         </div>
     </div>
 @endsection

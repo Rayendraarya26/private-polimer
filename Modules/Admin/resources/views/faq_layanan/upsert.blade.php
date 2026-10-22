@@ -55,28 +55,71 @@
                             </div>
                         </div>
 
-                        <div class="form-group row mb-3">
-                            <label class="col-form-label col-sm-3 required" for="question">
-                                Pertanyaan?
-                            </label>
-                            <div class="col-sm-8">
-                                <input class="form-control"
-                                       placeholder="Masukkan Pertanyaan..."
-                                       type="text" name="question" id="question"
-                                       value="{{old('question') ?? $data?->question}}" required autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="form-group row mb-3">
-                            <label class="col-form-label col-sm-3" for="answer">
-                                Jawaban
-                            </label>
-                            <div class="col-sm-8">
-                                <div id="quilEditorApp"></div>
-                                <textarea name="answer" id="answer" style="display: none;"></textarea>
+                        <!-- Nav Tabs Localization -->
+                        <div class="form-group row mb-4">
+                            <div class="offset-sm-3 col-sm-8">
+                                <ul class="nav nav-tabs nav-line-tabs fs-6" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#faq_tab_id">🇮🇩 Indonesia (Wajib)</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link fw-bold" data-bs-toggle="tab" href="#faq_tab_en">🇬🇧 English (Opsional)</a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
-                        <div class="form-group row pt-20">
+                        <div class="tab-content mb-4">
+                            <!-- Tab Indonesia -->
+                            <div class="tab-pane fade show active" id="faq_tab_id" role="tabpanel">
+                                <div class="form-group row mb-3">
+                                    <label class="col-form-label col-sm-3 required" for="question">
+                                        Pertanyaan (ID)
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control"
+                                               placeholder="Masukkan Pertanyaan (Indonesia)..."
+                                               type="text" name="question" id="question"
+                                               value="{{old('question') ?? $data?->question}}" required autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-3">
+                                    <label class="col-form-label col-sm-3 required" for="answer">
+                                        Jawaban (ID)
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <div id="quillEditorAnswerId"></div>
+                                        <textarea name="answer" id="answer" style="display: none;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab English -->
+                            <div class="tab-pane fade" id="faq_tab_en" role="tabpanel">
+                                <div class="form-group row mb-3">
+                                    <label class="col-form-label col-sm-3" for="question_en">
+                                        Question (EN)
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input class="form-control"
+                                               placeholder="Enter Question in English..."
+                                               type="text" name="question_en" id="question_en"
+                                               value="{{old('question_en') ?? $data?->question_en}}" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-3">
+                                    <label class="col-form-label col-sm-3" for="answer_en">
+                                        Answer (EN)
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <div id="quillEditorAnswerEn"></div>
+                                        <textarea name="answer_en" id="answer_en" style="display: none;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row pt-10">
                             <div class="form-buttons-w offset-sm-3 col-sm-8">
                                 <div class="form-check form-switch form-check-custom form-check-solid">
                                     <input name="is_active" class="form-check-input" type="checkbox" value="1"
@@ -85,7 +128,7 @@
                                                checked
                                            @elseif($data?->is_active == '1')
                                                checked
-                                        @endif
+                                         @endif
                                     />
                                     <label class="form-check-label" for="flexSwitchDefault">
                                         Aktif?
@@ -119,10 +162,12 @@
         "use strict";
         const KTUpsert = function () {
 
-            let quill;
+            let quillId;
+            let quillEn;
 
             const submitApi = () => {
-                $("#answer").val(quill.root.innerHTML);
+                $("#answer").val(quillId.root.innerHTML);
+                $("#answer_en").val(quillEn.getText().trim() ? quillEn.root.innerHTML : '');
 
                 let stats = true;
                 const answer = document.getElementById("answer");
@@ -165,8 +210,10 @@
                 };
                 Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
                 Quill.register("modules/htmlEditButton", htmlEditButton);
-                quill = new Quill('#quilEditorApp', options);
-                quill.root.innerHTML = `{!! old('answer') ?? $data?->answer !!}`;
+                quillId = new Quill('#quillEditorAnswerId', options);
+                quillEn = new Quill('#quillEditorAnswerEn', options);
+                quillId.root.innerHTML = `{!! addslashes(old('answer') ?? $data?->answer ?? '') !!}`;
+                quillEn.root.innerHTML = `{!! addslashes(old('answer_en') ?? $data?->answer_en ?? '') !!}`;
             }
 
             // Public methods

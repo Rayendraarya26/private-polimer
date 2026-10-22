@@ -1,6 +1,6 @@
 @extends('layouts.no_header')
 
-@section('title', "FAQ $layanan->name")
+@section('title', "FAQ " . $layanan->localized_name)
 
 @push('styles')
     <style>
@@ -65,14 +65,14 @@
                     class="faq-layanan-icon"
                 />
             @endif
-            <h1 class="faq-title mb-0">{{ $layanan->name }}</h1>
+            <h1 class="faq-title mb-0">{{ $layanan->localized_name }}</h1>
         </div>
-        <h2 class="faq-subtitle">Telusuri Topik Pertanyaan</h2>
+        <h2 class="faq-subtitle">{{ app()->getLocale() == 'en' ? 'Browse FAQ Topics' : 'Telusuri Topik Pertanyaan' }}</h2>
         <div class="d-flex flex-column gap-4">
             @foreach($listFaq as $faq)
                 <a href="{{ route('faq.detail', [$layanan->slug, $faq->slug]) }}">
                     <h3 class="border-bottom border-bottom-2 border-black pb-2">
-                        {{ $faq->question }}
+                        {{ $faq->localized_question }}
                     </h3>
                 </a>
             @endforeach

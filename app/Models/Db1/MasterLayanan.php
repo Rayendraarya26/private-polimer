@@ -14,13 +14,31 @@ class MasterLayanan extends Model
 
     protected $fillable = [
         'name',
+        'name_en',
         'slug',
         'description',
+        'description_en',
         'is_active',
         'integration_url',
         'certificate_url',
         'icon',
     ];
+
+    public function getLocalizedNameAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && !empty($this->name_en)) {
+            return $this->name_en;
+        }
+        return (string) $this->name;
+    }
+
+    public function getLocalizedDescriptionAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && !empty($this->description_en)) {
+            return $this->description_en;
+        }
+        return (string) ($this->description ?? '');
+    }
 
     public function faqs(): HasMany
     {

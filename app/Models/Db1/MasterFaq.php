@@ -18,8 +18,10 @@ class MasterFaq extends Model
     protected $fillable = [
         'layanan_id',
         'question',
+        'question_en',
         'slug',
         'answer',
+        'answer_en',
         'order',
         'is_active',
     ];
@@ -27,6 +29,22 @@ class MasterFaq extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function getLocalizedQuestionAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && !empty($this->question_en)) {
+            return $this->question_en;
+        }
+        return (string) $this->question;
+    }
+
+    public function getLocalizedAnswerAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && !empty($this->answer_en)) {
+            return $this->answer_en;
+        }
+        return (string) $this->answer;
+    }
 
     public function layanan(): BelongsTo
     {

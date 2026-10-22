@@ -106,11 +106,13 @@ class ManageFaqController
 
     public function upsert(array $input, MasterFaq $faq)
     {
-        $faq->layanan_id = $input['layanan_id'];
-        $faq->question   = $input['question'];
-        $faq->answer     = $input['answer'];
-        $faq->order      = $input['order'];
-        $faq->is_active  = $input['is_active'];
+        $faq->layanan_id  = $input['layanan_id'];
+        $faq->question    = $input['question'];
+        $faq->question_en = $input['question_en'] ?? null;
+        $faq->answer      = $input['answer'];
+        $faq->answer_en   = $input['answer_en'] ?? null;
+        $faq->order       = $input['order'];
+        $faq->is_active   = $input['is_active'];
         $faq->save();
         return $faq;
     }
@@ -151,11 +153,13 @@ class ManageFaqController
     private function validateData(Request $request)
     {
         return $request->validate([
-            'layanan_id' => 'required',
-            'question'   => 'required',
-            'answer'     => 'required',
-            'order'      => 'required',
-            'is_active'  => 'nullable'
+            'layanan_id'  => 'required',
+            'question'    => 'required',
+            'question_en' => 'nullable|string',
+            'answer'      => 'required',
+            'answer_en'   => 'nullable|string',
+            'order'       => 'required',
+            'is_active'   => 'nullable'
         ]);
     }
 }

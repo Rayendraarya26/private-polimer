@@ -17,6 +17,7 @@ use Modules\Permohonan\Http\Controllers\PenerbitanSertifikasiController;
 use Modules\Permohonan\Http\Controllers\TagihanBiayaController;
 use Modules\Permohonan\Http\Controllers\BillingPembayaranController;
 use Modules\Permohonan\Http\Controllers\JasaLainnyaController;
+use Modules\Permohonan\Http\Controllers\PbaController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -173,6 +174,15 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         Route::get('/{id}/edit', [JasaLainnyaController::class, 'edit'])->name('edit');
         Route::put('/{id}', [JasaLainnyaController::class, 'update'])->name('update');
         Route::delete('/{id}', [JasaLainnyaController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('pba')->name('permohonan.pba.')->group(function () {
+        Route::get('/create', [PbaController::class, 'create'])
+            ->withoutMiddleware([Restriction::class])
+            ->name('create');
+        Route::post('/', [PbaController::class, 'store'])
+            ->withoutMiddleware([Restriction::class])
+            ->name('store');
     });
 
     // Sertifikasi Audit & LKS Endpoints

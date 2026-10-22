@@ -86,18 +86,27 @@ PHP vars dipakai di konten DAN di script section
                         placeholder="Cari permohonan layanan..." />
                 </div>
 
-                {{-- Toggle advanced filters --}}
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-light-primary me-5" id="refresh">
-                        <i class="fa-duotone fa-arrow-rotate-left ms-2"></i>
-                        Refresh
-                    </button>
+                {{-- Action toolbar & Toggle advanced filters --}}
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        @if(auth()->user()?->hasGroup(\App\Enums\SysGroup::MARKETING) || auth()->user()?->hasGroup(\App\Enums\SysGroup::ADMIN) || auth()->user()?->hasGroup(\App\Enums\SysGroup::ROOT))
+                            <a href="{{ route('permohonan.pba.create') }}" class="btn btn-primary">
+                                <i class="fa-duotone fa-plus me-1"></i>
+                                Input Permohonan PBA
+                            </a>
+                        @endif
+                    </div>
+                    <div class="d-flex justify-content-end gap-3">
+                        <button type="button" class="btn btn-light-primary" id="refresh">
+                            <i class="fa-duotone fa-arrow-rotate-left me-1"></i>
+                            Refresh
+                        </button>
 
-                    <button type="button" class="btn btn-light-primary" id="toggleAdvancedFilters">
-                        <i class="fa-duotone fa-sliders me-2"></i>Filter Lanjutan
-                        <i class="fa-duotone fa-chevron-down ms-2 toggle-icon"></i>
-                    </button>
-
+                        <button type="button" class="btn btn-light-primary" id="toggleAdvancedFilters">
+                            <i class="fa-duotone fa-sliders me-1"></i>Filter Lanjutan
+                            <i class="fa-duotone fa-chevron-down ms-1 toggle-icon"></i>
+                        </button>
+                    </div>
                 </div>
 
 

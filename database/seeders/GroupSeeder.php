@@ -85,10 +85,11 @@ class GroupSeeder extends Seeder
             ]);
         }
 
-        // Marketing: PermohonanController and TagihanBiayaController (NO Billing, NO Master, NO System)
+        // Marketing: PermohonanController, TagihanBiayaController, and PbaController (NO Billing, NO Master, NO System)
         $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
             $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%');
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%')
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\PbaController%');
         })->get();
 
         foreach ($marketingActions as $action) {

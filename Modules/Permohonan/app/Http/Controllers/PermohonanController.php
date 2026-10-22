@@ -129,6 +129,8 @@ class PermohonanController extends Controller
                     return 'Konsultasi & Audit Teknologi';
                 if (str_contains($row->no_permohonan, 'JASA'))
                     return 'Jasa Lainnya';
+                if (str_starts_with($row->no_permohonan, 'PBA'))
+                    return 'Produsen Bahan Acuan (PBA)';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;

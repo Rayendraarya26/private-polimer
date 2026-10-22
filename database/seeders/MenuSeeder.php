@@ -395,6 +395,18 @@ class MenuSeeder extends Seeder
                             ['name' => 'delete', 'controller' => $modulePermohonan . '\JasaLainnyaController@destroy'],
                         ],
                     ],
+                    [
+                        'name' => 'Produsen Bahan Acuan (PBA)',
+                        'desc' => 'Pendaftaran dan input permohonan Produsen Bahan Acuan oleh Marketing',
+                        'is_active' => 'yes',
+                        'order' => 7,
+                        'icon' => 'fa-duotone fa-flask',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\PbaController@create'],
+                            ['name' => 'create', 'controller' => $modulePermohonan . '\PbaController@create'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\PbaController@store'],
+                        ],
+                    ],
                 ],
             ],
         ];

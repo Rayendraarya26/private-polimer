@@ -87,7 +87,8 @@ class MarketingUserSeeder extends Seeder
         $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
         $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
             $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%');
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%')
+                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\PbaController%');
         })->get();
 
         foreach ($marketingActions as $action) {

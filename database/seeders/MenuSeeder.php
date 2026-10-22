@@ -16,6 +16,7 @@ class MenuSeeder extends Seeder
         $moduleSystem = 'Modules\System\Http\Controllers';
         $moduleAdmin = 'Modules\Admin\Http\Controllers';
         $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
+        $moduleIntegration = 'Modules\Integration\Http\Controllers';
         $menus = [
             [
                 'name' => 'System',
@@ -97,6 +98,21 @@ class MenuSeeder extends Seeder
                             ['name' => 'update', 'controller' => $moduleSystem . '\ManageMenuActionController@update'],
                             ['name' => 'delete', 'controller' => $moduleSystem . '\ManageMenuActionController@destroy'],
                             ['name' => 'ajaxItems', 'controller' => $moduleSystem . '\ManageMenuActionController@ajaxItems'],
+                        ]
+                    ],
+                    [
+                        'name' => 'Monitoring Integrasi SIPPT',
+                        'desc' => 'Monitoring integrasi data dan log pengiriman ke SIPPT BSKJI',
+                        'is_active' => 'yes',
+                        'order' => '5',
+                        'icon' => 'fa-duotone fa-network-wired',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $moduleIntegration . '\SipptAdminController@index'],
+                            ['name' => 'detail', 'controller' => $moduleIntegration . '\SipptAdminController@detail'],
+                            ['name' => 'retry', 'controller' => $moduleIntegration . '\SipptAdminController@retry'],
+                            ['name' => 'retryAll', 'controller' => $moduleIntegration . '\SipptAdminController@retryAll'],
+                            ['name' => 'proyeksi', 'controller' => $moduleIntegration . '\SipptAdminController@proyeksiForm'],
+                            ['name' => 'proyeksiSubmit', 'controller' => $moduleIntegration . '\SipptAdminController@proyeksiSubmit'],
                         ]
                     ]
                 ]
@@ -405,6 +421,23 @@ class MenuSeeder extends Seeder
                             ['name' => 'index', 'controller' => $modulePermohonan . '\PbaController@create'],
                             ['name' => 'create', 'controller' => $modulePermohonan . '\PbaController@create'],
                             ['name' => 'store', 'controller' => $modulePermohonan . '\PbaController@store'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Pencatatan TKDN',
+                        'desc' => 'Pencatatan penerimaan PNBP TKDN (Bendahara)',
+                        'is_active' => 'yes',
+                        'order' => 8,
+                        'icon' => 'fa-duotone fa-file-certificate',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\TkdnController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\TkdnController@ajax'],
+                            ['name' => 'create', 'controller' => $modulePermohonan . '\TkdnController@create'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\TkdnController@store'],
+                            ['name' => 'show', 'controller' => $modulePermohonan . '\TkdnController@show'],
+                            ['name' => 'edit', 'controller' => $modulePermohonan . '\TkdnController@edit'],
+                            ['name' => 'update', 'controller' => $modulePermohonan . '\TkdnController@update'],
+                            ['name' => 'delete', 'controller' => $modulePermohonan . '\TkdnController@destroy'],
                         ],
                     ],
                 ],

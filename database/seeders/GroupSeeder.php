@@ -75,7 +75,8 @@ class GroupSeeder extends Seeder
             ])
             ->orWhere('controller', 'LIKE', '%InvoiceController%')
             ->orWhere('controller', 'LIKE', '%BillingPembayaranController%')
-            ->orWhere('controller', 'LIKE', '%JasaLainnyaController%');
+            ->orWhere('controller', 'LIKE', '%JasaLainnyaController%')
+            ->orWhere('controller', 'LIKE', '%TkdnController%');
         })->get();
 
         foreach ($bendaharaActions as $action) {

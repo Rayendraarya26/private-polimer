@@ -150,9 +150,18 @@
                         <tr v-for="slider in listSlider">
                             <td><img :src="slider.image_url" alt="banner" style="max-width: 100px"></td>
                             <td>@{{ slider.order }}</td>
-                            <td>@{{ slider.title }}</td>
-                            <td style="max-width:320px; white-space:normal;">@{{ slider.description }}</td>
-                            <td>@{{ slider.cta_text || '-' }}</td>
+                            <td>
+                                <div class="fw-bold">@{{ typeof slider.title === 'object' && slider.title !== null ? (slider.title.id || '-') : (slider.title || '-') }}</div>
+                                <div v-if="typeof slider.title === 'object' && slider.title && slider.title.en" class="text-muted fs-8">🇬🇧 @{{ slider.title.en }}</div>
+                            </td>
+                            <td style="max-width:320px; white-space:normal;">
+                                <div>@{{ typeof slider.description === 'object' && slider.description !== null ? (slider.description.id || '-') : (slider.description || '-') }}</div>
+                                <div v-if="typeof slider.description === 'object' && slider.description && slider.description.en" class="text-muted fs-8">🇬🇧 @{{ slider.description.en }}</div>
+                            </td>
+                            <td>
+                                <div>@{{ typeof slider.cta_text === 'object' && slider.cta_text !== null ? (slider.cta_text.id || '-') : (slider.cta_text || '-') }}</div>
+                                <div v-if="typeof slider.cta_text === 'object' && slider.cta_text && slider.cta_text.en" class="text-muted fs-8">🇬🇧 @{{ slider.cta_text.en }}</div>
+                            </td>
                             <td style="max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">@{{ slider.cta_url || '-' }}</td>
                             <td>
                             <div class="d-flex flex-row gap-2">

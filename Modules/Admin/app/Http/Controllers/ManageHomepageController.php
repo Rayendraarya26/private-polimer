@@ -44,9 +44,11 @@ class ManageHomepageController
         ];
 
         if ($key_option == 'about') {
-            $siteAbout                 = SiteManajemen::query()->where('key', '=', HomepageKey::ABOUT)->firstOrFail();
-            $template_data['about_us'] = Arr::get($siteAbout->data, 'data', '');
-            $template_data['id']       = $siteAbout->id;
+            $siteAbout                    = SiteManajemen::query()->where('key', '=', HomepageKey::ABOUT)->firstOrFail();
+            $aboutData                    = Arr::get($siteAbout->data, 'data', '');
+            $template_data['about_us']    = is_array($aboutData) ? ($aboutData['id'] ?? '') : (string) $aboutData;
+            $template_data['about_us_en'] = is_array($aboutData) ? ($aboutData['en'] ?? '') : '';
+            $template_data['id']          = $siteAbout->id;
         }
         $parse = array_merge($this->defaultParser(), $template_data);
 
@@ -69,6 +71,8 @@ class ManageHomepageController
         };
 
         Cache::forget(self::CACHE_NAME);
+        Cache::forget('home_parser_id');
+        Cache::forget('home_parser_en');
 
         return $data;
     }
@@ -76,25 +80,49 @@ class ManageHomepageController
     public function store_slider(Request $request)
     {
         $input = $request->validate([
-            'order'       => 'required|integer',
-            'title'       => 'nullable',
-            'description' => 'nullable',
-            'cta_text'    => 'nullable|string',
-            'cta_url'     => 'nullable|url',
-            'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
+            'order'          => 'required|integer',
+            'title'          => 'nullable',
+            'title_id'       => 'nullable',
+            'title_en'       => 'nullable',
+            'description'    => 'nullable',
+            'description_id' => 'nullable',
+            'description_en' => 'nullable',
+            'cta_text'       => 'nullable|string',
+            'cta_text_id'    => 'nullable|string',
+            'cta_text_en'    => 'nullable|string',
+            'cta_url'        => 'nullable|url',
+            'image'          => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
         $image = $request->file('image');
         $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
 
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description'));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
+
+        $ctaId = $request->input('cta_text_id', is_array($request->input('cta_text')) ? ($request->input('cta_text.id') ?? '') : $request->input('cta_text'));
+        $ctaEn = $request->input('cta_text_en', is_array($request->input('cta_text')) ? ($request->input('cta_text.en') ?? '') : '');
+
         $banner      = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
         $data_json   = $banner->data;
         $data_json[] = [
             'id'          => Str::uuid()->toString(),
-            'title'       => $input['title'],
+            'title'       => [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ],
             'order'       => $input['order'],
-            'description' => $input['description'],
-            'cta_text'    => $input['cta_text'] ?? null,
+            'description' => [
+                'id' => $descId,
+                'en' => $descEn,
+            ],
+            'cta_text'    => [
+                'id' => $ctaId,
+                'en' => $ctaEn,
+            ],
             'cta_url'     => $input['cta_url'] ?? null,
             'image_path'  => $key,
         ];
@@ -108,22 +136,38 @@ class ManageHomepageController
     public function store_services(Request $request)
     {
         $input = $request->validate([
-            'order'       => 'required|integer',
-            'title'       => 'required',
-            'description' => 'nullable',
-            'image'       => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
+            'order'          => 'required|integer',
+            'title'          => 'nullable',
+            'title_id'       => 'nullable',
+            'title_en'       => 'nullable',
+            'description'    => 'nullable',
+            'description_id' => 'nullable',
+            'description_en' => 'nullable',
+            'image'          => ['required', 'max:' . config('app.slider.max_size'), 'mimetypes:' . implode(',', config('app.slider.allowed_mime_types'))],
         ]);
 
         $image = $request->file('image');
         $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description'));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
 
         $banner      = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
         $data_json   = $banner->data;
         $data_json[] = [
             'id'          => Str::uuid()->toString(),
             'order'       => $input['order'],
-            'title'       => $input['title'],
-            'description' => $input['description'],
+            'title'       => [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ],
+            'description' => [
+                'id' => $descId,
+                'en' => $descEn,
+            ],
             'image_path'  => $key,
         ];
 
@@ -243,12 +287,16 @@ class ManageHomepageController
     public function update_services(Request $request)
     {
         $validate = [
-            'order'       => 'required|integer',
-            'id'          => 'required',
-            'description' => 'nullable',
-            'title'       => 'nullable',
-            'image'       => 'nullable',
-            'image_old'   => 'required',
+            'order'          => 'required|integer',
+            'id'             => 'required',
+            'description'    => 'nullable',
+            'description_id' => 'nullable',
+            'description_en' => 'nullable',
+            'title'          => 'nullable',
+            'title_id'       => 'nullable',
+            'title_en'       => 'nullable',
+            'image'          => 'nullable',
+            'image_old'      => 'required',
         ];
 
         $image = $request->file('image');
@@ -263,10 +311,22 @@ class ManageHomepageController
         $key          = $this->searchForId($request->id, $updated_data);
         $path         = null;
 
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description'));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
+
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
-            Arr::set($updated_data, "$key.title", $input['title']);
-            Arr::set($updated_data, "$key.description", $input['description']);
+            Arr::set($updated_data, "$key.title", [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ]);
+            Arr::set($updated_data, "$key.description", [
+                'id' => $descId,
+                'en' => $descEn,
+            ]);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
                 if ($path) {
@@ -300,14 +360,20 @@ class ManageHomepageController
     public function update_slider(Request $request)
     {
         $validate = [
-            'order'       => 'required|integer',
-            'id'          => 'required',
-            'title'       => 'nullable',
-            'description' => 'nullable',
-            'cta_text'    => 'nullable|string',
-            'cta_url'     => 'nullable|url',
-            'image'       => 'nullable',
-            'image_old'   => 'required',
+            'order'          => 'required|integer',
+            'id'             => 'required',
+            'title'          => 'nullable',
+            'title_id'       => 'nullable',
+            'title_en'       => 'nullable',
+            'description'    => 'nullable',
+            'description_id' => 'nullable',
+            'description_en' => 'nullable',
+            'cta_text'       => 'nullable|string',
+            'cta_text_id'    => 'nullable|string',
+            'cta_text_en'    => 'nullable|string',
+            'cta_url'        => 'nullable|url',
+            'image'          => 'nullable',
+            'image_old'      => 'required',
         ];
 
         $image = $request->file('image');
@@ -322,11 +388,29 @@ class ManageHomepageController
         $key          = $this->searchForId($request->id, $updated_data);
         $path         = null;
 
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description'));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
+
+        $ctaId = $request->input('cta_text_id', is_array($request->input('cta_text')) ? ($request->input('cta_text.id') ?? '') : $request->input('cta_text'));
+        $ctaEn = $request->input('cta_text_en', is_array($request->input('cta_text')) ? ($request->input('cta_text.en') ?? '') : '');
+
         if (!is_null($key)) {
-            Arr::set($updated_data, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.title", [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ]);
             Arr::set($updated_data, "$key.order", $input['order']);
-            Arr::set($updated_data, "$key.description", $input['description']);
-            Arr::set($updated_data, "$key.cta_text", $input['cta_text'] ?? null);
+            Arr::set($updated_data, "$key.description", [
+                'id' => $descId,
+                'en' => $descEn,
+            ]);
+            Arr::set($updated_data, "$key.cta_text", [
+                'id' => $ctaId,
+                'en' => $ctaEn,
+            ]);
             Arr::set($updated_data, "$key.cta_url", $input['cta_url'] ?? null);
             if ($image != null) {
                 $path = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
@@ -390,12 +474,22 @@ class ManageHomepageController
 
     public function upsert_about(Request $request)
     {
-        $input = $request->validate([
-            'data' => 'required',
+        $request->validate([
+            'data'    => 'nullable',
+            'data_id' => 'nullable',
+            'data_en' => 'nullable',
         ]);
 
+        $dataId = $request->input('data_id', $request->input('data'));
+        $dataEn = $request->input('data_en', '');
+
         $siteAbout       = SiteManajemen::query()->where('key', '=', 'ABOUT')->firstOrNew();
-        $siteAbout->data = $input;
+        $siteAbout->data = [
+            'data' => [
+                'id' => $dataId,
+                'en' => $dataEn,
+            ]
+        ];
         $siteAbout->save();
 
         return redirect()->back()->with('message', "Sukses mengubah data About Us");
@@ -412,6 +506,8 @@ class ManageHomepageController
         };
 
         Cache::forget(self::CACHE_NAME);
+        Cache::forget('home_parser_id');
+        Cache::forget('home_parser_en');
 
         return $data;
     }

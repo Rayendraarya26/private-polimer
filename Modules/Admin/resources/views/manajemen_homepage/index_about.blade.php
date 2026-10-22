@@ -17,16 +17,36 @@
         <form method="post" id="kt_form" action="{{ url("$url/about/update") }}">
             @csrf
             @method('POST')
+            <input name="action" type="hidden" value="about">
 
-            <div class="form-group row mb-3">
-                <div class="col-sm-12">
-                    <div id="quilEditorApp"></div>
-                    <textarea name="data" id="data" style="display: none;"></textarea>
-                    <input name="action" type="hidden" value="about">
+            <!-- Nav Tabs Localization -->
+            <ul class="nav nav-tabs nav-line-tabs mb-4 fs-6" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#about_tab_id">🇮🇩 Indonesia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold" data-bs-toggle="tab" href="#about_tab_en">🇬🇧 English</a>
+                </li>
+            </ul>
+
+            <div class="tab-content mb-4">
+                <!-- Tab Indonesia -->
+                <div class="tab-pane fade show active" id="about_tab_id" role="tabpanel">
+                    <label class="form-label fw-semibold mb-2">Konten Tentang Kami (Indonesia)</label>
+                    <div id="quillEditorId" style="height: 320px;"></div>
+                    <textarea name="data_id" id="data_id" style="display: none;"></textarea>
+                </div>
+
+                <!-- Tab English -->
+                <div class="tab-pane fade" id="about_tab_en" role="tabpanel">
+                    <label class="form-label fw-semibold mb-2">About Us Content (English)</label>
+                    <div id="quillEditorEn" style="height: 320px;"></div>
+                    <textarea name="data_en" id="data_en" style="display: none;"></textarea>
                 </div>
             </div>
-            <div class="form-group row" style="padding-top: 80px">
-                <div class="form-buttons-w ">
+
+            <div class="form-group row" style="padding-top: 50px">
+                <div class="form-buttons-w">
                     <button class="btn btn-success" type="button" onclick="submitApi()">
                         <i class="fas fa-save"></i> Simpan
                     </button>
@@ -44,31 +64,34 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script>
         "use strict";
-        const KTUpsert = function() {
+        let quillId = null;
+        let quillEn = null;
 
+        const KTUpsert = function() {
             const initTextEditor = () => {
                 const options = {
                     modules: {
                         toolbar: [
-                            ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+                            ['bold', 'italic', 'underline', 'strike'],
                             ['link', 'video'],
-
                             [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-                            [{ 'direction': 'rtl' }],                         // text direction
+                            [{ 'direction': 'rtl' }],
                             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-                            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                            [{ 'color': [] }, { 'background': [] }],
                             [{ 'font': [] }],
                             [{ 'align': [] }],
                         ],
                     },
                     theme: 'snow'
                 };
-                const quill = new Quill('#quilEditorApp', options);
-                quill.root.innerHTML = `{!! old('question') ?? $about_us !!}`;
+
+                quillId = new Quill('#quillEditorId', options);
+                quillEn = new Quill('#quillEditorEn', options);
+
+                quillId.root.innerHTML = `{!! addslashes($about_us ?? '') !!}`;
+                quillEn.root.innerHTML = `{!! addslashes($about_us_en ?? '') !!}`;
             }
 
-            // Public methods
             return {
                 init: function() {
                     initTextEditor();
@@ -76,24 +99,19 @@
             }
         }();
 
-        // On document ready
         KTUtil.onDOMContentLoaded(function() {
             KTUpsert.init();
         });
 
         function submitApi() {
-            const quill = new Quill('#quilEditorApp');
-            $("#data").val(quill.root.innerHTML);
-
-            var stats = true;
-            const data = document.getElementById("data");
-            if (data.value.length === 0) {
-                stats = false;
+            if (quillId) {
+                $("#data_id").val(quillId.root.innerHTML);
+            }
+            if (quillEn) {
+                $("#data_en").val(quillEn.root.innerHTML);
             }
 
-            if (stats) {
-                document.getElementById("kt_form").submit();
-            }
+            document.getElementById("kt_form").submit();
         }
     </script>
 @endpush

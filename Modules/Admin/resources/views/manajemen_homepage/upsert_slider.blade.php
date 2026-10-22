@@ -9,12 +9,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="mb-2">
+                <div class="mb-3">
                     <label for="modal-order" class="form-label fw-semibold">Urutan</label>
-                        <input type="number" class="form-control" placeholder="Urutan Ke 1..." id="modal-order"
-                               v-model="payload.order">
+                    <input type="number" class="form-control" placeholder="Urutan Ke 1..." id="modal-order"
+                           v-model="payload.order">
                 </div>
-                <div class="mb-2">
+                <div class="mb-3">
                     <label for="modal-file-image" class="form-label fw-semibold">Image Banner</label>
                     <input type="file" class="form-control" id="modal-file-image" accept="image/png, image/gif, image/jpeg">
 					<div v-if="mode === 'update'" class="mt-2">
@@ -26,27 +26,61 @@
 						</div>
 					</div>
 				</div>
-                <div class="mb-2">
-                    <label for="modal-title" class="form-label fw-semibold">Title</label>
-                    <textarea class="form-control" placeholder="title..." id="modal-title"
-                              v-model="payload.title"></textarea>
+
+                <!-- Nav Tabs Localization -->
+                <ul class="nav nav-tabs nav-line-tabs mb-3 fs-6" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#slider_tab_id">🇮🇩 Indonesia</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold" data-bs-toggle="tab" href="#slider_tab_en">🇬🇧 English</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mb-3">
+                    <!-- Tab Indonesia -->
+                    <div class="tab-pane fade show active" id="slider_tab_id" role="tabpanel">
+                        <div class="mb-2">
+                            <label for="modal-title-id" class="form-label fw-semibold">Title (Indonesia)</label>
+                            <textarea class="form-control" placeholder="Judul banner..." id="modal-title-id"
+                                      v-model="payload.title_id"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label for="modal-desc-id" class="form-label fw-semibold">Deskripsi (Indonesia)</label>
+                            <textarea class="form-control" placeholder="Deskripsi..." id="modal-desc-id"
+                                      v-model="payload.description_id"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label for="modal-cta-text-id" class="form-label fw-semibold">CTA Text (Indonesia)</label>
+                            <input type="text" class="form-control" id="modal-cta-text-id" placeholder="Contoh: Pelajari Selengkapnya"
+                                   v-model="payload.cta_text_id">
+                        </div>
+                    </div>
+
+                    <!-- Tab English -->
+                    <div class="tab-pane fade" id="slider_tab_en" role="tabpanel">
+                        <div class="mb-2">
+                            <label for="modal-title-en" class="form-label fw-semibold">Title (English)</label>
+                            <textarea class="form-control" placeholder="Banner title in English..." id="modal-title-en"
+                                      v-model="payload.title_en"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label for="modal-desc-en" class="form-label fw-semibold">Deskripsi (English)</label>
+                            <textarea class="form-control" placeholder="Description in English..." id="modal-desc-en"
+                                      v-model="payload.description_en"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label for="modal-cta-text-en" class="form-label fw-semibold">CTA Text (English)</label>
+                            <input type="text" class="form-control" id="modal-cta-text-en" placeholder="Example: Learn More"
+                                   v-model="payload.cta_text_en">
+                        </div>
+                    </div>
                 </div>
+
                 <div class="mb-2">
-                    <label for="modal-desc" class="form-label fw-semibold">Deskripsi</label>
-                    <textarea class="form-control" placeholder="Deskripsi..." id="modal-desc"
-                              v-model="payload.description"></textarea>
-                </div>
-                <div class="mb-2">
-                    <label for="modal-cta-text" class="form-label fw-semibold">CTA Text</label>
-                    <input type="text" class="form-control" id="modal-cta-text" placeholder="Teks tombol CTA..."
-                           v-model="payload.cta_text">
-                </div>
-                <div class="mb-2">
-                    <label for="modal-cta-url" class="form-label fw-semibold">CTA URL</label>
+                    <label for="modal-cta-url" class="form-label fw-semibold">CTA URL (Tujuan Link)</label>
                     <input type="url" class="form-control" id="modal-cta-url" placeholder="https://..."
                            v-model="payload.cta_url">
-                </div>
-                <div class="mb-2">
                 </div>
             </div>
             <div class="modal-footer">
@@ -71,11 +105,14 @@
                     payload: {
                         id: '',
                         order: 1,
-                        title: '',
-                        description: '',
+                        title_id: '',
+                        title_en: '',
+                        description_id: '',
+                        description_en: '',
                         image_url: '',
                         image_path: '',
-                        cta_text: '',
+                        cta_text_id: '',
+                        cta_text_en: '',
                         cta_url: '',
                     }
                 }
@@ -95,9 +132,12 @@
                     formData.append('_method', 'PUT')
                     formData.append('_token', "{{ csrf_token() }}")
                     formData.append('order', this.payload.order)
-                    formData.append('description', this.payload.description)
-                    formData.append('title', this.payload.title)
-                    formData.append('cta_text', this.payload.cta_text || '')
+                    formData.append('title_id', this.payload.title_id || '')
+                    formData.append('title_en', this.payload.title_en || '')
+                    formData.append('description_id', this.payload.description_id || '')
+                    formData.append('description_en', this.payload.description_en || '')
+                    formData.append('cta_text_id', this.payload.cta_text_id || '')
+                    formData.append('cta_text_en', this.payload.cta_text_en || '')
                     formData.append('cta_url', this.payload.cta_url || '')
                     formData.append('id', this.payload.id)
 
@@ -122,24 +162,33 @@
                         this.payload = {
                             id: '',
                             order: 1,
-                            title: '',
-                            description: '',
+                            title_id: '',
+                            title_en: '',
+                            description_id: '',
+                            description_en: '',
                             image_url: '',
                             image_path: '',
-                            cta_text: '',
+                            cta_text_id: '',
+                            cta_text_en: '',
                             cta_url: '',
                         }
                     } else {
                         this.title = 'Perbarui Banner'
                         this.mode = 'update'
+                        const title = payload.title
+                        const desc = payload.description
+                        const cta = payload.cta_text
                         this.payload = {
                             id: payload.id,
-                            title: payload.title,
                             order: payload.order,
-                            description: payload.description,
+                            title_id: typeof title === 'object' && title !== null ? (title.id || '') : (title || ''),
+                            title_en: typeof title === 'object' && title !== null ? (title.en || '') : '',
+                            description_id: typeof desc === 'object' && desc !== null ? (desc.id || '') : (desc || ''),
+                            description_en: typeof desc === 'object' && desc !== null ? (desc.en || '') : '',
+                            cta_text_id: typeof cta === 'object' && cta !== null ? (cta.id || '') : (cta || ''),
+                            cta_text_en: typeof cta === 'object' && cta !== null ? (cta.en || '') : '',
                             image_url: payload.image_url,
                             image_path: payload.image_path,
-                            cta_text: payload.cta_text || '',
                             cta_url: payload.cta_url || '',
                         }
                     }

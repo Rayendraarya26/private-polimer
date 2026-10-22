@@ -152,8 +152,17 @@
                         <tr v-for="services in listServices">
                             <td><img :src="services.image_url" alt="services" style="max-width: 100px"></td>
                             <td>@{{ services.order }}</td>
-                            <td>@{{ services.title }}</td>
-                            <td v-html="services.description"></td>
+                            <td>
+                                <div class="fw-bold">@{{ typeof services.title === 'object' && services.title !== null ? (services.title.id || '-') : (services.title || '-') }}</div>
+                                <div v-if="typeof services.title === 'object' && services.title && services.title.en" class="text-muted fs-8">🇬🇧 @{{ services.title.en }}</div>
+                            </td>
+                            <td>
+                                <div v-html="typeof services.description === 'object' && services.description !== null ? (services.description.id || '-') : (services.description || '-')"></div>
+                                <div v-if="typeof services.description === 'object' && services.description && services.description.en" class="text-muted fs-8 mt-2 p-2 bg-light rounded">
+                                    <span class="badge badge-light-primary fs-9 mb-1">🇬🇧 English:</span>
+                                    <div v-html="services.description.en"></div>
+                                </div>
+                            </td>
                             <td>
                             <div class="d-flex flex-row gap-2">
                                  <button class="btn btn-sm btn-primary" @click="handleEditServices(services)" title="Edit Services">
@@ -176,14 +185,17 @@
                 return {
                     title: '',
                     modal: null,
-                    editor: null,
+                    editorId: null,
+                    editorEn: null,
                     mode: 'create',
 
                     payload: {
                         id: '',
                         order: 1,
-                        title: '',
-                        description: '',
+                        title_id: '',
+                        title_en: '',
+                        description_id: '',
+                        description_en: '',
                         image_url: '',
                         image_path: '',
                     }
@@ -195,54 +207,56 @@
                     backdrop: 'static',
                 });
 				
-				this.editor = new Quill(this.$refs.editor, {
-					modules: {
-						toolbar: [
-							['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                const quillOptions = {
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
                             ['link', 'video'],
-
                             [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-                            [{ 'direction': 'rtl' }],                         // text direction
+                            [{ 'direction': 'rtl' }],
                             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
-                            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                            [{ 'color': [] }, { 'background': [] }],
                             [{ 'font': [] }],
                             [{ 'align': [] }],
-						]
-					},
-					theme: 'snow'
-				});
-				
-				this.editor.on('text-change', () => this.update());
+                        ]
+                    },
+                    theme: 'snow'
+                };
 
+                this.editorId = new Quill(this.$refs.editorId, quillOptions);
+                this.editorEn = new Quill(this.$refs.editorEn, quillOptions);
+
+                this.editorId.on('text-change', () => {
+                    this.payload.description_id = this.editorId.getText().trim() ? this.editorId.root.innerHTML : '';
+                });
+
+                this.editorEn.on('text-change', () => {
+                    this.payload.description_en = this.editorEn.getText().trim() ? this.editorEn.root.innerHTML : '';
+                });
             },
             methods: {
-				update() {
-					this.payload.description = this.editor.getText() ? this.editor.root.innerHTML : '';
-				},
                 buildFormData() {
                     const formData = new FormData()
 
-                    // add method
                     formData.append('_method', 'PUT')
                     formData.append('_token', "{{ csrf_token() }}")
                     formData.append('order', this.payload.order)
-                    formData.append('title', this.payload.title)
-                    formData.append('description', this.payload.description)
+                    formData.append('title_id', this.payload.title_id || '')
+                    formData.append('title_en', this.payload.title_en || '')
+                    formData.append('description_id', this.payload.description_id || '')
+                    formData.append('description_en', this.payload.description_en || '')
                     formData.append('id', this.payload.id)
 
                     if (this.mode === 'create') {
-                        // check should image not null
                         if (_.isNil(document.getElementById('modal-file-image').files[0])) {
                             throw new Error('Image tidak boleh kosong')
                         }
                         formData.append('image', document.getElementById('modal-file-image').files[0])
+                    } else {
+                        formData.append('image', document.getElementById('modal-file-image').files[0])
+                        formData.append('image_old', this.payload.image_path)
                     }
-					else{
-						formData.append('image', document.getElementById('modal-file-image').files[0])
-						formData.append('image_old', this.payload.image_path)
-					}
-					
+
                     return formData
                 },
                 show(payload) {
@@ -252,23 +266,32 @@
                         this.payload = {
                             id: '',
                             order: 1,
-                            title: '',
-                            description: '',
+                            title_id: '',
+                            title_en: '',
+                            description_id: '',
+                            description_en: '',
                             image_url: '',
                             image_path: '',
                         }
+                        if (this.editorId) this.editorId.root.innerHTML = '';
+                        if (this.editorEn) this.editorEn.root.innerHTML = '';
                     } else {
                         this.title = 'Perbarui Services'
                         this.mode = 'update'
+                        const title = payload.title
+                        const desc = payload.description
                         this.payload = {
                             id: payload.id,
                             order: payload.order,
-                            title: payload.title,
-                            description: payload.description,
+                            title_id: typeof title === 'object' && title !== null ? (title.id || '') : (title || ''),
+                            title_en: typeof title === 'object' && title !== null ? (title.en || '') : '',
+                            description_id: typeof desc === 'object' && desc !== null ? (desc.id || '') : (desc || ''),
+                            description_en: typeof desc === 'object' && desc !== null ? (desc.en || '') : '',
                             image_url: payload.image_url,
                             image_path: payload.image_path,
                         }
-						this.editor.root.innerHTML = this.payload.description;
+                        if (this.editorId) this.editorId.root.innerHTML = this.payload.description_id;
+                        if (this.editorEn) this.editorEn.root.innerHTML = this.payload.description_en;
                     }
                     this.modal.show()
                 },

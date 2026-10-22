@@ -26,6 +26,7 @@ import { useParametersByKomoditiQuery } from "../../../../hooks/queries/usePengu
 import { Input } from "../../../ui/Input"
 import { Button } from "../../../ui/Button"
 import { Badge } from "../../../ui/Badge"
+import { SearchableSelect } from "../../../ui/SearchableSelect"
 import { formatRupiah } from "./CostEstimationSummary"
 
 interface SampleCardItemProps {
@@ -83,6 +84,14 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
     )
   }, [parameterList, paramSearch])
 
+  const komoditiOptions = useMemo(() => {
+    return komoditiList.map((kmd) => ({
+      value: kmd.id,
+      label: kmd.nama,
+      description: kmd.ruang_lingkup ? `Ruang Lingkup: ${kmd.ruang_lingkup}` : undefined,
+    }))
+  }, [komoditiList])
+
   const handleKomoditiChange = (komoditiIdStr: string) => {
     const id = komoditiIdStr ? parseInt(komoditiIdStr, 10) : null
     const selected = komoditiList.find((k) => k.id === id)
@@ -122,9 +131,9 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden transition-all">
+    <div className="bg-white transition-all">
       {/* Sample Header Bar */}
-      <div className="p-4 sm:px-6 bg-gradient-to-r from-slate-50 via-brand-50/20 to-white border-b border-slate-100 flex items-center justify-between gap-3">
+      <div className="p-4 sm:px-6 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
             #{index + 1}
@@ -180,23 +189,14 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
               Komoditas / Ruang Lingkup Lab <span className="text-rose-500">*</span>
             </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-                <Layers className="w-4 h-4" />
-              </div>
-              <select
-                value={sample.master_komoditi_id || ""}
-                onChange={(e) => handleKomoditiChange(e.target.value)}
-                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-8 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer font-medium"
-              >
-                <option value="">-- Pilih Komoditas Pengujian --</option>
-                {komoditiList.map((kmd) => (
-                  <option key={kmd.id} value={kmd.id}>
-                    {kmd.nama} ({kmd.ruang_lingkup})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect
+              placeholder="-- Pilih Komoditas Pengujian --"
+              searchPlaceholder="Cari komoditas atau ruang lingkup..."
+              options={komoditiOptions}
+              value={sample.master_komoditi_id || ""}
+              onChange={(val) => handleKomoditiChange(String(val))}
+              onClear={() => handleKomoditiChange("")}
+            />
             <p className="text-[11px] text-slate-500 mt-1">
               Pilih ruang lingkup komoditas untuk menampilkan daftar parameter uji laboratorium
             </p>

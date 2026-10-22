@@ -52,7 +52,21 @@ class PermohonanController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status_workflow', strtoupper($request->status));
+            $statusInput = strtolower(trim((string) $request->status));
+            $workflowStatuses = match ($statusInput) {
+                'selesai', 'done' => ['DONE', 'SELESAI'],
+                'proses', 'process' => ['PROSES', 'PROCESS', 'LUNAS', 'PROSES_AUDIT'],
+                'review', 'in_review', 'kajian_teknis' => ['IN_REVIEW', 'KAJIAN_TEKNIS'],
+                'pembayaran' => ['PEMBAYARAN'],
+                'revisi' => ['REVISI'],
+                'permohonan' => ['PERMOHONAN'],
+                'draft' => ['DRAFT'],
+                'ditolak' => ['DITOLAK'],
+                'menunggu_persetujuan' => ['MENUNGGU_PERSETUJUAN_PELANGGAN', 'PENAWARAN_BIAYA'],
+                default => [strtoupper($request->status)]
+            };
+
+            $query->whereIn('status_workflow', $workflowStatuses);
         }
 
         if ($request->filled('search')) {
@@ -64,6 +78,7 @@ class PermohonanController extends Controller
             ->paginate($rows);
 
         $data = $permohonan->getCollection()->map(function ($item) {
+            $isFeedbackGiven = (bool) ($item->is_given_feedback ?? false);
 
             $detail = $item->detailPermohonan?->first();
             $form = $detail?->formable;
@@ -195,13 +210,15 @@ class PermohonanController extends Controller
             $sertifikatData = null;
             if (!empty($item->file_sertifikat_final) || !empty($item->nomor_sertifikat)) {
                 $nomorSertifikat = $item->nomor_sertifikat ?: ($item->no_permohonan ?? 'BBSPJIKKP');
+                $isFeedbackGiven = (bool) ($item->is_given_feedback ?? false);
                 $sertifikatData = [
                     'id' => $item->id,
                     'nomor_sertifikat' => $item->nomor_sertifikat,
                     'nama' => 'Sertifikat - ' . $nomorSertifikat,
                     'file_name' => 'Sertifikat-' . str_replace(['/', '\\', ' '], '-', $nomorSertifikat) . '.pdf',
                     'download_link' => "/eksternal/sertifikasi/{$item->id}/download-sertifikat",
-                    'file_url' => $item->file_sertifikat_final ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
+                    'file_url' => ($isFeedbackGiven && $item->file_sertifikat_final) ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
+                    'can_download' => $isFeedbackGiven,
                 ];
             }
 
@@ -252,7 +269,7 @@ class PermohonanController extends Controller
                 'has_invoice' => !empty($item->invoice_number) || !empty($item->invoice_file),
 
                 'nomor_sertifikat' => $item->nomor_sertifikat,
-                'file_sertifikat_final' => $item->file_sertifikat_final ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
+                'file_sertifikat_final' => ($isFeedbackGiven && $item->file_sertifikat_final) ? (str_starts_with($item->file_sertifikat_final, 'http') ? $item->file_sertifikat_final : asset($item->file_sertifikat_final)) : null,
                 'sertifikat' => $sertifikatData,
 
                 'file_attachment' => $attachments,
@@ -366,20 +383,18 @@ class PermohonanController extends Controller
         }
 
         $jenis = $detail?->lingkupLayanan?->lingkup;
+        $noPermohonan = $permohonan->no_permohonan ?? '';
+        $formClass = $detail?->formable_type ?? '';
 
-        $slug = match ($jenis) {
-            'HALAL_REGULER',
-            'HALAL_UMK' => 'halal',
-            'LSP' => 'pendampingan',
-            default => null
+        $slug = match (true) {
+            str_contains($formClass, 'FormSertifikasi') || str_starts_with($noPermohonan, 'CERT') => 'sertifikasi',
+            str_contains($formClass, 'FormKalibrasi') || str_contains($noPermohonan, 'LABKAL') || str_starts_with($noPermohonan, 'KLB') => 'kalibrasi',
+            str_contains($formClass, 'FormPengujian') || str_starts_with($noPermohonan, 'UJI') => 'pengujian',
+            str_contains($formClass, 'FormHalal') || in_array($jenis, ['HALAL_REGULER', 'HALAL_UMK']) => 'halal',
+            str_contains($formClass, 'FormLsp') || str_starts_with($noPermohonan, 'LSP') => 'sertifikasi-profesi',
+            str_contains($formClass, 'FormPelatihan') || str_starts_with($noPermohonan, 'REG') || str_starts_with($noPermohonan, 'TRN') => 'pendampingan',
+            default => 'sertifikasi'
         };
-
-        if (!$slug) {
-            return response()->json([
-                "success" => false,
-                "message" => "Jenis layanan tidak dikenali"
-            ], 404);
-        }
 
         $layanan = MasterLayanan::where('slug', $slug)->first();
 

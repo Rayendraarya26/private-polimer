@@ -203,7 +203,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             className
           )}
         >
-          <span className={cn('truncate mr-2', !selectedOption && 'text-slate-400')}>
+          <span className={cn('truncate mr-2 leading-normal', !selectedOption && 'text-slate-400')}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
 
@@ -228,36 +228,43 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         {/* Panel Dropdown Menu */}
         {isOpen && (
           <div
-            className="absolute z-50 mt-1.5 w-full rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+            className="absolute z-50 mt-1.5 w-full left-0 rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden"
             onKeyDown={handleKeyDown}
           >
             {/* Input Pencarian */}
-            <div className="p-2 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
-              <Search className="w-3.5 h-3.5 text-slate-400 ml-1 shrink-0" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-xs text-slate-800 placeholder:text-slate-400 outline-none"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+            <div className="p-2 border-b border-slate-100 bg-slate-50/70">
+              <div className="relative flex items-center w-full rounded-lg border border-slate-200 bg-white px-3 h-10 transition-all focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+                <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  style={{ height: '100%', lineHeight: '1.5' }}
+                  className="w-full h-full bg-transparent text-xs leading-normal text-slate-800 placeholder:text-slate-400 border-0 px-0 py-1.5 focus:ring-0 focus:outline-none shadow-none"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm('');
+                      searchInputRef.current?.focus();
+                    }}
+                    className="text-slate-400 hover:text-slate-600 p-0.5 rounded transition-colors shrink-0 ml-1.5"
+                    title="Hapus pencarian"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* List Opsi Dropdown */}
             <div
               ref={optionsListRef}
               role="listbox"
-              className="max-h-56 overflow-y-auto p-1 divide-y divide-slate-50"
+              className="max-h-56 overflow-y-auto p-1 space-y-0.5"
             >
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((opt, idx) => {

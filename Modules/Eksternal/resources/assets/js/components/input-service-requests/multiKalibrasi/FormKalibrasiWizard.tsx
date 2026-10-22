@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
-import Swal from "sweetalert2"
 import { Button } from "../../ui/Button"
-import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check, RotateCcw, Save } from "lucide-react"
+import { Modal } from "../../ui/Modal"
+import { ArrowLeft, ArrowRight, Send, Loader2, Toolbox, UserCheck, MapPinHouse, ShieldCheck, Check, RotateCcw, Save, AlertTriangle } from "lucide-react"
 import api from "../../../utils/api"
 import FormInformasiAlat, { AlatKalibrasiItem } from "./FormInformasiAlat"
 import FormInformasiPelanggan, { PelangganData } from "./FormInformasiPelanggan"
@@ -45,6 +45,7 @@ export const FormKalibrasiWizard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [setujuPernyataan, setSetujuPernyataan] = useState(false)
   const [formKey, setFormKey] = useState<number>(0)
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
 
   // Inisialisasi state dari localStorage jika ada draf tersimpan
   const [currentStep, setCurrentStep] = useState<number>(() => {
@@ -201,21 +202,8 @@ export const FormKalibrasiWizard: React.FC = () => {
   }, [hasDraft, currentStep, dataAlat, dataPelaksanaan, dataPelanggan])
 
   // Handler: Hapus Draf dan Reset Formulir
-  const handleResetDraft = async () => {
-    const result = await Swal.fire({
-      title: "Reset Draft Formulir?",
-      text: "Seluruh data alat, pelaksanaan, dan informasi pemohon yang telah diisi akan dihapus dan kembali ke langkah awal.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#e11d48",
-      cancelButtonColor: "#64748b",
-      confirmButtonText: "Ya, Reset Draft",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-    })
-
-    if (!result.isConfirmed) return
-
+  const confirmResetDraft = () => {
+    setShowResetModal(false)
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch (e) {
@@ -408,19 +396,17 @@ export const FormKalibrasiWizard: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Tombol Reset Draft (diluar card timeline, kanan atas) */}
-      <div className="flex justify-end -mb-2 min-h-[20px]">
-        {hasDraft && (
-          <button
-            type="button"
-            onClick={handleResetDraft}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
-            title="Reset Seluruh Draf Formulir"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Draft</span>
-          </button>
-        )}
+      {/* Tombol Reset Draft (display: none saat tidak ada draf tersimpan) */}
+      <div className={hasDraft ? "flex justify-end -mb-1" : "hidden"}>
+        <button
+          type="button"
+          onClick={() => setShowResetModal(true)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
+          title="Reset Seluruh Draf Formulir"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Reset Draft</span>
+        </button>
       </div>
 
       {/* Stepper Progress Bar */}
@@ -520,17 +506,19 @@ export const FormKalibrasiWizard: React.FC = () => {
         </Button>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Tombol Simpan Draft ke Server */}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => handleSubmit("draft")}
-            disabled={isSubmitting}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border border-slate-200 shadow-2xs hover:bg-slate-100"
-          >
-            <Save className="w-4 h-4 text-slate-600" />
-            <span>Simpan Draft</span>
-          </Button>
+          {/* Tombol Simpan Draft ke Server (hanya tampil di langkah terakhir) */}
+          {currentStep === TOTAL_STEPS - 1 && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleSubmit("draft")}
+              disabled={isSubmitting}
+              className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border border-slate-200 shadow-2xs hover:bg-slate-100"
+            >
+              <Save className="w-4 h-4 text-slate-600" />
+              <span>Simpan Draft</span>
+            </Button>
+          )}
 
           {currentStep < TOTAL_STEPS - 1 ? (
             <Button
@@ -563,6 +551,45 @@ export const FormKalibrasiWizard: React.FC = () => {
           )}
         </div>
       </div>
+      {/* Modal Konfirmasi Reset Draf (Sesuai Tema Polimer) */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        size="sm"
+        className="max-w-md p-0 overflow-hidden rounded-2xl"
+      >
+        <div className="p-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/80 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <AlertTriangle className="w-7 h-7 text-amber-500" />
+          </div>
+
+          <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
+            Reset Draft Formulir?
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed mb-6">
+            Seluruh data alat, pelaksanaan, dan informasi pemohon yang telah diisi akan dihapus dan kembali ke langkah awal.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResetModal(false)}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={confirmResetDraft}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+            >
+              Ya, Reset Draft
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

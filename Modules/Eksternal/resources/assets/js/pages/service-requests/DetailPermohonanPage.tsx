@@ -21,10 +21,12 @@ import {
   ShieldCheck,
   MapPin,
   Info,
-  CheckCircle2,
   Eye,
   Award,
+  Lock,
+  MessageSquare,
 } from "lucide-react"
+import Swal from "sweetalert2"
 import Head from "../../components/common/Head"
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card"
 import { Badge } from "../../components/ui/Badge"
@@ -126,7 +128,7 @@ export const DetailPermohonanPage: React.FC = () => {
 
   // ── Hook 2: derived type & company info (semua computed, no side effect) ──
   const {
-    noOrder, status, isRevisi, isDraft, isDone,
+    noOrder, status, isRevisi, isDraft, isDone, isGivenFeedback,
     layananName,
     isAset,
     isPba,
@@ -258,14 +260,25 @@ export const DetailPermohonanPage: React.FC = () => {
           )}
 
           {isDone && (
-            <Button
-              size="sm"
-              variant="success"
-              leftIcon={<Download className="w-3.5 h-3.5" />}
-              onClick={() => onDownloadCertificate(id)}
-            >
-              Unduh Sertifikat
-            </Button>
+            isGivenFeedback ? (
+              <Button
+                size="sm"
+                variant="success"
+                leftIcon={<Download className="w-3.5 h-3.5" />}
+                onClick={() => onDownloadCertificate(id)}
+              >
+                Unduh Sertifikat
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="primary"
+                leftIcon={<MessageSquare className="w-3.5 h-3.5" />}
+                onClick={() => navigate(`/feedbacks/${id}`)}
+              >
+                Beri Feedback
+              </Button>
+            )
           )}
         </div>
       </div>

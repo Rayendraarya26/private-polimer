@@ -11,6 +11,7 @@ import {
   AlertCircle,
   ArrowLeft,
   Send,
+  Save,
   Loader2,
   X,
   ShieldCheck,
@@ -31,6 +32,13 @@ import { formatRupiah } from "./components/CostEstimationSummary"
 import { Input } from "../../ui/Input"
 import { Button } from "../../ui/Button"
 import { Badge } from "../../ui/Badge"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../ui/Card"
 
 interface Step4TambahanKonfirmasiProps {
   sharedData: PengujianSharedData
@@ -121,29 +129,28 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Step Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600">
-            <FileCheck className="w-5 h-5" />
+      <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+                <FileCheck className="w-4 h-4 text-brand-600 shrink-0" />
+                <span>Tambahan, Pembayaran & Konfirmasi Akhir</span>
+              </CardTitle>
+              <CardDescription>
+                Tentukan preferensi evaluasi, kehadiran di lab, metode pembayaran, unggah berkas pendukung, dan tinjau ringkasan pesanan uji.
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Tahap 4: Tambahan, Pembayaran & Konfirmasi Akhir
-            </h2>
-            <p className="text-xs text-slate-500">
-              Tentukan preferensi evaluasi, kehadiran di lab, metode pembayaran, unggah berkas pendukung, dan tinjau ringkasan pesanan uji.
-            </p>
-          </div>
-        </div>
-      </div>
+        </CardHeader>
 
-      {/* 1. DATA TAMBAHAN BAPC & SAMPEL (OPSIONAL) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Tag className="w-4 h-4 text-brand-600" />
-          1. Data Tambahan BAPC & Penomoran Sampel (Opsional)
-        </h3>
+        <CardContent className="pt-6 space-y-6">
+          {/* 1. DATA TAMBAHAN BAPC & SAMPEL (OPSIONAL) */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Tag className="w-4 h-4 text-brand-600" />
+              1. Data Tambahan BAPC & Penomoran Sampel (Opsional)
+            </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Tanggal BAPC */}
@@ -216,12 +223,12 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 2. EVALUASI KESESUAIAN & KEHADIRAN DI LABORATORIUM */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Sparkles className="w-4 h-4 text-brand-600" />
-          2. Evaluasi Kesesuaian & Kehadiran di Laboratorium
-        </h3>
+          {/* 2. EVALUASI KESESUAIAN & KEHADIRAN DI LABORATORIUM */}
+          <div className="pt-6 border-t border-slate-200 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Sparkles className="w-4 h-4 text-brand-600" />
+              2. Evaluasi Kesesuaian & Kehadiran di Laboratorium
+            </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Permintaan Evaluasi / Pernyataan Kesesuaian */}
@@ -290,7 +297,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* Pilihan Menyaksikan Pengujian */}
           <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
             <div>
-              <label className="text-xs font-bold text-slate-800 block flex items-center gap-1.5">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5 text-brand-600" />
                 Pilihan Menyaksikan Pengujian <span className="text-rose-500">*</span>
               </label>
@@ -357,12 +364,12 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 3. METODE PEMBAYARAN */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-          <CreditCard className="w-4 h-4 text-brand-600" />
-          3. Tata Cara Pembayaran PNBP
-        </h3>
+          {/* 3. METODE PEMBAYARAN */}
+          <div className="pt-6 border-t border-slate-200 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+              <CreditCard className="w-4 h-4 text-brand-600" />
+              3. Tata Cara Pembayaran PNBP
+            </h3>
 
         <div className="space-y-3">
           <label className="block text-xs font-bold text-slate-800">
@@ -429,12 +436,12 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 4. UNGGAH BERKAS PERSYARATAN */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Upload className="w-4 h-4 text-brand-600" />
-          4. Unggah Surat Pengantar & Dokumen Persyaratan
-        </h3>
+          {/* 4. UNGGAH BERKAS PERSYARATAN */}
+          <div className="pt-6 border-t border-slate-200 space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
+              <Upload className="w-4 h-4 text-brand-600" />
+              4. Unggah Surat Pengantar & Dokumen Persyaratan
+            </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* No Surat Pengantar */}
@@ -579,17 +586,17 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 5. RINGKASAN PERMOHONAN (ORDER REVIEW) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-brand-600" />
-            5. Ringkasan Formulir Pengujian Laboratorium
-          </h3>
-          <Badge variant="primary" size="sm">
-            {samples.length} Sampel Terdaftar
-          </Badge>
-        </div>
+          {/* 5. RINGKASAN PERMOHONAN (ORDER REVIEW) */}
+          <div className="pt-6 border-t border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                5. Ringkasan Formulir Pengujian Laboratorium
+              </h3>
+              <Badge variant="primary" size="sm">
+                {samples.length} Sampel Terdaftar
+              </Badge>
+            </div>
 
         {/* Info Grid Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs">
@@ -705,33 +712,35 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
       </div>
 
-      {/* 6. PERNYATAAN & INTEGRITAS */}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-brand-600" />
-          6. Pernyataan & Persetujuan Ketentuan Layanan
-        </h3>
-
-        <label className="flex items-start gap-3 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={sharedData.setuju_syarat}
-            onChange={(e) =>
-              setSharedData((prev) => ({
-                ...prev,
-                setuju_syarat: e.target.checked,
-              }))
-            }
-            className="w-4 h-4 mt-0.5 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
-          />
-          <span className="text-xs text-slate-700 leading-relaxed">
-            Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar
-            milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium.
-            Saya bersedia mematuhi seluruh prosedur keselamatan, syarat dan ketentuan pengujian
-            laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku.
-          </span>
-        </label>
-      </div>
+          {/* 6. PERNYATAAN & INTEGRITAS */}
+          <div className="pt-6 border-t border-slate-200">
+            <label className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/60 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={sharedData.setuju_syarat}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    setuju_syarat: e.target.checked,
+                  }))
+                }
+                className="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0 cursor-pointer"
+              />
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-slate-900 block">
+                  Pernyataan Keabsahan Data & Persetujuan Ketentuan Layanan <span className="text-rose-500">*</span>
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar
+                  milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium.
+                  Saya bersedia mematuhi seluruh prosedur keselamatan, syarat dan ketentuan pengujian
+                  laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku.
+                </p>
+              </div>
+            </label>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Navigation Buttons */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
@@ -739,19 +748,21 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           type="button"
           variant="outline"
           onClick={onBack}
+          disabled={submitting}
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="px-5 py-2.5 font-semibold text-xs"
         >
-          Kembali ke Contoh Uji
+          Sebelumnya
         </Button>
 
         <div className="flex items-center gap-3">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             disabled={submitting}
             onClick={() => handleTriggerSubmit("draft")}
-            className="px-4 py-2.5 font-semibold text-xs"
+            leftIcon={<Save className="w-4 h-4 text-slate-600" />}
+            className="px-4 py-2.5 font-semibold text-xs border border-slate-200 shadow-2xs hover:bg-slate-100"
           >
             Simpan Draft
           </Button>
@@ -759,12 +770,13 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           <Button
             type="button"
             variant="primary"
-            disabled={submitting || !sharedData.setuju_syarat || (isMahasiswa && !sharedData.file_ktm)}
+            disabled={submitting}
             onClick={() => handleTriggerSubmit("ajukan")}
-            leftIcon={submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            className="px-6 py-2.5 font-semibold text-xs shadow-xs"
+            rightIcon={!submitting ? <Send className="w-4 h-4" /> : undefined}
+            isLoading={submitting}
+            className="px-6 py-2.5 font-semibold text-xs shadow-sm"
           >
-            {submitting ? "Sedang Mengirim..." : "Ajukan Permohonan Pengujian"}
+            {submitting ? "Mengirim..." : "Kirim Permohonan"}
           </Button>
         </div>
       </div>

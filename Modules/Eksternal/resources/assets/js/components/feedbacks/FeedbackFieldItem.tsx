@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from "react"
 import { useFormContext } from "react-hook-form"
+import { Check } from "lucide-react"
 import { FeedbackInputType, FeedbackStructure } from "../../types/feedbacks"
 import { FeedbackFormFields } from "../../hooks/feedback/useFeedback"
 
@@ -9,17 +10,58 @@ type Props = {
 }
 
 const RATING_OPTIONS = [
-  { value: 20, label: "Sangat Kurang", color: "hover:border-rose-300 peer-checked:bg-rose-50 peer-checked:border-rose-500 peer-checked:text-rose-700" },
-  { value: 40, label: "Kurang", color: "hover:border-amber-300 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700" },
-  { value: 60, label: "Cukup", color: "hover:border-sky-300 peer-checked:bg-sky-50 peer-checked:border-sky-500 peer-checked:text-sky-700" },
-  { value: 80, label: "Baik", color: "hover:border-emerald-300 peer-checked:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:text-emerald-700" },
-  { value: 100, label: "Sangat Baik", color: "hover:border-brand-300 peer-checked:bg-brand-50 peer-checked:border-brand-600 peer-checked:text-brand-700" },
+  {
+    value: 20,
+    label: "Sangat Kurang",
+    selectedBg: "bg-rose-50/80 border-rose-500 ring-2 ring-rose-500/20 shadow-xs",
+    selectedText: "text-rose-900 font-bold",
+    selectedScore: "bg-rose-100 text-rose-700 font-semibold",
+    checkColor: "text-rose-600",
+    hoverBorder: "hover:border-rose-300",
+  },
+  {
+    value: 40,
+    label: "Kurang",
+    selectedBg: "bg-amber-50/80 border-amber-500 ring-2 ring-amber-500/20 shadow-xs",
+    selectedText: "text-amber-900 font-bold",
+    selectedScore: "bg-amber-100 text-amber-700 font-semibold",
+    checkColor: "text-amber-600",
+    hoverBorder: "hover:border-amber-300",
+  },
+  {
+    value: 60,
+    label: "Cukup",
+    selectedBg: "bg-sky-50/80 border-sky-500 ring-2 ring-sky-500/20 shadow-xs",
+    selectedText: "text-sky-900 font-bold",
+    selectedScore: "bg-sky-100 text-sky-700 font-semibold",
+    checkColor: "text-sky-600",
+    hoverBorder: "hover:border-sky-300",
+  },
+  {
+    value: 80,
+    label: "Baik",
+    selectedBg: "bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs",
+    selectedText: "text-emerald-900 font-bold",
+    selectedScore: "bg-emerald-100 text-emerald-700 font-semibold",
+    checkColor: "text-emerald-600",
+    hoverBorder: "hover:border-emerald-300",
+  },
+  {
+    value: 100,
+    label: "Sangat Baik",
+    selectedBg: "bg-brand-50/80 border-brand-600 ring-2 ring-brand-500/20 shadow-xs",
+    selectedText: "text-brand-900 font-bold",
+    selectedScore: "bg-brand-100 text-brand-700 font-semibold",
+    checkColor: "text-brand-600",
+    hoverBorder: "hover:border-brand-300",
+  },
 ]
 
 const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
   const {
     register,
     setValue,
+    watch,
     getValues,
     formState: { errors },
   } = useFormContext<FeedbackFormFields>()
@@ -29,6 +71,7 @@ const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
     return fields.findIndex((r) => r.id === data.id)
   }, [data, getValues])
 
+  const currentValue = watch(`feedbacks.${fieldIndex}.value`)
   const isInvalid = !!(errors?.feedbacks?.[fieldIndex]?.value?.message || "")
 
   return (
@@ -74,34 +117,56 @@ const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
 
       {data.input_type === FeedbackInputType.RANGE && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
-          {RATING_OPTIONS.map((opt) => (
-            <label
-              key={opt.value}
-              className="relative flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50/80 cursor-pointer transition-all text-center select-none group"
-            >
-              <input
-                type="radio"
-                name={`radio-${data.id}`}
-                value={opt.value}
-                required={data.required}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setValue(`feedbacks.${fieldIndex}.value`, opt.value, { shouldValidate: true })
-                  }
-                }}
-                className="sr-only peer"
-              />
-              <span className="text-xs font-semibold text-slate-700 peer-checked:font-bold transition-colors">
-                {opt.label}
-              </span>
-              <span className="text-[10px] text-slate-400 peer-checked:text-slate-600 mt-0.5">
-                (Skor {opt.value})
-              </span>
-              <div
-                className={`absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none transition-all ${opt.color}`}
-              />
-            </label>
-          ))}
+          {RATING_OPTIONS.map((opt) => {
+            const isSelected = Number(currentValue) === opt.value
+
+            return (
+              <label
+                key={opt.value}
+                className={`relative flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all text-center select-none ${
+                  isSelected
+                    ? opt.selectedBg
+                    : `border-slate-200 bg-white ${opt.hoverBorder} hover:bg-slate-50/60`
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`radio-${data.id}`}
+                  value={opt.value}
+                  checked={isSelected}
+                  required={data.required}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setValue(`feedbacks.${fieldIndex}.value`, opt.value, { shouldValidate: true })
+                    }
+                  }}
+                  className="sr-only"
+                />
+
+                {isSelected && (
+                  <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white shadow-xs flex items-center justify-center">
+                    <Check className={`w-2.5 h-2.5 ${opt.checkColor} stroke-[3]`} />
+                  </div>
+                )}
+
+                <span
+                  className={`text-xs transition-colors ${
+                    isSelected ? opt.selectedText : "font-semibold text-slate-700"
+                  }`}
+                >
+                  {opt.label}
+                </span>
+
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-md mt-1 transition-colors ${
+                    isSelected ? opt.selectedScore : "text-slate-400 bg-slate-50"
+                  }`}
+                >
+                  (Skor {opt.value})
+                </span>
+              </label>
+            )
+          })}
         </div>
       )}
 

@@ -142,8 +142,33 @@ export function usePembayaran() {
         })
       } catch (error: any) {
         console.error(`Gagal memuat ${title}:`, error)
-        // Jika gagal via API, fallback ke direct url
-        if (url && (url.startsWith("http") || url.startsWith("/"))) {
+
+        // Jika status 403 / 401 (Ditolak hak akses / belum feedback), jangan fallback ke iframe!
+        const status = error?.response?.status
+        if (status === 403 || status === 401) {
+          closePreview()
+          let errorMsg = "Anda belum memberikan feedback untuk permohonan ini atau belum memiliki hak akses. Silakan isi survey kepuasan terlebih dahulu."
+          if (error?.response?.data instanceof Blob) {
+            try {
+              const text = await error.response.data.text()
+              const parsed = JSON.parse(text)
+              if (parsed.message) errorMsg = parsed.message
+            } catch (_) {}
+          } else if (error?.response?.data?.message) {
+            errorMsg = error.response.data.message
+          }
+
+          Swal.fire({
+            icon: "warning",
+            title: "Akses Dibatasi",
+            text: errorMsg,
+            confirmButtonColor: "#0270c7",
+          })
+          return
+        }
+
+        // Jika gagal via API dan bukan masalah autentikasi/otorisasi, coba fallback ke direct url
+        if (url && (url.startsWith("http") || url.startsWith("/storage/"))) {
           setPreviewState({
             isOpen: true,
             title,
@@ -158,10 +183,7 @@ export function usePembayaran() {
         Swal.fire({
           icon: "error",
           title: "Gagal Membuka Dokumen",
-          text:
-            error.response?.status === 403
-              ? "Anda tidak memiliki izin untuk melihat dokumen ini."
-              : `Dokumen ${title} belum dapat dimuat atau terjadi gangguan koneksi.`,
+          text: `Dokumen ${title} belum dapat dimuat atau terjadi gangguan koneksi.`,
           confirmButtonColor: "#0270c7",
         })
       }

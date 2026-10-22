@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { toast } from "react-hot-toast"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
 import { Toolbox, Plus, Trash2, Settings, Loader2, Info, Calculator, ShieldCheck } from "lucide-react"
 import { useMasterKalibrasiQuery } from "../../../hooks/queries/useMasterQuery"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
+import { SearchableSelect } from "../../ui/SearchableSelect"
 
 export interface KalibrasiUjiItem {
   id: string
@@ -36,6 +37,13 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
 }) => {
   const { data: masterKalibrasi = [], isLoading: isLoadingMaster } = useMasterKalibrasiQuery()
   const { profile } = useProfileQuery()
+
+  const kalibrasiOptions = useMemo(() => {
+    return masterKalibrasi.map((item: any) => ({
+      value: String(item.id),
+      label: `${item.kalibrasi} — Rp ${Number(item.tarif_satuan || 0).toLocaleString("id-ID")}`,
+    }))
+  }, [masterKalibrasi])
 
   const isInternal = Boolean(
     (masterKalibrasi as any)?.is_internal ??
@@ -477,42 +485,43 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                           <label className="block text-[11px] font-semibold text-slate-700">
                             Pilih Kalibrasi
                           </label>
-                          <select
+                          <SearchableSelect
+                            disabled={isLoadingMaster}
+                            placeholder={
+                              isLoadingMaster
+                                ? "Memuat data master..."
+                                : `-- Pilih Jenis Kalibrasi untuk ${alat.namaAlat || `Alat #${index + 1}`} --`
+                            }
+                            searchPlaceholder="Cari jenis kalibrasi atau alat..."
+                            options={kalibrasiOptions}
                             value={selectedMasterId}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               setSelectedKalibrasiMap((prev) => ({
                                 ...prev,
-                                [alat.id]: e.target.value,
+                                [alat.id]: String(val),
                               }))
                             }
-                            disabled={isLoadingMaster}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
-                          >
-                            <option value="">
-                              {isLoadingMaster
-                                ? "Memuat data master..."
-                                : `-- Pilih Jenis Kalibrasi untuk ${alat.namaAlat || `Alat #${index + 1}`} --`}
-                            </option>
-                            {masterKalibrasi.map((item: any) => (
-                              <option key={item.id} value={item.id}>
-                                {item.kalibrasi} — Rp {Number(item.tarif_satuan || 0).toLocaleString("id-ID")}
-                              </option>
-                            ))}
-                          </select>
+                            onClear={() =>
+                              setSelectedKalibrasiMap((prev) => ({
+                                ...prev,
+                                [alat.id]: "",
+                              }))
+                            }
+                          />
                         </div>
 
                         <Button
                           type="button"
                           onClick={() => handleTambahKalibrasiKeAlat(alat.id)}
                           disabled={!selectedMasterId || isLoadingMaster}
-                          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shrink-0"
+                          className="flex items-center justify-center gap-1.5 rounded-lg px-4 h-[42px] text-xs font-semibold shrink-0 shadow-xs"
                         >
                           {isLoadingMaster ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
-                            <Plus className="w-3.5 h-3.5" />
+                            <Plus className="w-4 h-4" />
                           )}
-                          Terapkan Kalibrasi
+                          Tambah
                         </Button>
                       </div>
 
@@ -523,7 +532,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                             <tr className="bg-slate-100/80 text-slate-700 font-semibold border-b border-slate-200 divide-x divide-slate-200">
                               <th className="px-3.5 py-2.5 w-[50%]">Jenis Kalibrasi</th>
                               <th className="px-3.5 py-2.5 w-[15%] text-center">
-                                Jumlah (Maks. {alat.jumlah})
+                                Jumlah
                               </th>
                               <th className="px-3.5 py-2.5 w-[15%] text-right">Tarif Satuan (Rp)</th>
                               <th className="px-3.5 py-2.5 w-[15%] text-right">Subtotal (Rp)</th>

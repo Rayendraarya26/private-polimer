@@ -65,12 +65,20 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
 
 
     Route::post('layanan/tte/request-otp', [InvoiceController::class, 'requestOtp'])
+        ->withoutMiddleware([Restriction::class])
         ->name('permohonan.tte.request-otp');
 
     Route::post(
         'layanan/{id}/approval-invoice',
         [InvoiceController::class, 'approvalInvoice']
-    )->name('permohonan.approval-invoice');
+    )->withoutMiddleware([Restriction::class])
+     ->name('permohonan.approval-invoice');
+
+    Route::post(
+        'layanan/{id}/konfirmasi-pembayaran-manual',
+        [PermohonanController::class, 'konfirmasiPembayaranManual']
+    )->withoutMiddleware([Restriction::class])
+     ->name('permohonan.konfirmasi-bayar-manual');
 
     Route::get(
         'layanan/{id}/approval-invoice',
@@ -89,7 +97,8 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::post(
         'layanan/{id}/approval-kuitansi-tte',
         [InvoiceController::class, 'approvalKuitansiTte']
-    )->name('permohonan.kuitansi.approval-tte');
+    )->withoutMiddleware([Restriction::class])
+     ->name('permohonan.kuitansi.approval-tte');
 
     Route::get('{id}/kuitansi/download-tte', [InvoiceController::class, 'downloadKuitansiTte'])
         ->name('permohonan.kuitansi.download-tte');
@@ -100,7 +109,8 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::get(
         'layanan/{id}/kuitansi/preview',
         [InvoiceController::class, 'previewKuitansi']
-    )->name('permohonan.preview-kuitansi');
+    )->withoutMiddleware([Restriction::class])
+     ->name('permohonan.preview-kuitansi');
 
 
     Route::prefix('master-lokasi')->name('permohonan.master-lokasi.')->group(function () {

@@ -220,7 +220,7 @@ class InvoiceController extends Controller
             $vaExpiredAt = $permohonan->va_expired_at;
             $vaTrxId     = $permohonan->va_trx_id ?: ('INV-' . $permohonan->id);
 
-            if (empty($va) || $va === '-') {
+            if (config('services.bni.enabled', false) && (empty($va) || $va === '-')) {
                 try {
                     $bniService = new BniVaService();
                     $vaResult = $bniService->createBilling([
@@ -239,8 +239,10 @@ class InvoiceController extends Controller
                     }
                 } catch (\Throwable $e) {
                     Log::warning('InvoiceController::approvalInvoice - Gagal create billing BNI: ' . $e->getMessage());
-                    $va = $va ?: '-';
+                    $va = '-';
                 }
+            } else {
+                $va = $va ?: '-';
             }
 
             $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va ?: '-', $total, $pemohon, $bendahara);
@@ -276,15 +278,29 @@ class InvoiceController extends Controller
             ]);
 
             $permohonan->update([
+                'status_workflow'       => 'PEMBAYARAN',
                 'invoice_number'        => $invoiceNumber,
                 'invoice_file'          => $esignId,   
                 'invoice_generated_at'  => now(),
                 'tte_invoice_requested' => false,
-                'va'                    => $va,
+                'va'                    => $va !== '-' ? $va : null,
                 'va_trx_id'             => $vaTrxId,
                 'va_expired_at'         => $vaExpiredAt ?: now()->addDays(14),
-                'va_status'             => 'ACTIVE',
+                'va_status'             => ($va && $va !== '-') ? 'ACTIVE' : 'MANUAL',
                 'pdf_tte'               => $esignId,   
+            ]);
+
+            \App\Models\Db2\PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'INVOICE_APPROVED_TTE',
+                'judul' => 'Invoice Disetujui & Diberikan TTE BSrE',
+                'deskripsi' => 'Bendahara telah menyetujui dan menandatangani Invoice #' . $invoiceNumber . ' secara elektronik (TTE BSrE). Tagihan resmi diterbitkan.',
+                'metadata' => [
+                    'actor_name' => auth()->user()?->name ?? 'Bendahara',
+                    'esign_id'   => $esignId,
+                ],
             ]);
 
             SysUserNotif::create([
@@ -553,9 +569,9 @@ class InvoiceController extends Controller
 
         $currentUser = auth()->user();
         if ($currentUser && method_exists($currentUser, 'hasGroup')) {
-            $isAuthorized = $currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT);
+            $isAuthorized = $currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT) || $currentUser->hasGroup(SysGroup::ADMIN);
             if (!$isAuthorized) {
-                return response()->json(['success' => false, 'message' => 'Hanya Bendahara yang berwenang menandatangani Kuitansi TTE'], 403);
+                return response()->json(['success' => false, 'message' => 'Hanya Bendahara atau Administrator yang berwenang menandatangani Kuitansi TTE'], 403);
             }
         }
 

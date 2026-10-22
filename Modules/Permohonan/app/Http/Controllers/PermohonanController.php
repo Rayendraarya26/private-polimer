@@ -467,25 +467,29 @@ class PermohonanController extends Controller
         $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon) ?: '081234567890';
         $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $formAset?->pemohon_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
-        try {
-            $bniService = new BniVaService();
-            $vaResult = $bniService->createBilling([
-                'trx_id' => $trxId,
-                'trx_amount' => $total,
-                'customer_name' => $namaPemohon,
-                'customer_email' => $emailPemohon,
-                'customer_phone' => $teleponPemohon,
-                'datetime_expired' => $vaExpiredAt->toIso8601String(),
-                'description' => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
-            ]);
+        if (config('services.bni.enabled', false)) {
+            try {
+                $bniService = new BniVaService();
+                $vaResult = $bniService->createBilling([
+                    'trx_id' => $trxId,
+                    'trx_amount' => $total,
+                    'customer_name' => $namaPemohon,
+                    'customer_email' => $emailPemohon,
+                    'customer_phone' => $teleponPemohon,
+                    'datetime_expired' => $vaExpiredAt->toIso8601String(),
+                    'description' => 'Tagihan Layanan BBKKP No ' . $permohonan->no_permohonan,
+                ]);
 
-            if (!empty($vaResult['virtual_account'])) {
-                $va = $vaResult['virtual_account'];
-                $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
+                if (!empty($vaResult['virtual_account'])) {
+                    $va = $vaResult['virtual_account'];
+                    $vaExpiredAt = $vaResult['datetime_expired'] ?? now()->addDays(14);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('PermohonanController@approve - Gagal create billing BNI: ' . $e->getMessage());
+                $va = null;
             }
-        } catch (\Throwable $e) {
-            Log::warning('PermohonanController@approve - Gagal create billing BNI: ' . $e->getMessage());
-            $va = $va ?: '-';
+        } else {
+            $va = null;
         }
 
         DB::beginTransaction();
@@ -548,18 +552,20 @@ class PermohonanController extends Controller
             }
 
             $permohonan->update([
-                'status_workflow' => 'PEMBAYARAN',
-                'harga_permohonan' => $total,
-                'status_penawaran' => 'proses',
-                'catatan_admin' => $path,
-                'file_surat_penawaran' => $path,
-                'invoice_number' => $invoiceNumber,
-                'invoice_file' => $filePath,
-                'invoice_generated_at' => now(),
-                'va' => $va,
-                'va_trx_id' => $trxId,
-                'va_expired_at' => $vaExpiredAt,
-                'va_status' => 'ACTIVE',
+                'status_workflow'          => 'IN_REVIEW',
+                'harga_permohonan'         => $total,
+                'status_penawaran'         => 'proses',
+                'catatan_admin'            => $path,
+                'file_surat_penawaran'     => $path,
+                'invoice_number'           => $invoiceNumber,
+                'invoice_file'             => $filePath,
+                'invoice_generated_at'     => now(),
+                'tte_invoice_requested'    => true,
+                'tte_invoice_requested_at' => now(),
+                'va'                       => $va,
+                'va_trx_id'                => $trxId,
+                'va_expired_at'            => $vaExpiredAt,
+                'va_status'                => $va ? 'ACTIVE' : 'MANUAL',
             ]);
 
             $kalibrasiUpdate = [];
@@ -584,9 +590,29 @@ class PermohonanController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'sumber' => 'POLIMER',
                 'milestone_code' => 'PERMOHONAN_ACCEPTED',
-                'judul' => 'Permohonan Disetujui & Penawaran Diterbitkan',
-                'deskripsi' => 'Marketing telah menyetujui permohonan dan menerbitkan Surat Penawaran Biaya sebesar Rp ' . number_format($total, 0, ',', '.') . '.',
+                'judul' => 'Kajian Disetujui & Draf Invoice Diterbitkan',
+                'deskripsi' => 'Marketing telah menyetujui permohonan dan menerbitkan draf Invoice sebesar Rp ' . number_format($total, 0, ',', '.') . '. Menunggu tanda tangan elektronik (TTE BSrE) oleh Bendahara.',
+                'metadata' => [
+                    'actor_name' => auth()->user()?->name ?? 'Tim Marketing',
+                ],
             ]);
+
+            // Notifikasi ke Tim Bendahara untuk TTE Invoice
+            $bendaharaUsers = SysUser::whereIn('id', function ($query) {
+                $query->select('user_id')
+                    ->from('sys_user_group')
+                    ->where('group_id', SysGroup::BENDAHARA->value);
+            })->get();
+
+            foreach ($bendaharaUsers as $bu) {
+                SysUserNotif::create([
+                    'user_id' => $bu->id,
+                    'title'   => 'Draf Invoice Menunggu TTE BSrE',
+                    'content' => 'Permohonan #' . $permohonan->no_permohonan . ' telah disetujui Marketing. Silakan lakukan approval & TTE Invoice.',
+                    'link'    => '/permohonan/layanan/' . $permohonan->id . '/detail',
+                    'is_read' => 'no',
+                ]);
+            }
 
             DB::commit();
 
@@ -807,10 +833,12 @@ class PermohonanController extends Controller
                 $nominal = (float) $request->nominal;
 
                 $permohonan->update([
-                    'status_workflow' => 'PEMBAYARAN',
-                    'catatan_admin' => $path,
-                    'file_surat_penawaran' => $path,
-                    'harga_permohonan' => $nominal,
+                    'status_workflow'          => 'IN_REVIEW',
+                    'catatan_admin'            => $path,
+                    'file_surat_penawaran'     => $path,
+                    'harga_permohonan'         => $nominal,
+                    'tte_invoice_requested'    => true,
+                    'tte_invoice_requested_at' => now(),
                 ]);
 
                 DetailPembayaran::where('permohonan_id', $id)->delete();
@@ -1091,6 +1119,125 @@ class PermohonanController extends Controller
             }
 
             return back()->with('error', 'Gagal menjalankan simulasi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Konfirmasi penerimaan pembayaran manual (transfer bank / kas negara) oleh Bendahara
+     */
+    public function konfirmasiPembayaranManual(Request $request, $id)
+    {
+        $currentUser = auth()->user();
+        if (!$currentUser || (!$currentUser->hasGroup(SysGroup::BENDAHARA) && !$currentUser->hasGroup(SysGroup::ADMIN) && !$currentUser->hasGroup(SysGroup::ROOT))) {
+            abort(403, 'Akses ditolak. Fitur ini hanya dapat diakses oleh Bendahara atau Administrator.');
+        }
+
+        $validated = $request->validate([
+            'tgl_bayar'            => 'required|date',
+            'nomor_bukti_transfer' => 'nullable|string|max:100',
+            'catatan'              => 'nullable|string|max:500',
+            'file_bukti_bayar'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $permohonan = Permohonan::with(['detailPembayaran'])->findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $buktiPath = $permohonan->bukti_bayar;
+            if ($request->hasFile('file_bukti_bayar')) {
+                $buktiPath = $request->file('file_bukti_bayar')->store('bukti_bayar', 'public');
+            }
+
+            $tglBayar = \Carbon\Carbon::parse($validated['tgl_bayar']);
+
+            $catatanText = null;
+            if (!empty($validated['nomor_bukti_transfer']) || !empty($validated['catatan'])) {
+                $parts = [];
+                if (!empty($validated['nomor_bukti_transfer'])) $parts[] = 'No. Bukti Transfer: ' . $validated['nomor_bukti_transfer'];
+                if (!empty($validated['catatan'])) $parts[] = $validated['catatan'];
+                $catatanText = implode(' | ', $parts);
+            }
+
+            // 1. Update Permohonan: status_bayar = LUNAS, status_workflow = PROCESS, tte_kuitansi_requested = true
+            $permohonan->update([
+                'status_bayar'              => 'LUNAS',
+                'tgl_bayar'                 => $tglBayar,
+                'status_workflow'           => 'PROCESS',
+                'bukti_bayar'               => $buktiPath,
+                'catatan_admin'             => $catatanText ?: $permohonan->catatan_admin,
+                'tte_kuitansi_requested'    => true,
+                'tte_kuitansi_requested_at' => now(),
+            ]);
+
+            // 2. Update tanggal bayar pada rincian item pembayaran
+            DetailPembayaran::where('permohonan_id', $permohonan->id)
+                ->orWhere(function ($q) use ($permohonan) {
+                    if ($permohonan->id_pt_ins) {
+                        $q->where('id_pt_ins', $permohonan->id_pt_ins);
+                    }
+                })
+                ->update([
+                    'tgl_bayar' => $tglBayar,
+                ]);
+
+            // 3. Generate Kwitansi Digital secara sinkron
+            try {
+                \App\Jobs\GenerateKwitansiDigitalJob::dispatchSync($permohonan->id, (float) ($permohonan->harga_permohonan ?? 0));
+            } catch (\Throwable $jobErr) {
+                Log::warning('GenerateKwitansiDigitalJob error on manual payment: ' . $jobErr->getMessage());
+            }
+
+            // 4. Catat tracking log
+            PermohonanTrackingLog::create([
+                'id'             => (string) Str::uuid(),
+                'permohonan_id'  => $permohonan->id,
+                'sumber'         => 'POLIMER',
+                'milestone_code' => 'PEMBAYARAN_MANUAL_VERIFIED',
+                'judul'          => 'Pembayaran Manual Dikonfirmasi Lunas',
+                'deskripsi'      => 'Bendahara telah memverifikasi penerimaan pembayaran transfer manual dan menyatakan status LUNAS. Kwitansi telah dibuat dan siap ditandatangani TTE.',
+                'metadata'       => [
+                    'actor_name'  => $currentUser->name,
+                    'tgl_bayar'   => $tglBayar->format('Y-m-d'),
+                    'nomor_bukti' => $validated['nomor_bukti_transfer'] ?? null,
+                    'catatan'     => $validated['catatan'] ?? null,
+                ],
+            ]);
+
+            // 5. Notifikasi ke Pemohon
+            SysUserNotif::create([
+                'user_id' => $permohonan->created_by,
+                'title'   => 'Pembayaran Dikonfirmasi Lunas',
+                'content' => 'Pembayaran Anda untuk permohonan #' . $permohonan->no_permohonan . ' telah diverifikasi dan dinyatakan LUNAS oleh Bendahara.',
+                'link'    => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
+                'is_read' => 'no',
+            ]);
+
+            DB::commit();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pembayaran manual berhasil dikonfirmasi LUNAS!',
+                    'data'    => $permohonan->fresh(),
+                ]);
+            }
+
+            return redirect()
+                ->route('permohonan.layanan.detail', ['id' => $id, 'detail' => 'pembayaran'])
+                ->with('success', 'Pembayaran manual berhasil dikonfirmasi LUNAS! Kuitansi siap ditandatangani.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('PermohonanController@konfirmasiPembayaranManual error: ' . $e->getMessage());
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengonfirmasi pembayaran: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->withInput()->with('error', 'Gagal mengonfirmasi pembayaran: ' . $e->getMessage());
         }
     }
 }

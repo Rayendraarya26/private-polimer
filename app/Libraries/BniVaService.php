@@ -55,6 +55,18 @@ class BniVaService
             'is_dummy'   => $this->isDummy,
         ]);
 
+        if (!config('services.bni.enabled', true)) {
+            Log::info('BniVaService::createBilling - BNI VA disabled by config (services.bni.enabled = false)');
+            return [
+                'status'           => 'DISABLED',
+                'message'          => 'BNI Virtual Account otomatis dinonaktifkan (mode manual).',
+                'trx_id'           => $trxId,
+                'virtual_account'  => null,
+                'datetime_expired' => $expired,
+                'is_manual'        => true,
+            ];
+        }
+
         // -------------------------------------------------------------------
         // DUMMY MODE BYPASS (Untuk local dev / staging tanpa BNI credentials)
         // -------------------------------------------------------------------

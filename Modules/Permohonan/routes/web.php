@@ -18,6 +18,8 @@ use Modules\Permohonan\Http\Controllers\TagihanBiayaController;
 use Modules\Permohonan\Http\Controllers\BillingPembayaranController;
 use Modules\Permohonan\Http\Controllers\JasaLainnyaController;
 use Modules\Permohonan\Http\Controllers\PbaController;
+use Modules\Permohonan\Http\Controllers\TkdnController;
+use Modules\Permohonan\Http\Controllers\MasterKalibrasiController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -93,7 +95,7 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
 
     Route::get('layanan/{id}/inquiry-bni', [InvoiceController::class, 'inquiryBniVa'])
         ->name('permohonan.invoice.inquiry-bni');
-    
+
     Route::post(
         'layanan/{id}/approval-kuitansi-tte',
         [InvoiceController::class, 'approvalKuitansiTte']
@@ -161,6 +163,17 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::post('/permohonan/bulk-reject', [PermohonanController::class, 'bulkReject'])
         ->name('permohonan.bulk.reject');
 
+    Route::prefix('master-kalibrasi')->name('permohonan.master-kalibrasi.')->group(function () {
+
+        Route::get('/', [MasterKalibrasiController::class, 'index'])->name('index');
+        Route::get('/ajax', [MasterKalibrasiController::class, 'ajax'])->name('ajax');
+
+        Route::post('/', [MasterKalibrasiController::class, 'store'])->name('store');
+        Route::put('/{id}', [MasterKalibrasiController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MasterKalibrasiController::class, 'destroy'])->name('destroy');
+
+    });
+
 
     Route::prefix('tagihan-biaya')->name('permohonan.tagihan-biaya.')->group(function () {
         Route::get('/', [TagihanBiayaController::class, 'index'])->name('index');
@@ -193,6 +206,17 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         Route::post('/', [PbaController::class, 'store'])
             ->withoutMiddleware([Restriction::class])
             ->name('store');
+    });
+
+    Route::prefix('tkdn')->name('permohonan.tkdn.')->group(function () {
+        Route::get('/', [TkdnController::class, 'index'])->name('index');
+        Route::get('/ajax', [TkdnController::class, 'ajax'])->name('ajax');
+        Route::get('/create', [TkdnController::class, 'create'])->name('create');
+        Route::post('/', [TkdnController::class, 'store'])->name('store');
+        Route::get('/{id}', [TkdnController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [TkdnController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [TkdnController::class, 'update'])->name('update');
+        Route::delete('/{id}', [TkdnController::class, 'destroy'])->name('destroy');
     });
 
     // Sertifikasi Audit & LKS Endpoints

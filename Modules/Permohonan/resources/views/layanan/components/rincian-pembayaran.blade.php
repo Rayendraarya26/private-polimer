@@ -17,11 +17,43 @@
         : collect([$permohonan]);
 
     $jumlahGrup = $grupPermohonan->count();
+
+    $currentUser = auth()->user();
+    $isBendahara = $currentUser && (
+        $currentUser->hasGroup(\App\Models\SysGroup::BENDAHARA) ||
+        $currentUser->hasGroup(\App\Models\SysGroup::ADMIN) ||
+        $currentUser->hasGroup(\App\Models\SysGroup::ROOT)
+    );
 @endphp
 
 
+@if($statusBayar === 'LUNAS')
+    <div class="alert alert-success d-flex align-items-center justify-content-between mb-4 border-0 rounded-3 p-3" style="background:#dcfce7;color:#166534">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-check-circle fs-3 text-success"></i>
+            <div>
+                <strong class="d-block fs-6">Pembayaran Telah Lunas</strong>
+                <span style="font-size:12px;opacity:.9">
+                    @php $firstPayment = $permohonan->detailPembayaran->first(); @endphp
+                    @if($firstPayment?->tgl_bayar)
+                        Dikonfirmasi pada: {{ \Carbon\Carbon::parse($firstPayment->tgl_bayar)->translatedFormat('d F Y') }}
+                    @endif
+                    @if($permohonan->catatan_admin)
+                        · <strong>{{ $permohonan->catatan_admin }}</strong>
+                    @endif
+                </span>
+            </div>
+        </div>
+        @if($permohonan->tte_kuitansi_requested && empty($permohonan->kuitansi_pdf_tte))
+            <a href="{{ url()->current() }}?d=files" class="btn btn-sm btn-warning text-white fw-semibold">
+                <i class="fas fa-file-signature me-1"></i> TTE Kuitansi
+            </a>
+        @endif
+    </div>
+@endif
+
 {{-- ── HEADER INFO ── --}}
-<div class="d-flex align-items-center justify-content-between mb-4">
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
     <div>
         <h6 class="fw-bold mb-1">Rincian Pembayaran</h6>
         <span class="text-muted" style="font-size:12px">
@@ -34,13 +66,23 @@
             @endif
         </span>
     </div>
-    @if($jumlahGrup === 1)
-        <span class="badge rounded-pill" style="background:#f1f5f9;color:#475569">Perorangan</span>
-    @elseif($isSplit)
-        <span class="badge rounded-pill" style="background:#e8e8f0;color:#3f3f46">Split Bill</span>
-    @else
-        <span class="badge rounded-pill" style="background:#dbeafe;color:#1d4ed8">Together</span>
-    @endif
+    <div class="d-flex align-items-center gap-2">
+        @if($isBendahara && $statusBayar !== 'LUNAS')
+            <button type="button" class="btn btn-sm btn-success d-inline-flex align-items-center gap-2"
+                    data-bs-toggle="modal" data-bs-target="#modalKonfirmasiBayarManual">
+                <i class="fas fa-money-check-check"></i>
+                <span>Konfirmasi Pembayaran Manual</span>
+            </button>
+        @endif
+
+        @if($jumlahGrup === 1)
+            <span class="badge rounded-pill" style="background:#f1f5f9;color:#475569">Perorangan</span>
+        @elseif($isSplit)
+            <span class="badge rounded-pill" style="background:#e8e8f0;color:#3f3f46">Split Bill</span>
+        @else
+            <span class="badge rounded-pill" style="background:#dbeafe;color:#1d4ed8">Together</span>
+        @endif
+    </div>
 </div>
 
 
@@ -444,6 +486,58 @@
 
 
 
+
+@if($isBendahara && $statusBayar !== 'LUNAS')
+<div class="modal fade" id="modalKonfirmasiBayarManual" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 border-0 shadow">
+            <form action="{{ route('permohonan.konfirmasi-bayar-manual', $permohonan->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header border-bottom px-4 py-3">
+                    <h5 class="fw-bold mb-0" style="font-size:16px">Konfirmasi Pembayaran Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-primary d-flex align-items-center gap-2 mb-3 py-2 px-3 rounded-2" style="font-size:12px">
+                        <i class="fas fa-info-circle fs-5"></i>
+                        <div>
+                            Konfirmasi transfer manual via rekening <strong>BNI RPL 032 BBSPJIKKP (PNBP)</strong>. Status permohonan akan otomatis menjadi <strong>PROCESS</strong> dan kuitansi digital akan diterbitkan untuk ditandatangani TTE.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pembayaran <span class="text-danger">*</span></label>
+                        <input type="date" name="tgl_bayar" class="form-control" value="{{ date('Y-m-d') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px">Nomor Bukti Transfer / Trx ID</label>
+                        <input type="text" name="nomor_bukti_transfer" class="form-control" placeholder="Contoh: BNI-TRX-20261022-0012">
+                        <div class="text-muted" style="font-size:11px">Nomor referensi atau catatan struk transfer bank pemohon</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:13px">File Bukti Bayar / Transfer (Opsional)</label>
+                        <input type="file" name="file_bukti_bayar" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="text-muted" style="font-size:11px">Format: PDF, JPG, PNG (Maksimal 5 MB)</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" style="font-size:13px">Catatan Verifikasi</label>
+                        <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan opsional dari bendahara"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-semibold">
+                        <i class="fas fa-check-circle me-1"></i> Konfirmasi Lunas & Terbitkan Kuitansi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 @push('scripts')
 <script>

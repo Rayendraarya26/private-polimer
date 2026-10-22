@@ -13,6 +13,20 @@
             @include('permohonan::layanan.components.info-permohonan')
         </div>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 border-0 shadow-sm rounded-3" role="alert">
+                <i class="fas fa-check-circle me-2 fs-5 text-success"></i>
+                <div class="flex-grow-1">{{ session('success') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 border-0 shadow-sm rounded-3" role="alert">
+                <i class="fas fa-exclamation-triangle me-2 fs-5 text-danger"></i>
+                <div class="flex-grow-1">{{ session('error') }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
         <div class="card border-0 shadow-sm rounded-3">
 

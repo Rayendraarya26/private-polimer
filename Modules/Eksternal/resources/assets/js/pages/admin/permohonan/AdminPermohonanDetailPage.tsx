@@ -65,6 +65,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
 
   // SIS Sync State
   const [syncingSis, setSyncingSis] = useState(false)
+  const [confirmingBayar, setConfirmingBayar] = useState(false)
 
   const [modalState, setModalState] = useState<{
     show: boolean
@@ -183,6 +184,25 @@ export const AdminPermohonanDetailPage: React.FC = () => {
       toast.error(err?.response?.data?.message || "Sinkronisasi ke SIS gagal")
     } finally {
       setSyncingSis(false)
+    }
+  }
+
+  const handleKonfirmasiBayarManual = async () => {
+    if (!window.confirm("Konfirmasi penerimaan pembayaran transfer manual? Status permohonan akan diubah menjadi LUNAS dan kuitansi pembayaran digital akan langsung digenerate.")) {
+      return
+    }
+    setConfirmingBayar(true)
+    try {
+      const res = await api.post(`/permohonan/layanan/${id}/konfirmasi-pembayaran-manual`, {
+        tgl_bayar: new Date().toISOString().split("T")[0],
+        catatan: "Dikonfirmasi manual via portal admin BBSPJIKKP",
+      })
+      toast.success(res?.data?.message || "Pembayaran manual berhasil diverifikasi lunas.")
+      fetchDetail()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengonfirmasi pembayaran manual")
+    } finally {
+      setConfirmingBayar(false)
     }
   }
 
@@ -1412,9 +1432,23 @@ export const AdminPermohonanDetailPage: React.FC = () => {
               </p>
 
               {statusBayar !== "LUNAS" ? (
-                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800">
-                  <p className="font-semibold">Pembayaran belum lunas.</p>
-                  <p className="text-[11px] mt-0.5">TTE Kuitansi hanya dapat dilakukan setelah status pembayaran lunas.</p>
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 space-y-3">
+                  <div>
+                    <p className="font-semibold">Pembayaran belum lunas.</p>
+                    <p className="text-[11px] mt-0.5">TTE Kuitansi hanya dapat dilakukan setelah pembayaran diverifikasi lunas.</p>
+                  </div>
+                  <div className="flex justify-end pt-2 border-t border-amber-200/70">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+                      leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
+                      onClick={handleKonfirmasiBayarManual}
+                      isLoading={confirmingBayar}
+                    >
+                      Konfirmasi Pelunasan Manual (Transfer Bank)
+                    </Button>
+                  </div>
                 </div>
               ) : rawPermohonan?.kuitansi_pdf_tte ? (
                 <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">

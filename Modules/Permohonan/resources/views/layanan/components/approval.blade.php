@@ -41,7 +41,30 @@
 @endphp
 
 
-@if(in_array($status, ['PERMOHONAN', 'IN_REVIEW']) && $isPegawai)
+@if($permohonan->tte_invoice_requested && empty($permohonan->pdf_tte))
+    {{-- ================= NOTICE MENUNGGU TTE BENDAHARA ================= --}}
+    <div class="card border-0 shadow-sm mt-4 bg-light-primary border-dashed border-primary">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="symbol symbol-45px symbol-circle bg-white text-primary d-flex align-items-center justify-content-center shadow-sm">
+                    <i class="fas fa-file-signature fs-3 text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1 text-primary">Kajian Telah Disetujui Marketing</h6>
+                    <small class="text-gray-700">Draf invoice telah diterbitkan dan sedang menunggu persetujuan serta Tanda Tangan Elektronik (TTE BSrE) oleh Bendahara Penerimaan.</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-light-warning text-warning px-3 py-2 fw-bold">Menunggu TTE Bendahara</span>
+                @if(auth()->user()?->hasGroup(\App\Models\SysGroup::BENDAHARA) || auth()->user()?->hasGroup(\App\Models\SysGroup::ADMIN) || auth()->user()?->hasGroup(\App\Models\SysGroup::ROOT))
+                    <a href="{{ url()->current() }}?d=files" class="btn btn-sm btn-primary fw-semibold">
+                        <i class="fas fa-file-signature me-1"></i> TTE Invoice di Tab Files
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+@elseif(in_array($status, ['PERMOHONAN', 'IN_REVIEW']) && $isPegawai && empty($permohonan->pdf_tte))
 
     {{-- ================= CARD VERIFIKASI PERMOHONAN ================= --}}
     <div class="card border-0 shadow-sm mt-4">

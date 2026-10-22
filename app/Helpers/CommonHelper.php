@@ -50,3 +50,21 @@ if (!function_exists('monthIndonesia')) {
         return $bulan[$month];
     }
 }
+
+if (!function_exists('localized_content')) {
+    /**
+     * Mengambil nilai berdasarkan locale saat ini (dengan fallback ke 'id').
+     * Aman untuk data bertipe array multi-bahasa maupun string legacy.
+     */
+    function localized_content(mixed $value, ?string $locale = null, string $fallback = 'id'): string
+    {
+        $locale = $locale ?? app()->getLocale();
+
+        if (is_array($value)) {
+            $val = $value[$locale] ?? $value[$fallback] ?? reset($value);
+            return is_string($val) ? $val : '';
+        }
+
+        return (string) ($value ?? '');
+    }
+}

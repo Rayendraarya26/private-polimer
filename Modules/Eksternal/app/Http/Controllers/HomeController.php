@@ -24,7 +24,9 @@ class HomeController extends Controller
 
     public function index()
     {
-        $parser = Cache::remember('home_parser', now()->addMinutes(60), function () {
+        $locale = app()->getLocale();
+
+        $parser = Cache::remember("home_parser_{$locale}", now()->addMinutes(60), function () use ($locale) {
             $cacheDuration = now()->addMinutes(60);
 
             // 1 query instead of 5
@@ -41,7 +43,7 @@ class HomeController extends Controller
                 'services'        => $this->parseServices($siteData->get(HomepageKey::SERVICES->value), $cacheDuration),
                 'partners'        => $this->parsePartners($siteData->get(HomepageKey::PARTNERS->value), $cacheDuration),
                 'testimonials'    => $this->getTestimonials(),
-                'aboutUs'         => $siteData->get(HomepageKey::ABOUT->value)?->data['data'] ?? '',
+                'aboutUs'         => localized_content($siteData->get(HomepageKey::ABOUT->value)?->data['data'] ?? ''),
                 'companyOverview' => $this->getCompanyOverview(),
                 'social_medias'   => $siteData->get(HomepageKey::SOCIAL_MEDIA->value)?->data ?? [],
                 'collapsible'     => $this->getCollapsible(),
@@ -132,9 +134,9 @@ class HomeController extends Controller
         foreach ($bannersObj->data as $item) {
             $banners[] = [
                 "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
-                "title"       => $item['title'] ?? null,
-                "description" => $item['description'] ?? null,
-                "cta_text"    => Arr::get($item, 'cta_text', null),
+                "title"       => localized_content($item['title'] ?? null),
+                "description" => localized_content($item['description'] ?? null),
+                "cta_text"    => localized_content(Arr::get($item, 'cta_text', null)),
                 "cta_url"     => Arr::get($item, 'cta_url', null),
                 "cta_target"  => Arr::get($item, 'cta_target', null),
                 'order'       => $item['order'] ?? 0,
@@ -156,8 +158,8 @@ class HomeController extends Controller
             $services[] = [
                 "id"          => $item['id'] ?? null,
                 "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
-                "name"        => Arr::get($item, 'title'),
-                "description" => Arr::get($item, 'description'),
+                "name"        => localized_content(Arr::get($item, 'title', Arr::get($item, 'name'))),
+                "description" => localized_content(Arr::get($item, 'description')),
                 'order'       => Arr::get($item, 'order', 0),
             ];
         }
@@ -235,13 +237,13 @@ class HomeController extends Controller
     private function getCompanyOverview(): array
     {
         return [
-            "title"       => "JIS",
-            "description" => "<strong>Jogja Industrial Services (JIS)</strong> diartikan sebagai Jaminan Integritas dan Solusi. Nama ini mencerminkan komitmen kami untuk selalu menjaga integritas dan menerapkan standar kualitas terbaik dalam setiap layanan yang diberikan. Dengan fokus pada kualitas, kehandalan, dan kepuasan pelanggan, JIS hadir sebagai mitra bagi perusahaan yang ingin meningkatkan produktivitas dan mencapai kesuksesan operasional melalui berbagai layanan unggulan.",
+            "title"       => __('home.overview.title'),
+            "description" => __('home.overview.description'),
             "statistics"  => [
-                ["value" => "10+",    "label" => "Jangkauan Negara"],
-                ["value" => "1000+",  "label" => "Mitra Industri"],
-                ["value" => "13",     "label" => "Jenis Layanan Jasa"],
-                ["value" => "99,47%", "label" => "Ketepatan Waktu"],
+                ["value" => "10+",    "label" => __('home.overview.stats.country_reach')],
+                ["value" => "1000+",  "label" => __('home.overview.stats.industry_partners')],
+                ["value" => "13",     "label" => __('home.overview.stats.service_types')],
+                ["value" => "99,47%", "label" => __('home.overview.stats.punctuality')],
             ]
         ];
     }
@@ -250,37 +252,19 @@ class HomeController extends Controller
     {
         return [
             [
-                "title"           => "Kenapa Harus JIS ?",
+                "title"           => __('home.faq.why_jis_title'),
                 "is_default_open" => true,
-                "description"     => "Bagaikan JOGJA, keistimewaan JIS terletak pada keramahan dan tradisinya dalam menjaga kualitas dan nilai luhur yang dimilikinya. Nilai luhur tersebut tertuang dalam komitmennya untuk selalu menjalankan proses bisnis dengan standar kualitas tertinggi, menjaga integritas, reliabilitas, responsifitas, empati, jaminan kualitas, dan kepuasan pelanggan.
-<br><br>Dalam memberikan pelayanan, JIS mampu menyesuaikan dengan kebutuhan pelanggan, mendengar dan memenuhi keinginan pelanggan, sehingga dapat memberikan pengalaman berharga di benak pelanggan. JIS staff SIAP melayani dengan Semangat, Ikhlas, Amanah, dan Profesional.
-<br><br>JIS kini memiliki tiga belas layanan jasa industri dalam satu genggaman."
+                "description"     => __('home.faq.why_jis_desc'),
             ],
             [
-                "title"           => "Layanan",
+                "title"           => __('home.faq.services_title'),
                 "is_default_open" => false,
-                "description"     => "Saat ini, JIS bergerak di bidang layanan jasa
-                <ol><li>Pendampingan</li>
-  <li>Pengujian</li>
-  <li>Kalibrasi</li>
-  <li>Sertifikasi</li>
-  <li>Inspeksi</li>
-  <li>Verifikasi dan Validasi GRK</li>
-  <li>Verifikasi TKDN</li>
-  <li>Pemeriksa Halal</li>
-  <li>Audit Teknologi</li>
-  <li>Penyelenggara Uji Profisiensi</li>
-  <li>Produsen Bahan Acuan</li>
-  <li>Miniplant Kulit, Karet, dan Plastik</li>
-  <li>Layanan jasa lain</li></ol>"
+                "description"     => __('home.faq.services_desc'),
             ],
             [
-                "title"           => "Quality is Quality",
+                "title"           => __('home.faq.quality_title'),
                 "is_default_open" => false,
-                "description"     => 'Industri mana yang tidak ingin dikenal? Industri mana yang tidak ingin menjaga kualitas? <br><br>
-"You\'re known because of Quality" adalah sebuah inspirasi kami dalam memberikan pelayanan kepada pelanggan. Kami memahami bahwa pelaku industri selalu ingin dikenal dengan kualitasnya. Untuk itu kami ingin menjadi bagian dari seluruh pelaku industri dalam memberikan nilai tambah sehingga tercapai produktivitas dan profitabilitas yang berkelanjutan.<br><br>
-JIS menjalankan proses bisnis dengan standar kualitas tertinggi. Rasakan pengalaman kualitas yang kami tawarkan..<br><br>
-Quality is QUALITY.'
+                "description"     => __('home.faq.quality_desc'),
             ],
         ];
     }

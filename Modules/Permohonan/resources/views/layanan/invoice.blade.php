@@ -5,16 +5,17 @@
     <meta charset="UTF-8">
     <title>Invoice</title>
 
-    <style>
+    <style type="text/css">
         @page {
-            margin: 15px 25px 12px 25px;
+            margin: 15px 30px 15px 30px;
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
+            font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+            font-size: 10pt;
             color: #000;
-            line-height: 1.25;
+            line-height: 1.2;
+            background-color: #fff;
         }
 
         table {
@@ -25,104 +26,163 @@
         /* ========================= */
         /* KOP SURAT POLIMER BBKKP   */
         /* ========================= */
-        .kop-wrapper {
+        .kop-table {
             width: 100%;
-            border-bottom: 3.5px solid #000;
-            padding-bottom: 6px;
+            border-collapse: collapse;
             margin-bottom: 2px;
         }
 
-        .kop-line-bottom {
-            border-bottom: 1px solid #000;
-            margin-bottom: 14px;
+        .kop-logo-td {
+            width: 28%;
+            text-align: left;
+            vertical-align: middle;
+            padding: 0;
         }
 
         .kop-logo {
-            width: 130px;
+            width: 195px;
             height: auto;
+            display: block;
         }
 
-        .kop-text {
+        .kop-text-td {
+            width: 72%;
             text-align: center;
-            line-height: 1.25;
+            vertical-align: middle;
+            padding: 0;
         }
 
-        .kop-text .small {
-            font-size: 11px;
+        .kop-kemenperin {
+            font-family: Tahoma, Arial, sans-serif;
+            font-size: 13pt;
+            font-weight: normal;
+            margin: 0;
+            line-height: 1.15;
+            color: #000;
+        }
+
+        .kop-bbkkp {
+            font-family: Tahoma, Arial, sans-serif;
+            font-size: 14pt;
             font-weight: bold;
+            margin: 1px 0;
+            line-height: 1.15;
+            color: #000;
         }
 
-        .kop-text .title {
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 1.2;
-            margin: 2px 0;
+        .kop-address {
+            font-family: Tahoma, Arial, sans-serif;
+            font-size: 6.5pt;
+            margin: 0;
+            line-height: 1.15;
+            color: #000;
         }
 
-        .kop-text .address {
-            font-size: 9.5px;
-            line-height: 1.2;
+        .kop-separator {
+            width: 100%;
+            margin: 4px 0 10px 0;
+            border-top: 1px solid #000;
+            border-bottom: 2.5px solid #000;
+            height: 2px;
         }
 
         /* ========================= */
-        /* HEADER INVOICE            */
+        /* HEADER META INVOICE       */
         /* ========================= */
         .invoice-title {
-            font-size: 16px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 15pt;
             font-weight: bold;
             text-decoration: underline;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            color: #000;
         }
 
-        .info-table td {
+        .meta-table td {
             vertical-align: top;
             padding: 1.5px 0;
-            font-size: 10.5px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 10pt;
+            color: #000;
         }
 
         /* ========================= */
-        /* VIRTUAL ACCOUNT           */
+        /* BANNER PEMBAYARAN         */
         /* ========================= */
-        .va-wrapper {
+        .banner-va {
             width: 100%;
-            margin: 8px 0 12px 0;
+            margin: 6px 0 10px 0;
+            border: 1.5px solid #000;
             text-align: center;
+            padding: 5px;
         }
 
-        .va-title {
-            font-size: 13px;
+        .banner-va-title {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 11pt;
             font-weight: bold;
+            letter-spacing: 1px;
         }
 
-        .va-number {
-            font-size: 18px;
+        .banner-va-number {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 15pt;
             font-weight: bold;
             letter-spacing: 2px;
-            padding-top: 3px;
+            margin-top: 3px;
+        }
+
+        .banner-manual {
+            width: 100%;
+            margin: 6px 0 10px 0;
+            border: 1.5px solid #0284c7;
+            background-color: #f8fafc;
+            text-align: center;
+            padding: 6px 10px;
+        }
+
+        .banner-manual-title {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 11pt;
+            font-weight: bold;
+            color: #0369a1;
+            letter-spacing: 0.5px;
+        }
+
+        .banner-manual-detail {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 10pt;
+            margin-top: 2px;
+            color: #1e293b;
         }
 
         /* ========================= */
         /* TABLE PEMBAYARAN          */
         /* ========================= */
         .invoice-table {
-            margin-top: 6px;
-            margin-bottom: 10px;
+            width: 100%;
             border-collapse: collapse;
+            margin-top: 4px;
+            margin-bottom: 8px;
         }
 
         .invoice-table th {
             border: 1px solid #000;
-            background: #e5e7eb;
-            padding: 5px 6px;
+            padding: 4px 6px;
             text-align: center;
-            font-size: 10.5px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 10pt;
             font-weight: bold;
+            vertical-align: middle;
+            background-color: #f1f5f9;
         }
 
         .invoice-table td {
             border: 1px solid #000;
-            padding: 4.5px 6px;
-            font-size: 10px;
+            padding: 4px 6px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 9.5pt;
+            vertical-align: top;
         }
 
         .text-center {
@@ -133,58 +193,74 @@
             text-align: right;
         }
 
+        .text-left {
+            text-align: left;
+        }
+
         /* ========================= */
-        /* TANDA TANGAN & PETUNJUK   */
+        /* TANDA TANGAN & PERHATIAN  */
         /* ========================= */
-        .signature-wrapper {
+        .signature-table {
             width: 100%;
-            margin-top: 4px;
+            margin-top: 6px;
+            margin-bottom: 6px;
         }
 
         .signature-box {
-            width: 40%;
+            width: 42%;
             margin-left: auto;
             text-align: center;
-            font-size: 10.5px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 10.5pt;
         }
 
         .signature-space {
-            height: 48px;
+            height: 52px;
         }
 
         .signature-name {
             font-weight: bold;
-            text-decoration: underline;
+            text-decoration: none;
         }
 
-        .payment-box {
-            margin-top: 8px;
-            font-size: 8.5px;
-            line-height: 1.35;
-        }
-
-        .payment-box .payment-title {
+        .perhatian-title {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 10pt;
             font-weight: bold;
-            font-size: 9px;
+            margin-top: 6px;
             margin-bottom: 2px;
         }
 
-        .payment-box ol {
+        .perhatian-list {
             margin: 0;
-            padding-left: 14px;
+            padding-left: 20px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 9pt;
+            line-height: 1.3;
         }
 
-        .payment-box li {
+        .perhatian-list li {
+            font-weight: bold;
             margin-bottom: 1.5px;
         }
 
-        .footer {
-            margin-top: 8px;
-            font-size: 8px;
+        .tax-note {
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 9pt;
+            text-align: justify;
+            margin-top: 6px;
+            margin-bottom: 6px;
             line-height: 1.25;
-            color: #222;
-            border-top: 0.5px solid #ccc;
-            padding-top: 3px;
+            color: #000;
+        }
+
+        .bsre-footer {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 8.5pt;
+            font-style: italic;
+            color: #333;
+            margin-top: 4px;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -193,19 +269,51 @@
 
     @php
         $logoBase64 = '';
-        $logoPath = public_path('assets/media/logos/logo-kemenperin-pdf.png');
-        if (!file_exists($logoPath)) {
-            $logoPath = public_path('assets/media/logos/logo-kemenperin.png');
-        }
-        if (file_exists($logoPath)) {
-            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        $logoOfficial = public_path('assets/media/logos/kemenperin-official.png');
+        if (file_exists($logoOfficial)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoOfficial));
+        } else {
+            $logoPath = public_path('assets/media/logos/logo-kemenperin-pdf.png');
+            if (!file_exists($logoPath)) {
+                $logoPath = public_path('assets/media/logos/logo-kemenperin.png');
+            }
+            if (file_exists($logoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            }
         }
 
-        $pelatihan = $permohonan->formPelatihan->first();
-        $lsp = $permohonan->formLsp->first();
+        $separatorBase64 = '';
+        $separatorPath = public_path('assets/media/logos/kop-separator.png');
+        if (file_exists($separatorPath)) {
+            $separatorBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($separatorPath));
+        }
 
         $namaPemohon = $pemohon['nama'] ?? '-';
         $alamatPemohon = $pemohon['alamat'] ?? '-';
+        $noSuratPenawaran = (isset($permohonan->penawaranBiaya->nomor_surat_penawaran) && !empty($permohonan->penawaranBiaya->nomor_surat_penawaran)) 
+            ? $permohonan->penawaranBiaya->nomor_surat_penawaran 
+            : '-';
+
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
+            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $formatTglIndo = function ($dt) use ($bulanIndo) {
+            if (!$dt) return '-';
+            $carbon = \Carbon\Carbon::parse($dt);
+            return $carbon->format('d') . ' ' . ($bulanIndo[(int)$carbon->format('m')] ?? $carbon->format('F')) . ' ' . $carbon->format('Y');
+        };
+
+        $tglTerbit = !empty($permohonan->invoice_generated_at)
+            ? $formatTglIndo($permohonan->invoice_generated_at)
+            : $formatTglIndo(now());
+
+        $tglJatuhTempo = !empty($permohonan->invoice_due_date)
+            ? $formatTglIndo($permohonan->invoice_due_date)
+            : (!empty($permohonan->invoice_generated_at)
+                ? $formatTglIndo(\Carbon\Carbon::parse($permohonan->invoice_generated_at)->addDays(14))
+                : $formatTglIndo(now()->addDays(14)));
 
         if (!function_exists('penyebut')) {
             function penyebut($nilai)
@@ -233,56 +341,41 @@
     {{-- ========================= --}}
     {{-- KOP SURAT POLIMER BBKKP   --}}
     {{-- ========================= --}}
-    <table class="kop-wrapper">
+    <table class="kop-table">
         <tr>
-            <td width="18%" align="center" valign="middle">
+            <td class="kop-logo-td">
                 @if($logoBase64)
-                    <img src="{{ $logoBase64 }}" class="kop-logo">
+                    <img src="{{ $logoBase64 }}" class="kop-logo" alt="Logo Kemenperin">
                 @endif
             </td>
-            <td class="kop-text" valign="middle">
-                <div class="small">
-                    BADAN STANDARDISASI DAN KEBIJAKAN JASA INDUSTRI
-                </div>
-                <div class="title">
-                    BALAI BESAR STANDARDISASI DAN PELAYANAN<br>
-                    JASA INDUSTRI KULIT, KARET, DAN PLASTIK
-                </div>
-                <div class="address">
-                    Jalan Sokonandi Nomor 9 Yogyakarta 55166<br>
-                    Telp. (0274) 512929, 563939<br>
-                    Website: www.bbkkp.kemenperin.go.id &nbsp; Email: bbkkp_jogja@yahoo.com
-                </div>
+            <td class="kop-text-td">
+                <p class="kop-kemenperin">BADAN STANDARDISASI DAN KEBIJAKAN JASA INDUSTRI</p>
+                <p class="kop-bbkkp">BALAI BESAR STANDARDISASI DAN PELAYANAN JASA INDUSTRI KULIT, KARET, DAN PLASTIK</p>
+                <p class="kop-address">Jalan Sokonandi Nomor 9 Yogyakarta 55166</p>
+                <p class="kop-address">Telp. (0274) 512929, 563939</p>
+                <p class="kop-address">Website: www.bbkkp.kemenperin.go.id &nbsp; Email: bbkkp_jogja@yahoo.com</p>
             </td>
         </tr>
     </table>
-    <div class="kop-line-bottom"></div>
+
+    @if($separatorBase64)
+        <img src="{{ $separatorBase64 }}" style="width: 100%; height: 5px; margin: 3px 0 8px 0; display: block;" alt="separator">
+    @else
+        <div class="kop-separator"></div>
+    @endif
 
     {{-- ========================= --}}
-    {{-- HEADER INVOICE            --}}
+    {{-- HEADER META INVOICE       --}}
     {{-- ========================= --}}
-    <table style="width:100%; margin-bottom: 8px;">
+    <table style="width: 100%; margin-bottom: 4px;">
         <tr>
             {{-- KOLOM KIRI --}}
-            <td width="48%" valign="top">
-                <div class="invoice-title">
-                    INVOICE
-                </div>
-                @php
-                    $tglTerbit = !empty($permohonan->invoice_generated_at) 
-                        ? \Carbon\Carbon::parse($permohonan->invoice_generated_at)->format('d F Y') 
-                        : now()->format('d F Y');
-                    
-                    $tglJatuhTempo = !empty($permohonan->invoice_due_date)
-                        ? \Carbon\Carbon::parse($permohonan->invoice_due_date)->format('d F Y')
-                        : (!empty($permohonan->invoice_generated_at) 
-                            ? \Carbon\Carbon::parse($permohonan->invoice_generated_at)->addDays(14)->format('d F Y')
-                            : now()->addDays(14)->format('d F Y'));
-                @endphp
-                <table class="info-table" style="width:100%;">
+            <td style="width: 47%; vertical-align: top;">
+                <div class="invoice-title">INVOICE</div>
+                <table class="meta-table" style="width: 100%;">
                     <tr>
-                        <td width="42%">No. Invoice</td>
-                        <td width="5%">:</td>
+                        <td style="width: 44%;">No. Invoice</td>
+                        <td style="width: 4%;">:</td>
                         <td><b>{{ $invoiceNumber }}</b></td>
                     </tr>
                     <tr>
@@ -298,26 +391,26 @@
                 </table>
             </td>
 
-            {{-- SPASI --}}
-            <td width="4%"></td>
+            {{-- SPASI ANTAR KOLOM --}}
+            <td style="width: 5%;"></td>
 
             {{-- KOLOM KANAN --}}
-            <td width="48%" valign="top">
-                <table class="info-table" style="width:100%; margin-top: 22px;">
+            <td style="width: 48%; vertical-align: top;">
+                <table class="meta-table" style="width: 100%; margin-top: 24px;">
                     <tr>
-                        <td width="38%">Kepada Yth</td>
-                        <td width="5%">:</td>
-                        <td><b>{{ $namaPemohon }}</b></td>
+                        <td style="width: 42%; vertical-align: top;">Kepada Yth</td>
+                        <td style="width: 4%; vertical-align: top;">:</td>
+                        <td style="vertical-align: top;"><b>{{ $namaPemohon }}</b></td>
                     </tr>
                     <tr>
-                        <td>Alamat</td>
-                        <td>:</td>
-                        <td>{{ $alamatPemohon }}</td>
+                        <td style="vertical-align: top;">Alamat Perusahaan</td>
+                        <td style="vertical-align: top;">:</td>
+                        <td style="vertical-align: top;">{{ $alamatPemohon }}</td>
                     </tr>
                     <tr>
-                        <td>No. Surat Penawaran</td>
-                        <td>:</td>
-                        <td>-</td>
+                        <td style="vertical-align: top;">No. Surat Penawaran</td>
+                        <td style="vertical-align: top;">:</td>
+                        <td style="vertical-align: top;">{{ $noSuratPenawaran }}</td>
                     </tr>
                 </table>
             </td>
@@ -325,20 +418,33 @@
     </table>
 
     {{-- ========================= --}}
-    {{-- VIRTUAL ACCOUNT           --}}
+    {{-- INFORMASI PEMBAYARAN      --}}
     {{-- ========================= --}}
-    <table class="va-wrapper">
-        <tr>
-            <td class="va-title">
-                VIRTUAL ACCOUNT BANK BNI
-            </td>
-        </tr>
-        <tr>
-            <td class="va-number">
-                {{ $va ?: 'BELUM TERSEDIA' }}
-            </td>
-        </tr>
-    </table>
+    @if(!empty($va) && $va !== '-')
+        <table class="banner-va">
+            <tr>
+                <td>
+                    <div class="banner-va-title">VIRTUAL ACCOUNT BANK BNI</div>
+                    <div class="banner-va-number">{{ $va }}</div>
+                </td>
+            </tr>
+        </table>
+    @else
+        <table class="banner-manual">
+            <tr>
+                <td>
+                    <div class="banner-manual-title">TRANSFER BANK RESMI BBSPJIKKP (PNBP)</div>
+                    <div class="banner-manual-detail">
+                        Bank: <b>Bank Negara Indonesia (BNI)</b> &nbsp;|&nbsp; 
+                        No. Rekening: <b style="font-size: 12pt; letter-spacing: 1px;">0038472918</b>
+                    </div>
+                    <div style="font-size: 9pt; color: #475569; margin-top: 1px;">
+                        Atas Nama: <b>RPL 032 BBSPJIKKP YOGYAKARTA UTK PNBP</b>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    @endif
 
     {{-- ========================= --}}
     {{-- TABLE PEMBAYARAN          --}}
@@ -346,11 +452,15 @@
     <table class="invoice-table">
         <thead>
             <tr>
-                <th width="6%">No</th>
-                <th>Item Pembayaran</th>
-                <th width="18%">Harga</th>
-                <th width="10%">Qty</th>
-                <th width="22%">Subtotal</th>
+                <th rowspan="2" style="width: 5%;">No.</th>
+                <th rowspan="2" style="width: 48%;">Uraian</th>
+                <th rowspan="2" style="width: 12%;">Jumlah</th>
+                <th colspan="1" style="width: 17%;">Harga Satuan</th>
+                <th colspan="1" style="width: 18%;">Jumlah</th>
+            </tr>
+            <tr>
+                <th style="padding: 2px 4px; font-size: 9pt;">( Rp. )</th>
+                <th style="padding: 2px 4px; font-size: 9pt;">( Rp. )</th>
             </tr>
         </thead>
         <tbody>
@@ -366,9 +476,9 @@
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td>{{ $item->item_bayar }}</td>
-                        <td class="text-right">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
                         <td class="text-center">{{ $item->kuantitas }}</td>
-                        <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             @else
@@ -399,61 +509,45 @@
                     <tr>
                         <td class="text-center">{{ $no++ }}</td>
                         <td>{{ $item['item_bayar'] }}</td>
-                        <td class="text-right">Rp {{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
                         <td class="text-center">{{ $item['qty'] }}</td>
-                        <td class="text-right">Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item['subtotal'], 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             @endif
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="4" style="border:1px solid #000; padding:6px 8px; font-weight:bold; text-align:left;">
-                    TOTAL
+                <td colspan="4" class="text-left" style="font-weight: bold; padding: 5px 6px;">
+                    Item Total
                 </td>
-                <td style="border:1px solid #000; padding:6px 8px; text-align:right; font-weight:bold;">
-                    Rp {{ number_format($grandTotal, 0, ',', '.') }}
+                <td class="text-right" style="font-weight: bold; padding: 5px 6px;">
+                    {{ number_format($grandTotal, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
-                <td colspan="5" style="border:1px solid #000; padding:5px 8px; font-weight:bold;">
-                    Terbilang :
-                    <span style="font-style:italic; font-weight:normal;">
-                        {{ trim(penyebut($grandTotal)) }} Rupiah
-                    </span>
+                <td colspan="5" style="padding: 5px 6px; font-weight: normal;">
+                    Terbilang : <span style="font-weight: bold; font-style: italic;">{{ trim(penyebut($grandTotal)) }} Rupiah</span>
                 </td>
             </tr>
         </tfoot>
     </table>
 
     {{-- ========================= --}}
-    {{-- TANDA TANGAN & PETUNJUK   --}}
+    {{-- TANDA TANGAN BENDAHARA    --}}
     {{-- ========================= --}}
-    <table style="width: 100%;">
+    <table class="signature-table">
         <tr>
-            <td width="60%" valign="top">
-                <div class="payment-box">
-                    <div class="payment-title">PERHATIAN:</div>
-                    <ol>
-                        <li>Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan muncul otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA sebesar Rp. 1.000,- pada nominal transfer.</li>
-                        <li>Layanan BI Fast belum bisa dipergunakan, karena tidak mendukung skema Virtual Account (VA)</li>
-                        <li>Dimohon untuk segera melakukan pembayaran</li>
-                        <li>Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran</li>
-                        <li>Biaya admin transfer ditanggung oleh customer</li>
-                        <li>Order akan kami proses jika pembayaran telah kami terima</li>
-                        <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice diatas/nama perusahaan.</li>
-                    </ol>
-                </div>
-            </td>
-            <td width="40%" valign="top">
+            <td style="width: 58%;"></td>
+            <td style="width: 42%; text-align: center; vertical-align: top;">
                 <div class="signature-box">
                     <div>Bendahara Penerimaan</div>
                     <div class="signature-space"></div>
                     <div class="signature-name">
-                        {{ $bendahara->name ?? 'Bendahara' }}
+                        {{ $bendahara->name ?? 'Anugrah Noviana D' }}
                     </div>
-                    <div style="margin-top:2px;">
-                        NIP. {{ $bendahara->nip ?? '199203120101801001' }}
+                    <div style="font-size: 9.5pt; margin-top: 2px;">
+                        NIP. {{ $bendahara->nip ?? '198811252010122003' }}
                     </div>
                 </div>
             </td>
@@ -461,11 +555,37 @@
     </table>
 
     {{-- ========================= --}}
-    {{-- FOOTER                    --}}
+    {{-- PERHATIAN & CATATAN       --}}
     {{-- ========================= --}}
-    <div class="footer">
-        <div>Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara.</div>
-        <div>Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek Pajak Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.</div>
+    <div class="perhatian-title">PERHATIAN :</div>
+    <ol class="perhatian-list">
+        @if(!empty($va) && $va !== '-')
+            <li>Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan muncul otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA sebesar Rp. 1.000,- pada nominal transfer.</li>
+            <li>Layanan BI Fast belum bisa dipergunakan, karena tidak mendukung skema Virtual Account (VA)</li>
+            <li>Dimohon untuk segera melakukan pembayaran</li>
+            <li>Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran</li>
+            <li>Biaya admin transfer ditanggung oleh customer</li>
+            <li>Order akan kami proses jika pembayaran telah kami terima</li>
+            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice diatas/nama perusahaan.</li>
+        @else
+            <li>Pembayaran dilakukan melalui transfer ke Rekening Resmi BBSPJIKKP (Bank BNI No. Rek. 0038472918 a.n. RPL 032 BBSPJIKKP YOGYAKARTA UTK PNBP).</li>
+            <li>Dimohon untuk segera melakukan pembayaran.</li>
+            <li>Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran.</li>
+            <li>Biaya admin transfer ditanggung oleh customer.</li>
+            <li>Order akan kami proses jika pembayaran telah kami terima dan diverifikasi oleh Bendahara.</li>
+            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 atau diunggah via sistem dan sertakan nomor invoice diatas/nama perusahaan.</li>
+        @endif
+    </ol>
+
+    {{-- ========================= --}}
+    {{-- KLAUSUL HUKUM & BSRE      --}}
+    {{-- ========================= --}}
+    <p class="tax-note">
+        Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek Pajak Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.
+    </p>
+
+    <div class="bsre-footer">
+        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara
     </div>
 
 </body>

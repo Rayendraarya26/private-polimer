@@ -11,6 +11,34 @@ interface Step1BahasaProps {
   onNext: () => void
 }
 
+const BAHASA_OPTIONS: {
+  value: BahasaLaporan
+  label: string
+  subLabel: string
+  code: string
+  description: string
+  icon: React.ElementType
+}[] = [
+  {
+    value: "id",
+    label: "Bahasa Indonesia",
+    subLabel: "Indonesian",
+    code: "ID",
+    description:
+      "Laporan diterbitkan dalam Bahasa Indonesia. Cocok untuk keperluan dalam negeri, instansi pemerintah, dan sertifikasi SNI.",
+    icon: Languages,
+  },
+  {
+    value: "en",
+    label: "Bahasa Inggris",
+    subLabel: "English",
+    code: "EN",
+    description:
+      "Laporan diterbitkan dalam Bahasa Inggris. Cocok untuk keperluan ekspor, mitra luar negeri, dan standar internasional.",
+    icon: Globe,
+  },
+]
+
 export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
   sharedData,
   setSharedData,
@@ -42,56 +70,77 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
         </CardHeader>
 
         <CardContent className="p-5 sm:p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Opsi 1 (Bahasa Indonesia) */}
-            <div
-              onClick={() => handleSelectBahasa("id")}
-              className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 ${sharedData.bahasa_laporan === "id"
-                ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
-                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                }`}
-            >
-              <div className="flex items-center gap-3">
+          <div
+            role="radiogroup"
+            aria-label="Bahasa Laporan Hasil Pengujian"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            {BAHASA_OPTIONS.map((opt) => {
+              const isSelected = sharedData.bahasa_laporan === opt.value
+              const Icon = opt.icon
+              return (
                 <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${sharedData.bahasa_laporan === "id"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-500"
+                  key={opt.value}
+                  id={`opsi-bahasa-${opt.value}`}
+                  role="radio"
+                  aria-checked={isSelected}
+                  tabIndex={0}
+                  onClick={() => handleSelectBahasa(opt.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      handleSelectBahasa(opt.value)
+                    }
+                  }}
+                  className={`group relative flex flex-col gap-4 rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${isSelected
+                    ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-sm"
                     }`}
                 >
-                  <Languages className="w-5 h-5" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">
-                    Bahasa Indonesia
-                  </span>
-                </div>
-              </div>
-            </div>
+                  {/* Header: icon, title, indicator */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected
+                        ? "bg-brand-600 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/70"
+                        }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">
+                          {opt.label}
+                        </span>
+                        <Badge variant={isSelected ? "primary" : "neutral"} size="sm">
+                          {opt.code}
+                        </Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-slate-500">{opt.subLabel}</p>
+                    </div>
+                    {isSelected ? (
+                      <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0 group-hover:border-slate-400 transition-colors" />
+                    )}
+                  </div>
 
-            {/* Opsi 2 (Bahasa Inggris) */}
-            <div
-              onClick={() => handleSelectBahasa("en")}
-              className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 ${sharedData.bahasa_laporan === "en"
-                ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
-                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${sharedData.bahasa_laporan === "en"
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-500"
-                    }`}
-                >
-                  <Globe className="w-5 h-5" />
+                  {/* Deskripsi */}
+                  <p className="text-xs leading-relaxed text-slate-600">
+                    {opt.description}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">
-                    Bahasa Inggris
-                  </span>
-                </div>
-              </div>
-            </div>
+              )
+            })}
+          </div>
+
+          {/* Info tambahan */}
+          <div className="flex items-start gap-2 rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2.5">
+            <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+            <p className="text-xs leading-relaxed text-slate-600">
+              Bahasa yang dipilih berlaku untuk seluruh sampel dalam permintaan ini dan tidak dapat
+              diubah setelah laporan diterbitkan.
+            </p>
           </div>
         </CardContent>
       </Card>

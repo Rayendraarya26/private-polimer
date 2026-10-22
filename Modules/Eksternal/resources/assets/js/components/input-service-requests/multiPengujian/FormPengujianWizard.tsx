@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import Swal from "sweetalert2"
@@ -8,7 +8,8 @@ import {
   FlaskConical,
   FileCheck,
   Check,
-  Sparkles,
+  RotateCcw,
+  AlertTriangle,
 } from "lucide-react"
 import {
   emptyPengujianSample,
@@ -19,10 +20,14 @@ import {
 } from "../../../types/pengujian"
 import { formatRupiah } from "./components/CostEstimationSummary"
 import { useSubmitPengujianMutation } from "../../../hooks/queries/usePengujianQuery"
+import { Modal } from "../../ui/Modal"
+import { Button } from "../../ui/Button"
 import Step1Bahasa from "./Step1Bahasa"
 import Step2DataPermintaan from "./Step2DataPermintaan"
 import Step3ParameterUji from "./Step3ParameterUji"
 import Step4TambahanKonfirmasi from "./Step4TambahanKonfirmasi"
+
+const STORAGE_KEY = "polimer_draft_multi_pengujian"
 
 const STEPS = [
   {
@@ -53,14 +58,165 @@ const STEPS = [
 
 export const FormPengujianWizard: React.FC = () => {
   const navigate = useNavigate()
-  const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
+  const [formKey, setFormKey] = useState<number>(0)
 
-  // Master State
-  const [sharedData, setSharedData] = useState<PengujianSharedData>(initialPengujianSharedData)
-  const [samples, setSamples] = useState<PengujianSampleItem[]>([
-    emptyPengujianSample(Date.now()),
-  ])
+  // 1. Inisialisasi step dari localStorage jika ada draf tersimpan
+  const [step, setStep] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.step === "number" && parsed.step >= 0 && parsed.step < STEPS.length) {
+          return parsed.step
+        }
+      }
+    } catch (e) {
+      console.error("Error loading draft step:", e)
+    }
+    return 0
+  })
+
+  // 2. Inisialisasi sharedData dari localStorage
+  const [sharedData, setSharedData] = useState<PengujianSharedData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.sharedData) {
+          return {
+            ...initialPengujianSharedData,
+            ...parsed.sharedData,
+            file_surat_pengantar: null,
+            file_ktm: null,
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error loading draft sharedData:", e)
+    }
+    return initialPengujianSharedData
+  })
+
+  // 3. Inisialisasi samples dari localStorage
+  const [samples, setSamples] = useState<PengujianSampleItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed.samples) && parsed.samples.length > 0) {
+          return parsed.samples.map((s: any) => ({
+            ...s,
+            foto_sampel: null,
+          }))
+        }
+      }
+    } catch (e) {
+      console.error("Error loading draft samples:", e)
+    }
+    return [emptyPengujianSample(Date.now())]
+  })
+
+  // Helper untuk mengecek apakah form sedang terisi data draf oleh user
+  const checkIsFormFilled = (
+    currentStep: number,
+    shared: PengujianSharedData,
+    items: PengujianSampleItem[]
+  ): boolean => {
+    if (currentStep > 0) return true
+    if (shared.bahasa_laporan !== "id") return true
+    if (Boolean(shared.diajukan_oleh?.trim())) return true
+    if (Boolean(shared.keterangan_permintaan?.trim())) return true
+    if (shared.kategori_tarif !== "umum") return true
+    if (items.length > 1) return true
+
+    return items.some(
+      (s) =>
+        Boolean(s.nama_sampel?.trim()) ||
+        Boolean(s.no_lot_bets?.trim()) ||
+        Boolean(s.catatan_khusus?.trim()) ||
+        (Array.isArray(s.selected_parameters) && s.selected_parameters.length > 0)
+    )
+  }
+
+  // Status draf: true jika ada draf tersimpan di storage atau user mulai mengisi form
+  const [hasDraft, setHasDraft] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (
+          (typeof parsed.step === "number" && parsed.step > 0) ||
+          (Array.isArray(parsed.samples) && parsed.samples.length > 1) ||
+          (Array.isArray(parsed.samples) &&
+            parsed.samples.some(
+              (s: any) =>
+                Boolean(s.nama_sampel?.trim()) ||
+                (Array.isArray(s.selected_parameters) && s.selected_parameters.length > 0)
+            )) ||
+          Boolean(parsed.sharedData?.diajukan_oleh?.trim()) ||
+          Boolean(parsed.sharedData?.keterangan_permintaan?.trim()) ||
+          parsed.sharedData?.bahasa_laporan !== "id" ||
+          parsed.sharedData?.kategori_tarif !== "umum"
+        ) {
+          return true
+        }
+      }
+    } catch (e) {
+      console.error("Error reading draft status:", e)
+    }
+    return false
+  })
+
+  // Aktifkan hasDraft saat data mulai diisi oleh user
+  useEffect(() => {
+    if (!hasDraft) {
+      const isFilled = checkIsFormFilled(step, sharedData, samples)
+      if (isFilled) {
+        setHasDraft(true)
+      }
+    }
+  }, [hasDraft, step, sharedData, samples])
+
+  // Sinkronisasi otomatis ke localStorage setiap ada perubahan data
+  useEffect(() => {
+    try {
+      if (hasDraft) {
+        const { file_surat_pengantar, file_ktm, ...safeSharedData } = sharedData
+        const safeSamples = samples.map(({ foto_sampel, ...s }) => s)
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            step,
+            sharedData: safeSharedData,
+            samples: safeSamples,
+          })
+        )
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    } catch (error) {
+      console.error("Gagal menyimpan draf pengujian ke localStorage:", error)
+    }
+  }, [hasDraft, step, sharedData, samples])
+
+  // Handler: Hapus Draf dan Reset Formulir
+  const confirmResetDraft = () => {
+    setShowResetModal(false)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch (e) {
+      console.error("Gagal menghapus draf pengujian:", e)
+    }
+    setSharedData({ ...initialPengujianSharedData })
+    setSamples([emptyPengujianSample(Date.now())])
+    setStep(0)
+    setHasDraft(false)
+    setFormKey((prev) => prev + 1)
+    toast.success("Draf formulir pengujian berhasil direset.")
+  }
 
   // TanStack Query Mutation
   const submitMutation = useSubmitPengujianMutation()
@@ -162,6 +318,13 @@ export const FormPengujianWizard: React.FC = () => {
       // Eksekusi API Submit via TanStack Mutation
       const result = await submitMutation.mutateAsync(formData)
 
+      // Hapus draf di localStorage setelah permohonan berhasil dikirim/disimpan
+      try {
+        localStorage.removeItem(STORAGE_KEY)
+      } catch (e) {
+        console.error("Gagal membersihkan draft storage setelah submit:", e)
+      }
+
       await Swal.fire({
         title: aksi === "draft" ? "Draft Berhasil Disimpan!" : "Permohonan Berhasil Diajukan!",
         text:
@@ -194,7 +357,20 @@ export const FormPengujianWizard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Tombol Reset Draft (display: none saat tidak ada draf tersimpan) */}
+      <div className={hasDraft ? "flex justify-end -mb-1" : "hidden"}>
+        <button
+          type="button"
+          onClick={() => setShowResetModal(true)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
+          title="Reset Seluruh Draf Formulir"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Reset Draft</span>
+        </button>
+      </div>
+
       {/* Stepper Progress Header */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -251,46 +427,88 @@ export const FormPengujianWizard: React.FC = () => {
       </div>
 
       {/* Step Views */}
-      {step === 0 && (
-        <Step1Bahasa
-          sharedData={sharedData}
-          setSharedData={setSharedData}
-          onNext={goNext}
-        />
-      )}
+      <div key={`step-contents-${formKey}`} className="space-y-6">
+        {step === 0 && (
+          <Step1Bahasa
+            sharedData={sharedData}
+            setSharedData={setSharedData}
+            onNext={goNext}
+          />
+        )}
 
-      {step === 1 && (
-        <Step2DataPermintaan
-          sharedData={sharedData}
-          setSharedData={setSharedData}
-          onNext={goNext}
-          onBack={goBack}
-        />
-      )}
+        {step === 1 && (
+          <Step2DataPermintaan
+            sharedData={sharedData}
+            setSharedData={setSharedData}
+            onNext={goNext}
+            onBack={goBack}
+          />
+        )}
 
-      {step === 2 && (
-        <Step3ParameterUji
-          samples={samples}
-          setSamples={setSamples}
-          kategoriTarif={sharedData.kategori_tarif}
-          setKategoriTarif={(kategori) =>
-            setSharedData((prev) => ({ ...prev, kategori_tarif: kategori }))
-          }
-          onNext={goNext}
-          onBack={goBack}
-        />
-      )}
+        {step === 2 && (
+          <Step3ParameterUji
+            samples={samples}
+            setSamples={setSamples}
+            kategoriTarif={sharedData.kategori_tarif}
+            setKategoriTarif={(kategori) =>
+              setSharedData((prev) => ({ ...prev, kategori_tarif: kategori }))
+            }
+            onNext={goNext}
+            onBack={goBack}
+          />
+        )}
 
-      {step === 3 && (
-        <Step4TambahanKonfirmasi
-          sharedData={sharedData}
-          setSharedData={setSharedData}
-          samples={samples}
-          submitting={submitting}
-          onBack={goBack}
-          onSubmit={handleSubmitForm}
-        />
-      )}
+        {step === 3 && (
+          <Step4TambahanKonfirmasi
+            sharedData={sharedData}
+            setSharedData={setSharedData}
+            samples={samples}
+            submitting={submitting}
+            onBack={goBack}
+            onSubmit={handleSubmitForm}
+          />
+        )}
+      </div>
+
+      {/* Modal Konfirmasi Reset Draf (Sesuai Tema Polimer) */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        size="sm"
+        className="max-w-md p-0 overflow-hidden rounded-2xl"
+      >
+        <div className="p-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/80 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <AlertTriangle className="w-7 h-7 text-amber-500" />
+          </div>
+
+          <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
+            Reset Draft Formulir?
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed mb-6">
+            Seluruh data bahasa laporan, administrasi pemohon, contoh uji, dan parameter yang telah diisi akan dihapus dan kembali ke langkah awal.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResetModal(false)}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={confirmResetDraft}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+            >
+              Ya, Reset Draft
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

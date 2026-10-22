@@ -529,22 +529,28 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
           {/* Upload KTM (Wajib jika Kategori Tarif Mahasiswa PP 54) */}
           {isMahasiswa && (
-            <div className="md:col-span-2 p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 space-y-3 animate-in fade-in-50 duration-200">
+            <div className="md:col-span-2 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in-50 duration-200">
               <div className="flex items-start gap-2.5">
-                <GraduationCap className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
-                    Unggah Kartu Tanda Mahasiswa (KTM) Aktif <span className="text-rose-600">*</span>
-                  </h4>
-                  <p className="text-[11px] text-amber-800 leading-relaxed mt-0.5">
-                    Anda memilih <strong>Tarif Mahasiswa PP 54</strong>. Lampirkan foto / scan KTM aktif
-                    sebagai bukti legalitas untuk verifikasi tarif pendidikan oleh admin balai.
+                <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0 mt-0.5">
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Unggah Kartu Tanda Mahasiswa (KTM) Aktif <span className="text-rose-500">*</span>
+                    </h4>
+                    <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200/80 px-2 py-0.5 rounded-full">
+                      Tarif Mahasiswa PP 54
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Lampirkan foto atau scan dokumen KTM aktif Anda sebagai bukti legalitas untuk verifikasi tarif pendidikan.
                   </p>
                 </div>
               </div>
 
               {sharedData.file_ktm ? (
-                <div className="p-3.5 rounded-xl bg-white border border-amber-200 flex items-center justify-between gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-white border border-brand-200 flex items-center justify-between gap-3 text-xs shadow-2xs">
                   <div className="flex items-center gap-2.5 truncate">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="font-bold text-slate-900 truncate">
@@ -557,7 +563,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                   <button
                     type="button"
                     onClick={() => handleRemoveFile("file_ktm")}
-                    className="text-slate-400 hover:text-rose-500 p-1"
+                    className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -565,13 +571,13 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
               ) : (
                 <div
                   onClick={() => ktmInputRef.current?.click()}
-                  className="p-5 rounded-xl border-2 border-dashed border-amber-400 bg-white hover:bg-amber-50/50 cursor-pointer text-center transition-all"
+                  className="p-5 rounded-xl border-2 border-dashed border-slate-300 hover:border-brand-500 bg-white hover:bg-brand-50/30 cursor-pointer text-center transition-all group shadow-2xs"
                 >
-                  <Upload className="w-6 h-6 text-amber-600 mx-auto mb-1.5" />
-                  <p className="text-xs font-bold text-amber-900">
-                    Pilih File Foto / Scan KTM Anda (Wajib)
+                  <Upload className="w-6 h-6 text-slate-400 group-hover:text-brand-600 mx-auto mb-1.5 transition-colors" />
+                  <p className="text-xs font-semibold text-slate-700 group-hover:text-brand-700">
+                    Klik untuk memilih file Foto / Scan KTM Anda (Wajib)
                   </p>
-                  <p className="text-[11px] text-amber-700 mt-0.5">Format: PDF, PNG, JPG (Maks. 5 MB)</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Format didukung: PDF, PNG, JPG (Maks. 5 MB)</p>
                   <input
                     ref={ktmInputRef}
                     type="file"
@@ -699,14 +705,14 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         </div>
 
         {/* Grand Total Banner */}
-        <div className="p-4 rounded-xl bg-brand-900 text-white flex items-center justify-between shadow-xs">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-slate-50 via-brand-50/25 to-white border border-slate-200/90 flex items-center justify-between shadow-2xs">
           <div>
-            <span className="text-xs text-brand-200 font-semibold block uppercase tracking-wider">
+            <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">
               Total Estimasi Biaya Pengujian:
             </span>
-            <span className="text-xl sm:text-2xl font-black">{formatRupiah(grandTotal)}</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-900">{formatRupiah(grandTotal)}</span>
           </div>
-          <Badge variant="primary" size="lg" className="bg-white/15 text-white border-white/20">
+          <Badge variant="primary" size="md" className="shadow-xs">
             {samples.length} Sampel Terdaftar
           </Badge>
         </div>

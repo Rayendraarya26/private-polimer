@@ -16,7 +16,7 @@
                     Informasi detail pencatatan penerimaan PNBP jasa lainnya.
                 </p>
             </div>
-            @if($isBendahara)
+            @if($canManage ?? $isBendahara)
                 <div class="d-flex gap-2">
                     <a href="{{ route('permohonan.jasa-lainnya.edit', $jasa->id) }}" class="btn btn-warning">
                         <i class="fas fa-edit me-1"></i> Edit Data
@@ -113,7 +113,7 @@
                         <div class="mb-3">
                             <span class="text-muted small d-block">Dicatat Oleh</span>
                             <span class="fw-bold text-gray-800">
-                                {{ $jasa->pencatat?->name ?? 'Bendahara' }}
+                                {{ $jasa->pencatat?->name ?? 'Petugas' }}
                             </span>
                             @if($jasa->pencatat?->nip)
                                 <span class="text-muted small d-block">NIP: {{ $jasa->pencatat->nip }}</span>

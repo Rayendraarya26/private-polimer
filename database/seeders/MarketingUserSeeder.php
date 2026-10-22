@@ -87,7 +87,8 @@ class MarketingUserSeeder extends Seeder
         $marketingActions = SysMenuAction::where(function ($query) {
             $query->where('controller', 'LIKE', '%PermohonanController%')
                   ->orWhere('controller', 'LIKE', '%TagihanBiayaController%')
-                  ->orWhere('controller', 'LIKE', '%PbaController%');
+                  ->orWhere('controller', 'LIKE', '%PbaController%')
+                  ->orWhere('controller', 'LIKE', '%JasaLainnyaController%');
         })->get();
 
         foreach ($marketingActions as $action) {

@@ -380,7 +380,7 @@ class MenuSeeder extends Seeder
                     ],
                     [
                         'name' => 'Pencatatan Jasa Lainnya',
-                        'desc' => 'Pencatatan pendapatan jasa lainnya non-layanan utama (Bendahara)',
+                        'desc' => 'Pencatatan pendapatan jasa lainnya non-layanan utama oleh Tim Marketing & Bendahara',
                         'is_active' => 'yes',
                         'order' => 6,
                         'icon' => 'fa-duotone fa-hand-holding-dollar',

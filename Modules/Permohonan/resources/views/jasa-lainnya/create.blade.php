@@ -15,7 +15,7 @@
                 </a>
                 <h3 class="fw-bolder text-gray-900 mb-1">Catat Jasa Lainnya</h3>
                 <p class="text-muted mb-0 small">
-                    Khusus diisi oleh Bendahara Penerimaan untuk mencatat transaksi penerimaan PNBP non-layanan utama.
+                    Khusus diisi oleh Tim Marketing / Bendahara Penerimaan untuk mencatat transaksi penerimaan PNBP non-layanan utama.
                 </p>
             </div>
         </div>

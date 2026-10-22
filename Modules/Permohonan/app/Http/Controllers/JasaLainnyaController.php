@@ -28,21 +28,26 @@ class JasaLainnyaController extends Controller
     private string $view = 'permohonan::jasa-lainnya';
 
     /**
-     * Memeriksa otorisasi peran pengguna (Bendahara only atau internal admin)
+     * Memeriksa otorisasi peran pengguna (Marketing, Bendahara, Admin, Root)
      */
-    private function checkAccess(bool $bendaharaOnly = false): void
+    private function checkAccess(bool $manageOnly = false): void
     {
         $user = auth()->user();
         if (!$user) {
             abort(401, 'Unauthenticated');
         }
 
-        if ($bendaharaOnly) {
-            if (!$user->hasGroup(SysGroup::BENDAHARA) && !$user->hasGroup(SysGroup::ROOT)) {
-                abort(403, 'Akses ditolak. Fitur ini hanya dapat diakses oleh Bendahara.');
+        $canManage = $user->hasGroup(SysGroup::MARKETING) ||
+            $user->hasGroup(SysGroup::BENDAHARA) ||
+            $user->hasGroup(SysGroup::ADMIN) ||
+            $user->hasGroup(SysGroup::ROOT);
+
+        if ($manageOnly) {
+            if (!$canManage) {
+                abort(403, 'Akses ditolak. Fitur ini hanya dapat diakses oleh Tim Marketing atau Bendahara.');
             }
         } else {
-            if (!$user->hasGroup(SysGroup::BENDAHARA) && !$user->hasGroup(SysGroup::ADMIN) && !$user->hasGroup(SysGroup::ROOT)) {
+            if (!$canManage) {
                 abort(403, 'Akses ditolak.');
             }
         }
@@ -56,14 +61,20 @@ class JasaLainnyaController extends Controller
         $this->checkAccess(false);
 
         $currentUser = auth()->user();
-        $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
+        $canManage = $currentUser && (
+            $currentUser->hasGroup(SysGroup::MARKETING) ||
+            $currentUser->hasGroup(SysGroup::BENDAHARA) ||
+            $currentUser->hasGroup(SysGroup::ADMIN) ||
+            $currentUser->hasGroup(SysGroup::ROOT)
+        );
 
         return view("{$this->view}.index", [
             'breadcrumbs' => [
                 new Breadcrumbs('Admin'),
                 new Breadcrumbs('Pencatatan Jasa Lainnya', url($this->url)),
             ],
-            'isBendahara' => $isBendahara,
+            'canManage' => $canManage,
+            'isBendahara' => $canManage,
         ]);
     }
 
@@ -80,7 +91,12 @@ class JasaLainnyaController extends Controller
             ->with(['permohonan', 'pencatat']);
 
         $currentUser = auth()->user();
-        $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
+        $canManage = $currentUser && (
+            $currentUser->hasGroup(SysGroup::MARKETING) ||
+            $currentUser->hasGroup(SysGroup::BENDAHARA) ||
+            $currentUser->hasGroup(SysGroup::ADMIN) ||
+            $currentUser->hasGroup(SysGroup::ROOT)
+        );
 
         return DataTables::of($query)
             ->addIndexColumn()
@@ -123,11 +139,11 @@ class JasaLainnyaController extends Controller
             ->addColumn('tgl_bayar', function ($row) {
                 return $row->tgl_bayar ? Carbon::parse($row->tgl_bayar)->format('d M Y') : '-';
             })
-            ->addColumn('aksi', function ($row) use ($isBendahara) {
+            ->addColumn('aksi', function ($row) use ($canManage) {
                 $btn = '<div class="d-flex justify-content-end gap-2">';
                 $btn .= '<a href="' . route('permohonan.jasa-lainnya.show', $row->id) . '" class="btn btn-sm btn-icon btn-light-info" title="Detail"><i class="fas fa-eye"></i></a>';
 
-                if ($isBendahara) {
+                if ($canManage) {
                     $btn .= '<a href="' . route('permohonan.jasa-lainnya.edit', $row->id) . '" class="btn btn-sm btn-icon btn-light-warning" title="Edit"><i class="fas fa-edit"></i></a>';
                     $btn .= '<button type="button" class="btn btn-sm btn-icon btn-light-danger btn-delete" data-id="' . $row->id . '" title="Hapus"><i class="fas fa-trash"></i></button>';
                 }
@@ -308,13 +324,14 @@ class JasaLainnyaController extends Controller
             ]);
 
             // 5. Catat Tracking Log
+            $pencatatName = auth()->user()?->name ?? 'Tim Marketing';
             PermohonanTrackingLog::create([
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
                 'sumber' => 'POLIMER',
                 'milestone_code' => 'JASA_DICATAT',
                 'judul' => 'Penerimaan Jasa Lainnya Dicatat',
-                'deskripsi' => 'Transaksi jasa lainnya #' . $noPermohonan . ' senilai Rp ' . number_format((float) $validated['total'], 0, ',', '.') . ' berhasil dicatat oleh Bendahara.',
+                'deskripsi' => 'Transaksi jasa lainnya #' . $noPermohonan . ' senilai Rp ' . number_format((float) $validated['total'], 0, ',', '.') . ' berhasil dicatat oleh ' . $pencatatName . '.',
             ]);
 
             DB::commit();
@@ -354,7 +371,12 @@ class JasaLainnyaController extends Controller
             ->firstOrFail();
 
         $currentUser = auth()->user();
-        $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
+        $canManage = $currentUser && (
+            $currentUser->hasGroup(SysGroup::MARKETING) ||
+            $currentUser->hasGroup(SysGroup::BENDAHARA) ||
+            $currentUser->hasGroup(SysGroup::ADMIN) ||
+            $currentUser->hasGroup(SysGroup::ROOT)
+        );
 
         return view("{$this->view}.show", [
             'breadcrumbs' => [
@@ -363,7 +385,8 @@ class JasaLainnyaController extends Controller
                 new Breadcrumbs('Detail'),
             ],
             'jasa' => $jasa,
-            'isBendahara' => $isBendahara,
+            'canManage' => $canManage,
+            'isBendahara' => $canManage,
         ]);
     }
 

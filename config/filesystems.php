@@ -53,6 +53,7 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'temporary_url' => env('AWS_TEMPORARY_URL', env('AWS_URL')),
             'throw' => false,
         ] : [
             // S3 dinonaktifkan: dialihkan ke storage lokal (public) tanpa menghapus kode asli

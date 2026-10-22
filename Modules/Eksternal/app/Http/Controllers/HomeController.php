@@ -124,6 +124,17 @@ class HomeController extends Controller
     // Private Helper Methods
     // ──────────────────────────────────────────────
 
+    private function getImageUrl($imagePath, $cacheDuration): ?string
+    {
+        if (empty($imagePath) || !is_string($imagePath)) {
+            return null;
+        }
+
+        // Gunakan proxy /media/s3 agar browser tidak perlu mengakses MinIO langsung
+        // (presigned URL S3 ditandatangani untuk host internal Docker sehingga ditolak browser)
+        return url('/media/s3/' . ltrim($imagePath, '/'));
+    }
+
     private function parseBanners(?SiteManajemen $bannersObj, $cacheDuration): array
     {
         $banners = [];
@@ -133,7 +144,7 @@ class HomeController extends Controller
 
         foreach ($bannersObj->data as $item) {
             $banners[] = [
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url"   => $this->getImageUrl($item['image_path'] ?? null, $cacheDuration),
                 "title"       => localized_content($item['title'] ?? null),
                 "description" => localized_content($item['description'] ?? null),
                 "cta_text"    => localized_content(Arr::get($item, 'cta_text', null)),
@@ -157,7 +168,7 @@ class HomeController extends Controller
         foreach ($servicesObj->data as $item) {
             $services[] = [
                 "id"          => $item['id'] ?? null,
-                "image_url"   => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url"   => $this->getImageUrl($item['image_path'] ?? null, $cacheDuration),
                 "name"        => localized_content(Arr::get($item, 'title', Arr::get($item, 'name'))),
                 "description" => localized_content(Arr::get($item, 'description')),
                 'order'       => Arr::get($item, 'order', 0),
@@ -177,7 +188,7 @@ class HomeController extends Controller
 
         foreach ($partnersObj->data as $item) {
             $partners[] = [
-                "image_url" => Storage::disk('s3')->temporaryUrl($item['image_path'], $cacheDuration),
+                "image_url" => $this->getImageUrl($item['image_path'] ?? null, $cacheDuration),
                 'order'     => $item['order'] ?? 0,
             ];
         }

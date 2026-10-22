@@ -13,4 +13,5 @@ enum HomepageKey: string
     case PARTNERS = 'PARTNERS';
     case ABOUT = 'ABOUT';
     case SOCIAL_MEDIA = 'SOCIAL_MEDIA';
+    case ACCORDION = 'ACCORDION';
 }

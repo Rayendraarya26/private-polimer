@@ -15,17 +15,17 @@ use Illuminate\Support\Str;
 class ManageHomepageController
 {
 
-    public string  $module = __CLASS__;
-    private string $url    = 'admin/manajemen-homepage';
-    private string $view   = 'admin::manajemen_homepage';
+    public string $module = __CLASS__;
+    private string $url = 'admin/manajemen-homepage';
+    private string $view = 'admin::manajemen_homepage';
     const CACHE_NAME = 'home_parser';
 
     private function defaultParser(): array
     {
         return [
-            'url'    => $this->url,
+            'url' => $this->url,
             'module' => $this->module,
-            'view'   => $this->view,
+            'view' => $this->view,
         ];
     }
 
@@ -36,10 +36,10 @@ class ManageHomepageController
             new Breadcrumbs('Manage Home Page'),
         ];
 
-        $key_option    = ($request->data) ? $request->data : 'slider';
+        $key_option = ($request->data) ? $request->data : 'slider';
         $template_data = [
-            'breadcrumbs'  => $breadcrumbs,
-            'key'          => HomepageKey::toArray(),
+            'breadcrumbs' => $breadcrumbs,
+            'key' => HomepageKey::toArray(),
             'selected_key' => $key_option,
         ];
 
@@ -50,6 +50,11 @@ class ManageHomepageController
             $template_data['about_us_en'] = is_array($aboutData) ? ($aboutData['en'] ?? '') : '';
             $template_data['id']          = $siteAbout->id;
         }
+        if ($key_option == 'accordion') {
+            $siteAccordion = SiteManajemen::query()->where('key', '=', 'ACCORDION')->first();
+            $template_data['list_accordion'] = $siteAccordion?->data ?? [];
+        }
+
         $parse = array_merge($this->defaultParser(), $template_data);
 
         return view("$this->view.index_" . $key_option)->with($parse);
@@ -58,16 +63,19 @@ class ManageHomepageController
     public function update(Request $request, $action)
     {
         $data = match ($action) {
-            'about'               => $this->upsert_about($request),
-            'store_slider'        => $this->store_slider($request),
-            'store_services'      => $this->store_services($request),
-            'store_partner'       => $this->store_partner($request),
-            'store_social_media'  => $this->store_social_media($request),
-            'update_slider'       => $this->update_slider($request),
-            'update_services'     => $this->update_services($request),
-            'update_partner'      => $this->update_partner($request),
+            'about' => $this->upsert_about($request),
+            'store_slider' => $this->store_slider($request),
+            'store_services' => $this->store_services($request),
+            'store_partner' => $this->store_partner($request),
+            'store_social_media' => $this->store_social_media($request),
+            'update_slider' => $this->update_slider($request),
+            'update_services' => $this->update_services($request),
+            'update_partner' => $this->update_partner($request),
             'update_social_media' => $this->update_social_media($request),
-            default              => abort(404),
+            'store_accordion' => $this->store_accordion($request),
+            'update_accordion' => $this->update_accordion($request),
+            'delete_accordion' => $this->delete_accordion($request),
+            default => abort(404),
         };
 
         Cache::forget(self::CACHE_NAME);
@@ -95,7 +103,10 @@ class ManageHomepageController
         ]);
 
         $image = $request->file('image');
-        $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        $key = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        if (!$key) {
+            return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+        }
 
         $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
         $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
@@ -147,7 +158,10 @@ class ManageHomepageController
         ]);
 
         $image = $request->file('image');
-        $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        $key = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        if (!$key) {
+            return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+        }
 
         $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
         $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
@@ -186,14 +200,17 @@ class ManageHomepageController
         ]);
 
         $image = $request->file('image');
-        $key   = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        $key = Storage::disk('s3')->putFile(config('app.slider.path'), $image);
+        if (!$key) {
+            return responseJSON('Gagal mengunggah gambar ke storage.', null, 500);
+        }
 
-        $banner      = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
-        $data_json   = $banner->data;
+        $banner = SiteManajemen::where('key', '=', 'PARTNERS')->firstOrFail();
+        $data_json = $banner->data;
         $data_json[] = [
-            'id'         => Str::uuid()->toString(),
-            'order'      => $input['order'],
-            'title'      => $input['title'],
+            'id' => Str::uuid()->toString(),
+            'order' => $input['order'],
+            'title' => $input['title'],
             'image_path' => $key,
         ];
 
@@ -206,20 +223,20 @@ class ManageHomepageController
     public function store_social_media(Request $request)
     {
         $input = $request->validate([
-            'order'      => 'required|integer',
-            'title'      => 'required',
+            'order' => 'required|integer',
+            'title' => 'required',
             'icon_class' => 'required',
-            'url'        => 'required|url',
+            'url' => 'required|url',
         ]);
 
         $socialMedia = SiteManajemen::where('key', '=', HomepageKey::SOCIAL_MEDIA->value)->firstOrNew();
-        $data_json   = $socialMedia->data ?? [];
+        $data_json = $socialMedia->data ?? [];
         $data_json[] = [
-            'id'         => Str::uuid()->toString(),
-            'order'      => $input['order'],
-            'title'      => $input['title'],
+            'id' => Str::uuid()->toString(),
+            'order' => $input['order'],
+            'title' => $input['title'],
             'icon_class' => $input['icon_class'],
-            'url'        => $input['url'],
+            'url' => $input['url'],
         ];
 
         $socialMedia->key = HomepageKey::SOCIAL_MEDIA->value;
@@ -232,10 +249,10 @@ class ManageHomepageController
     public function update_partner(Request $request)
     {
         $validate = [
-            'order'     => 'required|integer',
-            'id'        => 'required',
-            'title'     => 'nullable',
-            'image'     => 'nullable',
+            'order' => 'required|integer',
+            'id' => 'required',
+            'title' => 'nullable',
+            'image' => 'nullable',
             'image_old' => 'required',
         ];
 
@@ -246,10 +263,10 @@ class ManageHomepageController
 
         $input = $request->validate($validate);
 
-        $partners     = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
+        $partners = SiteManajemen::query()->where('key', '=', 'PARTNERS')->firstOrFail();
         $updated_data = $partners->data;
-        $key          = $this->searchForId($request->id, $updated_data);
-        $path         = null;
+        $key = $this->searchForId($request->id, $updated_data);
+        $path = null;
 
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
@@ -265,20 +282,22 @@ class ManageHomepageController
         }
 
         $partners->data = $updated_data;
-        $saved          = $partners->save();
+        $saved = $partners->save();
 
         if (!$saved) {
             if ($path !== null && $path !== false) {
                 try {
                     Storage::disk('s3')->delete($path);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Galat mengubah data partner.');
         } else {
             if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
                 try {
                     Storage::disk('s3')->delete($input['image_old']);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Sukses mengubah data partner.');
         }
@@ -306,10 +325,10 @@ class ManageHomepageController
 
         $input = $request->validate($validate);
 
-        $services     = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
+        $services = SiteManajemen::where('key', '=', 'SERVICES')->firstOrFail();
         $updated_data = $services->data;
-        $key          = $this->searchForId($request->id, $updated_data);
-        $path         = null;
+        $key = $this->searchForId($request->id, $updated_data);
+        $path = null;
 
         $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
         $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
@@ -338,20 +357,22 @@ class ManageHomepageController
         }
 
         $services->data = $updated_data;
-        $saved          = $services->save();
+        $saved = $services->save();
 
         if (!$saved) {
             if ($path !== null && $path !== false) {
                 try {
                     Storage::disk('s3')->delete($path);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Galat mengubah data services.');
         } else {
             if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
                 try {
                     Storage::disk('s3')->delete($input['image_old']);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Sukses mengubah data services.');
         }
@@ -383,10 +404,10 @@ class ManageHomepageController
 
         $input = $request->validate($validate);
 
-        $banner       = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
+        $banner = SiteManajemen::query()->where('key', '=', 'SLIDER')->firstOrFail();
         $updated_data = $banner->data;
-        $key          = $this->searchForId($request->id, $updated_data);
-        $path         = null;
+        $key = $this->searchForId($request->id, $updated_data);
+        $path = null;
 
         $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title'));
         $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
@@ -423,20 +444,22 @@ class ManageHomepageController
         }
 
         $banner->data = $updated_data;
-        $saved        = $banner->save();
+        $saved = $banner->save();
 
         if (!$saved) {
             if ($path !== null && $path !== false) {
                 try {
                     Storage::disk('s3')->delete($path);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Galat mengubah data slider.');
         } else {
             if ($image != null && $path && !empty($input['image_old']) && !str_contains($input['image_old'], 'dummy')) {
                 try {
                     Storage::disk('s3')->delete($input['image_old']);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
             return responseJSON('Sukses mengubah data slider.');
         }
@@ -445,16 +468,16 @@ class ManageHomepageController
     public function update_social_media(Request $request)
     {
         $input = $request->validate([
-            'order'      => 'required|integer',
-            'id'         => 'required',
-            'title'      => 'required',
+            'order' => 'required|integer',
+            'id' => 'required',
+            'title' => 'required',
             'icon_class' => 'required',
-            'url'        => 'required|url',
+            'url' => 'required|url',
         ]);
 
-        $socialMedia  = SiteManajemen::where('key', '=', HomepageKey::SOCIAL_MEDIA->value)->firstOrFail();
+        $socialMedia = SiteManajemen::where('key', '=', HomepageKey::SOCIAL_MEDIA->value)->firstOrFail();
         $updated_data = $socialMedia->data;
-        $key          = $this->searchForId($request->id, $updated_data);
+        $key = $this->searchForId($request->id, $updated_data);
 
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", $input['order']);
@@ -498,11 +521,11 @@ class ManageHomepageController
     public function destroy(Request $request, $action)
     {
         $data = match ($action) {
-            'destroy_slider'       => $this->destroy_slider($request),
-            'destroy_services'     => $this->destroy_services($request),
-            'destroy_partner'      => $this->destroy_partner($request),
+            'destroy_slider' => $this->destroy_slider($request),
+            'destroy_services' => $this->destroy_services($request),
+            'destroy_partner' => $this->destroy_partner($request),
             'destroy_social_media' => $this->destroy_social_media($request),
-            default               => abort(404),
+            default => abort(404),
         };
 
         Cache::forget(self::CACHE_NAME);
@@ -514,9 +537,9 @@ class ManageHomepageController
 
     private function removeSiteData(Request $request, HomepageKey $key)
     {
-        $site    = SiteManajemen::query()->where('key', '=', $key->value)->firstOrFail();
+        $site = SiteManajemen::query()->where('key', '=', $key->value)->firstOrFail();
         $sliders = $site->data;
-        $key     = $this->searchForId($request->id, $sliders);
+        $key = $this->searchForId($request->id, $sliders);
         if (!is_null($key)) {
             $image_path = Arr::get($sliders, "$key.image_path");
             Arr::forget($sliders, $key);
@@ -528,7 +551,8 @@ class ManageHomepageController
                 // delete image
                 try {
                     Storage::disk('s3')->delete($image_path);
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
 
             return responseJSON('Data berhasil dihapus.');
@@ -561,11 +585,11 @@ class ManageHomepageController
     {
         $request->validate(['action' => 'required']);
         return match ($request->input('action')) {
-            'slider'       => $data = $this->ajax_slider($request),
-            'services'     => $data = $this->ajax_services($request),
-            'partner'      => $data = $this->ajax_partner($request),
+            'slider' => $data = $this->ajax_slider($request),
+            'services' => $data = $this->ajax_services($request),
+            'partner' => $data = $this->ajax_partner($request),
             'social_media' => $data = $this->ajax_social_media($request),
-            default        => abort(404),
+            default => abort(404),
         };
     }
 

@@ -84,11 +84,10 @@ class MarketingUserSeeder extends Seeder
             }
         }
 
-        $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
-        $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
-            $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\PbaController%');
+        $marketingActions = SysMenuAction::where(function ($query) {
+            $query->where('controller', 'LIKE', '%PermohonanController%')
+                  ->orWhere('controller', 'LIKE', '%TagihanBiayaController%')
+                  ->orWhere('controller', 'LIKE', '%PbaController%');
         })->get();
 
         foreach ($marketingActions as $action) {

@@ -66,16 +66,16 @@ class GroupSeeder extends Seeder
 
         $modulePermohonan = 'Modules\Permohonan\Http\Controllers';
 
-        // Bendahara: PermohonanController (index, ajax, detail), InvoiceController, and BillingPembayaranController
+        // Bendahara: PermohonanController (index, ajax, detail), InvoiceController, BillingPembayaranController, and JasaLainnyaController
         $bendaharaActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
             $query->whereIn('controller', [
                 $modulePermohonan . '\PermohonanController@index',
                 $modulePermohonan . '\PermohonanController@ajax',
                 $modulePermohonan . '\PermohonanController@detail',
             ])
-            ->orWhere('controller', 'LIKE', $modulePermohonan . '\InvoiceController%')
-            ->orWhere('controller', 'LIKE', $modulePermohonan . '\BillingPembayaranController%')
-            ->orWhere('controller', 'LIKE', $modulePermohonan . '\JasaLainnyaController%');
+            ->orWhere('controller', 'LIKE', '%InvoiceController%')
+            ->orWhere('controller', 'LIKE', '%BillingPembayaranController%')
+            ->orWhere('controller', 'LIKE', '%JasaLainnyaController%');
         })->get();
 
         foreach ($bendaharaActions as $action) {
@@ -86,10 +86,10 @@ class GroupSeeder extends Seeder
         }
 
         // Marketing: PermohonanController, TagihanBiayaController, and PbaController (NO Billing, NO Master, NO System)
-        $marketingActions = SysMenuAction::where(function ($query) use ($modulePermohonan) {
-            $query->where('controller', 'LIKE', $modulePermohonan . '\PermohonanController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\TagihanBiayaController%')
-                  ->orWhere('controller', 'LIKE', $modulePermohonan . '\PbaController%');
+        $marketingActions = SysMenuAction::where(function ($query) {
+            $query->where('controller', 'LIKE', '%PermohonanController%')
+                  ->orWhere('controller', 'LIKE', '%TagihanBiayaController%')
+                  ->orWhere('controller', 'LIKE', '%PbaController%');
         })->get();
 
         foreach ($marketingActions as $action) {

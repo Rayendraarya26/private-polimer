@@ -56,7 +56,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge badge-light-warning text-warning px-3 py-2 fw-bold">Menunggu TTE Bendahara</span>
-                @if(auth()->user()?->hasGroup(\App\Models\SysGroup::BENDAHARA) || auth()->user()?->hasGroup(\App\Models\SysGroup::ADMIN) || auth()->user()?->hasGroup(\App\Models\SysGroup::ROOT))
+                @if(auth()->user()?->hasGroup(\App\Enums\SysGroup::BENDAHARA) || auth()->user()?->hasGroup(\App\Enums\SysGroup::ADMIN) || auth()->user()?->hasGroup(\App\Enums\SysGroup::ROOT))
                     <a href="{{ url()->current() }}?d=files" class="btn btn-sm btn-primary fw-semibold">
                         <i class="fas fa-file-signature me-1"></i> TTE Invoice di Tab Files
                     </a>

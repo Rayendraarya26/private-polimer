@@ -315,7 +315,7 @@ class InvoiceController extends Controller
 
             return response()->json([
                 'success'         => true,
-                'message'         => 'Invoice & BNI Virtual Account berhasil diterbitkan secara elektronik (TTE BSrE)',
+                'message'         => 'Invoice berhasil ditandatangani',
                 'virtual_account' => $va,
                 'verify_url'      => $verifyUrl,
             ]);
@@ -651,7 +651,7 @@ class InvoiceController extends Controller
 
             return response()->json([
                 'success'    => true,
-                'message'    => 'Kuitansi berhasil ditandatangani secara elektronik (TTE BSrE)',
+                'message'    => 'Kuitansi berhasil ditandatangani',
                 'verify_url' => route('permohonan.kuitansi.download-tte', ['id' => $permohonan->id]),
             ]);
 

@@ -226,12 +226,12 @@ export const DetailPermohonanPage: React.FC = () => {
             </Button>
           )}
 
-          {Boolean(permohonan?.invoice_file || permohonan?.invoice_number) && (
+          {Boolean(permohonan?.pdf_tte) && (
             <Button
               size="sm"
               variant="outline"
               leftIcon={<FileText className="w-3.5 h-3.5" />}
-              onClick={() => openInvoice({ id, no_permohonan: noOrder })}
+              onClick={() => openInvoice({ id, no_permohonan: noOrder, pdf_tte: permohonan?.pdf_tte })}
             >
               Invoice
             </Button>

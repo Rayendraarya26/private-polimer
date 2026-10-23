@@ -386,7 +386,7 @@ export const KonsultasiATDetailSection: React.FC<KonsultasiATDetailSectionProps>
                 </Button>
               )}
 
-              {permohonan?.invoice_number && openInvoice && (
+              {permohonan?.pdf_tte && openInvoice && (
                 <Button
                   size="sm"
                   variant="outline"

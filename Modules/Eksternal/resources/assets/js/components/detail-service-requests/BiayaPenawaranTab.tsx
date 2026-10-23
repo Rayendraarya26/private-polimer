@@ -25,7 +25,7 @@ export interface BiayaPenawaranTabProps {
   approvalLoading: boolean
   requestingTte: string | null
   openPdfDoc: (url: string, title: string, filename: string) => void
-  openInvoice: (params: { id?: string; no_permohonan: string }) => void
+  openInvoice: (params: { id?: string; no_permohonan: string; pdf_tte?: string | null }) => void
   openKuitansi: (params: { id?: string; no_permohonan: string }) => void
   handleApprovalPenawaran: (status: "SETUJU" | "TOLAK") => void
   handleRequestTteInvoice: () => void
@@ -325,29 +325,26 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
               <p className="text-slate-500 text-[11px]">
                 Surat tagihan resmi berisi rincian tarif layanan dan nomor rekening perbendaharaan.
               </p>
-              <div className="flex items-center gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  leftIcon={<FileText className="w-3.5 h-3.5" />}
-                  onClick={() => openInvoice({ id, no_permohonan: noOrder })}
-                  className="flex-1 justify-center"
-                >
-                  Buka Invoice
-                </Button>
-                {!permohonan?.pdf_tte && !permohonan?.tte_invoice_requested && (
+              {permohonan?.pdf_tte ? (
+                <div className="flex items-center gap-2 pt-1">
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
-                    onClick={handleRequestTteInvoice}
-                    isLoading={requestingTte === "invoice"}
-                    className="text-xs"
-                    title="Minta TTE BSrE Resmi Bendahara"
+                    leftIcon={<FileText className="w-3.5 h-3.5" />}
+                    onClick={() => openInvoice({ id, no_permohonan: noOrder, pdf_tte: permohonan?.pdf_tte })}
+                    className="flex-1 justify-center"
+                    title="Buka Invoice Resmi BSrE"
                   >
-                    Minta TTE
+                    Buka Invoice
                   </Button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="pt-1">
+                  <span className="inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1">
+                    Invoice belum terbit (Menunggu TTE Bendahara)
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Kotak Kuitansi */}

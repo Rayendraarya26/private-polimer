@@ -17,6 +17,7 @@ class PembayaranController extends Controller
 
             $userId = auth()->id();
 
+            // Hanya permohonan yang sudah tahap pembayaran dan invoice telah disahkan TTE oleh Bendahara
             $data = Permohonan::with([
                 'detailPembayaran',
                 'detailPermohonan.lingkupLayanan',
@@ -24,7 +25,7 @@ class PembayaranController extends Controller
             ])
             ->where(function ($q) {
                 $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROCESS', 'DONE'])
-                  ->orWhereNotNull('invoice_number');
+                  ->whereNotNull('pdf_tte');
             })
             ->where('created_by', $userId)
             ->orderBy('created_at', 'desc')
@@ -42,6 +43,8 @@ class PembayaranController extends Controller
                 $totalTagihan =
                     $item->detailPembayaran->sum('subtotal') ?: ($item->billing?->total_nominal ?? $item->harga_permohonan ?? 0);
 
+                $isTteSigned = !empty($item->pdf_tte);
+
                 return [
                     'id' => $item->id,
                     'nama_permohonan' => $namaPermohonan,
@@ -49,14 +52,14 @@ class PembayaranController extends Controller
                     'tgl_order' => $item->tgl_order,
                     'total_tagihan' => (float) $totalTagihan,
                     'status_bayar'   => $item->status_bayar,
-                    'va'             => $item->va,
-                    'va_trx_id'      => $item->va_trx_id,
-                    'va_expired_at'  => $item->va_expired_at?->format('Y-m-d H:i:s'),
-                    'va_status'      => $item->va_status ?? 'PENDING',
+                    'va'             => $isTteSigned ? $item->va : null,
+                    'va_trx_id'      => $isTteSigned ? $item->va_trx_id : null,
+                    'va_expired_at'  => $isTteSigned ? $item->va_expired_at?->format('Y-m-d H:i:s') : null,
+                    'va_status'      => $isTteSigned ? ($item->va_status ?? 'PENDING') : 'MENUNGGU_TTE',
 
-                    // Info invoice & kuitansi
-                    'invoice_number'            => $item->invoice_number ?? $item->billing?->no_billing,
-                    'invoice_file'              => $item->invoice_file ?? $item->billing?->file_invoice,
+                    // Info invoice & kuitansi (hanya jika sudah ber-TTE resmi)
+                    'invoice_number'            => $isTteSigned ? ($item->invoice_number ?? $item->billing?->no_billing) : null,
+                    'invoice_file'              => $isTteSigned ? ($item->invoice_file ?? $item->billing?->file_invoice) : null,
                     'pdf_tte'                   => $item->pdf_tte,
                     'tte_invoice_requested'     => (bool) $item->tte_invoice_requested,
                     'tte_invoice_requested_at'  => $item->tte_invoice_requested_at?->format('Y-m-d H:i:s'),
@@ -110,16 +113,19 @@ class PembayaranController extends Controller
                 ->where('created_by', $userId)
                 ->firstOrFail();
 
+            $isTteSigned = !empty($permohonan->pdf_tte);
+
             return response()->json([
                 'success' => true,
                 'data' => [
                     'id'                    => $permohonan->id,
-                    'invoice_number'        => $permohonan->invoice_number ?? $permohonan->billing?->no_billing,
-                    'invoice_file'          => $permohonan->invoice_file ?? $permohonan->billing?->file_invoice,
-                    'va'                    => $permohonan->va,
-                    'va_trx_id'             => $permohonan->va_trx_id,
-                    'va_expired_at'         => $permohonan->va_expired_at?->format('Y-m-d H:i:s'),
-                    'va_status'             => $permohonan->va_status ?? 'PENDING',
+                    'invoice_number'        => $isTteSigned ? ($permohonan->invoice_number ?? $permohonan->billing?->no_billing) : null,
+                    'invoice_file'          => $isTteSigned ? ($permohonan->invoice_file ?? $permohonan->billing?->file_invoice) : null,
+                    'pdf_tte'               => $permohonan->pdf_tte,
+                    'va'                    => $isTteSigned ? $permohonan->va : null,
+                    'va_trx_id'             => $isTteSigned ? $permohonan->va_trx_id : null,
+                    'va_expired_at'         => $isTteSigned ? $permohonan->va_expired_at?->format('Y-m-d H:i:s') : null,
+                    'va_status'             => $isTteSigned ? ($permohonan->va_status ?? 'PENDING') : 'MENUNGGU_TTE',
                     'kuitansi_number'       => $permohonan->kuitansi_number,
                     'kuitansi_file'         => $permohonan->kuitansi_file,
                     'kuitansi_generated_at' => $permohonan->kuitansi_generated_at?->format('Y-m-d H:i:s'),
@@ -212,6 +218,14 @@ class PembayaranController extends Controller
                 'detailPermohonan.lingkupLayanan',
                 'creator'
             ])->firstOrFail();
+        }
+
+        // Proteksi: Pelanggan tidak boleh mengakses berkas invoice sebelum disahkan TTE oleh Bendahara
+        if (!$isPegawai && empty($permohonan->pdf_tte)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice resmi belum dapat diakses. Dokumen masih menunggu persetujuan dan Tanda Tangan Elektronik (TTE BSrE) oleh Bendahara Penerimaan.',
+            ], 403);
         }
 
         try {

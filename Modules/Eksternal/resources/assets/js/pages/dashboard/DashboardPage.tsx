@@ -478,8 +478,8 @@ const DashboardPage: React.FC = () => {
                               Detail
                             </Button>
 
-                            {/* Tombol Invoice: hanya muncul jika invoice sudah digenerate */}
-                            {Boolean(item.has_invoice || item.invoice_file || item.invoice_number) && (
+                            {/* Tombol Invoice: hanya muncul jika invoice sudah ber-TTE resmi */}
+                            {Boolean(item.pdf_tte) && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -488,6 +488,7 @@ const DashboardPage: React.FC = () => {
                                   openInvoice({
                                     id: item.id,
                                     no_permohonan: item.kode_order || item.nomor_order,
+                                    pdf_tte: item.pdf_tte,
                                   })
                                 }
                               >

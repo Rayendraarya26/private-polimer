@@ -214,39 +214,23 @@ const PembayaranPage: React.FC = () => {
             </Button>
           )}
 
-          {/* Invoice Button & TTE Request */}
-          <div className="inline-flex items-center gap-1">
-            <Button
-              size="sm"
-              variant="outline"
-              leftIcon={<Receipt className="w-3.5 h-3.5" />}
-              onClick={() => openInvoice(row)}
-            >
-              Invoice
-            </Button>
-            {!row.pdf_tte && (
-              row.tte_invoice_requested ? (
-                <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
-                  TTE Diminta
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleRequestTteInvoice(row)}
-                  disabled={requestingTteId === `inv-${row.id}`}
-                  className="px-2 py-1 text-[10px] font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition-colors"
-                  title="Minta TTE BSrE Resmi Bendahara"
-                >
-                  Minta TTE
-                </button>
-              )
-            )}
-            {row.pdf_tte && (
+          {/* Invoice Button (hanya tampil jika invoice sudah ber-TTE sah) */}
+          {row.pdf_tte && (
+            <div className="inline-flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                leftIcon={<Receipt className="w-3.5 h-3.5" />}
+                onClick={() => openInvoice(row)}
+                title="Buka Invoice Resmi TTE BSrE"
+              >
+                Invoice
+              </Button>
               <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
                 TTE BSrE Sah
               </span>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Kuitansi Button & TTE Request */}
           <div className="inline-flex items-center gap-1">

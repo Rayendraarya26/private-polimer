@@ -702,6 +702,16 @@ class PermohonanController extends Controller
             'creator' => $permohonan->creator,
         ]);
 
+        // Jika user adalah pelanggan dan invoice belum di-TTE oleh Bendahara, jangan kirimkan draf invoice & VA
+        if (!$isPegawai && empty($permohonan->pdf_tte)) {
+            $detailData['invoice_file'] = null;
+            $detailData['invoice_number'] = null;
+            $detailData['va'] = null;
+            $permohonan->invoice_file = null;
+            $permohonan->invoice_number = null;
+            $permohonan->va = null;
+        }
+
         return response()->json([
             'success' => true,
             'results' => [
@@ -758,7 +768,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Invoice BSrE berhasil dikirim ke Bendahara.',
+            'message' => 'Permintaan TTE Invoice berhasil dikirim.',
             'data' => [
                 'tte_invoice_requested' => true,
                 'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
@@ -810,7 +820,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Kuitansi BSrE berhasil dikirim ke Bendahara.',
+            'message' => 'Permintaan TTE Kuitansi berhasil dikirim.',
             'data' => [
                 'tte_kuitansi_requested' => true,
                 'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,

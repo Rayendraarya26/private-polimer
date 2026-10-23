@@ -14,6 +14,7 @@ export default defineConfig({
         react(),
     ],
     build: {
+        emptyOutDir: false,
         target: 'es2020',
         chunkSizeWarningLimit: 1500,
         rollupOptions: {

@@ -16,6 +16,10 @@ export const getJenisSewaAset = async (): Promise<JenisSewaOption[]> => {
 export const submitPermohonanAset = async (form: FormAsetPayload): Promise<any> => {
   const formData = new FormData()
 
+  if (form.aksi) {
+    formData.append('aksi', form.aksi)
+  }
+
   formData.append('jenis_sewa', form.jenis_sewa)
   formData.append('tanggal_mulai', form.tanggal_mulai)
   formData.append('tanggal_selesai', form.tanggal_selesai)

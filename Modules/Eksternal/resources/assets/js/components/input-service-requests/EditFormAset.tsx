@@ -161,7 +161,7 @@ export const EditFormAset: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      <Head title={`Perbaikan Permohonan Sewa Aset — ${permohonan?.no_permohonan || id}`} />
+      <Head title={`Perbaikan Permohonan Sewa Aset - ${permohonan?.no_permohonan || id}`} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
@@ -214,7 +214,7 @@ export const EditFormAset: React.FC = () => {
       </div>
 
       {/* Tab Contents */}
-      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200 shadow-soft">
+      <div className="space-y-4">
         {activeTab === 0 && (
           <Step1JenisDanPeriode
             jenisSewa={jenisSewa}
@@ -254,11 +254,23 @@ export const EditFormAset: React.FC = () => {
             setujuPernyataan={setujuPernyataan}
             setSetujuPernyataan={setSetujuPernyataan}
             existingFileUrl={existingFileUrl}
+            summaryData={{
+              jenisSewaLabel: jenisSewaOptions.find((o) => o.value === jenisSewa)?.label || jenisSewa,
+              tanggalMulai,
+              tanggalSelesai,
+              durasiHari,
+              keperluanPenggunaan,
+              pemohonNama,
+              pemohonNikNib,
+              pemohonTelepon,
+              pemohonEmail,
+              pemohonAlamat,
+            }}
           />
         )}
 
         {/* Action Buttons */}
-        <div className="mt-8 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <Button
             type="button"
             variant="outline"

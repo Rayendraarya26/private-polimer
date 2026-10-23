@@ -1,18 +1,9 @@
 import React from 'react'
-import {
-  Building2,
-  Calendar,
-  Clock,
-  FileSpreadsheet,
-  Car,
-  Layers,
-  Wrench,
-  HelpCircle,
-} from 'lucide-react'
+import { Building2, Layers, Wrench, Car, DoorOpen } from 'lucide-react'
 import { JenisSewaOption } from '../../../types/aset'
-import { Card, CardContent } from '../../ui/Card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card'
 
-interface Step1JenisDanPeriodeProps {
+export interface Step1JenisDanPeriodeProps {
   jenisSewa: string
   setJenisSewa: (val: string) => void
   tanggalMulai: string
@@ -30,17 +21,17 @@ interface Step1JenisDanPeriodeProps {
 const getAsetIcon = (val: string) => {
   switch (val) {
     case 'sewa_lapangan':
-      return <Layers className="w-5 h-5 text-emerald-600" />
+      return <Layers className="w-4 h-4 text-emerald-600" />
     case 'sewa_bangunan':
-      return <Building2 className="w-5 h-5 text-indigo-600" />
+      return <Building2 className="w-4 h-4 text-indigo-600" />
     case 'sewa_alat':
-      return <Wrench className="w-5 h-5 text-amber-600" />
+      return <Wrench className="w-4 h-4 text-amber-600" />
     case 'sewa_mobil':
-      return <Car className="w-5 h-5 text-sky-600" />
+      return <Car className="w-4 h-4 text-sky-600" />
     case 'sewa_ruangan':
-      return <Building2 className="w-5 h-5 text-violet-600" />
+      return <DoorOpen className="w-4 h-4 text-violet-600" />
     default:
-      return <Building2 className="w-5 h-5 text-brand-600" />
+      return <Building2 className="w-4 h-4 text-brand-600" />
   }
 }
 
@@ -61,72 +52,92 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
   const todayStr = new Date().toISOString().split('T')[0]
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* 1. Pilihan Jenis Sewa Aset */}
-      <div>
-        <label className="block text-sm font-bold text-slate-800 mb-1">
-          Pilih Kategori Fasilitas / Aset Balai <span className="text-rose-500">*</span>
-        </label>
-        <p className="text-xs text-slate-500 mb-3">
-          Tentukan aset fisik atau fasilitas milik BBSPJIKKP yang ingin Anda sewa/manfaatkan.
-        </p>
+    <Card className="rounded-xl border-slate-200 shadow-xs overflow-hidden">
+      <CardHeader className="rounded-t-xl bg-white border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0">
+            <Building2 className="w-4 h-4" />
+          </div>
+          <div>
+            <CardTitle className="text-base text-slate-900">
+              Fasilitas & Jadwal Pemanfaatan Aset
+            </CardTitle>
+            <CardDescription>
+              Pilih kategori aset atau fasilitas balai beserta periode pemanfaatan yang dikehendaki.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {options.map((opt) => {
-            const isSelected = jenisSewa === opt.value
-            return (
-              <div
-                key={opt.value}
-                onClick={() => setJenisSewa(opt.value)}
-                className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-150 flex flex-col justify-between ${
-                  isSelected
-                    ? 'border-brand-600 bg-brand-50/50 ring-2 ring-brand-500/20 shadow-xs'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg shrink-0 ${isSelected ? 'bg-white shadow-xs' : 'bg-slate-100'}`}>
-                    {getAsetIcon(opt.value)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 leading-snug">{opt.label}</h4>
-                    {opt.desc && (
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                        {opt.desc}
-                      </p>
-                    )}
-                  </div>
-                </div>
+      <CardContent className="p-6 space-y-6">
+        {/* 1. Pilihan Jenis Sewa Aset */}
+        <div>
+          <label className="block text-xs font-bold text-slate-800 mb-1">
+            Pilih Kategori Fasilitas / Aset Balai <span className="text-rose-500">*</span>
+          </label>
+          <p className="text-[11px] text-slate-500 mb-3">
+            Tentukan aset fisik atau fasilitas milik BBSPJIKKP yang ingin Anda manfaatkan atau sewa.
+          </p>
 
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                  <span className={isSelected ? 'font-semibold text-brand-700' : 'text-slate-400'}>
-                    {isSelected ? '✓ Terpilih' : 'Pilih Fasilitas'}
-                  </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {options.map((opt) => {
+              const isSelected = jenisSewa === opt.value
+              return (
+                <label
+                  key={opt.value}
+                  className={`flex items-start gap-3 p-3.5 rounded-lg border cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-slate-50 border-brand-600'
+                      : 'border-slate-200 hover:bg-slate-50/60 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="jenis_sewa"
+                    value={opt.value}
+                    checked={isSelected}
+                    onChange={() => setJenisSewa(opt.value)}
+                    className="mt-1 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0"
+                  />
                   <div
-                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                      isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300'
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      isSelected
+                        ? 'bg-white border border-brand-200 shadow-2xs'
+                        : 'bg-slate-100 border border-slate-200/80'
                     }`}
                   >
-                    {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    {getAsetIcon(opt.value)}
                   </div>
-                </div>
-              </div>
-            )
-          })}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-bold text-slate-900 block leading-snug">
+                      {opt.label}
+                    </span>
+                    {opt.desc && (
+                      <span className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 block leading-relaxed">
+                        {opt.desc}
+                      </span>
+                    )}
+                  </div>
+                </label>
+              )
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* 2. Periode Sewa & Kalkulasi Durasi */}
-      <Card className="rounded-xl border-slate-200 bg-slate-50/50 overflow-hidden">
-        <CardContent className="p-4 sm:p-5 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
-            <Calendar className="w-4 h-4 text-brand-600" />
-            <h3 className="text-sm font-bold text-slate-800">Jadwal & Periode Pemanfaatan</h3>
+        {/* 2. Periode Sewa & Estimasi Durasi */}
+        <div className="pt-2 border-t border-slate-200 space-y-3">
+          <div>
+            <h4 className="text-xs font-bold text-slate-800">
+              Jadwal & Periode Pemanfaatan <span className="text-rose-500">*</span>
+            </h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Tentukan rentang tanggal pelaksanaan pemanfaatan fasilitas balai.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 Tanggal Mulai <span className="text-rose-500">*</span>
               </label>
               <input
@@ -139,12 +150,12 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
                     setTanggalSelesai(e.target.value)
                   }
                 }}
-                className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-600 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 Tanggal Selesai <span className="text-rose-500">*</span>
               </label>
               <input
@@ -152,55 +163,52 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
                 min={tanggalMulai || todayStr}
                 value={tanggalSelesai}
                 onChange={(e) => setTanggalSelesai(e.target.value)}
-                className="w-full text-xs rounded-lg border border-slate-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-600 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 Estimasi Durasi
               </label>
-              <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-brand-700">
-                <Clock className="w-4 h-4 text-brand-600" />
-                <span>{durasiHari} Hari Kalender</span>
+              <div className="w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs font-bold text-slate-900 flex items-center justify-between">
+                <span>Durasi Penggunaan</span>
+                <span className="text-brand-700">{durasiHari} Hari</span>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* 3. Keperluan Penggunaan & Catatan Tambahan */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-800 mb-1">
-            Keperluan Penggunaan Aset <span className="text-rose-500">*</span>
-          </label>
-          <p className="text-xs text-slate-500 mb-1.5">
-            Jelaskan maksud dan tujuan pemanfaatan fasilitas balai ini secara jelas.
-          </p>
-          <textarea
-            rows={3}
-            value={keperluanPenggunaan}
-            onChange={(e) => setKeperluanPenggunaan(e.target.value)}
-            placeholder="Contoh: Digunakan untuk penyelenggaraan workshop pengembangan kemasan ramah lingkungan bagi 50 peserta industri UKM."
-            className="w-full text-xs rounded-xl border border-slate-300 p-3 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 leading-relaxed"
-          />
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-800 mb-1">
-            Catatan Tambahan / Kebutuhan Fasilitas Khusus (Opsional)
-          </label>
-          <textarea
-            rows={2}
-            value={catatanTambahan}
-            onChange={(e) => setCatatanTambahan(e.target.value)}
-            placeholder="Contoh: Memerlukan tambahan daya listrik khusus, meja tambahan, atau mic wireless."
-            className="w-full text-xs rounded-xl border border-slate-300 p-3 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 leading-relaxed"
-          />
+        {/* 3. Keperluan Penggunaan & Catatan Tambahan */}
+        <div className="pt-2 border-t border-slate-200 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              Keperluan Penggunaan Aset <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              value={keperluanPenggunaan}
+              onChange={(e) => setKeperluanPenggunaan(e.target.value)}
+              placeholder="Contoh: Digunakan untuk penyelenggaraan workshop pengembangan kemasan ramah lingkungan bagi 50 peserta industri UKM..."
+              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              Catatan Tambahan / Kebutuhan Fasilitas Khusus (Opsional)
+            </label>
+            <textarea
+              rows={2}
+              value={catatanTambahan}
+              onChange={(e) => setCatatanTambahan(e.target.value)}
+              placeholder="Contoh: Memerlukan tambahan daya listrik khusus, meja tambahan, atau mic wireless..."
+              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+            />
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 

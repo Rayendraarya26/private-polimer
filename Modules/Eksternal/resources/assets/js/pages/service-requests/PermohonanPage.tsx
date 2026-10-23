@@ -40,13 +40,13 @@ interface ServiceItem {
 
 const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[] = [
   {
-    title: "1. Pengujian & Laboratorium Kalibrasi",
-    desc: "Layanan pengujian mutu material kulit, karet, plastik dan kalibrasi peralatan standar industri.",
+    title: "1. Pengujian, Kalibrasi & Inspeksi Teknis",
+    desc: "Layanan pengujian mutu material kulit, karet, plastik, kalibrasi peralatan standar industri, dan inspeksi teknis.",
     items: [
       {
         id: "pengujian",
         name: "Pengujian",
-        desc: "Menjamin mutu dan keandalan produk melalui pengujian sesuai standar nasional dan internasional",
+        desc: "Menjamin mutu dan keandalan produk melalui pengujian sesuai standar nasional dan internasional.",
         icon: <FlaskConical className="w-6 h-6 text-brand-600" />,
         badge: "Terakreditasi KAN",
         route: "/permohonan/pengujian",
@@ -82,39 +82,50 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "2. Lembaga Sertifikasi Produk & Sistem (LSPro BBKKP)",
-    desc: "Sertifikasi kesesuaian tanda SNI produk, sistem manajemen mutu ISO, dan industri hijau untuk badan usaha/pabrik.",
+    title: "2. Layanan Sertifikasi",
+    desc: "Sertifikasi kesesuaian tanda SNI produk, sistem manajemen industri hijau, kompetensi profesi BNSP, dan sertifikasi halal.",
     items: [
+      {
+        id: "sertifikasi-produk",
+        name: "Sertifikasi Produk (SNI)",
+        desc: "Sertifikasi tanda SNI untuk produk kulit, karet, plastik, dan alas kaki oleh LSPro BBKKP.",
+        icon: <Award className="w-6 h-6 text-brand-600" />,
+        badge: "SPPT SNI",
+        route: "/permohonan/sertifikasi",
+        isAvailable: true,
+      },
       {
         id: "sertifikasi-industri",
         name: "Sertifikasi Industri",
-        desc: "Sertifikasi tanda SNI untuk produk kulit, karet, plastik, ISO 9001, ISO 14001, dan Industri Hijau.",
-        icon: <Award className="w-6 h-6 text-indigo-600" />,
-        badge: "SNI / ISO",
+        desc: "Sertifikasi sistem manajemen mutu ISO 9001, sistem lingkungan ISO 14001, dan Industri Hijau.",
+        icon: <Factory className="w-6 h-6 text-indigo-600" />,
+        badge: "ISO / SIH",
         route: "/permohonan/sertifikasi-industri",
+        isAvailable: true,
+      },
+      {
+        id: "sertifikasi_profesi",
+        name: "Sertifikasi Profesi (LSP)",
+        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0 berlisensi BNSP.",
+        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
+        badge: "Lisensi BNSP",
+        route: "/permohonan/sertifikasi-profesi",
         isAvailable: true,
       },
       {
         id: "halal",
         name: "Pemeriksaan Halal (LPH)",
-        desc: "Lembaga Pemeriksa Halal (LPH BBSPJIKKP) untuk jalur Reguler dan fasilitasi Self Declare SEHATI BPJPH.",
-        icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
+        desc: "Lembaga Pemeriksa Halal (LPH BBSPJIKKP) untuk jalur Reguler dan fasilitasi Self Declare BPJPH.",
+        icon: <ShieldCheck className="w-6 h-6 text-teal-600" />,
         badge: "BPJPH",
         route: "/permohonan/halal",
         isAvailable: true,
       },
-      // {
-      //   id: "verifikasi",
-      //   name: "Verifikasi & Validasi",
-      //   desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
-      //   icon: <CheckCircle2 className="w-6 h-6 text-blue-600" />,
-      //   isAvailable: false,
-      // },
     ],
   },
   {
     title: "3. Verifikasi dan Validasi",
-    desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
+    desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan emisi industri.",
     items: [
       {
         id: "tkdn",
@@ -134,26 +145,10 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         route: "/permohonan/grk",
         isAvailable: true,
       },
-
     ],
   },
   {
-    title: "4. Lembaga Sertifikasi Profesi (LSP BBKKP)",
-    desc: "Uji sertifikasi kompetensi profesi SDM industri terlisensi BNSP untuk perorangan dan delegasi perusahaan.",
-    items: [
-      {
-        id: "sertifikasi_profesi",
-        name: "Sertifikasi Profesi (LSP)",
-        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
-        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
-        badge: "Lisensi BNSP",
-        route: "/permohonan/sertifikasi-profesi",
-        isAvailable: true,
-      },
-    ],
-  },
-  {
-    title: "5. Pelatihan, Konsultasi & Rekayasa",
+    title: "4. Pelatihan, Konsultasi & Rekayasa",
     desc: "Program peningkatan SDM industri dan asistensi teknologi manufaktur.",
     items: [
       {
@@ -185,7 +180,7 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "6. Pemanfaatan Fasilitas & Sewa Aset",
+    title: "5. Pemanfaatan Fasilitas & Sewa Aset",
     desc: "Penyewaan fasilitas fisik balai meliputi lapangan, aula/gedung, peralatan teknis, dan kendaraan operasional.",
     items: [
       {

@@ -1,8 +1,8 @@
 import React from 'react'
-import { User, Phone, Mail, MapPin, CreditCard, Info } from 'lucide-react'
-import { Card, CardContent } from '../../ui/Card'
+import { UserCheck } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card'
 
-interface Step2DataPemohonProps {
+export interface Step2DataPemohonProps {
   pemohonNama: string
   setPemohonNama: (val: string) => void
   pemohonNikNib: string
@@ -30,125 +30,119 @@ export const Step2DataPemohon: React.FC<Step2DataPemohonProps> = ({
   onResetFromProfile,
 }) => {
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Alert Note */}
-      <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-start gap-3">
-        <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-blue-800 leading-relaxed">
-          <p className="font-semibold mb-0.5">Identitas Pemohon Resmi Sewa Aset</p>
-          <p>
-            Data identitas di bawah ini otomatis disesuaikan dari profil akun Anda. Informasi ini akan
-            tercantum pada surat balasan persetujuan balai, invoice, dan bukti tanda terima/kuitansi PNBP.
-          </p>
-        </div>
-      </div>
-
-      <Card className="rounded-xl border-slate-200 shadow-soft">
-        <CardContent className="p-4 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <User className="w-4 h-4 text-brand-600" />
-              <span>Identitas Pemohon / Penanggung Jawab</span>
-            </h3>
-            {onResetFromProfile && (
-              <button
-                type="button"
-                onClick={onResetFromProfile}
-                className="text-xs text-brand-600 hover:text-brand-700 font-semibold underline underline-offset-2"
-              >
-                Gunakan Data Profil Akun
-              </button>
-            )}
+    <Card className="rounded-xl border-slate-200 shadow-xs overflow-hidden">
+      <CardHeader className="rounded-t-xl bg-white border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-9 h-9 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0">
+            <UserCheck className="w-4 h-4" />
           </div>
+          <div>
+            <CardTitle className="text-base text-slate-900">
+              Identitas Pemohon & Penanggung Jawab
+            </CardTitle>
+            <CardDescription>
+              Informasi pemohon atau instansi yang akan tercantum pada bukti pemanfaatan dan kuitansi PNBP.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Nama Pemohon */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+      <CardContent className="p-6 space-y-6">
+        {/* Catatan Informasi Profil */}
+        <div className="p-3.5 rounded-lg bg-slate-50/70 border border-slate-200 text-xs text-slate-600 leading-relaxed flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <p className="font-semibold text-slate-800">Identitas Pemohon Resmi Sewa Aset</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Data identitas otomatis disesuaikan dari profil akun Anda untuk penerbitan persetujuan balai dan kuitansi PNBP.
+            </p>
+          </div>
+          {onResetFromProfile && (
+            <button
+              type="button"
+              onClick={onResetFromProfile}
+              className="text-xs text-brand-600 hover:text-brand-700 font-semibold underline underline-offset-2 shrink-0 self-start sm:self-auto cursor-pointer"
+            >
+              Sinkron Profil Akun
+            </button>
+          )}
+        </div>
+
+        {/* Form Inputs */}
+        <div className="space-y-4">
+          {/* Baris 1: Nama Pemohon & NIK/NIB */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 Nama Lengkap Pemohon / Nama Perusahaan / Instansi <span className="text-rose-500">*</span>
               </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={pemohonNama}
-                  onChange={(e) => setPemohonNama(e.target.value)}
-                  placeholder="Contoh: PT. Kreasi Inovasi Mandiri atau Budi Santoso"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
-                />
-              </div>
+              <input
+                type="text"
+                value={pemohonNama}
+                onChange={(e) => setPemohonNama(e.target.value)}
+                placeholder="Contoh: PT Kreasi Inovasi Mandiri atau Budi Santoso"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+              />
             </div>
 
-            {/* NIK / NIB */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
                 NIK (Perorangan) atau NIB (Perusahaan)
               </label>
-              <div className="relative">
-                <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={pemohonNikNib}
-                  onChange={(e) => setPemohonNikNib(e.target.value)}
-                  placeholder="Nomor Induk Kependudukan / Berusaha"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Nomor Telepon / WA */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor Telepon / WhatsApp Aktif <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  value={pemohonTelepon}
-                  onChange={(e) => setPemohonTelepon(e.target.value)}
-                  placeholder="Contoh: 081234567890"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Alamat Email */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Alamat Email Aktif <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={pemohonEmail}
-                  onChange={(e) => setPemohonEmail(e.target.value)}
-                  placeholder="Contoh: kontak@perusahaan.co.id"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Alamat Lengkap */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Alamat Lengkap Pemohon / Kantor
-              </label>
-              <div className="relative">
-                <textarea
-                  rows={2}
-                  value={pemohonAlamat}
-                  onChange={(e) => setPemohonAlamat(e.target.value)}
-                  placeholder="Jl. Sukonandi No. 9, Semaki, Umbulharjo, Kota Yogyakarta"
-                  className="w-full text-xs rounded-lg border border-slate-300 p-3 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 leading-relaxed"
-                />
-              </div>
+              <input
+                type="text"
+                value={pemohonNikNib}
+                onChange={(e) => setPemohonNikNib(e.target.value)}
+                placeholder="Nomor Induk Kependudukan / Berusaha"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          {/* Baris 2: Nomor Telepon & Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                Nomor Telepon / WhatsApp Aktif <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="tel"
+                value={pemohonTelepon}
+                onChange={(e) => setPemohonTelepon(e.target.value)}
+                placeholder="Contoh: 081234567890"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                Alamat Email Aktif <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={pemohonEmail}
+                onChange={(e) => setPemohonEmail(e.target.value)}
+                placeholder="Contoh: kontak@perusahaan.co.id"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Baris 3: Alamat Lengkap */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">
+              Alamat Lengkap Pemohon / Kantor
+            </label>
+            <textarea
+              rows={2}
+              value={pemohonAlamat}
+              onChange={(e) => setPemohonAlamat(e.target.value)}
+              placeholder="Contoh: Jl. Sukonandi No. 9, Semaki, Umbulharjo, Kota Yogyakarta"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-600 transition-colors"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

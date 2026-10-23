@@ -410,10 +410,9 @@ export const FormKalibrasiWizard: React.FC = () => {
       </div>
 
       {/* Stepper Progress Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {STEPS.map((s, idx) => {
-            const Icon = s.icon
             const isActive = currentStep === idx
             const isDone = currentStep > idx
 
@@ -427,28 +426,27 @@ export const FormKalibrasiWizard: React.FC = () => {
                     window.scrollTo({ top: 0, behavior: "smooth" })
                   }
                 }}
-                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${isActive
-                  ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20"
-                  : isDone
-                    ? "bg-slate-50 border border-slate-200 hover:bg-slate-100/70 cursor-pointer"
-                    : "bg-slate-50/50 border border-slate-200/50 opacity-60 cursor-not-allowed"
-                  }`}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition-colors ${
+                  isActive
+                    ? "bg-slate-50 border border-brand-600"
+                    : isDone
+                      ? "bg-white border border-slate-200 hover:bg-slate-50 cursor-pointer"
+                      : "bg-slate-50/40 border border-slate-200/60 opacity-60 cursor-not-allowed"
+                }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${isDone
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
-                    }`}
+                  className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
+                    isDone
+                      ? "bg-emerald-600 text-white"
+                      : isActive
+                        ? "bg-brand-600 text-white"
+                        : "bg-slate-200 text-slate-600"
+                  }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                  {isDone ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                 </div>
 
                 <div className="min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase block text-slate-500">
-                    Langkah {idx + 1}
-                  </span>
                   <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
                   <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
                 </div>

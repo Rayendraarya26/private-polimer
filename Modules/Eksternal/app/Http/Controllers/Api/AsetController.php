@@ -43,10 +43,13 @@ class AsetController extends Controller
     }
 
     /**
-     * Menyimpan formulir permohonan pengajuan sewa aset
+     * Menyimpan formulir permohonan pengajuan sewa aset (Bisa draft atau ajukan)
      */
     public function store(Request $request): JsonResponse
     {
+        $aksi = $request->input('aksi', 'ajukan');
+        $isAjukan = $aksi === 'ajukan';
+
         // Decode nested JSON jika dikirim dalam FormData multipart
         $dataIdentitas = is_string($request->input('dataIdentitas'))
             ? json_decode($request->input('dataIdentitas'), true)
@@ -62,17 +65,18 @@ class AsetController extends Controller
         ]);
 
         $request->validate([
+            'aksi' => 'nullable|in:draft,ajukan',
             // Validasi jenis sewa & tanggal (bisa nested dataSewa atau flat)
-            'dataSewa.jenis_sewa' => 'required_without:jenis_sewa|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan',
-            'jenis_sewa'          => 'sometimes|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan',
-            'dataSewa.tanggal_mulai' => 'required_without:tanggal_mulai|date',
-            'tanggal_mulai'          => 'sometimes|date',
-            'dataSewa.tanggal_selesai' => 'required_without:tanggal_selesai|date',
-            'tanggal_selesai'          => 'sometimes|date',
-            'dataSewa.keperluan_penggunaan' => 'required_without:keperluan_penggunaan|string',
-            'keperluan_penggunaan'          => 'sometimes|string',
+            'dataSewa.jenis_sewa' => $isAjukan ? 'required_without:jenis_sewa|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan' : 'nullable|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan',
+            'jenis_sewa'          => $isAjukan ? 'sometimes|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan' : 'nullable|in:sewa_lapangan,sewa_bangunan,sewa_alat,sewa_mobil,sewa_ruangan',
+            'dataSewa.tanggal_mulai' => $isAjukan ? 'required_without:tanggal_mulai|date' : 'nullable|date',
+            'tanggal_mulai'          => $isAjukan ? 'sometimes|date' : 'nullable|date',
+            'dataSewa.tanggal_selesai' => $isAjukan ? 'required_without:tanggal_selesai|date' : 'nullable|date',
+            'tanggal_selesai'          => $isAjukan ? 'sometimes|date' : 'nullable|date',
+            'dataSewa.keperluan_penggunaan' => $isAjukan ? 'required_without:keperluan_penggunaan|string' : 'nullable|string',
+            'keperluan_penggunaan'          => $isAjukan ? 'sometimes|string' : 'nullable|string',
             'file_surat_permohonan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'setuju_pernyataan'     => 'required|boolean|accepted',
+            'setuju_pernyataan'     => $isAjukan ? 'required|boolean|accepted' : 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -82,15 +86,15 @@ class AsetController extends Controller
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
 
             // Ambil data nilai sewa dari nested atau flat
-            $jenisSewa = $dataSewa['jenis_sewa'] ?? $request->input('jenis_sewa');
+            $jenisSewa = $dataSewa['jenis_sewa'] ?? $request->input('jenis_sewa') ?? 'sewa_lapangan';
             $tanggalMulaiStr = $dataSewa['tanggal_mulai'] ?? $request->input('tanggal_mulai');
             $tanggalSelesaiStr = $dataSewa['tanggal_selesai'] ?? $request->input('tanggal_selesai');
             $keperluanPenggunaan = $dataSewa['keperluan_penggunaan'] ?? $request->input('keperluan_penggunaan');
             $catatanTambahan = $dataSewa['catatan_tambahan'] ?? $request->input('catatan_tambahan');
 
             // Hitung durasi hari
-            $tglMulai = Carbon::parse($tanggalMulaiStr);
-            $tglSelesai = Carbon::parse($tanggalSelesaiStr);
+            $tglMulai = !empty($tanggalMulaiStr) ? Carbon::parse($tanggalMulaiStr) : now();
+            $tglSelesai = !empty($tanggalSelesaiStr) ? Carbon::parse($tanggalSelesaiStr) : now();
             $durasiHari = (int) ($dataSewa['durasi_hari'] ?? $request->input('durasi_hari') ?? max(1, $tglMulai->diffInDays($tglSelesai) + 1));
 
             // Snapshot identitas pemohon dari profil atau payload
@@ -102,7 +106,7 @@ class AsetController extends Controller
                 ?? $detail?->nama
                 ?? $detail?->nama_perusahaan
                 ?? $user?->name
-                ?? 'Pemohon Aset';
+                ?? ($isAjukan ? 'Pemohon Aset' : 'Draft Pemohon');
 
             $pemohonNikNib = $dataIdentitas['pemohon_nik_nib']
                 ?? $request->input('pemohon_nik_nib')
@@ -166,9 +170,9 @@ class AsetController extends Controller
                 'id_pt_ins' => null,
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
-                'tgl_order' => now(),
+                'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
@@ -181,7 +185,7 @@ class AsetController extends Controller
                 'tanggal_mulai' => $tglMulai->toDateString(),
                 'tanggal_selesai' => $tglSelesai->toDateString(),
                 'durasi_hari' => $durasiHari,
-                'keperluan_penggunaan' => $keperluanPenggunaan,
+                'keperluan_penggunaan' => $keperluanPenggunaan ?? ($isAjukan ? '-' : 'Draft Pemanfaatan Aset'),
                 'catatan_tambahan' => $catatanTambahan,
                 'pemohon_nama' => $pemohonNama,
                 'pemohon_nik_nib' => $pemohonNikNib,
@@ -189,8 +193,8 @@ class AsetController extends Controller
                 'pemohon_telepon' => $pemohonTelepon,
                 'pemohon_email' => $pemohonEmail,
                 'file_surat_permohonan' => $fileSuratPath,
-                'setuju_pernyataan' => true,
-                'pernyataan_at' => now(),
+                'setuju_pernyataan' => (bool) $request->input('setuju_pernyataan', false),
+                'pernyataan_at' => $isAjukan ? now() : null,
             ]);
 
             // 3. Hubungkan ke Master Lingkup Layanan
@@ -231,37 +235,44 @@ class AsetController extends Controller
                 'lingkup_layanan_id' => $lingkup->id,
             ]);
 
-            // 4. Catat Milestone Timeline Pelacakan
-            PermohonanTrackingLog::create([
-                'id' => (string) Str::uuid(),
-                'permohonan_id' => $permohonan->id,
-                'sumber' => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul' => 'Permohonan Sewa Aset Diajukan',
-                'deskripsi' => 'Permohonan sewa aset #' . $permohonan->no_permohonan . ' (' . ucwords(str_replace('_', ' ', $jenisSewa)) . ') berhasil diajukan dan menunggu verifikasi petugas.',
-            ]);
+            // 4. Catat Milestone Timeline Pelacakan hanya jika diajukan
+            if ($isAjukan) {
+                PermohonanTrackingLog::create([
+                    'id' => (string) Str::uuid(),
+                    'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
+                    'milestone_code' => 'PERMOHONAN_MASUK',
+                    'judul' => 'Permohonan Sewa Aset Diajukan',
+                    'deskripsi' => 'Permohonan sewa aset #' . $permohonan->no_permohonan . ' (' . ucwords(str_replace('_', ' ', $jenisSewa)) . ') berhasil diajukan dan menunggu verifikasi petugas.',
+                ]);
+            }
 
             DB::commit();
 
-            // 5. Kirim Notifikasi Internal Admin
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Permohonan Sewa Aset Baru',
-                    'Permohonan sewa aset #' . $permohonan->no_permohonan . ' dari ' . $pemohonNama,
-                    route('permohonan.layanan.detail', $permohonan->id)
-                );
-            } catch (\Exception $notifEx) {
-                Log::warning('Gagal kirim notifikasi admin Sewa Aset: ' . $notifEx->getMessage());
+            // 5. Kirim Notifikasi Internal Admin hanya jika diajukan
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Sewa Aset Baru',
+                        'Permohonan sewa aset #' . $permohonan->no_permohonan . ' dari ' . $pemohonNama,
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin Sewa Aset: ' . $notifEx->getMessage());
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan sewa aset berhasil diajukan!',
+                'message' => $isAjukan
+                    ? 'Permohonan sewa aset berhasil diajukan!'
+                    : 'Draft permohonan sewa aset berhasil disimpan di sistem!',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

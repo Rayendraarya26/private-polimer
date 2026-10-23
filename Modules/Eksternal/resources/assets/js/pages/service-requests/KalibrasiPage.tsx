@@ -52,7 +52,6 @@ const KalibrasiPage: React.FC = () => {
         </Button>
       </div>
 
-
       {/* Form Wizard Kalibrasi */}
       <FormKalibrasiWizard />
     </div>

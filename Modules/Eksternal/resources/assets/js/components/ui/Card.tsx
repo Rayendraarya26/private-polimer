@@ -32,7 +32,7 @@ export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => {
   return (
     <div
-      className={cn('px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4', className)}
+      className={cn('px-6 py-4 border-b border-slate-100 rounded-t-xl flex items-center justify-between gap-4', className)}
       {...props}
     >
       {children}

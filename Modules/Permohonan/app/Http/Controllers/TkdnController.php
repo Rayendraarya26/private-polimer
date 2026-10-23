@@ -29,23 +29,22 @@ class TkdnController extends Controller
     private string $view = 'permohonan::tkdn';
 
     /**
-     * Memeriksa otorisasi peran pengguna (Bendahara only atau internal admin)
+     * Memeriksa otorisasi peran pengguna (Marketing, Bendahara, Admin, atau Root)
      */
-    private function checkAccess(bool $bendaharaOnly = false): void
+    private function checkAccess(bool $manageOnly = false): void
     {
         $user = auth()->user();
         if (!$user) {
             abort(401, 'Unauthenticated');
         }
 
-        if ($bendaharaOnly) {
-            if (!$user->hasGroup(SysGroup::BENDAHARA) && !$user->hasGroup(SysGroup::ROOT)) {
-                abort(403, 'Akses ditolak. Fitur ini hanya dapat diakses oleh Bendahara.');
-            }
-        } else {
-            if (!$user->hasGroup(SysGroup::BENDAHARA) && !$user->hasGroup(SysGroup::ADMIN) && !$user->hasGroup(SysGroup::ROOT)) {
-                abort(403, 'Akses ditolak.');
-            }
+        $canManage = $user->hasGroup(SysGroup::MARKETING) ||
+            $user->hasGroup(SysGroup::BENDAHARA) ||
+            $user->hasGroup(SysGroup::ADMIN) ||
+            $user->hasGroup(SysGroup::ROOT);
+
+        if (!$canManage) {
+            abort(403, 'Akses ditolak. Fitur ini hanya dapat diakses oleh Tim Marketing, Bendahara, atau Administrator.');
         }
     }
 
@@ -84,6 +83,12 @@ class TkdnController extends Controller
         $this->ensureTableExists();
 
         $currentUser = auth()->user();
+        $canManage = $currentUser && (
+            $currentUser->hasGroup(SysGroup::MARKETING) ||
+            $currentUser->hasGroup(SysGroup::BENDAHARA) ||
+            $currentUser->hasGroup(SysGroup::ADMIN) ||
+            $currentUser->hasGroup(SysGroup::ROOT)
+        );
         $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
 
         return view("{$this->view}.index", [
@@ -91,6 +96,7 @@ class TkdnController extends Controller
                 new Breadcrumbs('Admin'),
                 new Breadcrumbs('Pencatatan TKDN', url($this->url)),
             ],
+            'canManage'   => $canManage,
             'isBendahara' => $isBendahara,
         ]);
     }
@@ -109,6 +115,12 @@ class TkdnController extends Controller
             ->with(['permohonan', 'pencatat']);
 
         $currentUser = auth()->user();
+        $canManage = $currentUser && (
+            $currentUser->hasGroup(SysGroup::MARKETING) ||
+            $currentUser->hasGroup(SysGroup::BENDAHARA) ||
+            $currentUser->hasGroup(SysGroup::ADMIN) ||
+            $currentUser->hasGroup(SysGroup::ROOT)
+        );
         $isBendahara = $currentUser && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT));
 
         return DataTables::of($query)
@@ -142,11 +154,11 @@ class TkdnController extends Controller
             ->addColumn('tanggal_bayar', function ($row) {
                 return $row->tanggal_bayar ? Carbon::parse($row->tanggal_bayar)->format('d M Y') : '-';
             })
-            ->addColumn('aksi', function ($row) use ($isBendahara) {
+            ->addColumn('aksi', function ($row) use ($canManage) {
                 $btn = '<div class="d-flex justify-content-end gap-2">';
                 $btn .= '<a href="' . route('permohonan.tkdn.show', $row->id) . '" class="btn btn-sm btn-icon btn-light-info" title="Detail"><i class="fas fa-eye"></i></a>';
 
-                if ($isBendahara) {
+                if ($canManage) {
                     $btn .= '<a href="' . route('permohonan.tkdn.edit', $row->id) . '" class="btn btn-sm btn-icon btn-light-warning" title="Edit"><i class="fas fa-edit"></i></a>';
                     $btn .= '<button type="button" class="btn btn-sm btn-icon btn-light-danger btn-delete" data-id="' . $row->id . '" title="Hapus"><i class="fas fa-trash"></i></button>';
                 }

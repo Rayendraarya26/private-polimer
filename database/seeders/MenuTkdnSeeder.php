@@ -54,11 +54,12 @@ class MenuTkdnSeeder extends Seeder
             'destroy' => "{$controller}@destroy",
         ];
 
-        // 4. Role group yang diberikan akses: Root, Admin, dan Bendahara
+        // 4. Role group yang diberikan akses: Root, Admin, Bendahara, dan Marketing
         $targetGroups = [
             SysGroup::ROOT,
             SysGroup::ADMIN,
             SysGroup::BENDAHARA,
+            SysGroup::MARKETING,
         ];
 
         // Pastikan parent menu action permohonan aktif untuk target groups

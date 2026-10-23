@@ -15,7 +15,7 @@
                 </a>
                 <h3 class="fw-bolder text-gray-900 mb-1">Catat TKDN</h3>
                 <p class="text-muted mb-0 small">
-                    Khusus diisi oleh Bendahara Penerimaan untuk mencatat transaksi penerimaan PNBP verifikasi TKDN.
+                    Diisi oleh Tim Marketing atau Bendahara Penerimaan untuk mencatat transaksi penerimaan PNBP verifikasi TKDN.
                 </p>
             </div>
         </div>

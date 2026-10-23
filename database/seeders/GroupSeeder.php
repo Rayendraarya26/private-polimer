@@ -91,7 +91,8 @@ class GroupSeeder extends Seeder
             $query->where('controller', 'LIKE', '%PermohonanController%')
                   ->orWhere('controller', 'LIKE', '%TagihanBiayaController%')
                   ->orWhere('controller', 'LIKE', '%PbaController%')
-                  ->orWhere('controller', 'LIKE', '%JasaLainnyaController%');
+                  ->orWhere('controller', 'LIKE', '%JasaLainnyaController%')
+                  ->orWhere('controller', 'LIKE', '%TkdnController%');
         })->get();
 
         foreach ($marketingActions as $action) {

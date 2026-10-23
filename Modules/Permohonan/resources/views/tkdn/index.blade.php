@@ -12,10 +12,10 @@
             <div>
                 <h3 class="fw-bolder text-gray-900 mb-1">Pencatatan TKDN</h3>
                 <p class="text-muted mb-0 small">
-                    Pencatatan penerimaan PNBP verifikasi TKDN langsung oleh Bendahara Penerimaan.
+                    Pencatatan penerimaan PNBP verifikasi TKDN oleh Tim Marketing / Bendahara Penerimaan.
                 </p>
             </div>
-            @if($isBendahara)
+            @if($canManage ?? $isBendahara)
                 <div>
                     <a href="{{ route('permohonan.tkdn.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-1"></i> Catat TKDN

@@ -1,57 +1,76 @@
 @extends("$view.index_layout")
 
-@section('title', 'Manage Homepage Partner')
+@section('title', 'Manage Homepage Accordion')
 
 @section('child_content')
-    <div class="widget-content searchable-container list" id="partnerVue">
-        <div class="form-with-tabs">
-            <h5 class="card-title fw-semibold mb-4">
-                Data Partner yang tampil pada landing page JIS
-            </h5>
+<div class="widget-content searchable-container list" id="accordionVue">
+    <div class="form-with-tabs">
+        <h5 class="card-title fw-semibold mb-4">
+            Data Accordion yang tampil pada landing page JIS
+        </h5>
 
-            <div class="d-flex flex-row-reverse">
-                <button class="btn btn-primary btn-sm" @click="handleAddPartner()">
-                    <i class="fas fa-plus"></i> Tambah Partner
-                </button>
-            </div>
-            <partner-table :list-partner="listPartnerActive" @delete-partner="handleDeletePartner"></partner-table>
+        <div class="d-flex flex-row-reverse">
+            <button class="btn btn-primary btn-sm" @click="handleAddAccordion()">
+                <i class="fas fa-plus"></i> Tambah Accordion
+            </button>
         </div>
+        <accordion-table :list-accordion="listAccordionActive"
+                         @delete-accordion="handleDeleteAccordion"></accordion-table>
     </div>
+</div>
 @endsection
 
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/plugins/custom/sweetalert2/dist/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/plugins/custom/flatpickr/flatpickr.min.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet"/>
+    <style>
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            border-color: #e4e6ef;
+            background-color: #fcfcfd;
+        }
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            border-color: #e4e6ef;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        .ql-editor {
+            min-height: 160px;
+        }
+    </style>
 @endpush
 
 @push('scripts')
     <script src="{{ asset('assets/plugins/custom/sweetalert2/dist/sweetalert2.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/custom/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script>
-        const {
-            createApp
-        } = Vue;
+        const { createApp } = Vue;
 
-        window.partnerVue = createApp({
+        window.accordionVue = createApp({
             data() {
                 return {
-                    listPartnerActive: [],
+                    listAccordionActive: [],
                 };
             },
             mounted() {
-                this.refreshListPartner();
+                this.refreshListAccordion();
             },
             methods: {
-                refreshListPartner() {
-                    this.apiFetchPartner('aktif').then(data => {
-                        this.listPartnerActive = data;
+                refreshListAccordion() {
+                    this.apiFetchAccordion('aktif').then(data => {
+                        this.listAccordionActive = data || [];
                     });
                 },
-                handleAddPartner() {
+                handleAddAccordion() {
                     window.upsertVue.show();
                 },
-                handleDeletePartner(id) {
+                handleDeleteAccordion(id) {
                     Swal.fire({
                         title: 'Apakah anda yakin?',
                         text: "Anda tidak akan dapat mengembalikan ini!",
@@ -64,35 +83,35 @@
                             // swal loading
                             Swal.fire({
                                 title: 'Mohon tunggu',
-                                html: 'Sedang menghapus partner',
+                                html: 'Sedang menghapus accordion',
                                 didOpen: () => {
                                     Swal.showLoading()
                                 },
                             });
 
-                            this.apiDeletePartner(id)
+                            this.apiDeleteAccordion(id)
                                 .then(() => {
-                                    this.refreshListPartner();
+                                    this.refreshListAccordion();
                                     Swal.fire(
                                         'Deleted!',
-                                        'Partner berhasil dihapus.',
+                                        'Accordion berhasil dihapus.',
                                         'success'
                                     )
                                 })
                                 .catch(() => {
                                     Swal.fire(
                                         'Failed!',
-                                        'Partner gagal dihapus.',
+                                        'Accordion gagal dihapus.',
                                         'error'
                                     )
                                 });
                         }
                     })
                 },
-                apiDeletePartner(id) {
+                apiDeleteAccordion(id) {
                     return new Promise((resolve, reject) => {
                         $.ajax({
-                            url: "{!! url("$url") !!}/destroy_partner/delete?" + $.param({
+                            url: "{!! url("$url") !!}/destroy_accordion/delete?" + $.param({
                                 "id": `${id}`
                             }),
                             type: 'DELETE',
@@ -101,21 +120,21 @@
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
-                            success: function(response) {
+                            success: function (response) {
                                 resolve(response);
                             },
-                            error: function(xhr) {
+                            error: function (xhr) {
                                 reject(xhr);
                             }
                         });
                     });
                 },
-                apiFetchPartner(tipe = 'aktif') {
+                apiFetchAccordion(tipe = 'aktif') {
                     return new Promise((resolve, reject) => {
-                        fetch(`{!! url("$url/ajax?action=partner") !!}`)
+                        fetch(`{!! url("$url/ajax?action=accordion") !!}`)
                             .then(response => response.json())
                             .then(data => {
-                                resolve(data.results);
+                                resolve(data.results || []);
                             })
                             .catch(error => {
                                 reject(error);
@@ -123,13 +142,13 @@
                     });
                 },
             },
-        }).component('partner-table', {
-            props: ['listPartner'],
+        }).component('accordion-table', {
+            props: ['listAccordion'],
             methods: {
-                handleDeletePartner(id) {
-                    this.$emit('deletePartner', id);
+                handleDeleteAccordion(id) {
+                    this.$emit('deleteAccordion', id);
                 },
-                handleEditPartner(payload) {
+                handleEditAccordion(payload) {
                     window.upsertVue.show(payload);
                 }
             },
@@ -138,23 +157,41 @@
                     <table class="table">
                         <thead>
                         <tr>
-                            <th>Image</th>
                             <th>Urut</th>
-                            <th>Nama Partner</th>
+                            <th>Judul Accordion</th>
+                            <th>Deskripsi / Konten</th>
+                            <th>Default Buka</th>
                             <th>Aksi</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="partner in listPartner">
-                            <td><img :src="partner.image_url" alt="partner" style="max-width: 100px"></td>
-                            <td>@{{ partner.order }}</td>
-                            <td>@{{ partner.title }}</td>
+                        <tr v-for="accordion in listAccordion" :key="accordion.id">
+                            <td>@{{ accordion.order }}</td>
+                            <td>
+                                <div class="fw-bold">@{{ typeof accordion.title === 'object' && accordion.title !== null ? (accordion.title.id || '-') : (accordion.title || '-') }}</div>
+                                <div v-if="typeof accordion.title === 'object' && accordion.title && accordion.title.en" class="text-muted fs-8">🇬🇧 @{{ accordion.title.en }}</div>
+                            </td>
+                            <td style="max-width:380px; white-space:normal;">
+                                <div v-html="typeof accordion.description === 'object' && accordion.description !== null ? (accordion.description.id || '-') : (accordion.description || '-')"></div>
+                                <div v-if="typeof accordion.description === 'object' && accordion.description && accordion.description.en" class="text-muted fs-8 mt-2 p-2 bg-light rounded">
+                                    <span class="badge badge-light-primary fs-9 mb-1">🇬🇧 English:</span>
+                                    <div v-html="accordion.description.en"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <span v-if="accordion.is_default_open" class="badge badge-light-success">
+                                    <i class="fas fa-check-circle text-success me-1"></i> Terbuka
+                                </span>
+                                <span v-else class="badge badge-light-secondary">
+                                    Tertutup
+                                </span>
+                            </td>
                             <td>
                             <div class="d-flex flex-row gap-2">
-                                 <button class="btn btn-sm btn-primary" @click="handleEditPartner(partner)" title="Edit Partner">
+                                 <button class="btn btn-sm btn-primary" @click="handleEditAccordion(accordion)" title="Edit Accordion">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                 <button class="btn btn-sm btn-danger" @click="handleDeletePartner(partner.id)" title="Delete Partner">
+                                 <button class="btn btn-sm btn-danger" @click="handleDeleteAccordion(accordion.id)" title="Delete Accordion">
                                     <i class="fas fa-trash"></i>
                                 </button>
                              </div>
@@ -164,10 +201,10 @@
                     </table>
                 </div>
 `
-        }).mount('#partnerVue');
+        }).mount('#accordionVue');
     </script>
 @endpush
 
 
 
-@include("$view.upsert_partner")
+@include("$view.upsert_accordion")

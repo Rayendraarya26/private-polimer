@@ -29,13 +29,14 @@ class HomeController extends Controller
         $parser = Cache::remember("home_parser_{$locale}", now()->addMinutes(60), function () use ($locale) {
             $cacheDuration = now()->addMinutes(60);
 
-            // 1 query instead of 5
+            // 1 query instead of 6
             $siteData = SiteManajemen::whereIn('key', [
                 HomepageKey::SLIDER->value,
                 HomepageKey::SERVICES->value,
                 HomepageKey::PARTNERS->value,
                 HomepageKey::ABOUT->value,
                 HomepageKey::SOCIAL_MEDIA->value,
+                HomepageKey::ACCORDION->value,
             ])->get()->keyBy('key');
 
             return [
@@ -46,7 +47,7 @@ class HomeController extends Controller
                 'aboutUs'         => localized_content($siteData->get(HomepageKey::ABOUT->value)?->data['data'] ?? ''),
                 'companyOverview' => $this->getCompanyOverview(),
                 'social_medias'   => $siteData->get(HomepageKey::SOCIAL_MEDIA->value)?->data ?? [],
-                'collapsible'     => $this->getCollapsible(),
+                'collapsible'     => $this->parseAccordion($siteData->get(HomepageKey::ACCORDION->value)),
             ];
         });
 
@@ -257,6 +258,24 @@ class HomeController extends Controller
                 ["value" => "99,47%", "label" => __('home.overview.stats.punctuality')],
             ]
         ];
+    }
+
+    private function parseAccordion(?SiteManajemen $siteData): array
+    {
+        $items = $siteData?->data ?? [];
+        if (!empty($items)) {
+            usort($items, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+
+            return array_map(function ($item) {
+                return [
+                    'title'           => is_array($item['title'] ?? null) ? localized_content($item['title']) : ($item['title'] ?? ''),
+                    'description'     => is_array($item['description'] ?? null) ? localized_content($item['description']) : ($item['description'] ?? ''),
+                    'is_default_open' => (bool) ($item['is_default_open'] ?? false),
+                ];
+            }, $items);
+        }
+
+        return $this->getCollapsible();
     }
 
     private function getCollapsible(): array

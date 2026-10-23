@@ -246,6 +246,30 @@ class ManageHomepageController
         return responseJSON('Sukses menginput social media');
     }
 
+    public function store_accordion(Request $request)
+    {
+        $input = $request->validate([
+            'order'           => 'required|integer',
+            'title'           => 'required|string',
+            'description'     => 'required|string',
+            'is_default_open' => 'nullable|boolean',
+        ]);
+        $accordion = SiteManajemen::where('key', '=', HomepageKey::ACCORDION->value)->firstOrNew();
+        $data_json = $accordion->data ?? [];
+        $data_json[] = [
+            'id'              => Str::uuid()->toString(),
+            'order'           => (int) $input['order'],
+            'title'           => $input['title'],
+            'description'     => $input['description'],
+            'is_default_open' => $request->boolean('is_default_open'),
+        ];
+        $accordion->key = HomepageKey::ACCORDION->value;
+        $accordion->data = $data_json;
+        $accordion->save();
+        return responseJSON('Sukses menambahkan data accordion.');
+    }
+
+
     public function update_partner(Request $request)
     {
         $validate = [
@@ -495,6 +519,30 @@ class ManageHomepageController
         return responseJSON('Sukses mengubah data social media.');
     }
 
+    public function update_accordion(Request $request)
+    {
+        $input = $request->validate([
+            'id'              => 'required',
+            'order'           => 'required|integer',
+            'title'           => 'required|string',
+            'description'     => 'required|string',
+            'is_default_open' => 'nullable|boolean',
+        ]);
+        $accordion = SiteManajemen::where('key', '=', HomepageKey::ACCORDION->value)->firstOrFail();
+        $updated_data = $accordion->data ?? [];
+        $key = $this->searchForId($request->id, $updated_data);
+        if (!is_null($key)) {
+            Arr::set($updated_data, "$key.order", (int) $input['order']);
+            Arr::set($updated_data, "$key.title", $input['title']);
+            Arr::set($updated_data, "$key.description", $input['description']);
+            Arr::set($updated_data, "$key.is_default_open", $request->boolean('is_default_open'));
+        }
+        $accordion->data = $updated_data;
+        $accordion->save();
+        return responseJSON('Sukses memperbarui data accordion.');
+    }
+
+
     public function upsert_about(Request $request)
     {
         $request->validate([
@@ -525,6 +573,7 @@ class ManageHomepageController
             'destroy_services' => $this->destroy_services($request),
             'destroy_partner' => $this->destroy_partner($request),
             'destroy_social_media' => $this->destroy_social_media($request),
+            'destroy_accordion' => $this->destroy_accordion($request),
             default => abort(404),
         };
 
@@ -581,6 +630,11 @@ class ManageHomepageController
         return $this->removeSiteData($request, HomepageKey::SOCIAL_MEDIA);
     }
 
+    public function destroy_accordion(Request $request)
+    {
+        return $this->removeSiteData($request, HomepageKey::ACCORDION);
+    }
+
     public function ajax(Request $request)
     {
         $request->validate(['action' => 'required']);
@@ -589,6 +643,7 @@ class ManageHomepageController
             'services' => $data = $this->ajax_services($request),
             'partner' => $data = $this->ajax_partner($request),
             'social_media' => $data = $this->ajax_social_media($request),
+            'accordion' => $this->ajax_accordion($request),
             default => abort(404),
         };
     }
@@ -638,6 +693,11 @@ class ManageHomepageController
     private function ajax_social_media(Request $request): JsonResponse
     {
         return responseJSON('Sukses', $this->getSiteData(HomepageKey::SOCIAL_MEDIA));
+    }
+
+    private function ajax_accordion(Request $request): JsonResponse
+    {
+        return responseJSON('Sukses', $this->getSiteData(HomepageKey::ACCORDION));
     }
 
     private function searchForId($id, $array)

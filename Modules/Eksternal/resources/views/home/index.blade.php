@@ -1497,11 +1497,11 @@
                                         id="heading-{{ $index }}"
                                     >
                                         <button
-                                            class="accordion-button"
+                                            class="accordion-button {{ !$item['is_default_open'] ? 'collapsed' : '' }}"
                                             type="button"
                                             data-bs-toggle="collapse"
                                             data-bs-target="#collapse-{{ $index }}"
-                                            aria-expanded="true"
+                                            aria-expanded="{{ $item['is_default_open'] ? 'true' : 'false' }}"
                                             aria-controls="collapse-{{ $index }}"
                                         >
                                             <div class="fs-1 fw-semibold">{{ $item['title'] }}</div>
@@ -1514,7 +1514,7 @@
                                         data-bs-parent="#accordion-1"
                                     >
                                         <div class="accordion-body">
-                                            <p class="mb-0">{!! $item['description'] !!}</p>
+                                            <div class="mb-0">{!! $item['description'] !!}</div>
                                         </div>
                                     </div>
                                 </div>

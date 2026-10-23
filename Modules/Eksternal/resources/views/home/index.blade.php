@@ -404,13 +404,123 @@
             margin-left: 0.5rem;
         }
 
-        img.logo {
-            transition: filter 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            filter: brightness(0) invert(1);
+        /* Navbar base & transition styles */
+        .navbar {
+            transition: background-color 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+            background-color: transparent;
         }
 
-        img.logo.scrolled {
-            filter: brightness(1) invert(0);
+        /* 1. State Transparan (Ketika berada di atas section hero/slider) */
+        .navbar.navbar-transparent {
+            background-color: transparent !important;
+            background: transparent !important;
+            box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+            border-bottom: none !important;
+        }
+
+        .navbar.navbar-transparent .logo-colored {
+            display: none !important;
+        }
+
+        .navbar.navbar-transparent .logo-white {
+            display: inline-block !important;
+            filter: brightness(0) invert(1) !important;
+            transition: filter 300ms ease;
+        }
+
+        .navbar.navbar-transparent .nav-link {
+            color: #ffffff !important;
+            text-shadow: none !important;
+            transition: color 200ms ease;
+        }
+
+        .navbar.navbar-transparent .nav-link:hover {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .navbar.navbar-transparent #dropdownLang {
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.8) !important;
+            background-color: transparent !important;
+        }
+
+        .navbar.navbar-transparent .navbar-toggler {
+            border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .navbar.navbar-transparent .navbar-toggler i {
+            color: #ffffff !important;
+        }
+
+        /* 2. State Berwarna/Solid Putih (Ketika discroll keluar dari section hero/slider) */
+        .navbar.navbar-scrolled {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+        }
+
+        .navbar.navbar-scrolled .logo-colored {
+            display: inline-block !important;
+            filter: none !important;
+            opacity: 1 !important;
+            transition: opacity 300ms ease;
+        }
+
+        .navbar.navbar-scrolled .logo-white {
+            display: none !important;
+        }
+
+        .navbar.navbar-scrolled .nav-link {
+            color: #071437 !important;
+            text-shadow: none !important;
+            transition: color 200ms ease;
+        }
+
+        .navbar.navbar-scrolled .nav-link:hover {
+            color: #0c4c85 !important;
+        }
+
+        .navbar.navbar-scrolled #dropdownLang {
+            color: #071437 !important;
+            border-color: #cbd5e1 !important;
+            background-color: #f8fafc !important;
+        }
+
+        .navbar.navbar-scrolled #dropdownLang:hover {
+            background-color: #f1f5f9 !important;
+            border-color: #94a3b8 !important;
+        }
+
+        .navbar.navbar-scrolled .navbar-toggler {
+            border-color: #cbd5e1 !important;
+        }
+
+        .navbar.navbar-scrolled .navbar-toggler i {
+            color: #071437 !important;
+        }
+
+        /* Menu responsif pada perangkat mobile */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                background-color: #ffffff;
+                border-radius: 1rem;
+                margin-top: 0.75rem;
+                padding: 1.25rem !important;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+                border: 1px solid #e2e8f0;
+            }
+
+            .navbar.navbar-transparent .navbar-collapse .nav-link {
+                color: #071437 !important;
+                text-shadow: none !important;
+            }
+
+            .navbar.navbar-transparent .navbar-collapse #dropdownLang {
+                color: #071437 !important;
+                border-color: #cbd5e1 !important;
+                background-color: #f8fafc !important;
+            }
         }
 
         .banner-image-background {
@@ -583,10 +693,6 @@
 
         .social-logo:hover > i {
             color: #0D47A1;
-        }
-
-        .navbar:not(.bg-light) .nav-link {
-            color: white;
         }
 
         body {
@@ -1215,15 +1321,20 @@
 @endpush
 
 @section('content')
-    <nav class="navbar shadow fixed-top navbar-expand-lg navbar-light d-flex justify-content-center">
+    <nav class="navbar fixed-top navbar-expand-lg d-flex justify-content-center navbar-transparent" id="mainNavbar">
         <div class="container-fluid w-100 section-wrapper">
             <a
-                class="navbar-brand logo-bg"
+                class="navbar-brand logo-bg d-flex align-items-center"
                 href="https://bbkkp.kemenperin.go.id"
             >
                 <img
-                    alt="Logo"
-                    class="logo"
+                    alt="Kementerian Perindustrian"
+                    class="logo logo-colored"
+                    src="{{ asset('assets/media/logos/logo-kemenperin.png') }}"
+                />
+                <img
+                    alt="Kementerian Perindustrian"
+                    class="logo logo-white"
                     src="{{ asset('assets/media/logos/logo-kemenperin.png') }}"
                 />
             </a>
@@ -1303,7 +1414,7 @@
         </div>
     </nav>
     <main class="w-100 d-flex flex-column align-items-stretch">
-        <section class="w-100 p-0">
+        <section class="w-100 p-0" id="hero-banner-section">
             <div class="slick-carousel-banners">
                 @foreach($banners as $item)
                     <div class="w-100 position-relative banner-image-container">
@@ -1338,7 +1449,7 @@
         </section>
 
         <!-- Company Overview Section -->
-        <section class="company-overview-section w-100 d-flex justify-content-center overflow-hidden">
+        <section class="company-overview-section w-100 d-flex justify-content-center overflow-hidden" id="company-overview-section">
             <div class="w-100 section-wrapper d-flex flex-column">
                 <div class="company-overview-container">
                     <!-- Left Column: Logo & Description -->
@@ -1943,30 +2054,81 @@
             }
         });
 
-        // Navbar background transition on scroll
+        // Navbar background & styling transition on scroll
         const updateNavbarScroll = () => {
-            const nav = document.querySelector('nav');
-            const logo = document.querySelector('img.logo');
-            const scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
-            
-            if (scrollPos > 40) {
-                if (nav && !nav.classList.contains('bg-light')) {
-                    nav.classList.add('bg-light');
-                }
-                if (logo && !logo.classList.contains('scrolled')) {
-                    logo.classList.add('scrolled');
+            const nav = document.getElementById('mainNavbar') || document.querySelector('nav');
+            if (!nav) return;
+
+            const scrollPos = Math.max(
+                window.scrollY || 0,
+                document.documentElement ? document.documentElement.scrollTop : 0,
+                document.body ? document.body.scrollTop : 0
+            );
+
+            const navHeight = nav.offsetHeight || 85;
+            const nextSection = document.getElementById('company-overview-section') || document.querySelector('.company-overview-section');
+            const heroSection = document.getElementById('hero-banner-section');
+            let isPastHero = false;
+
+            if (scrollPos <= 30) {
+                // Saat berada di puncak halaman (di atas slider), selalu transparan
+                isPastHero = false;
+            } else if (nextSection && nextSection.offsetTop > 100) {
+                const nextRect = nextSection.getBoundingClientRect();
+                isPastHero = nextRect.top <= navHeight + 15;
+            } else if (heroSection && heroSection.offsetHeight > 100) {
+                const heroRect = heroSection.getBoundingClientRect();
+                isPastHero = heroRect.bottom <= navHeight + 15;
+            } else {
+                isPastHero = scrollPos > 200;
+            }
+
+            const logoColored = nav.querySelector('.logo-colored');
+            const logoWhite = nav.querySelector('.logo-white');
+            const navLinks = nav.querySelectorAll('.nav-link');
+            const langBtn = document.getElementById('dropdownLang');
+
+            if (isPastHero) {
+                nav.classList.add('navbar-scrolled');
+                nav.classList.remove('navbar-transparent');
+                nav.style.backgroundColor = '#ffffff';
+                nav.style.boxShadow = '0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075)';
+                nav.style.borderBottom = '1px solid rgba(226, 232, 240, 0.8)';
+                if (logoColored) logoColored.style.display = 'inline-block';
+                if (logoWhite) logoWhite.style.display = 'none';
+                navLinks.forEach(link => {
+                    link.style.color = '#071437';
+                    link.style.textShadow = 'none';
+                });
+                if (langBtn) {
+                    langBtn.style.color = '#071437';
+                    langBtn.style.borderColor = '#cbd5e1';
+                    langBtn.style.backgroundColor = '#f8fafc';
                 }
             } else {
-                if (nav && nav.classList.contains('bg-light')) {
-                    nav.classList.remove('bg-light');
-                }
-                if (logo && logo.classList.contains('scrolled')) {
-                    logo.classList.remove('scrolled');
+                nav.classList.remove('navbar-scrolled');
+                nav.classList.add('navbar-transparent');
+                nav.style.backgroundColor = 'transparent';
+                nav.style.boxShadow = '0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075)';
+                nav.style.borderBottom = 'none';
+                if (logoColored) logoColored.style.display = 'none';
+                if (logoWhite) logoWhite.style.display = 'inline-block';
+                navLinks.forEach(link => {
+                    link.style.color = '#ffffff';
+                    link.style.textShadow = 'none';
+                });
+                if (langBtn) {
+                    langBtn.style.color = '#ffffff';
+                    langBtn.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                    langBtn.style.backgroundColor = 'transparent';
                 }
             }
         };
 
-        // Initialize immediately on load and on scroll
+        // Event listener saat resize dan load
+        window.addEventListener('resize', updateNavbarScroll, { passive: true });
+        window.addEventListener('load', updateNavbarScroll);
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', updateNavbarScroll);
         } else {
@@ -1975,13 +2137,17 @@
 
         // Optimized RAF Scroll handler for silky-smooth performance (60fps)
         let isTicking = false;
-        window.addEventListener('scroll', () => {
+        const handleScroll = () => {
             if (!isTicking) {
                 window.requestAnimationFrame(() => {
                     updateNavbarScroll();
 
                     // Hardware-accelerated lightweight parallax
-                    const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+                    const scrolled = Math.max(
+                        window.scrollY || 0,
+                        document.documentElement ? document.documentElement.scrollTop : 0,
+                        document.body ? document.body.scrollTop : 0
+                    );
                     if (scrolled < window.innerHeight) {
                         const bannerImages = document.querySelectorAll('.banner-image-background');
                         bannerImages.forEach(img => {
@@ -1992,7 +2158,13 @@
                 });
                 isTicking = true;
             }
-        }, { passive: true });
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+        if (document.body) {
+            document.body.addEventListener('scroll', handleScroll, { passive: true });
+        }
   
         const initRecaptcha = async function () {
             const token = await grecaptcha.execute("{{config('google.recaptcha.site_key')}}", {action: 'submit'});
@@ -2018,6 +2190,7 @@
 
             $('.slick-carousel-banners').on('init', function () {
                 $(this).css('visibility', 'visible');
+                updateNavbarScroll();
             });
 
             $('.slick-carousel-banners').slick({

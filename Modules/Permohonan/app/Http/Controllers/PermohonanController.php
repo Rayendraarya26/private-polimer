@@ -267,7 +267,7 @@ class PermohonanController extends Controller
                 }
 
                 $formable = $row->detailPermohonan->first()?->formable;
-                return $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? $formable?->pemohon_nama ?? $formable?->nama_pemohon ?? $formable?->pelanggan_nama ?? '-';
+                return $formable?->nama_perusahaan ?? $formable?->nama_lengkap ?? $formable?->nama_instansi ?? $formable?->biaya_nama ?? $formable?->pemohon_pic_nama ?? $formable?->nama_usaha ?? $formable?->pemohon_nama ?? $formable?->nama_pemohon ?? $formable?->pelanggan_nama ?? '-';
             })
             ->addColumn('layanan', function ($row) {
                 if (str_starts_with($row->no_permohonan, 'LSP'))
@@ -284,6 +284,8 @@ class PermohonanController extends Controller
                     return 'Konsultasi & Audit Teknologi';
                 if (str_contains($row->no_permohonan, 'JASA'))
                     return 'Jasa Lainnya';
+                if (str_starts_with($row->no_permohonan, 'PBA'))
+                    return 'Produsen Bahan Acuan (PBA)';
                 foreach ($row->detailPermohonan as $detail) {
                     if ($detail?->lingkupLayanan?->jenisLayanan?->jenis_layanan) {
                         return $detail->lingkupLayanan->jenisLayanan->jenis_layanan;

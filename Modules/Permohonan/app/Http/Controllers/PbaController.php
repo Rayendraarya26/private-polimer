@@ -73,6 +73,15 @@ class PbaController extends Controller
 
     /**
      * Menampilkan form input permohonan Produsen Bahan Acuan (PBA) oleh Marketing
+     * Menu ini langsung membuka formulir penginputan permohonan tanpa tabel list terpisah
+     */
+    public function index()
+    {
+        return $this->create();
+    }
+
+    /**
+     * Menampilkan form input permohonan Produsen Bahan Acuan (PBA) oleh Marketing
      */
     public function create()
     {
@@ -115,7 +124,7 @@ class PbaController extends Controller
             'breadcrumbs' => [
                 new Breadcrumbs('Admin'),
                 new Breadcrumbs('Data Permohonan Layanan', route('layanan.index')),
-                new Breadcrumbs('Input Permohonan PBA'),
+                new Breadcrumbs('Produsen Bahan Acuan'),
             ],
             'provinces'       => $provinces,
             'pelangganList'   => $pelangganList,

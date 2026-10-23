@@ -200,6 +200,9 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     });
 
     Route::prefix('pba')->name('permohonan.pba.')->group(function () {
+        Route::get('/', [PbaController::class, 'index'])
+            ->withoutMiddleware([Restriction::class])
+            ->name('index');
         Route::get('/create', [PbaController::class, 'create'])
             ->withoutMiddleware([Restriction::class])
             ->name('create');

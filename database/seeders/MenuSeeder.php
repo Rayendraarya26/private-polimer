@@ -412,22 +412,10 @@ class MenuSeeder extends Seeder
                         ],
                     ],
                     [
-                        'name' => 'Produsen Bahan Acuan (PBA)',
-                        'desc' => 'Pendaftaran dan input permohonan Produsen Bahan Acuan oleh Marketing',
-                        'is_active' => 'yes',
-                        'order' => 7,
-                        'icon' => 'fa-duotone fa-flask',
-                        'action' => [
-                            ['name' => 'index', 'controller' => $modulePermohonan . '\PbaController@create'],
-                            ['name' => 'create', 'controller' => $modulePermohonan . '\PbaController@create'],
-                            ['name' => 'store', 'controller' => $modulePermohonan . '\PbaController@store'],
-                        ],
-                    ],
-                    [
                         'name' => 'Pencatatan TKDN',
                         'desc' => 'Pencatatan penerimaan PNBP TKDN (Bendahara)',
                         'is_active' => 'yes',
-                        'order' => 8,
+                        'order' => 7,
                         'icon' => 'fa-duotone fa-file-certificate',
                         'action' => [
                             ['name' => 'index', 'controller' => $modulePermohonan . '\TkdnController@index'],
@@ -438,6 +426,18 @@ class MenuSeeder extends Seeder
                             ['name' => 'edit', 'controller' => $modulePermohonan . '\TkdnController@edit'],
                             ['name' => 'update', 'controller' => $modulePermohonan . '\TkdnController@update'],
                             ['name' => 'delete', 'controller' => $modulePermohonan . '\TkdnController@destroy'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Produsen Bahan Acuan',
+                        'desc' => 'Formulir input dan pemesanan Produsen Bahan Acuan (PBA)',
+                        'is_active' => 'yes',
+                        'order' => 8,
+                        'icon' => 'fa-duotone fa-flask',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\PbaController@index'],
+                            ['name' => 'create', 'controller' => $modulePermohonan . '\PbaController@create'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\PbaController@store'],
                         ],
                     ],
                 ],

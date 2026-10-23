@@ -170,4 +170,40 @@ class PbaSubmissionE2ETest extends TestCase
         // Karena route POST di api/eksternal/pba sudah dihapus, request akan ditolak (405 Method Not Allowed atau 404 Not Found)
         $this->assertTrue(in_array($response->getStatusCode(), [404, 405]));
     }
+
+    /**
+     * Test memastikan route GET permohonan.pba.index langsung memuat form create tanpa list view terpisah
+     */
+    public function test_menu_pba_index_langsung_memuat_form_create()
+    {
+        $controller = new InternalPbaController();
+        $response = $controller->index();
+
+        $this->assertEquals('permohonan::pba.create', $response->name());
+        $viewData = $response->getData();
+        $this->assertArrayHasKey('catalogProducts', $viewData);
+    }
+
+    /**
+     * Test memastikan menu PBA di sys_menu terdaftar dengan nama 'Produsen Bahan Acuan'
+     */
+    public function test_menu_pba_terdaftar_di_sys_menu_dengan_nama_produsen_bahan_acuan()
+    {
+        $menu = \Illuminate\Support\Facades\DB::table('sys_menu')
+            ->where('name', 'Produsen Bahan Acuan')
+            ->first();
+
+        $this->assertNotNull($menu, 'Menu Produsen Bahan Acuan harus terdaftar di sys_menu');
+        $this->assertEquals('fa-duotone fa-flask', $menu->icon);
+        $this->assertEquals(8, $menu->order);
+
+        $actions = \Illuminate\Support\Facades\DB::table('sys_menu_action')
+            ->where('menu_id', $menu->id)
+            ->pluck('name')
+            ->toArray();
+
+        $this->assertContains('index', $actions);
+        $this->assertContains('create', $actions);
+        $this->assertContains('store', $actions);
+    }
 }

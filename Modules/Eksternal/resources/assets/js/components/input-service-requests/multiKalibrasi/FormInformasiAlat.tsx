@@ -5,7 +5,7 @@ import { Button } from "../../ui/Button"
 import { Toolbox, Plus, Trash2, Settings, Loader2, Info, Calculator, ShieldCheck } from "lucide-react"
 import { useMasterKalibrasiQuery } from "../../../hooks/queries/useMasterQuery"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
-import { SearchableSelect } from "../../ui/SearchableSelect"
+import { TwoRowSelect } from "../../ui/TwoRowSelect"
 
 export interface KalibrasiUjiItem {
   id: string
@@ -41,7 +41,8 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
   const kalibrasiOptions = useMemo(() => {
     return masterKalibrasi.map((item: any) => ({
       value: String(item.id),
-      label: `${item.kalibrasi} — Rp ${Number(item.tarif_satuan || 0).toLocaleString("id-ID")}`,
+      label: item.kalibrasi,
+      subLabel: `Tarif: Rp ${Number(item.tarif_satuan || 0).toLocaleString("id-ID")}`,
     }))
   }, [masterKalibrasi])
 
@@ -485,7 +486,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                           <label className="block text-[11px] font-semibold text-slate-700">
                             Pilih Kalibrasi
                           </label>
-                          <SearchableSelect
+                          <TwoRowSelect
                             disabled={isLoadingMaster}
                             placeholder={
                               isLoadingMaster

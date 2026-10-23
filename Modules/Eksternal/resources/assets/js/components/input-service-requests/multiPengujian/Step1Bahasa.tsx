@@ -1,9 +1,39 @@
 import React from "react"
-import { Languages, Globe, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react"
+import { Languages, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react"
 import { BahasaLaporan, PengujianSharedData } from "../../../types/pengujian"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
 import { Button } from "../../ui/Button"
 import { Badge } from "../../ui/Badge"
+
+// Komponen Bendera Indonesia (Merah Putih)
+const IndonesiaFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Bendera Indonesia"
+  >
+    <rect width="60" height="20" fill="#E11D48" />
+    <rect y="20" width="60" height="20" fill="#FFFFFF" />
+  </svg>
+)
+
+// Komponen Bendera Inggris / Britania Raya (Union Jack)
+const UKFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Bendera Inggris"
+  >
+    <rect width="60" height="40" fill="#012169" />
+    <path d="M0 0 L60 40 M60 0 L0 40" stroke="#FFFFFF" strokeWidth="8" />
+    <path d="M0 0 L30 20 M60 40 L30 20" stroke="#C8102E" strokeWidth="2.6" />
+    <path d="M60 0 L30 20 M0 40 L30 20" stroke="#C8102E" strokeWidth="2.6" />
+    <path d="M30 0 v40 M0 20 h60" stroke="#FFFFFF" strokeWidth="12" />
+    <path d="M30 0 v40 M0 20 h60" stroke="#C8102E" strokeWidth="7" />
+  </svg>
+)
 
 interface Step1BahasaProps {
   sharedData: PengujianSharedData
@@ -26,7 +56,7 @@ const BAHASA_OPTIONS: {
     code: "ID",
     description:
       "Laporan diterbitkan dalam Bahasa Indonesia. Cocok untuk keperluan dalam negeri, instansi pemerintah, dan sertifikasi SNI.",
-    icon: Languages,
+    icon: IndonesiaFlag,
   },
   {
     value: "en",
@@ -35,7 +65,7 @@ const BAHASA_OPTIONS: {
     code: "EN",
     description:
       "Laporan diterbitkan dalam Bahasa Inggris. Cocok untuk keperluan ekspor, mitra luar negeri, dan standar internasional.",
-    icon: Globe,
+    icon: UKFlag,
   },
 ]
 
@@ -100,12 +130,14 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
                   {/* Header: icon, title, indicator */}
                   <div className="flex items-start gap-3">
                     <div
-                      className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected
-                        ? "bg-brand-600 text-white shadow-sm"
-                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/70"
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${isSelected
+                        ? "bg-white border-2 border-brand-500 shadow-sm ring-2 ring-brand-500/15"
+                        : "bg-slate-50 border border-slate-200/90 group-hover:bg-white group-hover:border-slate-300 shadow-2xs"
                         }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <div className="w-7 h-[18px] rounded-xs overflow-hidden shadow-2xs border border-slate-300/80 flex items-center justify-center shrink-0">
+                        <Icon className="w-full h-full object-cover" />
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">

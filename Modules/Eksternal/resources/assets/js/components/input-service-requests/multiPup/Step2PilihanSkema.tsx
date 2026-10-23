@@ -127,11 +127,11 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
   const totalBersih = Math.max(0, totalKotor - diskonNominal)
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       {/* Banner Notifikasi Diskon Bundling */}
       <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/60 to-brand-50/50 border border-amber-200/80 shadow-xs">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-amber-500 text-white shadow-xs shrink-0">
+          <div className="p-2.5 rounded-xl bg-amber-500 text-white shadow-xs shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="space-y-1 text-xs">
@@ -156,13 +156,13 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
             <input
               type="text"
               placeholder="Cari nama alat / skema kalibrasi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
             />
           </div>
 
@@ -310,8 +310,8 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
 
       {/* Bagian Input Metode Kalibrasi Acuan untuk Setiap Skema Terpilih */}
       {formData.skema_items.length > 0 && (
-        <Card className="border-brand-200 bg-white shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-brand-50/60 to-sky-50/30 pb-3">
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
             <CardTitle className="text-base flex items-center gap-2 text-slate-800">
               <BookOpen className="w-4 h-4 text-brand-600" />
               Metode Kalibrasi yang Ditetapkan Peserta
@@ -320,16 +320,16 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
               Tuliskan judul acuan/referensi standar kalibrasi yang ditetapkan laboratorium Anda untuk setiap skema yang dipilih. (Contoh: SNSU PK.M-01:2024; ASTM E-542; DKD-R 6-1; dsb.)
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4">
+          <CardContent className="pt-5 space-y-4">
             <div className="divide-y divide-slate-100">
               {formData.skema_items.map((item, idx) => (
-                <div key={item.kode_skema} className="py-3 first:pt-0 last:pb-0 space-y-1.5">
+                <div key={item.kode_skema} className="py-3.5 first:pt-0 last:pb-0 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-800">
                       {idx + 1}. Metode Kalibrasi: <span className="text-brand-700">{item.nama_skema}</span>{" "}
                       <span className="text-rose-500">*</span>
                     </label>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-slate-500 font-mono font-medium">
                       Rp {item.tarif_pnbp.toLocaleString("id-ID")}
                     </span>
                   </div>
@@ -339,7 +339,7 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
                     placeholder="Tuliskan standar acuan metode kalibrasi..."
                     value={item.metode_kalibrasi_acuan}
                     onChange={(e) => handleUpdateMetode(item.kode_skema, e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                   />
                 </div>
               ))}

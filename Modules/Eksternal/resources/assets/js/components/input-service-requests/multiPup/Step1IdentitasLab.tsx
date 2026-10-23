@@ -220,10 +220,10 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       {/* Kartu 1: Identitas Pengisi & Narahubung */}
-      <Card className="border-brand-100/80 shadow-xs">
-        <CardHeader className="bg-gradient-to-r from-brand-50/50 via-sky-50/30 to-white pb-3">
+      <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <User className="w-4 h-4 text-brand-600" />
             1. Informasi Pengisi & Narahubung Teknis
@@ -232,44 +232,44 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
             Kontak penanggung jawab teknis untuk koordinasi pendaftaran, jadwal sirkulasi artefak, dan laporan hasil
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-4 space-y-4">
+        <CardContent className="pt-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nama Pengisi Formulir <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <input
                   type="text"
                   required
                   placeholder="Masukkan nama lengkap pengisi"
                   value={formData.nama_pengisi}
                   onChange={(e) => handleNamaPengisiChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Email Pemohon <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <input
                   type="email"
                   required
                   placeholder="contoh@domain.com"
                   value={formData.email_pemohon}
                   onChange={(e) => onChange("email_pemohon", e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700">
                   Nama Narahubung / Contact Person <span className="text-rose-500">*</span>
                 </label>
@@ -284,31 +284,31 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                 </label>
               </div>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <input
                   type="text"
                   required
                   placeholder="Nama narahubung operasional"
                   value={formData.nama_narahubung}
                   onChange={(e) => handleNamaNarahubungChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nomor WhatsApp Narahubung <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <input
                   type="text"
                   required
                   placeholder="Contoh: 08123456789"
                   value={formData.no_wa_narahubung}
                   onChange={(e) => onChange("no_wa_narahubung", e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
             </div>
@@ -317,20 +317,20 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
       </Card>
 
       {/* Kartu 2: Data Laboratorium Kalibrasi */}
-      <Card className="border-slate-200 shadow-xs">
-        <CardHeader className="bg-slate-50/70 pb-3">
+      <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-            <Building2 className="w-4 h-4 text-emerald-600" />
+            <Building2 className="w-4 h-4 text-brand-600" />
             2. Data Laboratorium Kalibrasi Peserta
           </CardTitle>
           <CardDescription>
             Identitas resmi laboratorium yang akan menerima dan mengkalibrasi artefak uji profisiensi
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-4 space-y-4">
+        <CardContent className="pt-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nama Laboratorium Kalibrasi <span className="text-rose-500">*</span>
               </label>
               <input
@@ -339,12 +339,12 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                 placeholder="Contoh: Laboratorium Kalibrasi PT ..."
                 value={formData.nama_lab_kalibrasi}
                 onChange={(e) => onChange("nama_lab_kalibrasi", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Email Official Laboratorium Kalibrasi <span className="text-rose-500">*</span>
               </label>
               <input
@@ -353,13 +353,13 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                 placeholder="kalibrasi@perusahaan.co.id"
                 value={formData.email_official_lab}
                 onChange={(e) => onChange("email_official_lab", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Alamat Lengkap Laboratorium Kalibrasi <span className="text-rose-500">*</span>
             </label>
             <textarea
@@ -368,18 +368,18 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
               placeholder="Jalan, Kawasan Industri, Gedung, dsb."
               value={formData.alamat_lab_kalibrasi}
               onChange={(e) => onChange("alamat_lab_kalibrasi", e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors resize-none"
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs resize-none"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                 <span>Provinsi Lokasi Laboratorium <span className="text-rose-500">*</span></span>
                 {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
               </label>
               <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <select
                   value={selectedProvId}
                   onChange={(e) => {
@@ -393,7 +393,7 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                     }
                     onChange("kota_kabupaten_lab", "")
                   }}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 >
                   <option value="">-- Pilih Provinsi --</option>
                   {provinces.map((p) => (
@@ -406,14 +406,14 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                 <span>Kabupaten / Kota Lokasi Laboratorium <span className="text-rose-500">*</span></span>
                 {Boolean(selectedProvId) && loadingRegions && (
                   <Loader2 className="w-3 h-3 animate-spin text-brand-600" />
                 )}
               </label>
               <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
                 <select
                   disabled={!selectedProvId}
                   value={
@@ -428,7 +428,7 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                       onChange("kota_kabupaten_lab", "")
                     }
                   }}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">
                     {!selectedProvId
@@ -448,20 +448,20 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
       </Card>
 
       {/* Kartu 3: Personil Pengesah Formulir */}
-      <Card className="border-slate-200 shadow-xs">
-        <CardHeader className="bg-slate-50/70 pb-3">
+      <Card className="border-brand-100 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-            <FileSignature className="w-4 h-4 text-indigo-600" />
+            <FileSignature className="w-4 h-4 text-brand-600" />
             3. Personil Pengesah Pendaftaran
           </CardTitle>
           <CardDescription>
             Pejabat/personil yang berwenang menandatangani dan mengesahkan permohonan keikutsertaan Uji Profisiensi
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="pt-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nama Personil Penandatangan / Pengesah <span className="text-rose-500">*</span>
               </label>
               <input
@@ -470,12 +470,12 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                 placeholder="Nama lengkap beserta gelar jika ada"
                 value={formData.nama_personil_pengesah}
                 onChange={(e) => onChange("nama_personil_pengesah", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Jabatan Personil Pengesah <span className="text-rose-500">*</span>
               </label>
               <input
@@ -484,7 +484,7 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                 placeholder="Contoh: Manajer Teknis / Kepala Laboratorium"
                 value={formData.jabatan_personil_pengesah}
                 onChange={(e) => onChange("jabatan_personil_pengesah", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
               />
             </div>
           </div>

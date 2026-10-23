@@ -58,9 +58,9 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
     hasSpektro
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       {/* Header Penjelasan */}
-      <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-200/80 shadow-xs flex items-start gap-3">
+      <div className="p-4 rounded-xl bg-sky-50/60 border border-sky-100 shadow-2xs flex items-start gap-3">
         <Info className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
         <div className="text-xs space-y-1">
           <h4 className="font-bold text-sky-900">Konfirmasi Sumber Daya Equipment Laboratorium</h4>
@@ -77,21 +77,21 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
             Tidak Memerlukan Konfirmasi Peralatan Khusus
           </p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Skema uji profisiensi yang Anda pilih tidak memerlukan pengisian detail spesifikasi peralatan tambahan. Silakan klik tombol <strong>"Selanjutnya"</strong> untuk meninjau rincian biaya dan persetujuan pernyataan.
+            Skema uji profisiensi yang Anda pilih tidak memerlukan pengisian detail spesifikasi peralatan tambahan. Silakan klik tombol <strong>"Langkah Berikutnya"</strong> untuk meninjau rincian biaya dan persetujuan pernyataan.
           </p>
         </div>
       )}
 
       {/* 1. SEKSI TERMOMETER */}
       {hasTermometer && (
-        <Card className="border-brand-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-brand-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
               <Thermometer className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Termometer (Gelas / Digital)
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4">
+          <CardContent className="pt-5 space-y-4">
             {/* Ice point */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -132,7 +132,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                   const currentMedia = eq.termometer?.media_kalibrasi || []
                   const checked = currentMedia.includes(media)
                   return (
-                    <label key={media} className="inline-flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 transition-colors">
+                    <label key={media} className="inline-flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                       <input
                         type="checkbox"
                         checked={checked}
@@ -154,7 +154,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
             {/* Kedalaman & Rentang */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Jika menggunakan dryblock/well/furnace, berapa cm kedalaman maksimal sensor?
                 </label>
                 <input
@@ -162,12 +162,12 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                   placeholder="Contoh: 15 cm"
                   value={eq.termometer?.kedalaman_sensor_cm || ""}
                   onChange={(e) => updateEq("termometer", { kedalaman_sensor_cm: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Sebutkan rentang ukur suhu yang dapat dilakukan:
                 </label>
                 <input
@@ -175,7 +175,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                   placeholder="Contoh: -20 °C s.d. 300 °C"
                   value={eq.termometer?.rentang_suhu || ""}
                   onChange={(e) => updateEq("termometer", { rentang_suhu: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
                 />
               </div>
             </div>
@@ -185,16 +185,16 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
       {/* 2. SEKSI AUTOCLAVE */}
       {hasAutoclave && (
-        <Card className="border-amber-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-amber-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
-              <Wrench className="w-4 h-4 text-amber-600" />
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+              <Wrench className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Autoclave
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4 text-xs">
+          <CardContent className="pt-5 space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Pengukuran Parameter Suhu pada Kalibrasi Autoclave: <span className="text-rose-500">*</span>
               </label>
               <div className="space-y-1.5">
@@ -204,7 +204,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                   "Menggunakan sensor berbentuk wire",
                   "Tidak melakukan pengukuran parameter suhu autoclave",
                 ].map((opt) => (
-                  <label key={opt} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 transition-colors">
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                     <input
                       type="radio"
                       name="autoclave_suhu"
@@ -219,7 +219,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Pengukuran Parameter Tekanan pada Kalibrasi Autoclave: <span className="text-rose-500">*</span>
               </label>
               <div className="space-y-1.5">
@@ -229,7 +229,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                   "Melepas indikator tekanan kemudian mengkalibrasi sebagai pressure gauge",
                   "Tidak melakukan pengukuran parameter tekanan autoclave",
                 ].map((opt) => (
-                  <label key={opt} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-100/70 transition-colors">
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                     <input
                       type="radio"
                       name="autoclave_tekanan"
@@ -248,16 +248,16 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
       {/* 3. SEKSI PRESSURE GAUGE */}
       {hasPressureGauge && (
-        <Card className="border-sky-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-sky-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
-              <Gauge className="w-4 h-4 text-sky-600" />
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+              <Gauge className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Pressure Gauge
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4 text-xs">
+          <CardContent className="pt-5 space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Kemampuan kalibrasi yang dapat dilakukan terkait lingkup tekanan: <span className="text-rose-500">*</span>
               </label>
               <div className="flex gap-4">
@@ -284,14 +284,14 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Media tekanan yang tersedia di laboratorium Anda: <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {["Udara", "Silicon oil", "Air", "Alkohol"].map((med) => {
                   const currentM = eq.pressure_gauge?.media_tekanan || []
                   return (
-                    <label key={med} className="inline-flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50">
+                    <label key={med} className="inline-flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                       <input
                         type="checkbox"
                         checked={currentM.includes(med)}
@@ -310,7 +310,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200">
+            <div className="p-3.5 bg-amber-50/80 rounded-xl border border-amber-200">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -330,22 +330,22 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
       {/* 4. SEKSI DIGITAL CALIPER */}
       {hasCaliper && (
-        <Card className="border-indigo-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-indigo-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
-              <Ruler className="w-4 h-4 text-indigo-600" />
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+              <Ruler className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Digital Caliper
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 text-xs">
-            <label className="block font-semibold text-slate-700 mb-1.5">
+          <CardContent className="pt-5 text-xs">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Alat standar digital caliper yang dimiliki laboratorium: <span className="text-rose-500">*</span>
             </label>
             <div className="flex gap-4">
               {["Gauge block", "Caliper checker"].map((std) => {
                 const currentStd = eq.digital_caliper?.alat_standar || []
                 return (
-                  <label key={std} className="inline-flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50">
+                  <label key={std} className="inline-flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                     <input
                       type="checkbox"
                       checked={currentStd.includes(std)}
@@ -368,16 +368,16 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
       {/* 5. SEKSI STOPWATCH DIGITAL */}
       {hasStopwatch && (
-        <Card className="border-emerald-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-emerald-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
-              <Timer className="w-4 h-4 text-emerald-600" />
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+              <Timer className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Stopwatch Digital
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4 text-xs">
+          <CardContent className="pt-5 space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Alat standar stopwatch digital yang dimiliki laboratorium: <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -389,7 +389,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                 ].map((std) => {
                   const currentStd = eq.stopwatch?.alat_standar || []
                   return (
-                    <label key={std} className="inline-flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-slate-200 bg-slate-50/50">
+                    <label key={std} className="inline-flex items-center gap-2 cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
                       <input
                         type="checkbox"
                         checked={currentStd.includes(std)}
@@ -409,7 +409,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Sebutkan nilai U95 pada CMC (satuan detik): <span className="text-rose-500">*</span>
               </label>
               <input
@@ -417,7 +417,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
                 placeholder="Contoh: 0.05 detik"
                 value={eq.stopwatch?.u95_cmc_detik || ""}
                 onChange={(e) => updateEq("stopwatch", { u95_cmc_detik: e.target.value })}
-                className="w-full sm:w-80 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                className="w-full sm:w-80 px-3.5 py-2 text-xs rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors shadow-xs"
               />
             </div>
           </CardContent>
@@ -426,17 +426,17 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
       {/* 6. SEKSI SPEKTROFOTOMETER UV-VIS */}
       {hasSpektro && (
-        <Card className="border-purple-100 shadow-xs">
-          <CardHeader className="bg-gradient-to-r from-purple-50/40 to-white pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-slate-800">
-              <Eye className="w-4 h-4 text-purple-600" />
+        <Card className="border-brand-100 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+              <Eye className="w-4 h-4 text-brand-600" />
               Konfirmasi Equipment: Skema UP Kalibrasi Spektrofotometer UV-Vis
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4 space-y-4 text-xs">
+          <CardContent className="pt-5 space-y-4 text-xs">
             {/* Filter Holmium */}
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Apakah laboratorium memiliki filter standar Holmium? <span className="text-rose-500">*</span>
               </label>
               <div className="flex flex-wrap gap-3">
@@ -457,7 +457,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
             {/* Filter Didymium */}
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Apakah laboratorium memiliki filter standar Didymium? <span className="text-rose-500">*</span>
               </label>
               <div className="flex flex-wrap gap-3">
@@ -478,7 +478,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
             {/* Akurasi Fotometrik 590 nm */}
             <div>
-              <label className="block font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Apakah laboratorium dapat melakukan kalibrasi akurasi fotometrik pada panjang gelombang 590 nm? <span className="text-rose-500">*</span>
               </label>
               <div className="flex gap-4">

@@ -395,6 +395,20 @@ class MenuSeeder extends Seeder
                         ],
                     ],
                     [
+                        'name' => 'Master Kalibrasi',
+                        'desc' => 'Manajemen data tarif & instrumen master kalibrasi',
+                        'is_active' => 'yes',
+                        'order' => 6,
+                        'icon' => 'fa-duotone fa-ruler-combined',
+                        'action' => [
+                            ['name' => 'index', 'controller' => $modulePermohonan . '\MasterKalibrasiController@index'],
+                            ['name' => 'ajax', 'controller' => $modulePermohonan . '\MasterKalibrasiController@ajax'],
+                            ['name' => 'store', 'controller' => $modulePermohonan . '\MasterKalibrasiController@store'],
+                            ['name' => 'update', 'controller' => $modulePermohonan . '\MasterKalibrasiController@update'],
+                            ['name' => 'destroy', 'controller' => $modulePermohonan . '\MasterKalibrasiController@destroy'],
+                        ],
+                    ],
+                    [
                         'name' => 'Pencatatan Jasa Lainnya',
                         'desc' => 'Pencatatan pendapatan jasa lainnya non-layanan utama oleh Tim Marketing & Bendahara',
                         'is_active' => 'yes',

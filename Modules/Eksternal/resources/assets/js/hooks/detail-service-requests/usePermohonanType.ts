@@ -35,7 +35,9 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
       ? "Produsen Bahan Acuan (PBA)"
       : noOrder.endsWith("/KAT") || noOrder.includes("KAT")
       ? "Konsultasi dan Audit Teknologi"
-      : noOrder.startsWith("CERT")
+      : noOrder.includes("TKDN") || permohonan?.formable_type?.includes("FormTkdn") || lingkup?.slug?.includes("tkdn")
+        ? "Penerimaan PNBP TKDN"
+        : noOrder.startsWith("CERT")
         ? "Sertifikasi Produk & Sistem (LSPro)"
         : noOrder.startsWith("LSP")
           ? "Sertifikasi Profesi (LSP)"
@@ -212,7 +214,18 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     )
   )
 
-  const isSertifikasi = Boolean(!isAset && !isPba && !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant && !isKonsultasi)
+  const isTkdn = Boolean(
+    !isAset && (
+      noOrder.includes("TKDN") ||
+      permohonan?.formable_type?.includes("FormTkdn") ||
+      lingkup?.slug?.includes("tkdn") ||
+      Boolean(formData?.uraian_pekerjaan && (formData?.biaya !== undefined || formData?.tanggal_bayar)) ||
+      (Array.isArray(permohonan?.form_tkdn) && permohonan.form_tkdn.length > 0) ||
+      (Array.isArray(permohonan?.formTkdn) && permohonan.formTkdn.length > 0)
+    )
+  )
+
+  const isSertifikasi = Boolean(!isAset && !isPba && !isPup && !isLsp && !isPelatihan && !isGrk && !isKalibrasi && !isPengujian && !isInspeksi && !isHalal && !isMiniplant && !isKonsultasi && !isTkdn)
 
   return {
     noOrder,
@@ -224,6 +237,7 @@ export function usePermohonanType(permohonan: any, formData: any, lingkup: any, 
     layananName,
     isAset,
     isPba,
+    isTkdn,
     isPup,
     isLsp,
     isPelatihan,

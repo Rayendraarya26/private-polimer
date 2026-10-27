@@ -287,7 +287,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         tingkatTransferData: e.target.value,
                                     }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                             <div className="flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-200/80 px-3.5 py-2 text-xs text-sky-800">
                                 <Info className="w-4 h-4 text-sky-600 shrink-0" />
@@ -356,7 +356,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                 materialitas: "program",
                                             }))
                                         }
-                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                     />
                                     <span>% (jika ditetapkan oleh program)</span>
                                 </label>

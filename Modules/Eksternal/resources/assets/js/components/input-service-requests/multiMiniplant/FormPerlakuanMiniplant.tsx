@@ -219,7 +219,7 @@ export const FormPerlakuanMiniplant: React.FC<FormPerlakuanMiniplantProps> = ({
                                                             e.preventDefault()
                                                     }}
                                                     placeholder="0"
-                                                    className={`w-20 text-center rounded-lg border py-1.5 px-2 text-xs transition-colors ${
+                                                    className={`w-20 text-center rounded-xl border py-1.5 px-2 text-sm transition-colors ${
                                                         isChecked
                                                             ? "border-brand-400 bg-white text-slate-800 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 shadow-sm font-semibold"
                                                             : "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"

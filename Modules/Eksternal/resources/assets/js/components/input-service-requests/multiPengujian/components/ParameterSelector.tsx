@@ -127,7 +127,7 @@ export const ParameterSelector: React.FC<ParameterSelectorProps> = ({
               placeholder="Cari nama parameter, metode SNI/ASTM, atau kode..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-3.5 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full h-[42px] pl-10 pr-3.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors"
             />
           </div>
 

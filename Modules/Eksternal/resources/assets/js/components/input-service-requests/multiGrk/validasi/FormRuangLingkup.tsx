@@ -55,7 +55,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, batasanProyek: e.target.value }))
                             }
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
                         />
                     </div>
 
@@ -115,7 +115,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeMulai: e.target.value }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                             <input
                                 type={formData.periodeSelesai ? "date" : "text"}
@@ -129,7 +129,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeSelesai: e.target.value }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
@@ -192,7 +192,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                         kriteriaLainnyaText: e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                             />
                                         </div>
                                     )}
@@ -211,7 +211,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, jumlahKaryawan: e.target.value }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
@@ -230,7 +230,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, ssrKuantifikasi: e.target.value }))
                             }
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                         />
                     </div>
 
@@ -288,7 +288,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiProyek: e.target.value,
                                     }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
@@ -311,7 +311,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiBaseline: e.target.value,
                                     }))
                                 }
-                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                             />
                         </div>
                     </div>
@@ -377,7 +377,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                 materialitas: "program",
                                             }))
                                         }
-                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
                                     />
                                     <span>% (jika ditetapkan oleh program)</span>
                                 </label>

@@ -16,7 +16,16 @@ import {
   Sparkles,
   Copy,
 } from "lucide-react"
-import { DropzoneUploader, CollapsibleGuideline, InfoTooltip } from "../../forms"
+import {
+  DropzoneUploader,
+  CollapsibleGuideline,
+  InfoTooltip,
+  FormField,
+  TextInput,
+  SelectInput,
+  DateInput,
+  TextareaInput,
+} from "../../forms"
 
 interface Step4Props {
   payload: FormHalalPayload
@@ -30,6 +39,11 @@ const JENIS_BAHAN_OPTIONS = [
   "Kemasan",
 ]
 
+const JENIS_BAHAN_SELECT_OPTIONS = JENIS_BAHAN_OPTIONS.map((opt) => ({
+  value: opt,
+  label: opt,
+}))
+
 const KLASIFIKASI_PRODUK_OPTIONS = [
   "Makanan",
   "Minuman",
@@ -40,6 +54,11 @@ const KLASIFIKASI_PRODUK_OPTIONS = [
   "Barang Gunaan",
   "Lainnya",
 ]
+
+const KLASIFIKASI_PRODUK_SELECT_OPTIONS = KLASIFIKASI_PRODUK_OPTIONS.map((opt) => ({
+  value: opt,
+  label: opt,
+}))
 
 export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange }) => {
   const isSelfDeclare = payload.dataPengajuan.jalur_pendaftaran === "self_declare"
@@ -281,87 +300,67 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Kategori Bahan <span className="text-red-500">*</span>
-                    </label>
-                    <select
+                  <FormField label="Kategori Bahan" required>
+                    <SelectInput
                       value={bahan.jenis_bahan}
-                      onChange={(e) => handleUpdateBahan(bahan.id, "jenis_bahan", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    >
-                      {JENIS_BAHAN_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      onChange={(val) => handleUpdateBahan(bahan.id, "jenis_bahan", String(val))}
+                      options={JENIS_BAHAN_SELECT_OPTIONS}
+                      isClearable={false}
+                    />
+                  </FormField>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Nama Bahan <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                  <FormField label="Nama Bahan" required>
+                    <TextInput
                       type="text"
                       placeholder="Contoh: Tepung Tapioka / Sunco"
                       value={bahan.nama_bahan}
                       onChange={(e) => handleUpdateBahan(bahan.id, "nama_bahan", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Produsen / Pabrik Pembuat
-                    </label>
-                    <input
+                  <FormField label="Produsen / Pabrik Pembuat">
+                    <TextInput
                       type="text"
                       placeholder="Contoh: PT Bogasari Flour Mills"
                       value={bahan.produsen}
                       onChange={(e) => handleUpdateBahan(bahan.id, "produsen", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
-                  </div>
+                  </FormField>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Pemasok / Supplier
-                    </label>
-                    <input
+                  <FormField label="Pemasok / Supplier">
+                    <TextInput
                       type="text"
                       placeholder="Toko Bahan Kue / Distributor"
                       value={bahan.supplier || ""}
                       onChange={(e) => handleUpdateBahan(bahan.id, "supplier", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
-                  </div>
+                  </FormField>
                 </div>
 
                 {/* Status Sertifikat Halal Bahan */}
                 <div className="pt-2 border-t border-dashed border-slate-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <span className="text-[11px] font-semibold text-slate-700">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <span className="text-xs font-semibold text-slate-700">
                       Status Sertifikasi Halal Bahan:
                     </span>
                     <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-700">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                         <input
                           type="radio"
                           name={`is_bersertifikat_${bahan.id}`}
                           checked={bahan.is_bersertifikat === true}
                           onChange={() => handleUpdateBahan(bahan.id, "is_bersertifikat", true)}
-                          className="text-brand-600 focus:ring-brand-500"
+                          className="text-brand-600 focus:ring-brand-500 w-4 h-4"
                         />
                         <span>Sudah Bersertifikat Halal</span>
                       </label>
-                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-700">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                         <input
                           type="radio"
                           name={`is_bersertifikat_${bahan.id}`}
                           checked={bahan.is_bersertifikat === false}
                           onChange={() => handleUpdateBahan(bahan.id, "is_bersertifikat", false)}
-                          className="text-brand-600 focus:ring-brand-500"
+                          className="text-brand-600 focus:ring-brand-500 w-4 h-4"
                         />
                         <span>Bahan Alami / Positif List (KMA 1360)</span>
                       </label>
@@ -369,45 +368,35 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                   </div>
 
                   {bahan.is_bersertifikat ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-3 rounded-lg border border-slate-200/80">
-                      <div>
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Lembaga Penerbit
-                        </label>
-                        <input
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-slate-200/80">
+                      <FormField label="Lembaga Penerbit">
+                        <TextInput
                           type="text"
                           placeholder="BPJPH / LPPOM MUI"
                           value={bahan.lembaga_penerbit || "BPJPH"}
                           onChange={(e) => handleUpdateBahan(bahan.id, "lembaga_penerbit", e.target.value)}
-                          className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Nomor Sertifikat Halal
-                        </label>
-                        <input
+                      </FormField>
+                      <FormField label="Nomor Sertifikat Halal">
+                        <TextInput
                           type="text"
                           placeholder="ID0000000000 / 00..."
                           value={bahan.no_sertifikat || ""}
                           onChange={(e) => handleUpdateBahan(bahan.id, "no_sertifikat", e.target.value)}
-                          className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                          className="font-mono"
                         />
-                      </div>
+                      </FormField>
                       <div className="md:col-span-2">
-                        <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                          Masa Berlaku Sertifikat
-                        </label>
-                        <input
-                          type="date"
-                          value={bahan.tgl_berlaku || ""}
-                          onChange={(e) => handleUpdateBahan(bahan.id, "tgl_berlaku", e.target.value)}
-                          className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                        />
+                        <FormField label="Masa Berlaku Sertifikat">
+                          <DateInput
+                            value={bahan.tgl_berlaku || ""}
+                            onChange={(e) => handleUpdateBahan(bahan.id, "tgl_berlaku", e.target.value)}
+                          />
+                        </FormField>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-slate-500 italic bg-slate-100/60 p-2 rounded-md">
+                    <p className="text-xs text-slate-500 italic bg-slate-100/60 p-3 rounded-xl border border-slate-200/60">
                       * Bahan tanpa sertifikat halal diperkenankan hanya untuk bahan alami nabati/mineral murni tanpa proses kimia atau kemasan primer non-kritis (sesuai Keputusan Menteri Agama No. 1360).
                     </p>
                   )}
@@ -483,61 +472,45 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Klasifikasi Produk <span className="text-red-500">*</span>
-                    </label>
-                    <select
+                  <FormField label="Klasifikasi Produk" required>
+                    <SelectInput
                       value={prod.klasifikasi}
-                      onChange={(e) => handleUpdateProduk(prod.id, "klasifikasi", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    >
-                      {KLASIFIKASI_PRODUK_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      onChange={(val) => handleUpdateProduk(prod.id, "klasifikasi", String(val))}
+                      options={KLASIFIKASI_PRODUK_SELECT_OPTIONS}
+                      isClearable={false}
+                    />
+                  </FormField>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Merk / Brand Dagang <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                  <FormField label="Merk / Brand Dagang" required>
+                    <TextInput
                       type="text"
                       placeholder="Contoh: Keripik Mak Nyus"
                       value={prod.merk || ""}
                       onChange={(e) => handleUpdateProduk(prod.id, "merk", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
+                  </FormField>
+
+                  <div className="md:col-span-2">
+                    <FormField label="Nama Lengkap Produk & Varian" required>
+                      <TextInput
+                        type="text"
+                        placeholder="Contoh: Keripik Singkong Rasa Balado Pedas 150g"
+                        value={prod.nama_produk}
+                        onChange={(e) => handleUpdateProduk(prod.id, "nama_produk", e.target.value)}
+                      />
+                    </FormField>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Nama Lengkap Produk & Varian <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: Keripik Singkong Rasa Balado Pedas 150g"
-                      value={prod.nama_produk}
-                      onChange={(e) => handleUpdateProduk(prod.id, "nama_produk", e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    />
+                    <FormField label="Rincian Komposisi / Deskripsi Produk">
+                      <TextInput
+                        type="text"
+                        placeholder="Contoh: Singkong, minyak goreng kelapa sawit, cabai bubuk, garam, bawang putih"
+                        value={prod.rincian || ""}
+                        onChange={(e) => handleUpdateProduk(prod.id, "rincian", e.target.value)}
+                      />
+                    </FormField>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Rincian Komposisi / Deskripsi Produk
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Singkong, minyak goreng kelapa sawit, cabai bubuk, garam, bawang putih"
-                    value={prod.rincian || ""}
-                    onChange={(e) => handleUpdateProduk(prod.id, "rincian", e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
                 </div>
               </div>
             ))}
@@ -560,21 +533,19 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Narasi Alur Proses Produksi <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={4}
-              placeholder="Contoh: 1. Penerimaan bahan baku dan pemeriksaan sertifikat halal -> 2. Pencucian dan pemotongan singkong -> 3. Penggorengan pada suhu 160°C -> 4. Penirisan minyak dan pencampuran bumbu -> 5. Pengemasan dengan sealer dan pengecekan kerapatan -> 6. Penyimpanan di gudang bersih."
-              value={payload.alur_proses || ""}
-              onChange={(e) =>
-                onChange((prev) => ({
-                  ...prev,
-                  alur_proses: e.target.value,
-                }))
-              }
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed placeholder:text-slate-400"
-            />
+            <FormField label="Narasi Alur Proses Produksi" required>
+              <TextareaInput
+                rows={4}
+                placeholder="Contoh: 1. Penerimaan bahan baku dan pemeriksaan sertifikat halal -> 2. Pencucian dan pemotongan singkong -> 3. Penggorengan pada suhu 160°C -> 4. Penirisan minyak dan pencampuran bumbu -> 5. Pengemasan dengan sealer dan pengecekan kerapatan -> 6. Penyimpanan di gudang bersih."
+                value={payload.alur_proses || ""}
+                onChange={(e) =>
+                  onChange((prev) => ({
+                    ...prev,
+                    alur_proses: e.target.value,
+                  }))
+                }
+              />
+            </FormField>
           </div>
 
           <div>

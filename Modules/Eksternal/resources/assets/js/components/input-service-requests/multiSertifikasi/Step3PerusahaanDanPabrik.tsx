@@ -138,7 +138,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.nama_pabrik}
             onChange={(e) => onUpdate(idx, "nama_pabrik", e.target.value)}
             placeholder="PT. Example"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -150,7 +150,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.kontak_pabrik || ""}
             onChange={(e) => onUpdate(idx, "kontak_pabrik", e.target.value)}
             placeholder="02212345678"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -162,7 +162,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.no_hp || ""}
             onChange={(e) => onUpdate(idx, "no_hp", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -174,7 +174,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.fax || ""}
             onChange={(e) => onUpdate(idx, "fax", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -199,7 +199,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
                 onUpdate(idx, "kecamatan_id", "")
               }
             }}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
             {DAFTAR_NEGARA.map((n) => (
               <option key={n} value={n}>{n}</option>
@@ -215,7 +215,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.kode_pos || ""}
             onChange={(e) => onUpdate(idx, "kode_pos", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -242,7 +242,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
                   onUpdate(idx, "kecamatan_id", "")
                   onUpdate(idx, "kecamatan", "")
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="">-- Pilih Provinsi --</option>
                 {provinces.map((p: any) => (
@@ -271,7 +271,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
                   onUpdate(idx, "kecamatan_id", "")
                   onUpdate(idx, "kecamatan", "")
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
               >
                 <option value="">
                   {selectedProvId ? "-- Pilih Kabupaten/Kota --" : "-- Pilih Provinsi Dahulu --"}
@@ -299,7 +299,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
                   onUpdate(idx, "kecamatan_id", kecId)
                   onUpdate(idx, "kecamatan", found?.nama || "")
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
               >
                 <option value="">
                   {selectedKabId ? "-- Pilih Kecamatan --" : "-- Pilih Kab/Kota Dahulu --"}
@@ -324,7 +324,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.alamat_pabrik}
             onChange={(e) => onUpdate(idx, "alamat_pabrik", e.target.value)}
             placeholder="Jl. Contoh No. 1, Jakarta"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -341,7 +341,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
               onUpdate(idx, "jumlah_karyawan", raw === "" ? "" : parseInt(raw, 10) || 0)
             }}
             placeholder="0"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -353,7 +353,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.kegiatan_utama || ""}
             onChange={(e) => onUpdate(idx, "kegiatan_utama", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -365,7 +365,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.luas_tanah || ""}
             onChange={(e) => onUpdate(idx, "luas_tanah", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -377,7 +377,7 @@ const PabrikCardItem: React.FC<PabrikCardItemProps> = ({
             value={f.luas_bangunan || ""}
             onChange={(e) => onUpdate(idx, "luas_bangunan", e.target.value)}
             placeholder="-"
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       </div>
@@ -571,7 +571,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.nama_perusahaan || ""}
                 onChange={(e) => setFormData({ ...formData, nama_perusahaan: e.target.value })}
                 placeholder="PT. Example"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -585,7 +585,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.nomor_akta_pendirian || ""}
                 onChange={(e) => setFormData({ ...formData, nomor_akta_pendirian: e.target.value })}
                 placeholder="AHU-001234.AH.01.01.Tahun 2020"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -599,7 +599,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.nama_pemilik || ""}
                 onChange={(e) => setFormData({ ...formData, nama_pemilik: e.target.value })}
                 placeholder="John Doe"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -613,7 +613,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.nama_pimpinan || ""}
                 onChange={(e) => setFormData({ ...formData, nama_pimpinan: e.target.value })}
                 placeholder="Jane Doe"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -627,7 +627,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.nama_wakil_manajemen || ""}
                 onChange={(e) => setFormData({ ...formData, nama_wakil_manajemen: e.target.value })}
                 placeholder="Alex Smith"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -641,7 +641,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.email || ""}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="info@perusahaan.co.id"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -655,7 +655,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.no_telp || ""}
                 onChange={(e) => setFormData({ ...formData, no_telp: e.target.value })}
                 placeholder="021-1234567"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -667,7 +667,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.fax || ""}
                 onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
                 placeholder="021-1234568"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -681,7 +681,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.no_whatsapp || ""}
                 onChange={(e) => setFormData({ ...formData, no_whatsapp: e.target.value })}
                 placeholder="08123456789"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -695,7 +695,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.badan_hukum || "PT"}
                 onChange={(e) => setFormData({ ...formData, badan_hukum: e.target.value })}
                 placeholder="PT"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -723,7 +723,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     jenis_perusahaan: selectedObj?.nama || "Produsen / Pabrikan",
                   })
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               >
                 {jenisPerusahaanList.length > 0 ? (
                   jenisPerusahaanList.map((item: any) => (
@@ -786,7 +786,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     setSelectedCompanyKabId("")
                   }
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               >
                 {DAFTAR_NEGARA.map((n) => (
                   <option key={n} value={n}>
@@ -804,7 +804,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.kode_pos || ""}
                 onChange={(e) => setFormData({ ...formData, kode_pos: e.target.value })}
                 placeholder="Contoh: 55161"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -831,7 +831,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                         kecamatan: "",
                       }))
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
                   >
                     <option value="">-- Pilih Provinsi --</option>
                     {provinces.map((p: any) => (
@@ -861,7 +861,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                         kecamatan: "",
                       }))
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
                   >
                     <option value="">
                       {selectedCompanyProvId ? "-- Pilih Kabupaten/Kota --" : "-- Pilih Provinsi Dahulu --"}
@@ -897,7 +897,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                         kecamatan: found?.nama || kecId,
                       }))
                     }}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs disabled:bg-slate-100 disabled:cursor-not-allowed"
                   >
                     <option value="">
                       {selectedCompanyKabId ? "-- Pilih Kecamatan --" : "-- Pilih Kab/Kota Dahulu --"}
@@ -922,7 +922,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.alamat_kantor || ""}
                 onChange={(e) => setFormData({ ...formData, alamat_kantor: e.target.value })}
                 placeholder="Jl. Contoh No. 1, Jakarta"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -936,7 +936,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.luas_tanah || ""}
                 onChange={(e) => setFormData({ ...formData, luas_tanah: e.target.value })}
                 placeholder="Contoh: 1500"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -950,7 +950,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 value={formData.luas_bangunan || ""}
                 onChange={(e) => setFormData({ ...formData, luas_bangunan: e.target.value })}
                 placeholder="Contoh: 800"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
           </div>
@@ -985,7 +985,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => handleNumericChange("jumlah_shift", e.target.value)}
                 placeholder="1"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
 
@@ -1001,7 +1001,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => handleNumericChange("jumlah_bagian", e.target.value)}
                 placeholder="1"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
             </div>
           </div>
@@ -1024,7 +1024,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => handleNumericChange("jumlah_manajemen", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                 </div>
@@ -1041,7 +1041,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => handleNumericChange("jumlah_administrasi", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                 </div>
@@ -1058,7 +1058,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => handleNumericChange("jumlah_part_time", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                 </div>
@@ -1079,7 +1079,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => handleNumericChange("jumlah_shift_1", e.target.value)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                     <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                   </div>
@@ -1096,7 +1096,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => handleNumericChange("jumlah_shift_2", e.target.value)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                     <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                   </div>
@@ -1113,7 +1113,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => handleNumericChange("jumlah_shift_3", e.target.value)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                     <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                   </div>
@@ -1131,7 +1131,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => handleNumericChange("jumlah_non_permanen", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 pr-14 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-400">Orang</span>
                 </div>

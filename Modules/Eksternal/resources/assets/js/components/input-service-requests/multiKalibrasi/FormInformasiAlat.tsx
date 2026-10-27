@@ -614,7 +614,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                                   )
                                 }
                                 title={`Jumlah kalibrasi (Maksimal ${alat.jumlah} unit)`}
-                                className="w-20 text-center rounded-xl border border-slate-300 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                className="w-20 text-center rounded-xl border border-slate-300 py-1.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
                               />
                             </td>
                             <td className="px-4 py-3 text-right text-slate-600 font-mono">

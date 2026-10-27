@@ -2,6 +2,7 @@ import React from "react"
 import { toast } from "react-hot-toast"
 import { ParticipantData } from "../../../types/pelatihan"
 import { Award, FileUp, CheckCircle2 } from "lucide-react"
+import { FormField, TextInput, SelectInput } from "../../forms"
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024
 
@@ -76,28 +77,25 @@ const KapabilitasPelatihan: React.FC<Props> = ({ participants, setParticipants }
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Kewarganegaraan <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  name="kewarganegaraan"
+              <FormField label="Kewarganegaraan" required>
+                <SelectInput
                   value={p.kewarganegaraan || ""}
-                  onChange={(e) => handleChange(index, e)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  required
-                >
-                  <option value="">-- Pilih --</option>
-                  <option value="WNI">WNI (Warga Negara Indonesia)</option>
-                  <option value="WNA">WNA (Warga Negara Asing)</option>
-                </select>
-              </div>
+                  onChange={(val) => {
+                    const newParticipants = [...participants]
+                    newParticipants[index] = { ...newParticipants[index], kewarganegaraan: String(val) }
+                    setParticipants(newParticipants)
+                  }}
+                  options={[
+                    { value: "WNI", label: "WNI (Warga Negara Indonesia)" },
+                    { value: "WNA", label: "WNA (Warga Negara Asing)" },
+                  ]}
+                  placeholder="-- Pilih Kewarganegaraan --"
+                  isClearable={false}
+                />
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Kode Pos Domisili <span className="text-rose-500">*</span>
-                </label>
-                <input
+              <FormField label="Kode Pos Domisili" required>
+                <TextInput
                   type="text"
                   name="kode_pos"
                   value={p.kode_pos || ""}
@@ -108,40 +106,31 @@ const KapabilitasPelatihan: React.FC<Props> = ({ participants, setParticipants }
                   inputMode="numeric"
                   maxLength={5}
                   placeholder="5 digit kode pos..."
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   required
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Jabatan / Posisi Pekerjaan <span className="text-rose-500">*</span>
-                </label>
-                <input
+              <FormField label="Jabatan / Posisi Pekerjaan" required>
+                <TextInput
                   type="text"
                   name="jabatan"
                   value={p.jabatan || ""}
                   onChange={(e) => handleChange(index, e)}
                   placeholder="Contoh: Supervisor QC..."
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   required
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Pengalaman Kerja Relevan <span className="text-rose-500">*</span>
-                </label>
-                <input
+              <FormField label="Pengalaman Kerja Relevan" required>
+                <TextInput
                   type="text"
                   name="pengalaman_kerja"
                   value={p.pengalaman_kerja || ""}
                   onChange={(e) => handleChange(index, e)}
                   placeholder="Contoh: 2 Tahun di Laboratorium Kimia..."
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   required
                 />
-              </div>
+              </FormField>
             </div>
 
             {/* Dokumen Portofolio LSP */}

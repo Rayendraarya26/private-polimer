@@ -180,7 +180,7 @@ const QuestionDetail: React.FC<Props> = ({ show, id: uuid, onClose }) => {
                 value={responseMessage}
                 onChange={(e) => setResponseMessage(e.target.value)}
                 disabled={submitting}
-                className="flex-1 bg-white text-xs border border-slate-300 rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="flex-1 bg-white text-xs text-slate-800 placeholder:text-slate-400 border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 transition-all shadow-xs"
               />
               <Button
                 type="submit"

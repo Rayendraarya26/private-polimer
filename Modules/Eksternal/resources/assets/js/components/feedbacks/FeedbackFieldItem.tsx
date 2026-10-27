@@ -77,7 +77,7 @@ const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
   return (
     <div className="space-y-3" style={{ paddingLeft: `${level * 1.5}rem` }}>
       {/* Question Title */}
-      <div className="text-xs font-bold text-slate-800 flex items-start gap-2">
+      <div className="text-sm font-bold text-slate-900 flex items-start gap-2">
         <span>{data.question}</span>
         {data.required && <span className="text-rose-500">*</span>}
       </div>
@@ -89,7 +89,7 @@ const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
             rows={3}
             placeholder="Tuliskan ulasan atau saran Anda di sini..."
             required={data.required}
-            className={`w-full rounded-lg border bg-white p-3 text-xs text-slate-800 transition-colors focus:outline-none focus:ring-2 ${
+            className={`w-full rounded-xl border bg-white p-3.5 text-sm text-slate-900 transition-colors focus:outline-none focus:ring-2 placeholder:text-slate-400 ${
               isInvalid
                 ? "border-rose-400 focus:ring-rose-400 bg-rose-50/20"
                 : "border-slate-300 focus:ring-brand-500 focus:border-brand-500"
@@ -100,12 +100,12 @@ const FeedbackFieldItem: React.FC<Props> = ({ data, level }) => {
       )}
 
       {data.input_type === FeedbackInputType.NUMBER && (
-        <div className="w-full sm:w-48">
+        <div className="w-full sm:w-56">
           <input
             type="number"
             placeholder="Masukkan skor nilai..."
             required={data.required}
-            className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-xs text-slate-800 transition-colors focus:outline-none focus:ring-2 ${
+            className={`w-full h-[42px] rounded-xl border bg-white px-4 text-sm text-slate-900 transition-colors focus:outline-none focus:ring-2 placeholder:text-slate-400 ${
               isInvalid
                 ? "border-rose-400 focus:ring-rose-400 bg-rose-50/20"
                 : "border-slate-300 focus:ring-brand-500 focus:border-brand-500"

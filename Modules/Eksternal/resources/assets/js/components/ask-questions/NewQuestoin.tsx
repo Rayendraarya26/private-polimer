@@ -1,10 +1,15 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
-import { Plus, Send, HelpCircle } from "lucide-react"
+import { Plus, Send, HelpCircle, MessageSquare } from "lucide-react"
 import useQuestion from "../../hooks/ask-questions/useQuestion"
 import toast from "react-hot-toast"
 import { Modal } from "../ui/Modal"
 import { Button } from "../ui/Button"
-import { Input } from "../ui/Input"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  SelectInput,
+} from "../forms"
 
 type Props = {
   onAfterAdded: () => void
@@ -48,7 +53,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
         () => {
           setShowForm(false)
           onAfterAdded()
-          toast.success("Pertanyaan berhasil diajukan")
+          toast.success("Pertanyaan berhasil diajukan ke tim teknis")
         }
       )
     },
@@ -64,7 +69,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
           size="lg"
           leftIcon={<Plus className="w-5 h-5" />}
           onClick={() => setShowForm(true)}
-          className="shadow-elevated rounded-full hover:scale-105"
+          className="shadow-elevated rounded-full hover:scale-105 font-bold text-sm bg-brand-600 hover:bg-brand-700"
         >
           Ajukan Pertanyaan Baru
         </Button>
@@ -74,67 +79,69 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
       <Modal
         isOpen={showForm}
         onClose={() => setShowForm(false)}
-        title="Ajukan Pertanyaan Baru"
-        description="Pilih topik layanan dan sampaikan pertanyaan Anda kepada tim teknis BBKKP"
+        title="Pusat Bantuan & Konsultasi Teknis"
+        description="Pilih topik layanan dan sampaikan pertanyaan Anda secara spesifik kepada tim teknis BBKKP"
         size="md"
       >
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-5">
           {/* Topik Selection */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Topik Pertanyaan <span className="text-rose-500">*</span>
-            </label>
-            <select
-              required
+          <FormField
+            label="Topik Pertanyaan / Bidang Layanan"
+            required
+            helperText={selectedTopic?.desc || "Pilih kategori topik pertanyaan Anda"}
+          >
+            <SelectInput
+              placeholder="-- Pilih Topik Pertanyaan --"
+              searchPlaceholder="Cari topik layanan..."
+              options={topics.map((r) => ({
+                value: r.id,
+                label: r.name,
+                description: r.desc,
+              }))}
               value={topic}
-              onChange={(e) => setTopic(e.target.value || "")}
-              className="w-full bg-white text-slate-900 text-sm rounded-lg border border-slate-300 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
-              <option value="" disabled>
-                -- Pilih Topik Pertanyaan --
-              </option>
-              {topics.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-            {selectedTopic?.desc && (
-              <p className="text-xs text-slate-500">{selectedTopic.desc}</p>
-            )}
-          </div>
+              onChange={(val) => setTopic(String(val))}
+            />
+          </FormField>
 
           {/* ID Layanan (Optional / Conditional) */}
           {selectedTopic && selectedTopic.name !== "Umum" && (
-            <Input
-              label="ID / Kode Permohonan Layanan"
-              placeholder="Contoh: ORD-2026-08-001"
-              value={layanan}
-              onChange={(e) => setLayanan(e.target.value || "")}
+            <FormField
+              label="Nomor Registrasi / Kode Permohonan"
               required
-            />
+              helperText="Masukkan nomor permohonan yang terkait dengan kendala Anda"
+            >
+              <TextInput
+                placeholder="Contoh: ORD-2026-08-001 / LABKAL-26-012"
+                value={layanan}
+                onChange={(e) => setLayanan(e.target.value || "")}
+                required
+              />
+            </FormField>
           )}
 
           {/* Isi Pertanyaan */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Isi Pertanyaan / Kendala <span className="text-rose-500">*</span>
-            </label>
-            <textarea
+          <FormField
+            label="Isi Pertanyaan atau Uraian Kendala"
+            required
+            helperText="Jelaskan kendala, nomor sampel/alat, atau informasi yang dibutuhkan secara jelas"
+          >
+            <TextareaInput
               rows={4}
               required
+              showCount
+              maxLength={1000}
               placeholder="Tuliskan detail pertanyaan atau kendala yang Anda alami..."
               value={question}
               onChange={(e) => setQuestion(e.target.value || "")}
-              className="w-full bg-white text-slate-900 text-sm rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
-          </div>
+          </FormField>
 
-          <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
             <Button
               type="button"
               variant="secondary"
               onClick={() => setShowForm(false)}
+              className="px-4 py-2 text-xs font-semibold"
             >
               Batal
             </Button>
@@ -143,6 +150,7 @@ const NewQuestoin: React.FC<Props> = ({ onAfterAdded }) => {
               variant="primary"
               isLoading={submitting}
               leftIcon={<Send className="w-4 h-4" />}
+              className="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-700 shadow-sm"
             >
               Kirim Pertanyaan
             </Button>

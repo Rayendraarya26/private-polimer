@@ -119,7 +119,7 @@ const FormPerorangan: React.FC = () => {
               </FormField>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Tempat Lahir"
                 required
@@ -298,7 +298,7 @@ const FormPerorangan: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Provinsi"
                 required

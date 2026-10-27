@@ -227,7 +227,7 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
             <RadioCardGroup
               value={formData.opsiAlamatKirim || "pemohon"}
               onChange={(val) => handleSelectOpsiAlamat(val as any)}
-              gridCols={3}
+              gridCols={2}
               options={[
                 {
                   value: "pemohon",

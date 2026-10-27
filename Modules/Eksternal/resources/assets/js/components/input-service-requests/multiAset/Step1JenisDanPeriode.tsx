@@ -70,7 +70,7 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
           Tentukan aset fisik atau fasilitas milik BBSPJIKKP yang ingin Anda sewa/manfaatkan.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {options.map((opt) => {
             const isSelected = jenisSewa === opt.value
             return (

@@ -527,7 +527,7 @@ const Step2KategoriSertifikat: React.FC<Step2KategoriSertifikatProps> = ({
             <p className="text-sm">Tidak ada kategori sertifikat yang tersedia.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {categories.map((category: KategoriSertifikat) => {
               const isSelected = selectedKategori === category.id
 

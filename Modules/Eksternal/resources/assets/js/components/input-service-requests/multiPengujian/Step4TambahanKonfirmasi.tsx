@@ -299,7 +299,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           <label className="block text-xs font-bold text-slate-800">
             Pilih Metode Pembayaran <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
               {
                 id: "transfer" as CaraPembayaran,
@@ -450,7 +450,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             </div>
 
         {/* Info Grid Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
               Bahasa Laporan
@@ -478,7 +478,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             </span>
           </div>
 
-          <div className="col-span-2 sm:col-span-3 p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+          <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
                 Pemohon Terdaftar

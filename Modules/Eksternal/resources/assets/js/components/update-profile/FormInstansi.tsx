@@ -115,7 +115,7 @@ const FormInstansi: React.FC = () => {
             </div>
 
             {/* Kontak Resmi Instansi */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Nomor Telepon Kantor"
                 required
@@ -192,7 +192,7 @@ const FormInstansi: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="Provinsi"
                 required
@@ -329,7 +329,7 @@ const FormInstansi: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 label="NPWP Instansi"
                 required

@@ -259,7 +259,7 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
             <label className="block text-xs font-bold text-slate-700 mb-2">
               Pilihan Alamat Pengiriman:
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Opsi 1: Sesuai Alamat Pemohon */}
               <label
                 className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${

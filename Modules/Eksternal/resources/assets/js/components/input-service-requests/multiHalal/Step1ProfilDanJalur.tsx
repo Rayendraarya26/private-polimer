@@ -459,7 +459,7 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
               />
             </FormField>
 
-            <div className="sm:col-span-2 md:col-span-3">
+            <div className="md:col-span-2">
               <FormField label="Alamat Kantor Operasional" helperText="Alamat kantor / tempat usaha pemohon">
                 <TextareaInput
                   rows={2}

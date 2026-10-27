@@ -143,6 +143,40 @@ class ManageMenuController
         $menu->parent_id = $input['parent_id'] ?? null;
         $menu->save();
 
+        // Jika menu adalah parent menu (parent_id null), pastikan action 'index' '#' selalu ada
+        // agar menu ini bisa muncul di sidebar dan terbaca oleh AuthTrait
+        if (empty($menu->parent_id)) {
+            $action = \App\Models\Db1\SysMenuAction::firstOrCreate(
+                ['menu_id' => $menu->id, 'name' => 'index'],
+                ['controller' => '#']
+            );
+
+            $adminGroups = [
+                \App\Enums\SysGroup::ROOT->value,
+                \App\Enums\SysGroup::ADMIN->value,
+            ];
+
+            foreach ($adminGroups as $groupId) {
+                $hasGroup = \Illuminate\Support\Facades\DB::table('sys_group')->where('id', $groupId)->exists();
+                if ($hasGroup) {
+                    $exists = \Illuminate\Support\Facades\DB::table('sys_group_permission')
+                        ->where('group_id', $groupId)
+                        ->where('action_id', $action->id)
+                        ->exists();
+
+                    if (!$exists) {
+                        \Illuminate\Support\Facades\DB::table('sys_group_permission')->insert([
+                            'id'         => (string) \Illuminate\Support\Str::uuid(),
+                            'group_id'   => $groupId,
+                            'action_id'  => $action->id,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+        }
+
         return $menu;
     }
 

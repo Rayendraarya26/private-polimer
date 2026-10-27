@@ -52,6 +52,7 @@
                 
                 // Friendly short names
                 $shortName = match(true) {
+                    str_contains(strtolower($menu->name), 'master permohonan') => 'Master Permohonan',
                     str_contains(strtolower($menu->name), 'permohonan') => 'Permohonan',
                     str_contains(strtolower($menu->name), 'master') => 'Master Data',
                     str_contains(strtolower($menu->name), 'system') => 'System',

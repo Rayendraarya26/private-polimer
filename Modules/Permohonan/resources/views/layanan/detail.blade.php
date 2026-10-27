@@ -98,6 +98,7 @@
                                 str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') => 'Sertifikasi Halal (LPH BBSPJIKKP)',
                                 str_contains($kode, 'KAT') || str_starts_with($kode, 'KAT') || ($permohonan->relationLoaded('formKonsultasiAt') && $permohonan->formKonsultasiAt->isNotEmpty()) => 'Konsultasi & Audit Teknologi',
                                 str_contains($kode, 'ASET') || ($permohonan->relationLoaded('formAset') && $permohonan->formAset->isNotEmpty()) => 'Pemanfaatan & Sewa Aset',
+                                str_contains($kode, 'TKDN') || ($permohonan->relationLoaded('formTkdn') && $permohonan->formTkdn->isNotEmpty()) => 'Penerimaan PNBP TKDN',
                                 default => $detailItems->first()?->lingkupLayanan->lingkup ?? '-'
                             };
 
@@ -267,7 +268,7 @@
                             {{-- Panel data tiap peserta --}}
                             @foreach($detailItems as $idx => $detailItem)
                                 @php
-                                    $form = $detailItem->formable ?? $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $detailItem->formable ?? $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formKonsultasiAt?->first() ?? $permohonan->formTkdn?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') => 'pelatihan',
@@ -287,6 +288,7 @@
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
                                         str_contains($kode, 'KAT') || ($form instanceof \App\Models\Db2\FormKonsultasiAt) => 'konsultasi-at',
+                                        str_contains($kode, 'TKDN') || ($form instanceof \App\Models\Db2\FormTkdn) => 'tkdn',
                                         str_contains($kode, 'JASA') => 'jasa-lainnya',
                                         default => 'default'
                                     };
@@ -307,7 +309,7 @@
 
                             @if($detailItems->isEmpty())
                                 @php
-                                    $form = $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first();
+                                    $form = $permohonan->formPelatihan?->first() ?? $permohonan->formAset?->first() ?? $permohonan->formPba?->first() ?? $permohonan->formInspeksi?->first() ?? $permohonan->formHalal?->first() ?? $permohonan->formSertifikasi?->first() ?? $permohonan->formGrkValidasi?->first() ?? $permohonan->formGrkVerifikasi?->first() ?? $permohonan->formLsp?->first() ?? $permohonan->formKonsultasiAt?->first() ?? $permohonan->formTkdn?->first();
                                     $viewName = match (true) {
                                         str_starts_with($kode, 'LSP') || ($form instanceof \App\Models\Db2\FormLsp) => 'sertifikasi-profesi-lsp',
                                         str_starts_with($kode, 'BIM') || str_starts_with($kode, 'BM') || str_starts_with($kode, 'REG') || str_starts_with($kode, 'UMK') || ($form instanceof \App\Models\Db2\FormPelatihan) => 'pelatihan',
@@ -323,6 +325,7 @@
                                         str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || ($form instanceof \App\Models\Db2\FormHalal) => 'halal',
                                         str_contains($kode, 'ASET') || ($form instanceof \App\Models\Db2\FormAset) => 'aset',
                                         str_contains($kode, 'KAT') || ($form instanceof \App\Models\Db2\FormKonsultasiAt) => 'konsultasi-at',
+                                        str_contains($kode, 'TKDN') || ($form instanceof \App\Models\Db2\FormTkdn) => 'tkdn',
                                         default => 'default'
                                     };
                                 @endphp

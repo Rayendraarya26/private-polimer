@@ -168,3 +168,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Animasi transisi langkah wizard (dipakai: animate-[wizardFadeUp_.35s_ease-out]) */
+@keyframes wizardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hilangkan outline / blink hitam browser saat elemen interaktif / card option diklik */
+[role="radio"]:focus,
+[role="radio"]:focus-visible,
+[role="checkbox"]:focus,
+[role="checkbox"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}

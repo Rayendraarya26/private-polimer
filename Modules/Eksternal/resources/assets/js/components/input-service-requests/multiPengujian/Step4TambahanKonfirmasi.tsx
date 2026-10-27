@@ -1,24 +1,18 @@
 import React from "react"
 import {
   FileCheck,
-  Upload,
-  Calendar,
-  FileText,
-  Building2,
-  GraduationCap,
   CreditCard,
-  CheckCircle2,
-  AlertCircle,
+  Upload,
+  Sparkles,
+  Tag,
   ArrowLeft,
   Send,
   Save,
-  Loader2,
-  X,
-  ShieldCheck,
-  Eye,
-  Info,
-  Sparkles,
-  Tag,
+  CheckCircle2,
+  AlertCircle,
+  Building2,
+  Receipt,
+  FileText,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import {
@@ -30,23 +24,18 @@ import {
 } from "../../../types/pengujian"
 import { formatRupiah } from "./components/CostEstimationSummary"
 import { Button } from "../../ui/Button"
-import { Badge } from "../../ui/Badge"
+import { DropzoneUploader, DateInput, StickyFormActions } from "../../forms"
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "../../ui/Card"
-import {
-  FormField,
-  TextInput,
-  TextareaInput,
-  DateInput,
-  RadioCardGroup,
-  DropzoneUploader,
-  LegalStatementBox,
-} from "../../forms"
+  StepPanel,
+  SectionHeading,
+  FieldLabel,
+  FieldHint,
+  OptionCard,
+  OptionGroup,
+  inputClass,
+  textareaClass,
+  cx,
+} from "./components/WizardUI"
 
 interface Step4TambahanKonfirmasiProps {
   sharedData: PengujianSharedData
@@ -90,542 +79,586 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
     onSubmit(aksi)
   }
 
+  const paymentOptions: {
+    id: CaraPembayaran
+    title: string
+    desc: string
+    icon: React.ElementType
+  }[] = [
+    {
+      id: "transfer",
+      title: "Transfer BNI Virtual Account",
+      desc: "Nomor VA terbit otomatis & verifikasi pembayaran langsung realtime.",
+      icon: CreditCard,
+    },
+    {
+      id: "tunai",
+      title: "Tunai di Loket PTSP",
+      desc: "Pembayaran langsung di loket kasir PTSP BBSPJIKKP Yogyakarta.",
+      icon: Receipt,
+    },
+    {
+      id: "dibayar_di_belakang",
+      title: "Dibayar di Belakang (PKS / MoU)",
+      desc: "Khusus instansi mitra yang memiliki perjanjian kerja sama aktif.",
+      icon: Building2,
+    },
+  ]
+
+  const PaymentIcon: React.FC<{ icon: React.ElementType; active: boolean }> = ({ icon: Icon, active }) => (
+    <span
+      className={cx(
+        "w-8 h-8 rounded-md border flex items-center justify-center shrink-0 transition-colors",
+        active
+          ? "border-brand-500 bg-brand-50 text-brand-700"
+          : "border-slate-200 bg-white text-slate-500 group-hover:border-slate-300"
+      )}
+    >
+      <Icon className="w-4 h-4" />
+    </span>
+  )
+
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      <Card className="border-brand-100 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                <FileCheck className="w-4 h-4 text-brand-600 shrink-0" />
-                <span>Tambahan, Pembayaran & Konfirmasi Akhir</span>
-              </CardTitle>
-              <CardDescription>
-                Tentukan preferensi evaluasi, kehadiran di lab, metode pembayaran, unggah berkas pendukung, dan tinjau ringkasan pesanan uji.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-6 space-y-6">
-          {/* 1. DATA TAMBAHAN BAPC & SAMPEL (OPSIONAL) */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Tag className="w-4 h-4 text-brand-600" />
-              1. Data Tambahan BAPC & Penomoran Sampel (Opsional)
-            </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Tanggal BAPC */}
+    <div className="space-y-6">
+      <StepPanel
+        icon={FileCheck}
+        title="Tambahan, Pembayaran & Konfirmasi"
+        description="Periksa kembali detail permohonan, pilih metode pembayaran, dan unggah berkas pendukung."
+      >
+        <div className="space-y-8">
+          {/* 1. DATA TAMBAHAN BAPC & SAMPEL */}
           <div>
-            <FormField label="Tanggal BAPC" helperText="Opsional">
-              <DateInput
-                value={sharedData.tanggal_bapc}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    tanggal_bapc: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-
-          {/* Nomor BAPC */}
-          <div>
-            <FormField label="Nomor BAPC" helperText="Opsional">
-              <TextInput
-                placeholder="Nomor BAPC jika ada"
-                value={sharedData.no_bapc}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    no_bapc: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-
-          {/* Nomor Sample */}
-          <div>
-            <FormField label="Nomor Sample" helperText="Opsional">
-              <TextInput
-                placeholder="Contoh: SMPL-2026-001"
-                value={sharedData.no_sample}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    no_sample: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-
-          {/* Merek / Kode */}
-          <div>
-            <FormField label="Merek / Kode" helperText="Opsional">
-              <TextInput
-                placeholder="Merek atau kode spesimen"
-                value={sharedData.merek_kode}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    merek_kode: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-        </div>
-      </div>
-
-          {/* 2. EVALUASI KESESUAIAN & KEHADIRAN DI LABORATORIUM */}
-          <div className="pt-6 border-t border-slate-200 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Sparkles className="w-4 h-4 text-brand-600" />
-              2. Evaluasi Kesesuaian & Kehadiran di Laboratorium
-            </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Permintaan Evaluasi / Pernyataan Kesesuaian */}
-          <div className="space-y-3 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div>
-              <label className="text-xs font-bold text-slate-800 block">
-                Permintaan Evaluasi / Pernyataan Kesesuaian <span className="text-rose-500">*</span>
-              </label>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Apakah hasil pengujian memerlukan evaluasi status kesesuaian (lulus/tidak lulus) terhadap standar acuan?
-              </p>
-            </div>
-
-            <RadioCardGroup
-              name="permintaan_evaluasi"
-              value={sharedData.permintaan_evaluasi ? "ya" : "tidak"}
-              onChange={(val) => {
-                const isYa = val === "ya"
-                setSharedData((prev) => ({
-                  ...prev,
-                  permintaan_evaluasi: isYa,
-                  catatan_evaluasi: isYa ? prev.catatan_evaluasi : "",
-                }))
-              }}
-              gridCols={2}
-              options={[
-                { value: "ya", title: "Ya, butuh evaluasi", description: "Perlu status kelulusan spesifikasi" },
-                { value: "tidak", title: "Tidak", description: "Hanya data angka hasil uji" },
-              ]}
+            <SectionHeading
+              number={1}
+              title="Data BAPC & Penomoran Sampel"
+              optional
+              description="Jika pengujian sampel ini berkaitan dengan Berita Acara Pengambilan Contoh (BAPC)."
             />
 
-            {sharedData.permintaan_evaluasi && (
-              <div className="pt-2 animate-in fade-in-50 duration-200">
-                <TextareaInput
-                  rows={2}
-                  placeholder="Sebutkan acuan standar (Contoh: Evaluasi terhadap ambang batas SNI 06-4965-1999 Kelas A)..."
-                  value={sharedData.catatan_evaluasi}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <FieldLabel htmlFor="input-tgl-bapc" optional>
+                  Tanggal BAPC
+                </FieldLabel>
+                <DateInput
+                  id="input-tgl-bapc"
+                  className="h-10 text-sm rounded-lg focus:ring-0 focus:border-brand-600 shadow-none"
+                  value={sharedData.tanggal_bapc}
                   onChange={(e) =>
                     setSharedData((prev) => ({
                       ...prev,
-                      catatan_evaluasi: e.target.value,
+                      tanggal_bapc: e.target.value,
                     }))
                   }
                 />
               </div>
-            )}
+
+              <div>
+                <FieldLabel htmlFor="input-no-bapc" optional>
+                  Nomor BAPC
+                </FieldLabel>
+                <input
+                  id="input-no-bapc"
+                  type="text"
+                  className={inputClass}
+                  placeholder="Nomor BAPC jika ada"
+                  value={sharedData.no_bapc}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      no_bapc: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="input-no-sample" optional>
+                  Nomor Sampel
+                </FieldLabel>
+                <input
+                  id="input-no-sample"
+                  type="text"
+                  className={inputClass}
+                  placeholder="Contoh: SMPL-2026-001"
+                  value={sharedData.no_sample}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      no_sample: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="input-merek-kode" optional>
+                  Merek / Kode
+                </FieldLabel>
+                <input
+                  id="input-merek-kode"
+                  type="text"
+                  className={inputClass}
+                  placeholder="Merek atau kode spesimen"
+                  value={sharedData.merek_kode}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      merek_kode: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Pilihan Menyaksikan Pengujian */}
-          <div className="space-y-3 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div>
-              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Eye className="w-3.5 h-3.5 text-brand-600" />
-                Pilihan Menyaksikan Pengujian <span className="text-rose-500">*</span>
-              </label>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Apakah perwakilan instansi Anda ingin hadir langsung di laboratorium saat proses pengujian berlangsung?
-              </p>
-            </div>
-
-            <RadioCardGroup
-              name="menyaksikan_uji"
-              value={sharedData.menyaksikan_uji ? "ya" : "tidak"}
-              onChange={(val) => {
-                const isYa = val === "ya"
-                setSharedData((prev) => ({
-                  ...prev,
-                  menyaksikan_uji: isYa,
-                  catatan_menyaksikan: isYa ? prev.catatan_menyaksikan : "",
-                }))
-              }}
-              gridCols={2}
-              options={[
-                { value: "ya", title: "Ya, ingin hadir", description: "Menyaksikan pengujian di lab" },
-                { value: "tidak", title: "Tidak hadir", description: "Diserahkan sepenuhnya ke lab" },
-              ]}
+          {/* 2. EVALUASI KESESUAIAN & KEHADIRAN */}
+          <div className="pt-6 border-t border-slate-200">
+            <SectionHeading
+              number={2}
+              title="Evaluasi Kesesuaian & Kehadiran"
+              required
+              description="Preferensi evaluasi terhadap standar serta kehadiran menyaksikan pengujian di laboratorium."
             />
 
-            {sharedData.menyaksikan_uji && (
-              <div className="pt-2 space-y-2 animate-in fade-in-50 duration-200">
-                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
-                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <span>Wajib mematuhi SOP K3 Laboratorium BBSPJIKKP dan mengenakan APD standar balai.</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Evaluasi */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-3 shadow-none">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Permintaan Evaluasi / Kesesuaian <span className="text-rose-500">*</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Apakah perlu pernyataan kesesuaian (lulus/tidak lulus) terhadap standar acuan?
+                  </p>
                 </div>
-                <TextareaInput
-                  rows={2}
-                  placeholder="Sebutkan perkiraan tanggal hadir & nama personil perwakilan yang akan datang..."
-                  value={sharedData.catatan_menyaksikan}
-                  onChange={(e) =>
-                    setSharedData((prev) => ({
-                      ...prev,
-                      catatan_menyaksikan: e.target.value,
-                    }))
-                  }
-                />
+
+                <OptionGroup label="Permintaan Evaluasi" cols={2}>
+                  <OptionCard
+                    compact
+                    selected={sharedData.permintaan_evaluasi}
+                    onSelect={() =>
+                      setSharedData((prev) => ({
+                        ...prev,
+                        permintaan_evaluasi: true,
+                      }))
+                    }
+                    title="Ya, butuh evaluasi"
+                    description="Status kelulusan spesifikasi"
+                  />
+                  <OptionCard
+                    compact
+                    selected={!sharedData.permintaan_evaluasi}
+                    onSelect={() =>
+                      setSharedData((prev) => ({
+                        ...prev,
+                        permintaan_evaluasi: false,
+                        catatan_evaluasi: "",
+                      }))
+                    }
+                    title="Tidak butuh"
+                    description="Hanya data numerik hasil uji"
+                  />
+                </OptionGroup>
+
+                {sharedData.permintaan_evaluasi && (
+                  <div className="pt-2 animate-[wizardFadeUp_.25s_ease-out]">
+                    <FieldLabel htmlFor="input-catatan-evaluasi" required>
+                      Acuan Standar Evaluasi
+                    </FieldLabel>
+                    <textarea
+                      id="input-catatan-evaluasi"
+                      rows={2}
+                      className={textareaClass}
+                      placeholder="Sebutkan acuan standar (misal: Evaluasi terhadap ambang batas SNI 06-4965-1999 Kelas A)..."
+                      value={sharedData.catatan_evaluasi}
+                      onChange={(e) =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          catatan_evaluasi: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Menyaksikan */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-3 shadow-none">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Menyaksikan Pengujian di Lab <span className="text-rose-500">*</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Apakah perwakilan instansi Anda ingin hadir langsung saat proses pengujian berlangsung?
+                  </p>
+                </div>
+
+                <OptionGroup label="Menyaksikan Pengujian" cols={2}>
+                  <OptionCard
+                    compact
+                    selected={sharedData.menyaksikan_uji}
+                    onSelect={() =>
+                      setSharedData((prev) => ({
+                        ...prev,
+                        menyaksikan_uji: true,
+                      }))
+                    }
+                    title="Ya, ingin hadir"
+                    description="Menyaksikan di lab BBSPJIKKP"
+                  />
+                  <OptionCard
+                    compact
+                    selected={!sharedData.menyaksikan_uji}
+                    onSelect={() =>
+                      setSharedData((prev) => ({
+                        ...prev,
+                        menyaksikan_uji: false,
+                        catatan_menyaksikan: "",
+                      }))
+                    }
+                    title="Tidak hadir"
+                    description="Diserahkan sepenuhnya ke lab"
+                  />
+                </OptionGroup>
+
+                {sharedData.menyaksikan_uji && (
+                  <div className="pt-2 space-y-2 animate-[wizardFadeUp_.25s_ease-out]">
+                    <FieldLabel htmlFor="input-catatan-menyaksikan" required>
+                      Perkiraan Tanggal & Nama Personil
+                    </FieldLabel>
+                    <textarea
+                      id="input-catatan-menyaksikan"
+                      rows={2}
+                      className={textareaClass}
+                      placeholder="Sebutkan perkiraan tanggal hadir & nama personil perwakilan..."
+                      value={sharedData.catatan_menyaksikan}
+                      onChange={(e) =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          catatan_menyaksikan: e.target.value,
+                        }))
+                      }
+                    />
+                    <FieldHint>Wajib mematuhi SOP K3 dan APD yang berlaku di laboratorium.</FieldHint>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
           {/* 3. METODE PEMBAYARAN */}
-          <div className="pt-6 border-t border-slate-200 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-              <CreditCard className="w-4 h-4 text-brand-600" />
-              3. Tata Cara Pembayaran PNBP
-            </h3>
+          <div className="pt-6 border-t border-slate-200">
+            <SectionHeading
+              number={3}
+              title="Tata Cara Pembayaran PNBP"
+              required
+              description="Pilih kanal pembayaran tarif resmi Penerimaan Negara Bukan Pajak."
+            />
 
-        <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-800">
-            Pilih Metode Pembayaran <span className="text-rose-500">*</span>
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              {
-                id: "transfer" as CaraPembayaran,
-                title: "Transfer BNI VA",
-                desc: "Nomor Virtual Account terbit otomatis & verifikasi pembayaran real-time",
-              },
-              {
-                id: "tunai" as CaraPembayaran,
-                title: "Tunai di Loket",
-                desc: "Pembayaran langsung di loket kasir PTSP BBSPJIKKP Yogyakarta",
-              },
-              {
-                id: "dibayar_di_belakang" as CaraPembayaran,
-                title: "Dibayar di Belakang",
-                desc: "Khusus instansi rekanan dengan perjanjian kerja sama resmi (MoU/PKS)",
-              },
-            ].map((method) => {
-              const isSelected = sharedData.cara_pembayaran === method.id
-              return (
-                <div
-                  key={method.id}
-                  onClick={() =>
+            <OptionGroup label="Metode Pembayaran" cols={2}>
+              {paymentOptions.map((opt) => (
+                <OptionCard
+                  key={opt.id}
+                  id={`opsi-bayar-${opt.id}`}
+                  compact
+                  selected={sharedData.cara_pembayaran === opt.id}
+                  onSelect={() =>
                     setSharedData((prev) => ({
                       ...prev,
-                      cara_pembayaran: method.id,
+                      cara_pembayaran: opt.id,
                     }))
                   }
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? "bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/10 shadow-2xs"
-                      : "bg-white border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900">{method.title}</span>
-                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-brand-600" />}
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-snug">{method.desc}</p>
-                  </div>
+                  leading={<PaymentIcon icon={opt.icon} active={sharedData.cara_pembayaran === opt.id} />}
+                  title={opt.title}
+                  description={opt.desc}
+                />
+              ))}
+            </OptionGroup>
+
+            {sharedData.cara_pembayaran === "dibayar_di_belakang" && (
+              <div className="mt-3.5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-[13px] text-amber-900 animate-[wizardFadeUp_.25s_ease-out] shadow-none">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold">Ketentuan Pembayaran di Belakang:</p>
+                  <p className="text-amber-800 leading-relaxed">
+                    Permohonan akan diverifikasi oleh Tim Pemasaran & Kerjasama BBSPJIKKP untuk memastikan
+                    keaktifan dokumen kerja sama (PKS/MoU) instansi Anda sebelum pengujian diproses.
+                  </p>
                 </div>
-              )
-            })}
+              </div>
+            )}
           </div>
 
-          {sharedData.cara_pembayaran === "dibayar_di_belakang" && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2 animate-in fade-in-50 duration-200 mt-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          {/* 4. BERKAS PENDUKUNG */}
+          <div className="pt-6 border-t border-slate-200">
+            <SectionHeading
+              number={4}
+              title="Surat Pengantar & Berkas Pendukung"
+              description="Lampirkan berkas surat permohonan atau dokumen pendukung pengujian."
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <p className="font-bold text-amber-950">Ketentuan Pembayaran di Belakang:</p>
-                <p className="text-[11px] text-amber-800">
-                  Permohonan akan diverifikasi oleh bagian Pemasaran & Kerjasama BBSPJIKKP untuk memastikan
-                  keabsahan masa berlaku dokumen MoU / PKS instansi Anda sebelum pengerjaan uji dimulai.
-                </p>
+                <FieldLabel htmlFor="input-no-surat" optional>
+                  Nomor Surat Pengantar
+                </FieldLabel>
+                <input
+                  id="input-no-surat"
+                  type="text"
+                  className={inputClass}
+                  placeholder="Contoh: 123/EXT-QA/IX/2026"
+                  value={sharedData.no_surat_pengantar}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      no_surat_pengantar: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <FieldLabel htmlFor="input-tgl-surat" optional>
+                  Tanggal Surat Pengantar
+                </FieldLabel>
+                <DateInput
+                  id="input-tgl-surat"
+                  className="h-10 text-sm rounded-lg focus:ring-0 focus:border-brand-600 shadow-none"
+                  value={sharedData.tgl_surat_pengantar}
+                  onChange={(e) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      tgl_surat_pengantar: e.target.value,
+                    }))
+                  }
+                />
               </div>
             </div>
-          )}
-        </div>
-      </div>
 
-          {/* 4. UNGGAH BERKAS PERSYARATAN */}
-          <div className="pt-6 border-t border-slate-200 space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Upload className="w-4 h-4 text-brand-600" />
-              4. Unggah Surat Pengantar & Dokumen Persyaratan
-            </h3>
+            <div className="space-y-4">
+              <div>
+                <FieldLabel optional>Berkas Surat Pengantar</FieldLabel>
+                <DropzoneUploader
+                  label="Pilih atau tarik berkas surat pengantar di sini"
+                  helperText="Format didukung: PDF, PNG, JPG (Maksimal 5 MB)"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  maxSizeMB={5}
+                  value={sharedData.file_surat_pengantar}
+                  onChange={(file) =>
+                    setSharedData((prev) => ({
+                      ...prev,
+                      file_surat_pengantar: file,
+                    }))
+                  }
+                />
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* No Surat Pengantar */}
-          <div>
-            <FormField label="Nomor Surat Pengantar" helperText="Opsional">
-              <TextInput
-                placeholder="Contoh: 123/EXT-QA/IX/2026"
-                value={sharedData.no_surat_pengantar}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    no_surat_pengantar: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-
-          {/* Tanggal Surat Pengantar */}
-          <div>
-            <FormField label="Tanggal Surat Pengantar" helperText="Opsional">
-              <DateInput
-                value={sharedData.tgl_surat_pengantar}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    tgl_surat_pengantar: e.target.value,
-                  }))
-                }
-              />
-            </FormField>
-          </div>
-
-          {/* File Surat Pengantar */}
-          <div className="md:col-span-2">
-            <DropzoneUploader
-              label="Unggah Berkas Surat Pengantar (Opsional)"
-              helperText="Format dokumen: PDF, PNG, atau JPG (Maksimal 5 MB)"
-              accept=".pdf,.png,.jpg,.jpeg"
-              maxSizeMB={5}
-              value={sharedData.file_surat_pengantar}
-              onChange={(file) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  file_surat_pengantar: file,
-                }))
-              }
-            />
-          </div>
-
-          {/* Upload KTM (Wajib jika Kategori Tarif Mahasiswa PP 54) */}
-          {isMahasiswa && (
-            <div className="md:col-span-2">
-              <DropzoneUploader
-                label="Unggah Kartu Tanda Mahasiswa (KTM) Aktif (Wajib)"
-                helperText="Lampirkan foto atau scan dokumen KTM aktif Anda sebagai bukti legalitas untuk verifikasi tarif pendidikan (Maksimal 5 MB)"
-                accept=".pdf,.png,.jpg,.jpeg"
-                maxSizeMB={5}
-                value={sharedData.file_ktm}
-                onChange={(file) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    file_ktm: file,
-                  }))
-                }
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-          {/* 5. RINGKASAN PERMOHONAN (ORDER REVIEW) */}
-          <div className="pt-6 border-t border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-brand-600" />
-                5. Ringkasan Formulir Pengujian Laboratorium
-              </h3>
-              <Badge variant="primary" size="sm">
-                {samples.length} Sampel Terdaftar
-              </Badge>
-            </div>
-
-        {/* Info Grid Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              Bahasa Laporan
-            </span>
-            <span className="font-bold text-slate-800">
-              {sharedData.bahasa_laporan === "en" ? "English (Report)" : "Bahasa Indonesia (LHU)"}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              Kategori Tarif
-            </span>
-            <span className="font-bold text-slate-800">
-              {isMahasiswa ? "Tarif Mahasiswa (PP 54)" : "Tarif Umum"}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-              Metode Pembayaran
-            </span>
-            <span className="font-bold text-slate-800 uppercase">
-              {sharedData.cara_pembayaran.replace(/_/g, " ")}
-            </span>
-          </div>
-
-          <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                Pemohon Terdaftar
-              </span>
-              <span className="font-semibold text-slate-800">
-                {sharedData.diajukan_oleh || "-"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                Penanggung Jawab Biaya
-              </span>
-              <span className="font-semibold text-slate-800">
-                {sharedData.biaya_ditanggung_oleh || "-"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                Alamat Tujuan LHU
-              </span>
-              <span className="font-semibold text-slate-800">
-                {sharedData.laporan_dialamatkan_kepada || "-"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Sampel & Parameter Breakdown Table */}
-        <div className="space-y-3 pt-2">
-          <h4 className="text-xs font-bold text-slate-800">Rincian Sampel & Parameter Pengujian:</h4>
-          <div className="space-y-3">
-            {samples.map((s, idx) => {
-              const subtotal = calculateSampleSubtotal(s, sharedData.kategori_tarif)
-              return (
-                <div
-                  key={s.id}
-                  className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 text-xs"
-                >
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-md bg-brand-600 text-white flex items-center justify-center text-[10px] font-bold">
-                        {idx + 1}
-                      </span>
-                      <span className="font-bold text-slate-900">{s.nama_sampel}</span>
-                      <span className="text-[11px] text-slate-500">
-                        ({s.bentuk_sampel}, {s.jumlah_sampel} {s.satuan_sampel})
-                      </span>
-                    </div>
-                    <span className="font-bold text-brand-700">{formatRupiah(subtotal)}</span>
-                  </div>
-
-                  <div className="space-y-1 pl-7">
-                    {s.selected_parameters.map((p) => {
-                      const rate = isMahasiswa ? p.tarif_mahasiswa : p.tarif_umum
-                      return (
-                        <div key={p.id} className="flex items-center justify-between text-[11px] text-slate-600">
-                          <span>
-                            • {p.nama} <span className="text-brand-700 font-medium font-mono">({p.metode_uji})</span>
-                          </span>
-                          <span className="font-mono">{formatRupiah(rate)}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
+              {isMahasiswa && (
+                <div className="pt-3 border-t border-slate-100 animate-[wizardFadeUp_.25s_ease-out]">
+                  <FieldLabel required>
+                    Kartu Tanda Mahasiswa (KTM) Aktif
+                  </FieldLabel>
+                  <DropzoneUploader
+                    label="Unggah scan / foto Kartu Tanda Mahasiswa (KTM)"
+                    helperText="Wajib untuk verifikasi tarif pendidikan penelitian mahasiswa (Maksimal 5 MB)"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    maxSizeMB={5}
+                    value={sharedData.file_ktm}
+                    onChange={(file) =>
+                      setSharedData((prev) => ({
+                        ...prev,
+                        file_ktm: file,
+                      }))
+                    }
+                  />
                 </div>
-              )
-            })}
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Grand Total Banner */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-slate-50 via-brand-50/25 to-white border border-slate-200/90 flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-xs text-slate-500 font-semibold block uppercase tracking-wider">
-              Total Estimasi Biaya Pengujian:
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-slate-900">{formatRupiah(grandTotal)}</span>
-          </div>
-          <Badge variant="primary" size="md" className="shadow-xs">
-            {samples.length} Sampel Terdaftar
-          </Badge>
-        </div>
-      </div>
-
-          {/* 6. PERNYATAAN & INTEGRITAS */}
+          {/* 5. RINGKASAN PERMOHONAN */}
           <div className="pt-6 border-t border-slate-200">
-            <LegalStatementBox
-              checked={sharedData.setuju_syarat}
-              onChange={(val) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  setuju_syarat: val,
-                }))
-              }
-              title="Pernyataan Keabsahan Sampel & Persetujuan Ketentuan Layanan"
-              badgeText="LHU Terakreditasi KAN"
-              keyPoints={[
-                "Data spesifikasi dan fisik sampel yang diserahkan benar milik pemohon serta layak uji.",
-                "Mematuhi prosedur keselamatan kerja (K3) dan melaksanakan pembayaran sesuai tarif PNBP resmi.",
-              ]}
-              legalTitle="Baca Syarat & Ketentuan Pengujian Laboratorium Lengkap"
-              legalFullText={
-                "Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium. Saya bersedia mematuhi seluruh prosedur keselamatan kerja, syarat dan ketentuan pengujian laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku sesuai peraturan perundang-undangan."
+            <SectionHeading
+              number={5}
+              title="Ringkasan Formulir Pengujian Laboratorium"
+              description="Tinjauan menyeluruh sebelum permohonan resmi dikirimkan."
+              action={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200">
+                  {samples.length} Sampel Terdaftar
+                </span>
               }
             />
+
+            {/* Info Grid Summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs mb-5">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
+                  Bahasa Laporan
+                </span>
+                <span className="font-bold text-slate-800">
+                  {sharedData.bahasa_laporan === "en" ? "English (Report)" : "Bahasa Indonesia (LHU)"}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
+                  Kategori Tarif
+                </span>
+                <span className="font-bold text-slate-800">
+                  {isMahasiswa ? "Tarif Mahasiswa (PP 54)" : "Tarif Umum"}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
+                  Metode Pembayaran
+                </span>
+                <span className="font-bold text-slate-800 uppercase">
+                  {sharedData.cara_pembayaran.replace(/_/g, " ")}
+                </span>
+              </div>
+
+              <div className="col-span-2 sm:col-span-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    Pemohon Terdaftar
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {sharedData.diajukan_oleh || "-"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    Penanggung Jawab Biaya
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {sharedData.biaya_ditanggung_oleh || "-"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    Alamat Tujuan LHU
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {sharedData.laporan_dialamatkan_kepada || "-"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Breakdown sampel */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Rincian Sampel & Parameter ({samples.length} sampel)
+              </p>
+              <div className="space-y-3">
+                {samples.map((s, idx) => {
+                  const subtotal = calculateSampleSubtotal(s, sharedData.kategori_tarif)
+                  return (
+                    <div
+                      key={s.id}
+                      className="rounded-xl border border-slate-200 bg-white p-4 text-[13px] space-y-2.5 shadow-none"
+                    >
+                      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-6 h-6 rounded-md bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-slate-900 truncate">
+                            {s.nama_sampel || `Sampel ${idx + 1}`}
+                          </span>
+                          <span className="text-xs text-slate-500 hidden sm:inline">
+                            · {s.jumlah_sampel} {s.satuan_sampel} ({s.bentuk_sampel})
+                          </span>
+                        </div>
+                        <span className="font-bold text-brand-700 text-sm shrink-0">
+                          {formatRupiah(subtotal)}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 pl-8">
+                        {s.selected_parameters.map((p) => {
+                          const rate = isMahasiswa ? p.tarif_mahasiswa : p.tarif_umum
+                          return (
+                            <div
+                              key={p.id}
+                              className="flex items-center justify-between gap-3 text-xs text-slate-600"
+                            >
+                              <span className="truncate">
+                                • {p.nama} <span className="font-mono text-slate-400">({p.metode_uji})</span>
+                              </span>
+                              <span className="font-medium text-slate-800 shrink-0">
+                                {formatRupiah(rate)}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Grand Total */}
+            <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5 flex items-center justify-between gap-4 shadow-none">
+              <div>
+                <span className="block text-xs font-semibold text-slate-500">Total Estimasi Biaya</span>
+                <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {formatRupiah(grandTotal)}
+                </span>
+              </div>
+              <span className="text-xs text-slate-500 font-medium">
+                {samples.length} Sampel Terdaftar
+              </span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Sticky Navigation Buttons */}
-      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={submitting}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="h-[42px] px-5 rounded-xl font-semibold text-sm"
-        >
-          Sebelumnya
-        </Button>
-
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => handleTriggerSubmit("draft")}
-            leftIcon={<Save className="w-4 h-4 text-slate-600" />}
-            className="h-[42px] px-5 rounded-xl font-medium text-sm border border-slate-200 hover:bg-slate-100"
-          >
-            Simpan Draft
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            disabled={submitting}
-            onClick={() => handleTriggerSubmit("ajukan")}
-            rightIcon={!submitting ? <Send className="w-4 h-4" /> : undefined}
-            isLoading={submitting}
-            className="h-[42px] px-7 rounded-xl font-semibold text-sm shadow-md shadow-brand-500/15"
-          >
-            {submitting ? "Mengirim..." : "Kirim Permohonan"}
-          </Button>
+          {/* 6. PERNYATAAN INTEGRITAS */}
+          <div className="pt-6 border-t border-slate-200">
+            <label
+              htmlFor="checkbox-setuju-syarat"
+              className={cx(
+                "group relative flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer select-none transition-all duration-150 shadow-none",
+                sharedData.setuju_syarat
+                  ? "border-2 border-brand-600 bg-white"
+                  : "border border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-50"
+              )}
+            >
+              <input
+                id="checkbox-setuju-syarat"
+                type="checkbox"
+                checked={sharedData.setuju_syarat}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    setuju_syarat: e.target.checked,
+                  }))
+                }
+                className="mt-0.5 w-5 h-5 rounded-md border-slate-300 text-brand-600 focus:ring-0 shrink-0 cursor-pointer"
+              />
+              <div className="text-xs sm:text-[13px] leading-relaxed text-slate-700">
+                <span className="font-bold text-slate-900 block mb-1">
+                  Pernyataan Keabsahan Sampel & Persetujuan Layanan <span className="text-rose-500">*</span>
+                </span>
+                Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar milik pemohon dan dalam kondisi layak untuk dilakukan pengujian laboratorium, bersedia mematuhi seluruh prosedur keselamatan kerja (K3), serta menyelesaikan pembayaran sesuai tarif PNBP resmi yang berlaku.
+              </div>
+            </label>
+          </div>
         </div>
-      </div>
+      </StepPanel>
+
+      {/* Tombol Aksi Navigasi (Tidak Sticky Bottom) */}
+      <StickyFormActions
+        canGoBack={true}
+        onBack={onBack}
+        onSaveDraft={() => handleTriggerSubmit("draft")}
+        onSubmit={() => handleTriggerSubmit("ajukan")}
+        isLastStep={true}
+        isSubmitting={submitting}
+        isSticky={false}
+      />
     </div>
   )
 }

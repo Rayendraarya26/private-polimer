@@ -22,7 +22,6 @@ import { formatRupiah } from "./components/CostEstimationSummary"
 import { useSubmitPengujianMutation } from "../../../hooks/queries/usePengujianQuery"
 import { Modal } from "../../ui/Modal"
 import { Button } from "../../ui/Button"
-import { DraftStatusIndicator } from "../../forms"
 import Step1Bahasa from "./Step1Bahasa"
 import Step2DataPermintaan from "./Step2DataPermintaan"
 import Step3ParameterUji from "./Step3ParameterUji"
@@ -34,25 +33,25 @@ const STEPS = [
   {
     id: 0,
     title: "Bahasa Laporan",
-    subtitle: "Pilihan LHU ID / EN",
+    subtitle: "Indonesia / Inggris",
     icon: Languages,
   },
   {
     id: 1,
     title: "Data Permintaan",
-    subtitle: "Administrasi & Penagihan",
+    subtitle: "Pemohon & pengiriman",
     icon: FileText,
   },
   {
     id: 2,
-    title: "Parameter Uji",
-    subtitle: "Multi-Sampel & Metode",
+    title: "Sampel & Parameter",
+    subtitle: "Pilih uji yang dibutuhkan",
     icon: FlaskConical,
   },
   {
     id: 3,
-    title: "Berkas & Konfirmasi",
-    subtitle: "Surat Pengantar & Submit",
+    title: "Konfirmasi",
+    subtitle: "Berkas & kirim permohonan",
     icon: FileCheck,
   },
 ]
@@ -78,6 +77,13 @@ export const FormPengujianWizard: React.FC = () => {
     }
     return 0
   })
+
+  // Langkah terjauh yang pernah berhasil dicapai
+  const [maxStepReached, setMaxStepReached] = useState<number>(step)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, step))
+  }, [step])
 
   // 2. Inisialisasi sharedData dari localStorage
   const [sharedData, setSharedData] = useState<PengujianSharedData>(() => {
@@ -214,6 +220,7 @@ export const FormPengujianWizard: React.FC = () => {
     setSharedData({ ...initialPengujianSharedData })
     setSamples([emptyPengujianSample(Date.now())])
     setStep(0)
+    setMaxStepReached(0)
     setHasDraft(false)
     setFormKey((prev) => prev + 1)
     toast.success("Draf formulir pengujian berhasil direset.")
@@ -358,82 +365,98 @@ export const FormPengujianWizard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Draft Status Indicator */}
-      <div className="flex items-center justify-between mb-1">
-        {hasDraft ? (
-          <DraftStatusIndicator
-            status="saved"
-            lastSavedTime="di browser"
-          />
-        ) : <div />}
-        <div className={hasDraft ? "" : "hidden"}>
+    <div className="space-y-5">
+      {/* Tombol Reset Draft */}
+      {hasDraft && (
+        <div className="flex justify-end -mb-2">
           <button
             type="button"
             onClick={() => setShowResetModal(true)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
-            title="Reset Seluruh Draf Formulir"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+            title="Reset seluruh draf formulir"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Draft</span>
           </button>
         </div>
-      </div>
+      )}
 
       {/* Stepper Progress Header */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <nav aria-label="Langkah pengisian" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
             const isActive = step === idx
-            const isDone = step > idx
+            const isPassed = idx < step
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <div
-                key={s.id}
-                onClick={() => {
-                  // Izinkan kembali ke langkah sebelumnya yang sudah dilalui
-                  if (idx < step) {
-                    setStep(idx)
-                    scrollToTop()
-                  }
-                }}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                  idx < step ? "cursor-pointer" : ""
-                } ${
-                  isActive
-                    ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20 shadow-2xs"
-                    : isDone
-                    ? "bg-emerald-50/60 border border-emerald-200"
-                    : "bg-slate-50 border border-slate-200/60 opacity-60"
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-langkah-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setStep(idx)
+                      scrollToTop()
+                    }
+                  }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none ring-0 shadow-none ${
+                    isActive
+                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                </div>
-
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase block text-slate-500">
-                    Langkah {idx + 1}
+                  <span
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 shadow-none ${
+                      isPassed && !isActive
+                        ? "bg-emerald-500 text-white"
+                        : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-slate-200/80 text-slate-400"
+                    }`}
+                  >
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
                   </span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-500 hidden sm:block truncate">
-                    {s.subtitle}
-                  </p>
-                </div>
-              </div>
+
+                  <span className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${
+                        isActive
+                          ? "text-brand-700"
+                          : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                          ? "text-slate-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <span
+                      className={`block text-sm font-bold truncate ${
+                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                      }`}
+                    >
+                      {s.title}
+                    </span>
+                    <span className="hidden lg:block text-xs text-slate-500 truncate">{s.subtitle}</span>
+                  </span>
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       {/* Step Views */}
       <div key={`step-contents-${formKey}`} className="space-y-6">
@@ -487,7 +510,7 @@ export const FormPengujianWizard: React.FC = () => {
         className="max-w-md p-0 overflow-hidden rounded-2xl"
       >
         <div className="p-6 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/80 flex items-center justify-center mx-auto mb-4 shadow-xs">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
             <AlertTriangle className="w-7 h-7 text-amber-500" />
           </div>
 

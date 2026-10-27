@@ -2,16 +2,11 @@ import React, { useState, useMemo } from "react"
 import {
   Trash2,
   Layers,
-  FlaskConical,
   Search,
-  CheckSquare,
-  Square,
-  Sparkles,
-  Tag,
   Loader2,
   AlertCircle,
   HelpCircle,
-  ShieldCheck,
+  Check,
 } from "lucide-react"
 import {
   BentukSampel,
@@ -23,11 +18,9 @@ import {
   PengujianSampleItem,
 } from "../../../../types/pengujian"
 import { useParametersByKomoditiQuery } from "../../../../hooks/queries/usePengujianQuery"
-import { Input } from "../../../ui/Input"
-import { Button } from "../../../ui/Button"
-import { Badge } from "../../../ui/Badge"
 import { SearchableSelect } from "../../../ui/SearchableSelect"
 import { formatRupiah } from "./CostEstimationSummary"
+import { FieldLabel, inputClass, cx } from "./WizardUI"
 
 interface SampleCardItemProps {
   sample: PengujianSampleItem
@@ -52,6 +45,8 @@ const KONDISI_OPTIONS: KondisiSampel[] = ["Baik", "Tersegel", "Terbuka", "Rusak"
 
 const SATUAN_OPTIONS = ["Pcs", "Lembar", "kg", "gram", "liter", "ml", "Pasang", "Meter", "Roll"]
 
+const selectClass = cx(inputClass, "cursor-pointer pr-9")
+
 export const SampleCardItem: React.FC<SampleCardItemProps> = ({
   sample,
   index,
@@ -64,6 +59,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
   const [paramSearch, setParamSearch] = useState("")
   const isMahasiswa = kategoriTarif === "mahasiswa_pp54"
   const subtotal = calculateSampleSubtotal(sample, kategoriTarif)
+  const idPrefix = `sampel-${index + 1}`
 
   // Ambil data parameter untuk komoditas yang dipilih
   const {
@@ -130,90 +126,88 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
     })
   }
 
+  const selectedCount = sample.selected_parameters.length
+  const allSelected = parameterList.length > 0 && selectedCount === parameterList.length
+
   return (
-    <div className="bg-white transition-all">
-      {/* Sample Header Bar */}
-      <div className="p-4 sm:px-6 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-            #{index + 1}
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-slate-900 truncate max-w-[220px] sm:max-w-md">
-              {sample.nama_sampel || `Sampel #${index + 1} (Nama belum diisi)`}
-            </h4>
-            <p className="text-[11px] text-slate-500">
-              {sample.komoditi_nama || "Komoditas belum dipilih"} • {sample.selected_parameters.length} parameter uji dicentang
-            </p>
-          </div>
+    <div className="bg-white">
+      {/* Header Sampel */}
+      <div className="px-5 sm:px-7 py-4 bg-slate-50 flex items-center gap-3 sm:gap-4 border-b border-slate-200">
+        <span className="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-none">
+          {index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h4 className="text-[15px] font-bold text-slate-900 truncate">
+            {sample.nama_sampel || <span className="text-slate-400 font-semibold">Sampel {index + 1} — belum diberi nama</span>}
+          </h4>
+          <p className="text-[13px] text-slate-500 truncate">
+            {sample.komoditi_nama || "Komoditas belum dipilih"}
+            {selectedCount > 0 && <> · {selectedCount} parameter</>}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <span className="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">
-              Subtotal Sampel
-            </span>
-            <span className="text-xs font-extrabold text-brand-700">
-              {formatRupiah(subtotal)}
-            </span>
-          </div>
-
-          {canDelete && (
-            <button
-              type="button"
-              onClick={() => onDelete(sample.id)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
-              title="Hapus sampel ini"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
+        <div className="text-right shrink-0">
+          <span className="block text-[11px] text-slate-500">Subtotal</span>
+          <span className={cx("text-[15px] font-bold", subtotal > 0 ? "text-brand-700" : "text-slate-400")}>
+            {formatRupiah(subtotal)}
+          </span>
         </div>
+
+        {canDelete && (
+          <button
+            type="button"
+            id={`${idPrefix}-hapus`}
+            onClick={() => onDelete(sample.id)}
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors shrink-0"
+            title="Hapus sampel ini"
+            aria-label={`Hapus sampel ${index + 1}`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
-      {/* Sample Body Fields */}
-      <div className="p-6 space-y-6">
-        {/* Row 1: Nama Sampel & Komoditas */}
+      {/* Isi Sampel */}
+      <div className="px-5 sm:px-7 py-6 space-y-5">
+        {/* Nama & Komoditas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Nama Sampel / Bahan Uji"
-            required
-            leftIcon={<FlaskConical className="w-4 h-4" />}
-            placeholder="Contoh: Kompon Karet Tapak Sepatu Tipe A"
-            value={sample.nama_sampel}
-            onChange={(e) => onUpdate({ ...sample, nama_sampel: e.target.value })}
-            helperText="Nama spesifik material atau produk yang diserahkan untuk diuji"
-          />
+          <div>
+            <FieldLabel htmlFor={`${idPrefix}-nama`} required>
+              Nama sampel / bahan uji
+            </FieldLabel>
+            <input
+              id={`${idPrefix}-nama`}
+              type="text"
+              className={inputClass}
+              placeholder="Contoh: Kompon karet tapak sepatu tipe A"
+              value={sample.nama_sampel}
+              onChange={(e) => onUpdate({ ...sample, nama_sampel: e.target.value })}
+            />
+          </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Komoditas / Ruang Lingkup Lab <span className="text-rose-500">*</span>
-            </label>
+            <FieldLabel required>Komoditas</FieldLabel>
             <SearchableSelect
-              placeholder="-- Pilih Komoditas Pengujian --"
+              placeholder="Pilih komoditas pengujian"
               searchPlaceholder="Cari komoditas atau ruang lingkup..."
               options={komoditiOptions}
               value={sample.master_komoditi_id || ""}
               onChange={(val) => handleKomoditiChange(String(val))}
               onClear={() => handleKomoditiChange("")}
+              className="h-10 text-sm rounded-lg py-0 focus:ring-0 focus:border-brand-600 shadow-none"
             />
-            <p className="text-[11px] text-slate-500 mt-1">
-              Pilih ruang lingkup komoditas untuk menampilkan daftar parameter uji laboratorium
-            </p>
           </div>
         </div>
 
-        {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi Fisik (Max 2 Kolom) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Bentuk Fisik */}
+        {/* Detail fisik */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Bentuk Fisik
-            </label>
+            <FieldLabel htmlFor={`${idPrefix}-bentuk`}>Bentuk</FieldLabel>
             <select
+              id={`${idPrefix}-bentuk`}
               value={sample.bentuk_sampel}
               onChange={(e) => onUpdate({ ...sample, bentuk_sampel: e.target.value })}
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
+              className={selectClass}
             >
               {BENTUK_OPTIONS.map((b) => (
                 <option key={b} value={b}>
@@ -223,15 +217,44 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             </select>
           </div>
 
-          {/* Kondisi Fisik Awal */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Kondisi Fisik Awal
-            </label>
+            <FieldLabel htmlFor={`${idPrefix}-jumlah`} required>
+              Jumlah
+            </FieldLabel>
+            <div className="flex h-10 rounded-lg border border-slate-300 bg-white overflow-hidden transition focus-within:border-brand-600 focus-within:ring-0 shadow-none">
+              <input
+                id={`${idPrefix}-jumlah`}
+                type="number"
+                min={1}
+                required
+                value={sample.jumlah_sampel}
+                onChange={(e) =>
+                  onUpdate({ ...sample, jumlah_sampel: parseInt(e.target.value, 10) || 1 })
+                }
+                className="w-full min-w-0 h-full border-0 rounded-none bg-transparent px-3 text-sm text-slate-900 focus:outline-none focus:ring-0"
+              />
+              <select
+                aria-label="Satuan"
+                value={sample.satuan_sampel}
+                onChange={(e) => onUpdate({ ...sample, satuan_sampel: e.target.value })}
+                className="w-auto h-full border-0 border-l border-slate-200 rounded-none bg-slate-50 pl-2.5 pr-7 text-sm text-slate-700 cursor-pointer focus:outline-none focus:ring-0"
+              >
+                {SATUAN_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor={`${idPrefix}-kondisi`}>Kondisi</FieldLabel>
             <select
+              id={`${idPrefix}-kondisi`}
               value={sample.kondisi_sampel}
               onChange={(e) => onUpdate({ ...sample, kondisi_sampel: e.target.value })}
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
+              className={selectClass}
             >
               {KONDISI_OPTIONS.map((k) => (
                 <option key={k} value={k}>
@@ -241,207 +264,150 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             </select>
           </div>
 
-          {/* Jumlah */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Jumlah <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="number"
-              min={1}
-              required
-              value={sample.jumlah_sampel}
-              onChange={(e) =>
-                onUpdate({ ...sample, jumlah_sampel: parseInt(e.target.value, 10) || 1 })
-              }
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
-            />
-          </div>
-
-          {/* Satuan */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Satuan
-            </label>
-            <select
-              value={sample.satuan_sampel}
-              onChange={(e) => onUpdate({ ...sample, satuan_sampel: e.target.value })}
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
-            >
-              {SATUAN_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Nomor Lot / Bets */}
-          <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+            <FieldLabel htmlFor={`${idPrefix}-lot`} optional>
               No. Lot / Bets
-            </label>
+            </FieldLabel>
             <input
+              id={`${idPrefix}-lot`}
               type="text"
-              placeholder="LOT-2026-X (opsional)"
+              placeholder="LOT-2026-X"
               value={sample.no_lot_bets}
               onChange={(e) => onUpdate({ ...sample, no_lot_bets: e.target.value })}
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+              className={inputClass}
             />
           </div>
         </div>
 
-        {/* Row 3: DAFTAR PARAMETER UJI (INLINE CHECKBOX SELECTOR) */}
-        <div className="pt-3 border-t border-slate-200/80 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Parameter Uji */}
+        <div className="pt-5 border-t border-slate-100">
+          <div className="flex items-end justify-between gap-3 mb-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-brand-600" />
-                Daftar Parameter Uji & Metode Acuan Standar
-              </span>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Centang checkbox parameter yang akan diuji di laboratorium untuk sampel ini.
+              <p className="text-sm font-bold text-slate-900">
+                Parameter uji <span className="text-rose-500">*</span>
+              </p>
+              <p className="text-[13px] text-slate-500">
+                {sample.master_komoditi_id
+                  ? "Centang parameter yang ingin diuji untuk sampel ini."
+                  : "Pilih komoditas terlebih dahulu."}
               </p>
             </div>
-
             {sample.master_komoditi_id && parameterList.length > 0 && (
-              <Badge variant="primary" size="sm" className="self-start sm:self-auto">
-                {sample.selected_parameters.length} dari {parameterList.length} Parameter Dicentang
-              </Badge>
+              <p className="text-[13px] text-slate-500 shrink-0">
+                <span className="font-bold text-brand-700">{selectedCount}</span> / {parameterList.length} dipilih
+              </p>
             )}
           </div>
 
-          {/* State 1: Belum Pilih Komoditas */}
+          {/* Belum pilih komoditas */}
           {!sample.master_komoditi_id && (
-            <div className="p-6 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 text-center space-y-2">
-              <Layers className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">Komoditas Belum Dipilih</p>
-              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                Silakan pilih <strong>Komoditas / Ruang Lingkup Lab</strong> pada pilihan di atas untuk memunculkan daftar parameter uji dan metode acuan yang tersedia.
+            <div className="rounded-xl border-2 border-dashed border-slate-200 py-9 px-6 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <Layers className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-semibold text-slate-700">Belum ada parameter</p>
+              <p className="text-[13px] text-slate-500 mt-1 max-w-sm mx-auto">
+                Daftar parameter uji akan muncul setelah Anda memilih <strong>Komoditas</strong> di atas.
               </p>
             </div>
           )}
 
-          {/* State 2: Komoditas Terpilih */}
           {sample.master_komoditi_id && (
             <div className="space-y-3">
-              {/* Toolbar Pencarian & Aksi Cepat */}
-              <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder="Cari nama parameter atau metode acuan (misal: SNI, ASTM, Kuat Tarik)..."
-                    value={paramSearch}
-                    onChange={(e) => setParamSearch(e.target.value)}
-                    className="w-full h-[40px] pl-10 pr-4 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
+              {/* Cari + Pilih semua */}
+              {parameterList.length > 0 && (
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <input
+                      id={`${idPrefix}-cari-parameter`}
+                      type="text"
+                      placeholder="Cari parameter atau metode (misal: SNI, ASTM, kuat tarik)"
+                      value={paramSearch}
+                      onChange={(e) => setParamSearch(e.target.value)}
+                      className={cx(inputClass, "pl-10")}
+                    />
+                  </div>
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectAllParams}
-                    className="text-[11px] py-1 px-2.5 h-7"
+                    id={`${idPrefix}-pilih-semua`}
+                    onClick={allSelected ? handleDeselectAllParams : handleSelectAllParams}
+                    className="h-10 px-4 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-700 transition-colors shrink-0 shadow-none"
                   >
-                    Pilih Semua
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDeselectAllParams}
-                    className="text-[11px] py-1 px-2.5 h-7"
-                  >
-                    Batal Semua
-                  </Button>
+                    {allSelected ? "Kosongkan pilihan" : "Pilih semua"}
+                  </button>
                 </div>
-              </div>
+              )}
 
-              {/* Loading State */}
               {loadingParams && (
-                <div className="flex items-center justify-center py-8 text-xs text-slate-500 gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
-                  <span>Memuat parameter pengujian laboratorium...</span>
+                <div className="flex items-center justify-center py-8 text-sm text-slate-500 gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-brand-700" />
+                  Memuat parameter pengujian...
                 </div>
               )}
 
-              {/* Error State */}
               {errorParams && (
-                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-[13px] text-rose-800 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Gagal memuat parameter uji komoditas. Silakan coba kembali.</span>
+                  Gagal memuat parameter uji. Silakan coba kembali.
                 </div>
               )}
 
-              {/* Empty Search Result */}
               {!loadingParams && !errorParams && filteredParameters.length === 0 && (
-                <div className="p-6 text-center text-xs text-slate-400">
-                  <HelpCircle className="w-6 h-6 mx-auto mb-1 text-slate-300" />
-                  <span>Parameter dengan kata kunci "{paramSearch}" tidak ditemukan.</span>
+                <div className="py-8 text-center text-[13px] text-slate-500">
+                  <HelpCircle className="w-6 h-6 mx-auto mb-1.5 text-slate-300" />
+                  {paramSearch
+                    ? <>Parameter dengan kata kunci "{paramSearch}" tidak ditemukan.</>
+                    : "Belum ada parameter untuk komoditas ini."}
                 </div>
               )}
 
-              {/* Checkbox List Grid */}
               {!loadingParams && !errorParams && filteredParameters.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[400px] overflow-y-auto pr-1 -mr-1">
                   {filteredParameters.map((param) => {
                     const isChecked = sample.selected_parameters.some((p) => p.id === param.id)
                     const rate = isMahasiswa ? param.tarif_mahasiswa : param.tarif_umum
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={param.id}
+                        role="checkbox"
+                        aria-checked={isChecked}
                         onClick={() => toggleParameter(param)}
-                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-start justify-between gap-3 select-none ${
+                        style={{ outline: "none", WebkitTapHighlightColor: "transparent" }}
+                        className={cx(
+                          "group flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all duration-150 select-none shadow-none outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0",
                           isChecked
-                            ? "bg-brand-50/70 border-brand-500 shadow-2xs"
-                            : "bg-white border-slate-200 hover:border-slate-300"
-                        }`}
+                            ? "border-2 border-brand-600 bg-white"
+                            : "border border-slate-200 bg-white hover:border-slate-300"
+                        )}
                       >
-                        <div className="flex items-start gap-2.5 min-w-0">
-                          <div className="pt-0.5 shrink-0 text-brand-600">
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => {}} // Handled by parent div onClick
-                              className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 cursor-pointer pointer-events-none"
-                            />
-                          </div>
+                        <span
+                          className={cx(
+                            "w-[18px] h-[18px] rounded-md border flex items-center justify-center shrink-0 transition-colors",
+                            isChecked
+                              ? "bg-brand-600 border-brand-600 text-white"
+                              : "border-slate-300 bg-white group-hover:border-slate-400"
+                          )}
+                        >
+                          {isChecked && <Check className="w-3 h-3" strokeWidth={2.5} />}
+                        </span>
 
-                          <div className="min-w-0 space-y-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="text-xs font-bold text-slate-900 leading-snug">
-                                {param.nama}
-                              </span>
-                              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono bg-slate-100 text-slate-600 border border-slate-200">
-                                {param.kode}
-                              </span>
-                            </div>
-
-                            {/* METODE UJI BAKU (OTOMATIS MENYESUAIKAN PARAMETER) */}
-                            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                              <span className="font-semibold text-brand-700 bg-brand-100/60 px-2 py-0.5 rounded text-[10.5px]">
-                                Metode: {param.metode_uji}
-                              </span>
-                              {param.satuan && (
-                                <span className="text-slate-400">• Satuan: {param.satuan}</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <span className="text-xs font-extrabold text-brand-700 block">
-                            {formatRupiah(rate)}
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-[13px] font-semibold text-slate-900 leading-snug">
+                            {param.nama}
                           </span>
-                          <span className="text-[10px] text-slate-400">
-                            {isMahasiswa ? "Tarif Mahasiswa" : "Tarif PNBP"}
+                          <span className="block mt-0.5 text-[11px] text-slate-500 font-mono truncate">
+                            {param.metode_uji}
+                            {param.satuan && <span className="font-sans"> · {param.satuan}</span>}
                           </span>
-                        </div>
-                      </div>
+                        </span>
+
+                        <span className={cx("text-xs sm:text-[13px] font-bold shrink-0", isChecked ? "text-brand-700" : "text-slate-700")}>
+                          {formatRupiah(rate)}
+                        </span>
+                      </button>
                     )
                   })}
                 </div>

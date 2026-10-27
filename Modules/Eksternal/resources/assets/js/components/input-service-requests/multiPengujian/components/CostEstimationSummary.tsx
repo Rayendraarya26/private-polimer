@@ -1,11 +1,10 @@
 import React from "react"
-import { Calculator } from "lucide-react"
+import { Receipt } from "lucide-react"
 import {
   calculateGrandTotal,
   KategoriTarif,
   PengujianSampleItem,
 } from "../../../../types/pengujian"
-import { Card, CardContent } from "../../../ui/Card"
 
 interface CostEstimationSummaryProps {
   samples: PengujianSampleItem[]
@@ -33,40 +32,32 @@ export const CostEstimationSummary: React.FC<CostEstimationSummaryProps> = ({
   const isMahasiswa = kategoriTarif === "mahasiswa_pp54"
 
   return (
-    <Card className="rounded-2xl border-slate-200/90 shadow-soft bg-gradient-to-r from-slate-50 via-brand-50/20 to-white overflow-hidden">
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Calculator className="w-3.5 h-3.5 text-brand-600" />
-                Estimasi Total Tarif Pengujian
-              </span>
-              {isMahasiswa && (
-                <span className="text-[10px] font-semibold bg-brand-100/70 text-brand-700 px-2 py-0.5 rounded-full border border-brand-200">
-                  Tarif Mahasiswa PP 54
-                </span>
-              )}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {formatRupiah(grandTotal)}
-              </h3>
-              <span className="text-xs text-slate-400 font-normal">
-                (Belum termasuk PPN jika berlaku)
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {samples.length} Sampel Terdaftar • {totalParameters} Parameter Uji Dipilih
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-none">
+      {/* Aksen warna di sisi kiri */}
+      <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-brand-500 to-brand-800" />
+
+      <div className="pl-6 pr-5 sm:pl-8 sm:pr-7 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex w-12 h-12 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 items-center justify-center shrink-0">
+            <Receipt className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-slate-500">Estimasi total biaya</p>
+            <p className="text-2xl sm:text-[28px] font-extrabold text-slate-900 tracking-tight leading-tight transition-all">
+              {formatRupiah(grandTotal)}
+            </p>
+            <p className="text-[13px] text-slate-500 mt-0.5">
+              {samples.length} sampel · {totalParameters} parameter
+              {isMahasiswa && " · tarif mahasiswa"}
             </p>
           </div>
-
-          <div className="text-left sm:text-right text-[11px] text-slate-400 self-end sm:self-center">
-            *Estimasi resmi sesuai tarif PNBP yang berlaku
-          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <p className="text-xs text-slate-400 sm:text-right sm:max-w-[220px] leading-relaxed">
+          Sesuai tarif PNBP yang berlaku. Belum termasuk PPN jika ada.
+        </p>
+      </div>
+    </div>
   )
 }
 

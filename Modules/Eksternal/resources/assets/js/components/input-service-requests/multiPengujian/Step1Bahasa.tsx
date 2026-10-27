@@ -1,9 +1,7 @@
 import React from "react"
-import { Languages, Globe, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react"
+import { Languages, ShieldCheck, Check } from "lucide-react"
 import { BahasaLaporan, PengujianSharedData } from "../../../types/pengujian"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
-import { Button } from "../../ui/Button"
-import { Badge } from "../../ui/Badge"
+import { WizardNav } from "./components/WizardUI"
 
 // Komponen Bendera Indonesia (Merah Putih)
 const IndonesiaFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
@@ -14,7 +12,7 @@ const IndonesiaFlag: React.FC<{ className?: string }> = ({ className = "w-full h
     aria-label="Bendera Indonesia"
   >
     <rect width="60" height="20" fill="#E11D48" />
-    <rect y="20" width="60" height="20" fill="#FFFFFF" />
+    <rect y="20" width="60" height="20" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="0.5" />
   </svg>
 )
 
@@ -83,30 +81,31 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card className="border-slate-200/80 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                <Languages className="w-4 h-4 text-brand-600 shrink-0" />
-                <span>Pilih Bahasa Laporan Hasil Pengujian</span>
-              </CardTitle>
-              <CardDescription>
-                Tentukan bahasa resmi yang akan digunakan pada dokumen Laporan Hasil Pengujian yang diterbitkan.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+      {/* Outer Card / Panel: Menggunakan border saja tanpa shadow sesuai gambar */}
+      <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-none">
+        {/* Header dengan Border Bottom */}
+        <div className="px-6 sm:px-7 py-5 border-b border-slate-200">
+          <h3 className="text-base sm:text-[17px] font-bold text-slate-900 flex items-center gap-2.5">
+            <Languages className="w-5 h-5 text-brand-600 shrink-0" />
+            <span>Pilih Bahasa Laporan Hasil Pengujian</span>
+          </h3>
+          <p className="text-xs sm:text-[13px] text-slate-500 mt-1 leading-relaxed">
+            Tentukan bahasa resmi yang akan digunakan pada dokumen Laporan Hasil Pengujian yang diterbitkan.
+          </p>
+        </div>
 
-        <CardContent className="p-5 sm:p-6 space-y-4">
+        {/* Content Body */}
+        <div className="p-6 sm:p-7">
+          {/* Pilihan Card: Border saja tanpa shadow */}
           <div
             role="radiogroup"
-            aria-label="Bahasa Laporan Hasil Pengujian"
+            aria-label="Pilih Bahasa Laporan Hasil Pengujian"
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             {BAHASA_OPTIONS.map((opt) => {
               const isSelected = sharedData.bahasa_laporan === opt.value
-              const Icon = opt.icon
+              const Flag = opt.icon
+
               return (
                 <div
                   key={opt.value}
@@ -121,43 +120,55 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
                       handleSelectBahasa(opt.value)
                     }
                   }}
-                  className={`group relative flex flex-col gap-4 rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${isSelected
-                    ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-sm"
-                    }`}
+                  style={{ outline: "none", WebkitTapHighlightColor: "transparent" }}
+                  className={`group relative rounded-lg p-4 cursor-pointer select-none transition-all duration-150 shadow-none outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ring-0 ${
+                    isSelected
+                      ? "border-2 border-brand-600 bg-white"
+                      : "border border-slate-200 bg-white hover:border-slate-300"
+                  }`}
                 >
-                  {/* Header: icon, title, indicator */}
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${isSelected
-                        ? "bg-white border-2 border-brand-500 shadow-sm ring-2 ring-brand-500/15"
-                        : "bg-slate-50 border border-slate-200/90 group-hover:bg-white group-hover:border-slate-300 shadow-2xs"
+                  {/* Baris Atas: Bendera, Judul + Badge, dan Indikator Check Bulat */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Kotak Bendera */}
+                      <div
+                        className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 bg-white ${
+                          isSelected ? "border-brand-500" : "border-slate-200"
                         }`}
-                    >
-                      <div className="w-7 h-[18px] rounded-xs overflow-hidden shadow-2xs border border-slate-300/80 flex items-center justify-center shrink-0">
-                        <Icon className="w-full h-full object-cover" />
+                      >
+                        <div className="w-6 h-[16px] overflow-hidden flex items-center justify-center shadow-none">
+                          <Flag className="w-full h-full object-cover" />
+                        </div>
+                      </div>
+
+                      {/* Judul & Subtitle */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13.5px] font-bold text-slate-900 leading-snug">
+                            {opt.label}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded leading-none">
+                            {opt.code}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{opt.subLabel}</p>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900">
-                          {opt.label}
+
+                    {/* Indikator Checkmark Bulat di Kanan Atas */}
+                    <div className="shrink-0 mt-0.5">
+                      {isSelected ? (
+                        <span className="w-[18px] h-[18px] rounded-full border border-brand-600 flex items-center justify-center text-brand-600 bg-white">
+                          <Check className="w-3 h-3" strokeWidth={2.5} />
                         </span>
-                        <Badge variant={isSelected ? "primary" : "neutral"} size="sm">
-                          {opt.code}
-                        </Badge>
-                      </div>
-                      <p className="mt-0.5 text-xs text-slate-500">{opt.subLabel}</p>
+                      ) : (
+                        <span className="w-[18px] h-[18px] rounded-full border border-slate-300 block bg-white" />
+                      )}
                     </div>
-                    {isSelected ? (
-                      <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
-                    ) : (
-                      <span className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0 group-hover:border-slate-400 transition-colors" />
-                    )}
                   </div>
 
-                  {/* Deskripsi */}
-                  <p className="text-xs leading-relaxed text-slate-600">
+                  {/* Deskripsi di Bawah */}
+                  <p className="text-xs leading-relaxed text-slate-500 mt-2.5">
                     {opt.description}
                   </p>
                 </div>
@@ -165,32 +176,20 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
             })}
           </div>
 
-          {/* Info tambahan */}
-          <div className="flex items-start gap-2.5 rounded-xl border border-sky-100 bg-sky-50/70 p-3.5">
-            <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
-            <p className="text-xs leading-relaxed text-slate-700">
-              Bahasa yang dipilih berlaku untuk seluruh sampel dalam permohonan ini dan tidak dapat
-              diubah secara sepihak setelah dokumen hasil uji diterbitkan.
-            </p>
+          {/* Catatan di Bawah */}
+          <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-xs sm:text-[13px] text-slate-600 shadow-none">
+            <ShieldCheck className="w-4 h-4 text-brand-600 shrink-0" />
+            <span>
+              Bahasa yang dipilih berlaku untuk seluruh sampel dalam permintaan ini dan tidak dapat diubah setelah laporan diterbitkan.
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      {/* Footer Navigation */}
-      <div className="flex items-center justify-end pt-2">
-        <Button
-          type="button"
-          variant="primary"
-          onClick={onNext}
-          rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="h-[42px] px-6 rounded-xl font-semibold text-sm shadow-md shadow-brand-500/15"
-        >
-          Selanjutnya
-        </Button>
-      </div>
+      {/* Navigasi Selanjutnya */}
+      <WizardNav onNext={onNext} />
     </div>
   )
 }
 
 export default Step1Bahasa
-

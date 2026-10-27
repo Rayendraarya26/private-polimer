@@ -2,6 +2,7 @@ import React from "react"
 import { SertifikasiFormData } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
+import { LegalStatementBox } from "../../forms"
 import {
   CheckSquare,
   Building2,
@@ -167,39 +168,20 @@ export const Step4PernyataanKonfirmasi: React.FC<Props> = ({
       </Card>
 
       {/* 2. PAKTA INTEGRITAS & PERNYATAAN */}
-      <Card className="border-amber-200 bg-amber-50/40 shadow-soft">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-6 h-6 text-amber-700 shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs">
-              <h4 className="font-bold text-amber-900 text-sm">
-                Pakta Integritas & Pernyataan Kebenaran Dokumen
-              </h4>
-              <p className="text-amber-800 leading-relaxed">
-                Dengan mencentang pernyataan ini, pemohon menyatakan dengan sadar dan sesungguhnya bahwa seluruh data,
-                informasi fasilitas pabrik, dan berkas legalitas yang dilampirkan adalah benar dan sah.
-                Pemohon bersedia memenuhi seluruh tahapan asesmen kesesuaian dan audit yang ditetapkan oleh BBKKP.
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-amber-200/80">
-            <label className="flex items-start gap-3 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={formData.setuju_syarat}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, setuju_syarat: e.target.checked }))
-                }
-                className="w-4 h-4 mt-0.5 rounded border-amber-300 text-brand-600 focus:ring-brand-500"
-              />
-              <span className="text-xs font-bold text-slate-800">
-                Saya menyetujui seluruh ketentuan layanan sertifikasi, pakta integritas, dan bersedia mengikuti proses evaluasi teknis.
-              </span>
-            </label>
-          </div>
-        </CardContent>
-      </Card>
+      <LegalStatementBox
+        checked={formData.setuju_syarat}
+        onChange={(val) => setFormData((prev) => ({ ...prev, setuju_syarat: val }))}
+        title="Pakta Integritas & Pernyataan Kebenaran Dokumen Sertifikasi"
+        badgeText="LSPro BBSPJIKKP"
+        keyPoints={[
+          "Seluruh data profil badan usaha, lokasi pabrik, dan berkas legalitas adalah sah dan dapat dipertanggungjawabkan.",
+          "Bersedia mengikuti seluruh tahapan evaluasi teknis dan audit kesesuaian lapangan oleh Asesor BBKKP.",
+        ]}
+        legalTitle="Baca Teks Pakta Integritas Lengkap"
+        legalFullText={
+          "Dengan ini pemohon menyatakan dengan sadar dan sesungguhnya bahwa seluruh data, informasi fasilitas pabrik, dan berkas legalitas yang dilampirkan adalah benar dan sah. Pemohon bersedia mematuhi seluruh ketentuan layanan sertifikasi produk dan sistem manajemen yang ditetapkan oleh Lembaga Sertifikasi Produk (LSPro) BBSPJIKKP, memfasilitasi audit lapangan, serta melunasi biaya evaluasi teknis sesuai ketentuan resmi yang berlaku."
+        }
+      />
 
       {/* 3. NAVIGATION & SUBMIT BUTTONS */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">

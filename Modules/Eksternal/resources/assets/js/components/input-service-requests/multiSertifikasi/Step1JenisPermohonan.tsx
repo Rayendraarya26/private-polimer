@@ -4,6 +4,7 @@ import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
 import { Plus, Trash2, Award, History, ArrowRight, ShieldCheck, Loader2, CheckCircle2 } from "lucide-react"
 import api from "../../../utils/api"
+import { FormField, SelectInput, RadioCardGroup, RadioCardOption } from "../../forms"
 
 interface Props {
   formData: SertifikasiFormData
@@ -100,6 +101,28 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
     })
   }
 
+  const radioOptions: RadioCardOption[] = [
+    {
+      value: "baru",
+      title: "Pengajuan Sertifikat Baru",
+      description: "Untuk produk komoditi atau sistem manajemen yang baru pertama kali diajukan sertifikasinya di BBKKP.",
+      icon: <Award className="w-4 h-4" />,
+    },
+    {
+      value: "lama",
+      title: "Perpanjangan Sertifikat (Re-Sertifikasi)",
+      description: "Untuk memperpanjang masa berlaku sertifikat SNI/ISO yang sudah mendekati habis masa berlaku.",
+      icon: <History className="w-4 h-4" />,
+    },
+  ]
+
+  const certOptions = riwayatSertifikat.map((cert) => ({
+    value: String(cert.id),
+    label: `${cert.nomor_sertifikat} — ${cert.skema_sertifikasi || cert.komoditi || "Sertifikat"} ${
+      cert.tanggal_terbit || cert.tgl_terbit ? `(Terbit: ${cert.tanggal_terbit || cert.tgl_terbit})` : ""
+    }`,
+  }))
+
   return (
     <div className="space-y-6">
       {formData.pengajuan.map((p, idx) => {
@@ -131,141 +154,45 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
               )}
             </div>
 
-            <CardContent className="p-5 sm:p-6 space-y-4">
-              <div className="text-xs font-semibold text-slate-600 mb-2">
-                Pilih Jenis Permohonan:
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Option: Pengajuan Baru */}
-                <div
-                  onClick={() => setJenisPengajuan(idx, "baru")}
-                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${p.jenis_pengajuan === "baru"
-                      ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                    }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${p.jenis_pengajuan === "baru"
-                          ? "bg-brand-600 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-500"
-                        }`}
-                    >
-                      <Award className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900">
-                          Pengajuan Sertifikat Baru
-                        </span>
-                        {p.jenis_pengajuan === "baru" && (
-                          <span className="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 text-[10px] font-bold">
-                            Dipilih
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        Untuk produk komoditi atau sistem manajemen yang baru pertama kali diajukan sertifikasinya di BBKKP.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium">Asesmen lengkap tahap 1 & 2</span>
-                    <input
-                      type="radio"
-                      name={`jenis_pengajuan_${idx}`}
-                      checked={p.jenis_pengajuan === "baru"}
-                      onChange={() => setJenisPengajuan(idx, "baru")}
-                      className="w-4 h-4 text-brand-600 focus:ring-brand-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Option: Perpanjangan */}
-                <div
-                  onClick={() => setJenisPengajuan(idx, "lama")}
-                  className={`relative rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${p.jenis_pengajuan === "lama"
-                      ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                    }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${p.jenis_pengajuan === "lama"
-                          ? "bg-brand-600 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-500"
-                        }`}
-                    >
-                      <History className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900">
-                          Perpanjangan Sertifikat (Re-Sertifikasi)
-                        </span>
-                        {p.jenis_pengajuan === "lama" && (
-                          <span className="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 text-[10px] font-bold">
-                            Dipilih
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        Untuk memperpanjang masa berlaku sertifikat SNI/ISO yang sudah mendekati habis masa berlaku.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium">Audit siklus lanjutan / surveilans</span>
-                    <input
-                      type="radio"
-                      name={`jenis_pengajuan_${idx}`}
-                      checked={p.jenis_pengajuan === "lama"}
-                      onChange={() => setJenisPengajuan(idx, "lama")}
-                      className="w-4 h-4 text-brand-600 focus:ring-brand-500"
-                    />
-                  </div>
-                </div>
-              </div>
+            <CardContent className="p-5 sm:p-6 space-y-5">
+              <FormField label="Pilih Jenis Permohonan" required>
+                <RadioCardGroup
+                  options={radioOptions}
+                  value={p.jenis_pengajuan}
+                  onChange={(val) => setJenisPengajuan(idx, val as "baru" | "lama")}
+                  gridCols={2}
+                />
+              </FormField>
 
               {/* Dropdown Referensi Sertifikat Lama jika perpanjangan */}
               {p.jenis_pengajuan === "lama" && (
-                <div className="pt-2 animate-in fade-in-50 duration-200">
-                  <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold text-amber-950">
-                        Pilih Sertifikat yang Ingin Diperpanjang <span className="text-rose-500">*</span>
-                      </label>
-                      {isLoadingRiwayat && (
-                        <span className="text-[11px] text-amber-700 flex items-center gap-1 font-medium">
-                          <Loader2 className="w-3 h-3 animate-spin" /> Memuat daftar sertifikat...
-                        </span>
-                      )}
-                    </div>
-
-                    <select
-                      value={p.sertifikat_lama_id || ""}
-                      onChange={(e) => selectSertifikatLama(idx, e.target.value)}
-                      disabled={isLoadingRiwayat}
-                      className="w-full rounded-xl border border-amber-300 bg-white px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-xs cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed"
+                <div className="pt-1 animate-in fade-in-50 duration-200">
+                  <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-4">
+                    <FormField
+                      label="Pilih Sertifikat yang Ingin Diperpanjang"
+                      required
+                      helperText={
+                        isLoadingRiwayat
+                          ? "Sedang memuat riwayat sertifikat..."
+                          : "Sistem akan memvalidasi nomor registrasi dan riwayat masa berlaku sertifikat di database SIS BBSPJIKKP."
+                      }
                     >
-                      <option value="">
-                        {isLoadingRiwayat
-                          ? "-- Sedang memuat riwayat sertifikat... --"
-                          : "-- Pilih Sertifikat Aktif Perusahaan --"}
-                      </option>
-                      {riwayatSertifikat.map((cert) => (
-                        <option key={cert.id} value={cert.id}>
-                          {cert.nomor_sertifikat} — {cert.skema_sertifikasi || cert.komoditi} {cert.tanggal_terbit || cert.tgl_terbit ? `(Terbit: ${cert.tanggal_terbit || cert.tgl_terbit})` : ""}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectInput
+                        value={p.sertifikat_lama_id || ""}
+                        onChange={(val) => selectSertifikatLama(idx, String(val))}
+                        options={certOptions}
+                        placeholder={
+                          isLoadingRiwayat
+                            ? "-- Sedang memuat riwayat sertifikat... --"
+                            : "-- Pilih Sertifikat Aktif Perusahaan --"
+                        }
+                        disabled={isLoadingRiwayat}
+                      />
+                    </FormField>
 
                     {/* Info Card Sertifikat Terpilih */}
                     {selectedCert && (
-                      <div className="p-3.5 bg-white/90 border border-amber-200 rounded-xl space-y-1.5 text-xs animate-in fade-in-50 duration-150">
+                      <div className="p-3.5 bg-white border border-amber-200 rounded-xl space-y-1.5 text-xs animate-in fade-in-50 duration-150">
                         <div className="flex items-center gap-2 text-emerald-700 font-bold">
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Sertifikat Terpilih: {selectedCert.nomor_sertifikat}</span>
@@ -278,10 +205,6 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
                         </div>
                       </div>
                     )}
-
-                    <p className="text-[11px] text-amber-800 leading-relaxed">
-                      Sistem akan memvalidasi nomor registrasi dan riwayat masa berlaku sertifikat di database SIS BBSPJIKKP.
-                    </p>
                   </div>
                 </div>
               )}

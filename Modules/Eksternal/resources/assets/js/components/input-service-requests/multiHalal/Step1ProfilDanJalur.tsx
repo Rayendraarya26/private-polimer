@@ -4,6 +4,13 @@ import { Badge } from "../../ui/Badge"
 import { FormHalalPayload, JalurPendaftaran, SkalaUsaha } from "../../../types/halal"
 import useProfile from "../../../hooks/useProfile"
 import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  SelectInput,
+  RadioCardGroup,
+} from "../../forms"
+import {
   CheckCircle2,
   Building2,
   User,
@@ -265,55 +272,41 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
           )}
 
           {/* Jenis Pendaftaran & Kode Fasilitasi */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          <div className="space-y-4 pt-3 border-t border-slate-200">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jenis Pendaftaran
+              <label className="block text-sm font-semibold text-slate-800 mb-2">
+                Jenis Pendaftaran Sertifikasi
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="jenis_pendaftaran"
-                    value="baru"
-                    checked={payload.dataPengajuan.jenis_pendaftaran === "baru"}
-                    onChange={() =>
-                      onChange((prev) => ({
-                        ...prev,
-                        dataPengajuan: { ...prev.dataPengajuan, jenis_pendaftaran: "baru" },
-                      }))
-                    }
-                    className="text-brand-600 focus:ring-brand-500"
-                  />
-                  <span>Pendaftaran Baru</span>
-                </label>
-
-                <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="jenis_pendaftaran"
-                    value="pengembangan"
-                    checked={payload.dataPengajuan.jenis_pendaftaran === "pengembangan"}
-                    onChange={() =>
-                      onChange((prev) => ({
-                        ...prev,
-                        dataPengajuan: { ...prev.dataPengajuan, jenis_pendaftaran: "pengembangan" },
-                      }))
-                    }
-                    className="text-brand-600 focus:ring-brand-500"
-                  />
-                  <span>Pengembangan Produk</span>
-                </label>
-              </div>
+              <RadioCardGroup
+                value={payload.dataPengajuan.jenis_pendaftaran}
+                onChange={(val) =>
+                  onChange((prev) => ({
+                    ...prev,
+                    dataPengajuan: { ...prev.dataPengajuan, jenis_pendaftaran: val as any },
+                  }))
+                }
+                gridCols={2}
+                options={[
+                  {
+                    value: "baru",
+                    title: "Pendaftaran Baru",
+                    description: "Permohonan sertifikasi halal pertama kali untuk seluruh produk usaha",
+                  },
+                  {
+                    value: "pengembangan",
+                    title: "Pengembangan Produk",
+                    description: "Penambahan varian produk baru atau perluasan fasilitas pabrik",
+                  },
+                ]}
+              />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Kode Fasilitasi (Opsional)
-              </label>
-              <input
-                type="text"
-                placeholder="Masukkan kode program/sponsor fasilitasi jika ada"
+            <FormField
+              label="Kode Fasilitasi (Opsional)"
+              helperText="Masukkan kode program/sponsor fasilitasi jika didanai oleh kementerian/dinas/BUMN"
+            >
+              <TextInput
+                placeholder="Contoh: FASILITASI-KEMENPERIN-2026"
                 value={payload.dataPengajuan.kode_fasilitasi || ""}
                 onChange={(e) =>
                   onChange((prev) => ({
@@ -324,9 +317,8 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
           </div>
         </div>
 
@@ -357,12 +349,8 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Usaha / Perusahaan <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nama Usaha / Perusahaan" required>
+              <TextInput
                 placeholder="Contoh: PT Sumber Berkah Pangan"
                 value={payload.dataPelakuUsaha.nama_usaha}
                 onChange={(e) =>
@@ -374,42 +362,38 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Skala Usaha <span className="text-red-500">*</span>
-              </label>
-              <select
+            <FormField
+              label="Skala Usaha"
+              required
+              helperText={jalur === "self_declare" ? "Jalur Self Declare otomatis Usaha Mikro" : undefined}
+            >
+              <SelectInput
                 value={payload.dataPelakuUsaha.skala_usaha}
-                onChange={(e) =>
+                onChange={(val) =>
                   onChange((prev) => ({
                     ...prev,
                     dataPelakuUsaha: {
                       ...prev.dataPelakuUsaha,
-                      skala_usaha: e.target.value as SkalaUsaha,
+                      skala_usaha: val as SkalaUsaha,
                     },
                   }))
                 }
                 disabled={jalur === "self_declare"}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
-              >
-                <option value="mikro">Usaha Mikro</option>
-                <option value="kecil">Usaha Kecil</option>
-                <option value="menengah">Usaha Menengah</option>
-                <option value="besar">Usaha Besar</option>
-                <option value="luar_negeri">Luar Negeri (PULN)</option>
-              </select>
-            </div>
+                options={[
+                  { value: "mikro", label: "Usaha Mikro" },
+                  { value: "kecil", label: "Usaha Kecil" },
+                  { value: "menengah", label: "Usaha Menengah" },
+                  { value: "besar", label: "Usaha Besar" },
+                  { value: "luar_negeri", label: "Luar Negeri (PULN)" },
+                ]}
+              />
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor Induk Berusaha (NIB) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor Induk Berusaha (NIB)" required helperText="13 digit angka resmi dari OSS RBA">
+              <TextInput
                 placeholder="Nomor NIB 13 digit dari OSS"
                 value={payload.dataPelakuUsaha.nib}
                 onChange={(e) =>
@@ -421,16 +405,12 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="font-mono"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor NPWP (Opsional)
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor NPWP (Opsional)">
+              <TextInput
                 placeholder="NPWP Perusahaan / Pribadi"
                 value={payload.dataPelakuUsaha.npwp}
                 onChange={(e) =>
@@ -442,16 +422,12 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="font-mono"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Penanggung Jawab <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nama Penanggung Jawab" required helperText="Nama direktur / pemilik usaha sesuai KTP">
+              <TextInput
                 placeholder="Nama Direktur / Pemilik Usaha"
                 value={payload.dataPelakuUsaha.pj_nama}
                 onChange={(e) =>
@@ -463,16 +439,11 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor Kontak / WhatsApp PJ <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor Kontak / WhatsApp PJ" required>
+              <TextInput
                 placeholder="0812xxxxxxxx"
                 value={payload.dataPelakuUsaha.pj_kontak}
                 onChange={(e) =>
@@ -484,29 +455,26 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
                     },
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
             <div className="sm:col-span-2 md:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Alamat Kantor Operasional
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Alamat kantor / tempat usaha pemohon..."
-                value={payload.dataPelakuUsaha.pj_alamat}
-                onChange={(e) =>
-                  onChange((prev) => ({
-                    ...prev,
-                    dataPelakuUsaha: {
-                      ...prev.dataPelakuUsaha,
-                      pj_alamat: e.target.value,
-                    },
-                  }))
-                }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
+              <FormField label="Alamat Kantor Operasional" helperText="Alamat kantor / tempat usaha pemohon">
+                <TextareaInput
+                  rows={2}
+                  placeholder="Alamat kantor / tempat usaha pemohon..."
+                  value={payload.dataPelakuUsaha.pj_alamat}
+                  onChange={(e) =>
+                    onChange((prev) => ({
+                      ...prev,
+                      dataPelakuUsaha: {
+                        ...prev.dataPelakuUsaha,
+                        pj_alamat: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </FormField>
             </div>
           </div>
         </div>

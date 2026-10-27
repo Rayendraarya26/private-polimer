@@ -4,6 +4,7 @@ import { Building2, User, Phone, Mail, FileSignature, MapPin, Loader2 } from "lu
 import { PupFormData } from "../../../types/pup"
 import api from "../../../utils/api"
 import useRegions from "../../../hooks/profile/useRegions"
+import { FormField, TextInput, TextareaInput, SelectInput } from "../../forms"
 
 interface Step1Props {
   formData: PupFormData
@@ -160,49 +161,7 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
         <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <div className="w-5 h-5 bg-slate-200 rounded-md"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-3 bg-slate-200 rounded w-1/3"></div>
-                <div className="h-9 bg-slate-100 rounded-lg"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Skeleton Card 2: Data Lab */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <div className="w-5 h-5 bg-slate-200 rounded-md"></div>
-            <div className="h-4 bg-slate-200 rounded w-2/5"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div className="space-y-2">
-              <div className="h-3 bg-slate-200 rounded w-1/3"></div>
-              <div className="h-9 bg-slate-100 rounded-lg"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-3 bg-slate-200 rounded w-1/3"></div>
-              <div className="h-9 bg-slate-100 rounded-lg"></div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-3 bg-slate-200 rounded w-1/4"></div>
-            <div className="h-16 bg-slate-100 rounded-lg"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-9 bg-slate-100 rounded-lg"></div>
-            <div className="h-9 bg-slate-100 rounded-lg"></div>
-          </div>
-        </div>
-
-        {/* Skeleton Card 3: Personil Pengesah */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <div className="w-5 h-5 bg-slate-200 rounded-md"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/4"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             <div className="space-y-2">
@@ -219,10 +178,23 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
     )
   }
 
+  const provOptions = provinces.map((p) => ({
+    value: String(p.id),
+    label: p.nama,
+  }))
+
+  const currentReg = regencies.find((r) => r.nama === formData.kota_kabupaten_lab)
+  const selectedRegId = currentReg ? String(currentReg.id) : ""
+
+  const regOptions = regencies.map((k) => ({
+    value: String(k.id),
+    label: k.nama,
+  }))
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-300">
       {/* Kartu 1: Identitas Pengisi & Narahubung */}
-      <Card className="border-brand-100/80 shadow-xs">
+      <Card className="border-brand-100/80 shadow-xs overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-brand-50/50 via-sky-50/30 to-white pb-3">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <User className="w-4 h-4 text-brand-600" />
@@ -234,43 +206,28 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Pengisi Formulir <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Masukkan nama lengkap pengisi"
-                  value={formData.nama_pengisi}
-                  onChange={(e) => handleNamaPengisiChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                />
-              </div>
-            </div>
+            <FormField label="Nama Pengisi Formulir" required>
+              <TextInput
+                placeholder="Masukkan nama lengkap pengisi"
+                value={formData.nama_pengisi}
+                onChange={(e) => handleNamaPengisiChange(e.target.value)}
+                leftIcon={<User className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
+
+            <FormField label="Email Pemohon" required>
+              <TextInput
+                type="email"
+                placeholder="contoh@domain.com"
+                value={formData.email_pemohon}
+                onChange={(e) => onChange("email_pemohon", e.target.value)}
+                leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Email Pemohon <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="email"
-                  required
-                  placeholder="contoh@domain.com"
-                  value={formData.email_pemohon}
-                  onChange={(e) => onChange("email_pemohon", e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-700">
                   Nama Narahubung / Contact Person <span className="text-rose-500">*</span>
                 </label>
                 <label className="inline-flex items-center gap-1.5 text-xs text-brand-700 hover:text-brand-800 cursor-pointer font-medium select-none">
@@ -280,44 +237,31 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
                     onChange={(e) => handleToggleSameContact(e.target.checked)}
                     className="w-3.5 h-3.5 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                   />
-                  <span>Sama dengan nama pengisi</span>
+                  <span>Sama dengan pengisi</span>
                 </label>
               </div>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Nama narahubung operasional"
-                  value={formData.nama_narahubung}
-                  onChange={(e) => handleNamaNarahubungChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                />
-              </div>
+              <TextInput
+                placeholder="Nama narahubung operasional"
+                value={formData.nama_narahubung}
+                onChange={(e) => handleNamaNarahubungChange(e.target.value)}
+                leftIcon={<User className="w-4 h-4 text-slate-400" />}
+              />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor WhatsApp Narahubung <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: 08123456789"
-                  value={formData.no_wa_narahubung}
-                  onChange={(e) => onChange("no_wa_narahubung", e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                />
-              </div>
-            </div>
+            <FormField label="Nomor WhatsApp Narahubung" required>
+              <TextInput
+                placeholder="Contoh: 08123456789"
+                value={formData.no_wa_narahubung}
+                onChange={(e) => onChange("no_wa_narahubung", e.target.value)}
+                leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
           </div>
         </CardContent>
       </Card>
 
       {/* Kartu 2: Data Laboratorium Kalibrasi */}
-      <Card className="border-slate-200 shadow-xs">
+      <Card className="border-slate-200 shadow-xs overflow-hidden">
         <CardHeader className="bg-slate-50/70 pb-3">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <Building2 className="w-4 h-4 text-emerald-600" />
@@ -329,126 +273,86 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Laboratorium Kalibrasi <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
+            <FormField label="Nama Laboratorium Kalibrasi" required>
+              <TextInput
                 placeholder="Contoh: Laboratorium Kalibrasi PT ..."
                 value={formData.nama_lab_kalibrasi}
                 onChange={(e) => onChange("nama_lab_kalibrasi", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Email Official Laboratorium Kalibrasi <span className="text-rose-500">*</span>
-              </label>
-              <input
+            <FormField label="Email Official Laboratorium Kalibrasi" required>
+              <TextInput
                 type="email"
-                required
                 placeholder="kalibrasi@perusahaan.co.id"
                 value={formData.email_official_lab}
                 onChange={(e) => onChange("email_official_lab", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
               />
-            </div>
+            </FormField>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Alamat Lengkap Laboratorium Kalibrasi <span className="text-rose-500">*</span>
-            </label>
-            <textarea
+          <FormField label="Alamat Lengkap Laboratorium Kalibrasi" required>
+            <TextareaInput
               rows={2}
-              required
               placeholder="Jalan, Kawasan Industri, Gedung, dsb."
               value={formData.alamat_lab_kalibrasi}
               onChange={(e) => onChange("alamat_lab_kalibrasi", e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors resize-none"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
-                <span>Provinsi Lokasi Laboratorium <span className="text-rose-500">*</span></span>
-                {loadingRegions && <Loader2 className="w-3 h-3 animate-spin text-brand-600" />}
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <select
-                  value={selectedProvId}
-                  onChange={(e) => {
-                    const pId = e.target.value
-                    setSelectedProvId(pId)
-                    const foundP = provinces.find((p) => String(p.id) === pId)
-                    if (foundP) {
-                      onChange("provinsi_lab", foundP.nama)
-                    } else {
-                      onChange("provinsi_lab", "")
-                    }
-                    onChange("kota_kabupaten_lab", "")
-                  }}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-                >
-                  <option value="">-- Pilih Provinsi --</option>
-                  {provinces.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nama}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <FormField
+              label="Provinsi Lokasi Laboratorium"
+              required
+              helperText={loadingRegions ? "Sedang memuat wilayah..." : undefined}
+            >
+              <SelectInput
+                value={selectedProvId}
+                onChange={(val) => {
+                  const pId = String(val)
+                  setSelectedProvId(pId)
+                  const foundP = provinces.find((p) => String(p.id) === pId)
+                  onChange("provinsi_lab", foundP ? foundP.nama : "")
+                  onChange("kota_kabupaten_lab", "")
+                }}
+                options={provOptions}
+                placeholder="-- Pilih Provinsi --"
+              />
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
-                <span>Kabupaten / Kota Lokasi Laboratorium <span className="text-rose-500">*</span></span>
-                {Boolean(selectedProvId) && loadingRegions && (
-                  <Loader2 className="w-3 h-3 animate-spin text-brand-600" />
-                )}
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <select
-                  disabled={!selectedProvId}
-                  value={
-                    regencies.find((r) => r.nama === formData.kota_kabupaten_lab)?.id || ""
-                  }
-                  onChange={(e) => {
-                    const kId = e.target.value
-                    const foundK = regencies.find((r) => String(r.id) === kId)
-                    if (foundK) {
-                      onChange("kota_kabupaten_lab", foundK.nama)
-                    } else {
-                      onChange("kota_kabupaten_lab", "")
-                    }
-                  }}
-                  className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors disabled:bg-slate-100 disabled:text-slate-400"
-                >
-                  <option value="">
-                    {!selectedProvId
-                      ? "-- Pilih Provinsi Terlebih Dahulu --"
-                      : "-- Pilih Kabupaten / Kota --"}
-                  </option>
-                  {regencies.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.nama}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <FormField
+              label="Kabupaten / Kota Lokasi Laboratorium"
+              required
+              helperText={
+                !selectedProvId
+                  ? "Pilih provinsi terlebih dahulu"
+                  : loadingRegions
+                  ? "Sedang memuat kabupaten..."
+                  : undefined
+              }
+            >
+              <SelectInput
+                disabled={!selectedProvId}
+                value={selectedRegId}
+                onChange={(val) => {
+                  const kId = String(val)
+                  const foundK = regencies.find((r) => String(r.id) === kId)
+                  onChange("kota_kabupaten_lab", foundK ? foundK.nama : "")
+                }}
+                options={regOptions}
+                placeholder={
+                  !selectedProvId
+                    ? "-- Pilih Provinsi Terlebih Dahulu --"
+                    : "-- Pilih Kabupaten / Kota --"
+                }
+              />
+            </FormField>
           </div>
         </CardContent>
       </Card>
 
       {/* Kartu 3: Personil Pengesah Formulir */}
-      <Card className="border-slate-200 shadow-xs">
+      <Card className="border-slate-200 shadow-xs overflow-hidden">
         <CardHeader className="bg-slate-50/70 pb-3">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <FileSignature className="w-4 h-4 text-indigo-600" />
@@ -460,33 +364,21 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Personil Penandatangan / Pengesah <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
+            <FormField label="Nama Personil Penandatangan / Pengesah" required>
+              <TextInput
                 placeholder="Nama lengkap beserta gelar jika ada"
                 value={formData.nama_personil_pengesah}
                 onChange={(e) => onChange("nama_personil_pengesah", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Jabatan Personil Pengesah <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
+            <FormField label="Jabatan Personil Pengesah" required>
+              <TextInput
                 placeholder="Contoh: Manajer Teknis / Kepala Laboratorium"
                 value={formData.jabatan_personil_pengesah}
                 onChange={(e) => onChange("jabatan_personil_pengesah", e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
               />
-            </div>
+            </FormField>
           </div>
         </CardContent>
       </Card>

@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { PupFormData, PupSkemaItem, SelectedSkemaItem } from "../../../types/pup"
 import api from "../../../utils/api"
+import { FormField, TextInput } from "../../forms"
 
 interface Step2Props {
   formData: PupFormData
@@ -155,14 +156,12 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
       {/* Filter & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
+          <div className="w-full sm:w-80">
+            <TextInput
               placeholder="Cari nama alat / skema kalibrasi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              leftIcon={<Search className="w-4 h-4 text-slate-400" />}
             />
           </div>
 
@@ -333,13 +332,10 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
                       Rp {item.tarif_pnbp.toLocaleString("id-ID")}
                     </span>
                   </div>
-                  <input
-                    type="text"
-                    required
+                  <TextInput
                     placeholder="Tuliskan standar acuan metode kalibrasi..."
                     value={item.metode_kalibrasi_acuan}
                     onChange={(e) => handleUpdateMetode(item.kode_skema, e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                   />
                 </div>
               ))}

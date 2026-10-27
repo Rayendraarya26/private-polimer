@@ -20,6 +20,7 @@ import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 import useProfile from "../../../hooks/useProfile"
 import api from "../../../utils/api"
 import toast from "react-hot-toast"
+import { FormField, TextInput, SelectInput } from "../../forms"
 
 interface Props {
   formData: SertifikasiFormData
@@ -415,11 +416,11 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
       {/* 1. Pilih Ruang Lingkup / Skema Kategori Sertifikat */}
       <Card className="border-slate-200 shadow-soft overflow-hidden">
         <CardContent className="p-5 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
               <Layers className="w-4 h-4 text-brand-600" />
               <span>
-                Ruang Lingkup / Jenis Sertifikasi {formData.pengajuan.length > 1 ? `(Pengajuan #${activePengajuanIdx + 1})` : ""} <span className="text-rose-500">*</span>
+                Ruang Lingkup / Jenis Sertifikasi {formData.pengajuan.length > 1 ? `(Pengajuan #${activePengajuanIdx + 1})` : ""}
               </span>
             </div>
             {formData.pengajuan.length > 1 && (
@@ -429,28 +430,27 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
             )}
           </div>
 
-          <select
-            value={currentPengajuan.skema_id || ""}
-            onChange={(e) => {
-              const val = e.target.value
-              setFormData((prev) => {
-                const updated = [...prev.pengajuan]
-                const targetP = updated[activePengajuanIdx] || updated[0]
-                updated[activePengajuanIdx] = { ...targetP, skema_id: val }
-                return { ...prev, pengajuan: updated }
-              })
-              setSelectedKomoditiId("")
-              setSelectedKomoditiObj(null)
-            }}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
-          >
-            <option value="">-- Pilih Ruang Lingkup Sertifikasi --</option>
-            {kategoriList.map((item: any) => (
-              <option key={item.id} value={item.id}>
-                {item.lingkup || item.nama || item.jenis_layanan}
-              </option>
-            ))}
-          </select>
+          <FormField label="Pilih Ruang Lingkup Sertifikasi" required>
+            <SelectInput
+              value={currentPengajuan.skema_id || ""}
+              onChange={(val) => {
+                const strVal = String(val)
+                setFormData((prev) => {
+                  const updated = [...prev.pengajuan]
+                  const targetP = updated[activePengajuanIdx] || updated[0]
+                  updated[activePengajuanIdx] = { ...targetP, skema_id: strVal }
+                  return { ...prev, pengajuan: updated }
+                })
+                setSelectedKomoditiId("")
+                setSelectedKomoditiObj(null)
+              }}
+              placeholder="-- Pilih Ruang Lingkup Sertifikasi --"
+              options={kategoriList.map((item: any) => ({
+                value: String(item.id),
+                label: item.lingkup || item.nama || item.jenis_layanan,
+              }))}
+            />
+          </FormField>
         </CardContent>
       </Card>
 
@@ -483,126 +483,89 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
         </div>
 
         <CardContent className="p-6 space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Komoditi */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Komoditi <span className="text-rose-500">*</span>
-              </label>
-              <select
+            <FormField
+              label="Komoditi"
+              required
+              helperText={!activeSkemaId ? "Pilih ruang lingkup sertifikasi di atas terlebih dahulu." : undefined}
+            >
+              <SelectInput
                 value={selectedKomoditiId}
-                onChange={(e) => handleSelectKomoditi(e.target.value)}
+                onChange={(val) => handleSelectKomoditi(String(val))}
                 disabled={!activeSkemaId || isKomoditiLoading}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors disabled:bg-slate-100 disabled:cursor-not-allowed shadow-xs"
-              >
-                <option value="">
-                  {isKomoditiLoading ? "-- Memuat Komoditi... --" : "-- Pilih Komoditi --"}
-                </option>
-                {komoditiOptions.map((k: KomoditiMasterItem) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
-              </select>
-              {!activeSkemaId && (
-                <p className="text-[11px] text-amber-600">Pilih ruang lingkup sertifikasi di atas terlebih dahulu.</p>
-              )}
-            </div>
+                placeholder={isKomoditiLoading ? "-- Memuat Komoditi... --" : "-- Pilih Komoditi --"}
+                options={komoditiOptions.map((k: KomoditiMasterItem) => ({
+                  value: String(k.id),
+                  label: k.nama,
+                }))}
+              />
+            </FormField>
 
             {/* Ukuran */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Ukuran <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Ukuran" required>
+              <TextInput
                 value={formUkuran}
                 onChange={(e) => setFormUkuran(e.target.value)}
                 placeholder="Contoh: 39-44 / Diameter 2 inch"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
 
             {/* No SNI */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">No SNI</label>
-              <input
-                type="text"
+            <FormField label="No SNI" helperText="Otomatis terisi berdasarkan komoditi">
+              <TextInput
                 readOnly
+                disabled
                 value={selectedKomoditiObj?.sni || ""}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-xs text-slate-600 focus:outline-none cursor-not-allowed shadow-xs"
+                placeholder="-"
               />
-            </div>
+            </FormField>
 
             {/* Jumlah Produksi/Tahun */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Jumlah Produksi/Tahun <span className="text-rose-500">*</span>
-              </label>
-              <input
+            <FormField label="Jumlah Produksi/Tahun" required>
+              <TextInput
                 type="number"
                 value={formJumlahProduksi}
                 onChange={(e) => setFormJumlahProduksi(e.target.value)}
                 placeholder="Contoh: 10000"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
 
             {/* Merek */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Merek <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Merek" required>
+              <TextInput
                 value={formMerek}
                 onChange={(e) => setFormMerek(e.target.value)}
                 placeholder="Contoh: Brand XYZ"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
 
             {/* Satuan Produksi */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Satuan Produksi <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Satuan Produksi" required>
+              <TextInput
                 value={formSatuanProduksi}
                 onChange={(e) => setFormSatuanProduksi(e.target.value)}
                 placeholder="Contoh: Pcs / Pasang / Unit / Ton"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
 
             {/* Tipe */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Tipe <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Tipe" required>
+              <TextInput
                 value={formTipe}
                 onChange={(e) => setFormTipe(e.target.value)}
                 placeholder="Contoh: Type A, Low Cut"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
 
             {/* Keterangan */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800">
-                Keterangan <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Keterangan" required>
+              <TextInput
                 value={formKeterangan}
                 onChange={(e) => setFormKeterangan(e.target.value)}
                 placeholder="Tambahkan keterangan spesifik bila ada"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
               />
-            </div>
+            </FormField>
           </div>
 
           <div className="flex justify-end pt-2">

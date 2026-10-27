@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
-import Swal from "sweetalert2"
 import api from "../../utils/api"
 import Head from "../common/Head"
 import { Card, CardContent } from "../ui/Card"
-import { Loader2, ArrowLeft, Send, Save, Building2, FileUp, AlertTriangle } from "lucide-react"
+import { Loader2, ArrowLeft, Send, Save, Building2, FileUp } from "lucide-react"
+import { FormField, TextInput, TextareaInput, RevisionBannerCallout, DropzoneUploader } from "../forms"
+import { Button } from "../ui/Button"
 
 export const EditFormSertifikasi: React.FC = () => {
   const { id } = useParams()
@@ -99,139 +100,151 @@ export const EditFormSertifikasi: React.FC = () => {
       <Head title="Koreksi Permohonan Sertifikasi" />
 
       {/* Header Banner */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
             type="button"
             onClick={() => navigate("/dashboard")}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 mb-2 transition-all"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Kembali
+            <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Dashboard
           </button>
           <h1 className="text-lg font-bold text-slate-900">Perbaikan Permohonan Sertifikasi</h1>
-          <p className="text-xs text-slate-500">Nomor: #{permohonan?.no_permohonan}</p>
+          <p className="text-xs text-slate-500">Nomor Registrasi: #{permohonan?.no_permohonan}</p>
         </div>
 
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-          Status: {permohonan?.status_workflow}
-        </span>
+        <div>
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+            Status: {permohonan?.status_workflow}
+          </span>
+        </div>
       </div>
 
-      {/* Catatan Admin jika ada revisi */}
-      {permohonan?.catatan_admin && permohonan?.status_workflow === "REVISI" && (
-        <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <h4 className="text-xs font-bold text-amber-900">Catatan Perbaikan dari Tim Marketing:</h4>
-            <p className="text-xs text-amber-800 mt-0.5 whitespace-pre-line">{permohonan.catatan_admin}</p>
-          </div>
-        </div>
+      {/* Catatan Admin / Banner Revisi */}
+      {permohonan?.status_workflow === "REVISI" && (
+        <RevisionBannerCallout
+          catatan={permohonan?.catatan_admin}
+          petugas={permohonan?.petugas_verifikasi || "Tim Verifikator Sertifikasi"}
+          tanggal={permohonan?.updated_at}
+        />
       )}
 
       {/* Form Editor */}
-      <Card className="border-slate-200/80 shadow-xs">
-        <CardContent className="p-6 space-y-5">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-brand-600" />
-            Informasi Pemohon
-          </h3>
+      <Card className="border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-brand-600" />
+          <h3 className="text-sm font-bold text-slate-900">Informasi Pemohon</h3>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Perusahaan</label>
-              <input
-                type="text"
-                value={form.nama_perusahaan}
-                onChange={(e) => setForm({ ...form, nama_perusahaan: e.target.value })}
-                className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Alamat Kantor</label>
-              <textarea
-                rows={2}
-                value={form.alamat_kantor}
-                onChange={(e) => setForm({ ...form, alamat_kantor: e.target.value })}
-                className="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Kontak Person PIC</label>
-              <input
-                type="text"
-                value={form.kontak_person}
-                onChange={(e) => setForm({ ...form, kontak_person: e.target.value })}
-                className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">WhatsApp PIC</label>
-              <input
-                type="text"
-                value={form.no_whatsapp}
-                onChange={(e) => setForm({ ...form, no_whatsapp: e.target.value })}
-                className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-slate-200/80 shadow-xs">
         <CardContent className="p-6 space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <FileUp className="w-4 h-4 text-brand-600" />
-            Unggah Ulang Dokumen (Opsional jika diminta revisi)
-          </h3>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
-              <label className="block text-xs font-bold text-slate-800 mb-1">Perbarui Dokumen Legalitas</label>
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setDokLegalitas(e.target.files?.[0] || null)}
-                className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-              />
+            <div className="sm:col-span-2">
+              <FormField label="Nama Perusahaan" required>
+                <TextInput
+                  value={form.nama_perusahaan}
+                  onChange={(e) => setForm({ ...form, nama_perusahaan: e.target.value })}
+                  placeholder="Nama instansi/perusahaan pemohon"
+                />
+              </FormField>
             </div>
 
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
-              <label className="block text-xs font-bold text-slate-800 mb-1">Perbarui Manual Mutu</label>
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setDokManualMutu(e.target.files?.[0] || null)}
-                className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-              />
+            <div className="sm:col-span-2">
+              <FormField label="Alamat Kantor" required>
+                <TextareaInput
+                  rows={2}
+                  value={form.alamat_kantor}
+                  onChange={(e) => setForm({ ...form, alamat_kantor: e.target.value })}
+                  placeholder="Alamat kantor pusat perusahaan"
+                />
+              </FormField>
+            </div>
+
+            <div>
+              <FormField label="Kontak Person (PIC)">
+                <TextInput
+                  value={form.kontak_person}
+                  onChange={(e) => setForm({ ...form, kontak_person: e.target.value })}
+                  placeholder="Nama narahubung"
+                />
+              </FormField>
+            </div>
+
+            <div>
+              <FormField label="WhatsApp PIC" required>
+                <TextInput
+                  value={form.no_whatsapp}
+                  onChange={(e) => setForm({ ...form, no_whatsapp: e.target.value })}
+                  placeholder="08xxxxxxxxxx"
+                />
+              </FormField>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex justify-end items-center gap-3">
-        <button
+      {/* Unggah Ulang Dokumen */}
+      <Card className="border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-slate-50/80 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+          <FileUp className="w-4 h-4 text-brand-600" />
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Unggah Ulang Dokumen Pendukung</h3>
+            <p className="text-[11px] text-slate-500">Opsional jika ada berkas yang diminta direvisi oleh verifikator</p>
+          </div>
+        </div>
+
+        <CardContent className="p-6 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Perbarui Dokumen Legalitas" helperText="Format PDF / JPG / PNG (Maks 10 MB)">
+              <DropzoneUploader
+                label="Pilih Berkas Legalitas Baru"
+                helperText="Seret & lepas atau klik untuk memilih file"
+                value={dokLegalitas}
+                onChange={setDokLegalitas}
+                accept=".pdf,.jpg,.jpeg,.png"
+                maxSizeMB={10}
+              />
+            </FormField>
+
+            <FormField label="Perbarui Manual Mutu" helperText="Format PDF / DOC / DOCX (Maks 20 MB)">
+              <DropzoneUploader
+                label="Pilih Berkas Manual Mutu Baru"
+                helperText="Seret & lepas atau klik untuk memilih file"
+                value={dokManualMutu}
+                onChange={setDokManualMutu}
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                maxSizeMB={20}
+              />
+            </FormField>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3 pt-2">
+        <Button
           type="button"
+          variant="outline"
           onClick={() => handleUpdate(false)}
           disabled={submitting}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-2xs transition-all disabled:opacity-50"
+          isLoading={submitting}
+          leftIcon={<Save className="w-4 h-4 text-slate-600" />}
+          className="text-xs font-semibold px-5"
         >
-          <Save className="w-3.5 h-3.5" />
           Simpan Perubahan
-        </button>
+        </Button>
 
         {permohonan?.status_workflow === "REVISI" && (
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => handleUpdate(true)}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50"
+            isLoading={submitting}
+            rightIcon={<Send className="w-4 h-4" />}
+            className="text-xs font-bold px-6 bg-brand-600 hover:bg-brand-700 shadow-sm"
           >
-            {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
             Kirimkan Kembali ke Marketing
-          </button>
+          </Button>
         )}
       </div>
     </div>

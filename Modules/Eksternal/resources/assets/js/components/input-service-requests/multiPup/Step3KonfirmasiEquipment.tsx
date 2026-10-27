@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react"
 import { PupFormData, PupEquipmentConfirmation } from "../../../types/pup"
+import { FormField, TextInput } from "../../forms"
 
 interface Step3Props {
   formData: PupFormData
@@ -153,31 +154,21 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
 
             {/* Kedalaman & Rentang */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Jika menggunakan dryblock/well/furnace, berapa cm kedalaman maksimal sensor?
-                </label>
-                <input
-                  type="text"
+              <FormField label="Jika menggunakan dryblock/well/furnace, berapa cm kedalaman maksimal sensor?">
+                <TextInput
                   placeholder="Contoh: 15 cm"
                   value={eq.termometer?.kedalaman_sensor_cm || ""}
                   onChange={(e) => updateEq("termometer", { kedalaman_sensor_cm: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Sebutkan rentang ukur suhu yang dapat dilakukan:
-                </label>
-                <input
-                  type="text"
+              <FormField label="Sebutkan rentang ukur suhu yang dapat dilakukan:">
+                <TextInput
                   placeholder="Contoh: -20 °C s.d. 300 °C"
                   value={eq.termometer?.rentang_suhu || ""}
                   onChange={(e) => updateEq("termometer", { rentang_suhu: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
                 />
-              </div>
+              </FormField>
             </div>
           </CardContent>
         </Card>
@@ -408,17 +399,14 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
               </div>
             </div>
 
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Sebutkan nilai U95 pada CMC (satuan detik): <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Contoh: 0.05 detik"
-                value={eq.stopwatch?.u95_cmc_detik || ""}
-                onChange={(e) => updateEq("stopwatch", { u95_cmc_detik: e.target.value })}
-                className="w-full sm:w-80 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-              />
+            <div className="max-w-md">
+              <FormField label="Sebutkan nilai U95 pada CMC (satuan detik):" required>
+                <TextInput
+                  placeholder="Contoh: 0.05 detik"
+                  value={eq.stopwatch?.u95_cmc_detik || ""}
+                  onChange={(e) => updateEq("stopwatch", { u95_cmc_detik: e.target.value })}
+                />
+              </FormField>
             </div>
           </CardContent>
         </Card>

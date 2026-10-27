@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { toast } from "react-hot-toast"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { FormHalalPayload, BahanHalalItem, ProdukHalalItem } from "../../../types/halal"
 import {
@@ -13,7 +14,9 @@ import {
   AlertCircle,
   Info,
   Sparkles,
+  Copy,
 } from "lucide-react"
+import { DropzoneUploader, CollapsibleGuideline, InfoTooltip } from "../../forms"
 
 interface Step4Props {
   payload: FormHalalPayload
@@ -62,6 +65,22 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
     }))
   }
 
+  // Helper duplikat bahan terakhir
+  const handleDuplicateBahan = () => {
+    if (bahanList.length === 0) return
+    const last = bahanList[bahanList.length - 1]
+    const duplicated: BahanHalalItem = {
+      ...last,
+      id: `bahan-${Date.now()}`,
+      nama_bahan: `${last.nama_bahan || "Bahan"} (Salinan)`,
+    }
+    onChange((prev) => ({
+      ...prev,
+      dataBahan: [...prev.dataBahan, duplicated],
+    }))
+    toast.success("Bahan berhasil diduplikasi.")
+  }
+
   // Helper update bahan
   const handleUpdateBahan = (id: string, field: keyof BahanHalalItem, value: any) => {
     onChange((prev) => ({
@@ -82,7 +101,7 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
   // Helper tambah produk
   const handleAddProduk = () => {
     if (isSelfDeclare && produkList.length >= 10) {
-      alert("Untuk jalur Self Declare (SEHATI), maksimal produk yang dapat didaftarkan dalam 1 permohonan adalah 10 produk.")
+      toast.error("Untuk jalur Self Declare (SEHATI), maksimal produk yang dapat didaftarkan dalam 1 permohonan adalah 10 produk.")
       return
     }
     const newProduk: ProdukHalalItem = {
@@ -97,6 +116,27 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
       ...prev,
       dataProduk: [...prev.dataProduk, newProduk],
     }))
+  }
+
+  // Helper duplikat produk terakhir
+  const handleDuplicateProduk = () => {
+    if (produkList.length === 0) return
+    if (isSelfDeclare && produkList.length >= 10) {
+      toast.error("Untuk jalur Self Declare (SEHATI), maksimal produk yang dapat didaftarkan adalah 10 produk.")
+      return
+    }
+    const last = produkList[produkList.length - 1]
+    const duplicated: ProdukHalalItem = {
+      ...last,
+      id: `prod-${Date.now()}`,
+      nama_produk: `${last.nama_produk || "Produk"} (Salinan)`,
+      foto: null,
+    }
+    onChange((prev) => ({
+      ...prev,
+      dataProduk: [...prev.dataProduk, duplicated],
+    }))
+    toast.success("Produk berhasil diduplikasi.")
   }
 
   // Helper update produk
@@ -155,34 +195,59 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleAddBahan}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors shadow-sm self-start sm:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Tambah Bahan
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={handleAddBahan}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Bahan
+              </button>
+              {bahanList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDuplicateBahan}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-2xs"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Duplikat Bahan #{bahanList.length}
+                </button>
+              )}
+            </div>
           </div>
           {isSelfDeclare && (
-            <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 space-y-1">
-              <div className="flex items-center gap-1.5 font-semibold text-amber-950">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                Ketentuan Bahan Jalur Self Declare (SEHATI BPJPH):
+            <CollapsibleGuideline
+              title="Ketentuan Bahan Jalur Self Declare (SEHATI BPJPH)"
+              badgeText={hasCleaningAgent && hasKemasan ? "Syarat Terpenuhi" : "Perlu Dilengkapi"}
+              variant={hasCleaningAgent && hasKemasan ? "emerald" : "amber"}
+              expandLabel="Lihat Panduan Bahan"
+              collapseLabel="Sembunyikan Panduan"
+              summary={
+                <div className="flex items-center gap-3 text-xs pt-0.5">
+                  <span className={`inline-flex items-center gap-1 font-medium ${hasCleaningAgent ? "text-emerald-700 font-bold" : "text-amber-800"}`}>
+                    <CheckCircle className={`w-3.5 h-3.5 ${hasCleaningAgent ? "text-emerald-600" : "text-slate-300"}`} />
+                    Cleaning Agent: {hasCleaningAgent ? "Terisi" : "Belum ada"}
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className={`inline-flex items-center gap-1 font-medium ${hasKemasan ? "text-emerald-700 font-bold" : "text-amber-800"}`}>
+                    <CheckCircle className={`w-3.5 h-3.5 ${hasKemasan ? "text-emerald-600" : "text-slate-300"}`} />
+                    Bahan Kemasan: {hasKemasan ? "Terisi" : "Belum ada"}
+                  </span>
+                </div>
+              }
+            >
+              <div className="space-y-2 pt-1 text-xs">
+                <p className="font-semibold text-slate-800">
+                  Pastikan daftar bahan memenuhi 3 kriteria wajib BPJPH:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-slate-700 pl-1">
+                  <li>Minimal mencakup 3 unsur: <strong>Bahan Baku Utama</strong>, <strong>Bahan Pembersih (Cleaning Agent)</strong>, dan <strong>Kemasan Primer</strong> kontak pangan.</li>
+                  <li>Bahan berisiko wajib memiliki sertifikat halal resmi BPJPH / MUI yang masih aktif.</li>
+                  <li>Bahan non-kritis (nabati/mineral murni tanpa proses kimia) diperkenankan tanpa sertifikat halal merujuk pada <em>Positive List</em> KMA No. 1360 Tahun 2021.</li>
+                </ul>
               </div>
-              <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11px] text-amber-800">
-                <li>Minimal mencakup 3 unsur: <strong>Bahan Baku Utama</strong>, <strong>Bahan Pembersih / Cleaning Agent</strong>, dan <strong>Kemasan Primer</strong>.</li>
-                <li>Bahan kritis wajib sudah bersertifikat halal (BPJPH/MUI) atau termasuk dalam daftar <em>Positive List</em> KMA 1360 (bahan alami tidak berisiko).</li>
-              </ul>
-              <div className="flex items-center gap-3 pt-1 text-[11px]">
-                <span className={`inline-flex items-center gap-1 ${hasCleaningAgent ? "text-emerald-700 font-semibold" : "text-amber-700"}`}>
-                  <CheckCircle className={`w-3.5 h-3.5 ${hasCleaningAgent ? "text-emerald-600" : "text-slate-300"}`} /> Cleaning Agent
-                </span>
-                <span className={`inline-flex items-center gap-1 ${hasKemasan ? "text-emerald-700 font-semibold" : "text-amber-700"}`}>
-                  <CheckCircle className={`w-3.5 h-3.5 ${hasKemasan ? "text-emerald-600" : "text-slate-300"}`} /> Bahan Kemasan
-                </span>
-              </div>
-            </div>
+            </CollapsibleGuideline>
           )}
 
           <div className="space-y-3">
@@ -368,14 +433,26 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleAddProduk}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors shadow-sm self-start sm:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Tambah Produk
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={handleAddProduk}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Produk
+              </button>
+              {produkList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDuplicateProduk}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-2xs"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Duplikat Produk #{produkList.length}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -483,8 +560,8 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Narasi Alur Proses Produksi <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              Narasi Alur Proses Produksi <span className="text-rose-500">*</span>
             </label>
             <textarea
               rows={4}
@@ -496,37 +573,24 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                   alur_proses: e.target.value,
                 }))
               }
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed placeholder:text-slate-400"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Unggah Bagan Alur Proses Produksi (Opsional / PDF, JPG, PNG maks 5MB)
-            </label>
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 hover:border-brand-500 transition-colors shadow-xs">
-                <Upload className="w-4 h-4 text-slate-500" />
-                Pilih File Diagram/Bagan
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0] || null
-                    onChange((prev) => ({ ...prev, file_alur_proses: f }))
-                  }}
-                />
-              </label>
-              {payload.file_alur_proses ? (
-                <div className="flex items-center gap-2 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                  <CheckCircle className="w-4 h-4" />
-                  <span className="truncate max-w-[200px]">{payload.file_alur_proses.name}</span>
-                </div>
-              ) : (
-                <span className="text-xs text-slate-400">Belum ada file bagan yang dipilih</span>
-              )}
-            </div>
+            <DropzoneUploader
+              label="Unggah Bagan Alur Proses Produksi (Opsional)"
+              helperText="Format dokumen: PDF, JPG, atau PNG (Maksimal 5 MB). Diagram alur PPH dari bahan baku hingga produk akhir."
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
+              value={payload.file_alur_proses}
+              onChange={(file) =>
+                onChange((prev) => ({
+                  ...prev,
+                  file_alur_proses: file,
+                }))
+              }
+            />
           </div>
         </div>
       </CardContent>

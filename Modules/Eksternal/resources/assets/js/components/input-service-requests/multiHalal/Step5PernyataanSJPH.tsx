@@ -1,6 +1,7 @@
 import React from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { FormHalalPayload } from "../../../types/halal"
+import { LegalStatementBox } from "../../forms"
 import {
   FileCheck,
   Upload,
@@ -200,46 +201,48 @@ export const Step5PernyataanSJPH: React.FC<Step5Props> = ({ payload, onChange })
             </div>
           </div>
 
-          <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-3">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={payload.pernyataan_bebas_babi}
-                onChange={(e) =>
-                  onChange((prev) => ({
-                    ...prev,
-                    pernyataan_bebas_babi: e.target.checked,
-                  }))
-                }
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-              />
-              <div className="text-xs text-slate-700 leading-relaxed">
-                <span className="font-semibold text-slate-900 block mb-0.5">
-                  Ikrar Bebas Najis & Bahan Diharamkan (Bebas Babi)
-                </span>
-                Dengan ini menyatakan dengan sungguh-sungguh bahwa seluruh fasilitas produksi, peralatan pengolahan, bahan baku, bahan tambahan, serta produk akhir yang didaftarkan <strong>bebas dari babi beserta seluruh turunannya</strong>, bangkai, darah, minuman keras/khamr, dan unsur najis lainnya sesuai syariat Islam.
-              </div>
-            </label>
+          <div className="space-y-4">
+            {/* 1. Ikrar Bebas Babi */}
+            <LegalStatementBox
+              checked={payload.pernyataan_bebas_babi}
+              onChange={(val) =>
+                onChange((prev) => ({
+                  ...prev,
+                  pernyataan_bebas_babi: val,
+                }))
+              }
+              title="Ikrar Bebas Najis & Bahan Diharamkan (Bebas Babi)"
+              badgeText="Wajib Syariah"
+              keyPoints={[
+                "Seluruh fasilitas produksi, peralatan, dan bahan 100% bebas dari babi beserta seluruh turunannya.",
+                "Tidak terkontaminasi bangkai, darah mengalir, minuman beralkohol/khamr, maupun unsur najis lainnya.",
+              ]}
+              legalTitle="Baca Klausul Ikrar Bebas Najis Lengkap"
+              legalFullText={
+                "Dengan ini menyatakan dengan sadar dan sesungguhnya bahwa seluruh fasilitas pengolahan, peralatan produksi, bahan baku utama, bahan penolong/tambahan, serta produk akhir yang didaftarkan bebas dari babi beserta seluruh turunannya, bangkai, darah, minuman keras/khamr, dan unsur najis lainnya sesuai syariat Islam dan peraturan perundang-undangan Jaminan Produk Halal (UU No. 33 Tahun 2014 jo. UU No. 6 Tahun 2023)."
+              }
+            />
 
-            <label className="flex items-start gap-3 cursor-pointer pt-2.5 border-t border-emerald-200/70">
-              <input
-                type="checkbox"
-                checked={payload.pernyataan_komitmen_sjph}
-                onChange={(e) =>
-                  onChange((prev) => ({
-                    ...prev,
-                    pernyataan_komitmen_sjph: e.target.checked,
-                  }))
-                }
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-              />
-              <div className="text-xs text-slate-700 leading-relaxed">
-                <span className="font-semibold text-slate-900 block mb-0.5">
-                  Komitmen Penerapan Sistem Jaminan Produk Halal (SJPH)
-                </span>
-                Berkomitmen untuk senantiasa menerapkan dan menjaga kesinambungan Sistem Jaminan Produk Halal (SJPH), menggunakan bahan halal yang telah disetujui, serta bersedia menerima pemeriksaan/audit berkala oleh LPH BBSPJIKKP dan BPJPH Kemenag RI.
-              </div>
-            </label>
+            {/* 2. Komitmen SJPH */}
+            <LegalStatementBox
+              checked={payload.pernyataan_komitmen_sjph}
+              onChange={(val) =>
+                onChange((prev) => ({
+                  ...prev,
+                  pernyataan_komitmen_sjph: val,
+                }))
+              }
+              title="Komitmen Penerapan Sistem Jaminan Produk Halal (SJPH)"
+              badgeText="Kepatuhan Regulasi"
+              keyPoints={[
+                "Berkomitmen konsisten menerapkan prinsip SJPH pada seluruh siklus produksi.",
+                "Bersedia menerima pemeriksaan/audit berkala maupun sewaktu-waktu oleh LPH BBSPJIKKP dan BPJPH.",
+              ]}
+              legalTitle="Baca Klausul Komitmen SJPH Lengkap"
+              legalFullText={
+                "Pelaku usaha berkomitmen untuk senantiasa menerapkan dan menjaga kesinambungan Sistem Jaminan Produk Halal (SJPH), menggunakan bahan halal yang telah disetujui, mencatat setiap mutasi bahan, serta bersedia menerima pemeriksaan/audit berkala maupun inspeksi mendadak oleh Auditor Halal LPH BBSPJIKKP dan BPJPH Kementerian Agama Republik Indonesia."
+              }
+            />
           </div>
         </div>
       </CardContent>

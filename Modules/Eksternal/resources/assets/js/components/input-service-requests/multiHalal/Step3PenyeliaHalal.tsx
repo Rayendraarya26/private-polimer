@@ -2,6 +2,12 @@ import React from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { FormHalalPayload } from "../../../types/halal"
 import {
+  FormField,
+  TextInput,
+  DateInput,
+  DropzoneUploader,
+} from "../../forms"
+import {
   UserCheck,
   Upload,
   FileText,
@@ -71,107 +77,74 @@ export const Step3PenyeliaHalal: React.FC<Step3Props> = ({ payload, onChange }) 
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Lengkap Penyelia <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nama Lengkap Penyelia" required>
+              <TextInput
                 placeholder="Nama lengkap sesuai KTP"
                 value={p.penyelia_nama}
                 onChange={(e) => updatePenyelia("penyelia_nama", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor KTP / NIK <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor KTP / NIK" required helperText="16 digit angka resmi KTP">
+              <TextInput
                 maxLength={16}
                 placeholder="16 digit NIK KTP"
                 value={p.penyelia_nik}
                 onChange={(e) => updatePenyelia("penyelia_nik", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="font-mono"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Agama <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Agama" required helperText="Wajib beragama Islam sesuai UU JPH">
+              <TextInput
                 value={p.penyelia_agama || "Islam"}
                 readOnly
-                className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-xs text-slate-700 cursor-not-allowed"
+                disabled
+                className="bg-slate-100 cursor-not-allowed text-slate-700 font-semibold"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor WhatsApp / HP Penyelia <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor WhatsApp / HP Penyelia" required>
+              <TextInput
                 placeholder="0812xxxxxxxx"
                 value={p.penyelia_kontak}
                 onChange={(e) => updatePenyelia("penyelia_kontak", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor SK Penetapan Penyelia
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor SK Penetapan Penyelia">
+              <TextInput
                 placeholder="Contoh: SK/001/PH/2026"
                 value={p.penyelia_no_sk}
                 onChange={(e) => updatePenyelia("penyelia_no_sk", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Tanggal SK Penetapan
-              </label>
-              <input
-                type="date"
+            <FormField label="Tanggal SK Penetapan">
+              <DateInput
                 value={p.penyelia_tgl_sk}
                 onChange={(e) => updatePenyelia("penyelia_tgl_sk", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor Sertifikat Pelatihan/Kompetensi {isReguler && <span className="text-red-500">*</span>}
-              </label>
-              <input
-                type="text"
+            <FormField
+              label="Nomor Sertifikat Pelatihan/Kompetensi"
+              required={isReguler}
+              helperText={isReguler ? "Wajib untuk jalur reguler" : "Opsional untuk Self Declare"}
+            >
+              <TextInput
                 placeholder="Nomor sertifikat penyelia halal"
                 value={p.penyelia_no_sertifikat}
                 onChange={(e) => updatePenyelia("penyelia_no_sertifikat", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Tanggal Sertifikat Pelatihan
-              </label>
-              <input
-                type="date"
+            <FormField label="Tanggal Sertifikat Pelatihan">
+              <DateInput
                 value={p.penyelia_tgl_sertifikat}
                 onChange={(e) => updatePenyelia("penyelia_tgl_sertifikat", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
           </div>
         </div>
 
@@ -192,82 +165,32 @@ export const Step3PenyeliaHalal: React.FC<Step3Props> = ({ payload, onChange }) 
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* File SK */}
-            <div className="p-4 rounded-xl border border-dashed border-slate-300 bg-white flex flex-col justify-between space-y-3">
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">
-                  SK Penetapan Penyelia
-                </span>
-                <span className="text-[11px] text-slate-400 block mt-0.5 truncate">
-                  {payload.file_sk_penyelia ? payload.file_sk_penyelia.name : "Belum ada file dipilih"}
-                </span>
-              </div>
-              <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-brand-500 text-slate-700 text-xs font-semibold transition-colors shadow-2xs">
-                <Upload className="w-3.5 h-3.5" />
-                <span>{payload.file_sk_penyelia ? "Ganti" : "Pilih File"}</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    onChange((prev) => ({ ...prev, file_sk_penyelia: file }))
-                  }}
-                  className="hidden"
-                />
-              </label>
-            </div>
+            <DropzoneUploader
+              label="SK Penetapan Penyelia"
+              helperText="Surat penetapan resmi pimpinan (PDF/JPG/PNG)"
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={10}
+              value={payload.file_sk_penyelia}
+              onChange={(file) => onChange((prev) => ({ ...prev, file_sk_penyelia: file }))}
+            />
 
-            {/* File KTP */}
-            <div className="p-4 rounded-xl border border-dashed border-slate-300 bg-white flex flex-col justify-between space-y-3">
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">
-                  Salinan KTP Penyelia
-                </span>
-                <span className="text-[11px] text-slate-400 block mt-0.5 truncate">
-                  {payload.file_ktp_penyelia ? payload.file_ktp_penyelia.name : "Belum ada file dipilih"}
-                </span>
-              </div>
-              <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-brand-500 text-slate-700 text-xs font-semibold transition-colors shadow-2xs">
-                <Upload className="w-3.5 h-3.5" />
-                <span>{payload.file_ktp_penyelia ? "Ganti" : "Pilih File"}</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    onChange((prev) => ({ ...prev, file_ktp_penyelia: file }))
-                  }}
-                  className="hidden"
-                />
-              </label>
-            </div>
+            <DropzoneUploader
+              label="Salinan KTP Penyelia"
+              helperText="Foto / scan e-KTP jelas terbaca (PDF/JPG/PNG)"
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={10}
+              value={payload.file_ktp_penyelia}
+              onChange={(file) => onChange((prev) => ({ ...prev, file_ktp_penyelia: file }))}
+            />
 
-            {/* File Sertifikat */}
-            <div className="p-4 rounded-xl border border-dashed border-slate-300 bg-white flex flex-col justify-between space-y-3">
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">
-                  Sertifikat Pelatihan Penyelia
-                </span>
-                <span className="text-[11px] text-slate-400 block mt-0.5 truncate">
-                  {payload.file_sertifikat_penyelia
-                    ? payload.file_sertifikat_penyelia.name
-                    : "Belum ada file dipilih"}
-                </span>
-              </div>
-              <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-brand-500 text-slate-700 text-xs font-semibold transition-colors shadow-2xs">
-                <Upload className="w-3.5 h-3.5" />
-                <span>{payload.file_sertifikat_penyelia ? "Ganti" : "Pilih File"}</span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    onChange((prev) => ({ ...prev, file_sertifikat_penyelia: file }))
-                  }}
-                  className="hidden"
-                />
-              </label>
-            </div>
+            <DropzoneUploader
+              label="Sertifikat Pelatihan Penyelia"
+              helperText="Sertifikat pelatihan PPH / SKKNI (PDF/JPG/PNG)"
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={10}
+              value={payload.file_sertifikat_penyelia}
+              onChange={(file) => onChange((prev) => ({ ...prev, file_sertifikat_penyelia: file }))}
+            />
           </div>
         </div>
       </CardContent>

@@ -11,6 +11,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { PupFormData } from "../../../types/pup"
+import { LegalStatementBox } from "../../forms"
 
 interface Step4Props {
   formData: PupFormData
@@ -164,51 +165,38 @@ export const Step4PernyataanKonfirmasi: React.FC<Step4Props> = ({ formData, onCh
             Mohon baca dengan saksama dan centang seluruh pernyataan di bawah ini untuk menyelesaikan pendaftaran
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-4 space-y-4 text-xs">
+        <CardContent className="pt-4 space-y-4">
           {/* Checkbox 1: Evaluasi En score 1 bulan */}
-          <div className="p-3 bg-white rounded-xl border border-amber-200/80 shadow-2xs">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                required
-                checked={formData.pernyataan_en_score}
-                onChange={(e) => onChange("pernyataan_en_score", e.target.checked)}
-                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 mt-0.5 shrink-0"
-              />
-              <div className="space-y-0.5">
-                <span className="font-bold text-slate-800">
-                  Pernyataan Batas Waktu Pengiriman Hasil Kalibrasi (Evaluasi Nilai En Score) <span className="text-rose-500">*</span>
-                </span>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
-                  Sebagai peserta, kami telah memahami konsekuensi dari pernyataan berikut:{" "}
-                  <em>
-                    "Apabila dalam waktu 1 bulan setelah melakukan kalibrasi artefak namun peserta belum mengirimkan hasil, maka PUP BBSPJIKKP berhak tidak memasukkan peserta tersebut dalam evaluasi En score."
-                  </em>
-                </p>
-              </div>
-            </label>
-          </div>
+          <LegalStatementBox
+            checked={formData.pernyataan_en_score}
+            onChange={(val) => onChange("pernyataan_en_score", val)}
+            title="Pernyataan Batas Waktu Pengiriman Hasil Kalibrasi Artefak"
+            badgeText="Maks. 30 Hari Kalender"
+            keyPoints={[
+              "Batas akhir penyerahan data hasil pengukuran kalibrasi adalah 1 bulan (30 hari) pasca kalibrasi artefak.",
+              "Keterlambatan berkonsekuensi hasil tidak dimasukkan dalam evaluasi statistik nilai En score resmi PUP.",
+            ]}
+            legalTitle="Baca Klausul Evaluasi Nilai En Score Lengkap"
+            legalFullText={
+              "Sebagai peserta uji profisiensi, kami telah memahami konsekuensi resmi bahwa: 'Apabila dalam waktu 1 (satu) bulan setelah melakukan kalibrasi artefak namun peserta belum mengirimkan hasil pengukuran teknis, maka PUP BBSPJIKKP berhak tidak memasukkan peserta tersebut dalam evaluasi statistik nilai En score'."
+            }
+          />
 
           {/* Checkbox 2: Persetujuan Proposal & Pembayaran */}
-          <div className="p-3 bg-white rounded-xl border border-amber-200/80 shadow-2xs">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                required
-                checked={formData.pernyataan_proposal}
-                onChange={(e) => onChange("pernyataan_proposal", e.target.checked)}
-                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 mt-0.5 shrink-0"
-              />
-              <div className="space-y-0.5">
-                <span className="font-bold text-slate-800">
-                  Pernyataan Kepatuhan Proposal & Pelunasan Pembayaran <span className="text-rose-500">*</span>
-                </span>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
-                  Dengan ditandatanganinya formulir pendaftaran ini, kami menyatakan telah membaca dan memahami proposal uji profisiensi BBSPJIKKP serta bersedia mengikuti kegiatan uji profisiensi BBSPJIKKP sesuai kesepakatan dan melunasi biaya pendaftaran sesuai ketentuan.
-                </p>
-              </div>
-            </label>
-          </div>
+          <LegalStatementBox
+            checked={formData.pernyataan_proposal}
+            onChange={(val) => onChange("pernyataan_proposal", val)}
+            title="Pernyataan Kepatuhan Proposal & Pelunasan Biaya PNBP"
+            badgeText="PUP BBSPJIKKP"
+            keyPoints={[
+              "Bersedia mengikuti seluruh tahapan kegiatan kalibrasi artefak sesuai proposal uji profisiensi BBSPJIKKP.",
+              "Melunasi biaya keikutsertaan sesuai tarif resmi PNBP sebelum penerbitan laporan evaluasi akhir.",
+            ]}
+            legalTitle="Baca Teks Komitmen Proposal Lengkap"
+            legalFullText={
+              "Dengan ditandatanganinya formulir pendaftaran ini, kami menyatakan telah membaca dan memahami proposal uji profisiensi BBSPJIKKP serta bersedia mengikuti kegiatan uji profisiensi BBSPJIKKP sesuai kesepakatan dan melunasi biaya pendaftaran sesuai ketentuan perundang-undangan."
+            }
+          />
         </CardContent>
       </Card>
     </div>

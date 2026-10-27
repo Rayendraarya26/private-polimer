@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import { toast } from "react-hot-toast"
 import { SertifikasiFormData, SertifikasiPabrikItem, emptyPabrik } from "../../../types/sertifikasi"
 import { Card, CardContent } from "../../ui/Card"
 import { Button } from "../../ui/Button"
@@ -12,8 +13,10 @@ import {
   FileDown,
   UploadCloud,
   FileText,
-  Loader2
+  Loader2,
+  Copy,
 } from "lucide-react"
+import { DropzoneUploader } from "../../forms"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 import useProfile from "../../../hooks/useProfile"
 import {
@@ -507,6 +510,21 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
       ...prev,
       pabrik: [...prev.pabrik, emptyPabrik(Date.now())],
     }))
+  }
+
+  const duplicateLastPabrik = () => {
+    if (formData.pabrik.length === 0) return
+    const lastPabrik = formData.pabrik[formData.pabrik.length - 1]
+    const duplicated: SertifikasiPabrikItem = {
+      ...lastPabrik,
+      id: Date.now(),
+      nama_pabrik: `${lastPabrik.nama_pabrik || "Pabrik"} (Salinan)`,
+    }
+    setFormData((prev) => ({
+      ...prev,
+      pabrik: [...prev.pabrik, duplicated],
+    }))
+    toast.success("Data pabrik berhasil diduplikasi.")
   }
 
   const removePabrik = (index: number) => {
@@ -1168,16 +1186,27 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
             />
           ))}
 
-          <div className="flex justify-center">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={addPabrik}
               leftIcon={<Plus className="w-4 h-4" />}
-              className="text-xs font-bold text-brand-600 border-dashed border-2 border-brand-300 hover:bg-brand-50 px-6 py-2.5"
+              className="text-xs font-bold text-brand-600 border-dashed border-2 border-brand-300 hover:bg-brand-50 px-5 py-2.5 rounded-xl"
             >
-              + Tambah Data Pabrik
+              Tambah Lokasi Pabrik Baru
             </Button>
+            {formData.pabrik.length > 0 && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={duplicateLastPabrik}
+                leftIcon={<Copy className="w-4 h-4" />}
+                className="text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50"
+              >
+                Duplikat Data Pabrik #{formData.pabrik.length}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -1225,36 +1254,27 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
 
           {/* Upload Berkas Gabungan */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Upload Berkas Gabungan <span className="text-rose-500">*</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null
-                  setFormData({ ...formData, file_berkas_gabungan: file })
-                }}
-                className="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 border border-slate-300 rounded-xl cursor-pointer bg-white"
-              />
-            </div>
-            <p className="text-[11px] text-slate-400">
-              Upload file merupakan <span className="font-semibold text-slate-600">form 1, form 2, dan form 3</span> digabung dengan format PDF.
-            </p>
+            <DropzoneUploader
+              label="Unggah Berkas Gabungan (Form 1, 2, dan 3) *"
+              helperText="Gabungkan form 1, form 2, dan form 3 yang telah diisi dalam 1 file PDF (Maksimal 10 MB)"
+              accept=".pdf"
+              maxSizeMB={10}
+              value={formData.file_berkas_gabungan}
+              onChange={(file) => setFormData((prev) => ({ ...prev, file_berkas_gabungan: file }))}
+            />
           </div>
         </CardContent>
       </Card>
 
       {/* Navigasi Lanjut & Kembali */}
       <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-        <Button variant="outline" type="button" onClick={onBack} className="px-6">
+        <Button variant="outline" type="button" onClick={onBack} className="h-[42px] px-6 rounded-xl font-semibold text-sm">
           Kembali
         </Button>
         <Button
           type="button"
           onClick={onNext}
-          className="px-6 bg-brand-600 hover:bg-brand-700 text-white font-bold"
+          className="h-[42px] px-7 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-md shadow-brand-500/15"
         >
           Selanjutnya
         </Button>

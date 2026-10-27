@@ -23,6 +23,7 @@ import {
 import FormInformasiAlat, { AlatKalibrasiItem } from "./multiKalibrasi/FormInformasiAlat"
 import FormPelaksanaanKalibrasi, { PelaksanaanKalibrasiData } from "./multiKalibrasi/FormPelaksanaanKalibrasi"
 import FormInformasiPelanggan, { PelangganData } from "./multiKalibrasi/FormInformasiPelanggan"
+import { RevisionBannerCallout } from "../forms"
 
 export const EditFormKalibrasi: React.FC = () => {
   const { id } = useParams()
@@ -279,15 +280,16 @@ export const EditFormKalibrasi: React.FC = () => {
 
       {/* Alert Informasi Revisi jika ada */}
       {isRevisi && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <span className="font-bold block">Permohonan Ini Membutuhkan Perbaikan Data</span>
-            <p className="text-amber-800 leading-relaxed">
-              Silakan periksa dan perbarui data instrumen, pelaksanaan, maupun informasi pemohon di bawah ini. Setelah selesai, klik tombol <strong>"Kirimkan Perbaikan"</strong> agar ditinjau kembali oleh petugas kami.
-            </p>
-          </div>
-        </div>
+        <RevisionBannerCallout
+          catatan={
+            permohonan?.catatan_verifikasi ||
+            permohonan?.catatan_revisi ||
+            permohonan?.alasan_revisi ||
+            "Mohon periksa dan perbaiki data permohonan kalibrasi sesuai catatan verifikator sebelum mengajukan kembali."
+          }
+          petugas={permohonan?.petugas_verifikasi || permohonan?.verified_by_name || "Verifikator Laboratorium Kalibrasi"}
+          tanggal={permohonan?.tgl_verifikasi || permohonan?.updated_at}
+        />
       )}
 
       <div className="space-y-6">
@@ -331,7 +333,7 @@ export const EditFormKalibrasi: React.FC = () => {
       </Card>
 
       {/* Action Footer Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-200">
+      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <BackButton
           to={`/permohonan/detail/${id}`}
           disabled={submitting}
@@ -346,6 +348,7 @@ export const EditFormKalibrasi: React.FC = () => {
             onClick={() => handleSave(false)}
             disabled={submitting}
             leftIcon={<Save className="w-4 h-4" />}
+            className="h-[42px] px-5 rounded-xl font-medium"
           >
             Simpan Draft Perubahan
           </Button>
@@ -357,7 +360,7 @@ export const EditFormKalibrasi: React.FC = () => {
             disabled={submitting}
             isLoading={submitting}
             leftIcon={<Send className="w-4 h-4" />}
-            className="shadow-md"
+            className="h-[42px] px-6 rounded-xl font-semibold shadow-md shadow-brand-500/15"
           >
             {isRevisi ? "Kirimkan Perbaikan ke Petugas" : "Ajukan Kalibrasi"}
           </Button>

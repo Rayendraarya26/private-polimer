@@ -22,6 +22,7 @@ import { formatRupiah } from "./components/CostEstimationSummary"
 import { useSubmitPengujianMutation } from "../../../hooks/queries/usePengujianQuery"
 import { Modal } from "../../ui/Modal"
 import { Button } from "../../ui/Button"
+import { DraftStatusIndicator } from "../../forms"
 import Step1Bahasa from "./Step1Bahasa"
 import Step2DataPermintaan from "./Step2DataPermintaan"
 import Step3ParameterUji from "./Step3ParameterUji"
@@ -358,17 +359,25 @@ export const FormPengujianWizard: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Tombol Reset Draft (display: none saat tidak ada draf tersimpan) */}
-      <div className={hasDraft ? "flex justify-end -mb-1" : "hidden"}>
-        <button
-          type="button"
-          onClick={() => setShowResetModal(true)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
-          title="Reset Seluruh Draf Formulir"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset Draft</span>
-        </button>
+      {/* Draft Status Indicator */}
+      <div className="flex items-center justify-between mb-1">
+        {hasDraft ? (
+          <DraftStatusIndicator
+            status="saved"
+            lastSavedTime="di browser"
+          />
+        ) : <div />}
+        <div className={hasDraft ? "" : "hidden"}>
+          <button
+            type="button"
+            onClick={() => setShowResetModal(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
+            title="Reset Seluruh Draf Formulir"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Draft</span>
+          </button>
+        </div>
       </div>
 
       {/* Stepper Progress Header */}

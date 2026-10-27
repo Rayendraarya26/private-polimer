@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
-import { UserCheck, ShieldCheck } from "lucide-react"
+import { UserCheck, ShieldCheck, Building2, Truck, Globe, FileText } from "lucide-react"
+import {
+  FormField,
+  RadioCardGroup,
+  TextareaInput,
+} from "../../forms"
 
 export interface PelaksanaanKalibrasiData {
   ruangLingkupAkreditasi?: string
@@ -29,7 +34,6 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
   uraianKalibrasi: propUraian,
   onChangeUraian,
 }) => {
-
   const { profile, isLoading } = useProfileQuery()
 
   const [formData, setFormData] = useState<PelaksanaanKalibrasiData>(() => ({
@@ -91,110 +95,97 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
   }, [profile, isLoading])
 
   return (
-    <Card className="border-brand-100 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-        <div className="flex items-start justify-between">
+    <Card className="rounded-2xl border-slate-200/90 shadow-card bg-white overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-brand-50/70 via-sky-50/30 to-white pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-brand-600 text-white shadow-2xs">
+            <UserCheck className="w-5 h-5" />
+          </div>
           <div>
-            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-              <UserCheck className="w-4 h-4 text-brand-600" />
-              Pelaksanaan Kalibrasi
+            <CardTitle className="text-base font-bold text-slate-900 tracking-tight">
+              Metode & Lokasi Pelaksanaan Kalibrasi
             </CardTitle>
-            <CardDescription>
-              Silahkan lengkapi lokasi dan bahasa pelaksanaan kalibrasi
+            <CardDescription className="text-xs text-slate-600">
+              Tentukan tempat kalibrasi dilakukan serta bahasa yang dicantumkan pada sertifikat hasil kalibrasi
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-1 space-y-4">
-        <div className="pt-1 space-y-5">
-          <div>
-            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-2 mb-3">
-              Lokasi Pelaksanaan Kalibrasi <span className="text-rose-500">*</span>
-            </h4>
+      <CardContent className="p-6 sm:p-7 space-y-7">
+        {/* Lokasi Pelaksanaan Kalibrasi */}
+        <FormField
+          label="Lokasi Pelaksanaan Kalibrasi"
+          required
+          tooltip="Pilih apakah instrumen Anda dikirim ke laboratorium BBKKP di Yogyakarta atau dikalibrasi on-site di pabrik Anda"
+          helperText="Untuk layanan On-Site, tanggal pelaksanaan dan biaya akomodasi verifikator akan dikoordinasikan lebih lanjut"
+        >
+          <RadioCardGroup
+            value={formData.lokasi}
+            onChange={(val) => handleChange("lokasi", val)}
+            gridCols={2}
+            options={[
+              {
+                value: "LABKAL BBKKP",
+                title: "Laboratorium Kalibrasi BBKKP",
+                description: "Instrumen fisik diantar langsung atau dikirimkan melalui jasa ekspedisi ke laboratorium BBSPJIKKP di Yogyakarta.",
+                icon: <Building2 className="w-5 h-5 text-brand-600" />,
+                badge: "In-House Lab",
+              },
+              {
+                value: "Tempat Client",
+                title: "On-Site (Di Lokasi / Fasilitas Klien)",
+                description: "Petugas analis teknis BBSPJIKKP hadir langsung melakukan pengujian kalibrasi di pabrik atau fasilitas industri Anda.",
+                icon: <Truck className="w-5 h-5 text-emerald-600" />,
+                badge: "On-Site Visit",
+              },
+            ]}
+          />
+        </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label
-                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.lokasi === "LABKAL BBKKP"
-                  ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                  : "border-slate-200 hover:bg-slate-50"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="lokasi_pelaksanaan"
-                  value="LABKAL BBKKP"
-                  checked={formData.lokasi === "LABKAL BBKKP"}
-                  onChange={(e) => handleChange("lokasi", e.target.value)}
-                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
-                />
-                <div>
-                  <span className="text-xs font-bold text-slate-800 block">
-                    Laboratorium Kalibrasi BBKKP
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    Alat diantar atau dikirimkan ke laboratorium BBSPJIKKP
-                  </span>
-                </div>
-              </label>
+        {/* Bahasa Laporan Hasil Kalibrasi */}
+        <FormField
+          label="Bahasa Laporan / Sertifikat Kalibrasi"
+          required
+          tooltip="Bahasa resmi yang akan dicantumkan pada sertifikat kalibrasi hasil akhir"
+        >
+          <RadioCardGroup
+            value={formData.bahasa}
+            onChange={(val) => handleChange("bahasa", val)}
+            gridCols={2}
+            options={[
+              {
+                value: "indonesia",
+                title: "Bahasa Indonesia",
+                description: "Sertifikat kalibrasi resmi diterbitkan dalam format Bahasa Indonesia standar SNI/KAN.",
+                icon: <FileText className="w-5 h-5 text-brand-600" />,
+                badge: "Standar",
+              },
+              {
+                value: "inggris",
+                title: "English (International Report)",
+                description: "Official calibration certificate issued in English for multinational audit or export purposes.",
+                icon: <Globe className="w-5 h-5 text-indigo-600" />,
+                badge: "Bilingual / Global",
+              },
+            ]}
+          />
+        </FormField>
 
-              <label
-                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData.lokasi === "Tempat Client"
-                  ? "bg-brand-50/70 border-brand-400 ring-2 ring-brand-500/20"
-                  : "border-slate-200 hover:bg-slate-50"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="lokasi_pelaksanaan"
-                  value="Tempat Client"
-                  checked={formData.lokasi === "Tempat Client"}
-                  onChange={(e) => handleChange("lokasi", e.target.value)}
-                  className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
-                />
-                <div>
-                  <span className="text-xs font-bold text-slate-800 block">
-                    On-Site (Di Lokasi / Pabrik Klien)
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    Petugas teknis kalibrasi melakukan kalibrasi di fasilitas pelanggan
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Uraian Kalibrasi Yang Dikehendaki */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Uraian Kalibrasi / Catatan Khusus Yang Dikehendaki
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Masukkan instruksi khusus, rentang ukur tertentu, atau titik uji yang diinginkan (opsional)..."
-              value={formData.uraian}
-              onChange={(e) => handleChange("uraian", e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* Bagian Bahasa Laporan Hasil Kalibrasi */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Bahasa yang digunakan pada laporan <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={formData.bahasa}
-              onChange={(e) => handleChange("bahasa", e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-xs"
-            >
-              <option value="indonesia">Indonesia</option>
-              <option value="inggris">English</option>
-            </select>
-          </div>
-        </div>
+        {/* Uraian Kalibrasi Yang Dikehendaki */}
+        <FormField
+          label="Uraian Kalibrasi / Catatan Khusus Yang Dikehendaki"
+          helperText="Tuliskan jika terdapat rentang ukur tertentu, titik uji khusus, atau instruksi khusus pengerjaan"
+        >
+          <TextareaInput
+            rows={3}
+            showCount
+            maxLength={500}
+            placeholder="Contoh: Titik ukur timbangan difokuskan pada rentang 50g, 100g, dan 200g. Harap konfirmasi sebelum pengujian dimulai..."
+            value={formData.uraian}
+            onChange={(e) => handleChange("uraian", e.target.value)}
+          />
+        </FormField>
       </CardContent>
     </Card>
   )

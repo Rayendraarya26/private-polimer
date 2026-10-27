@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React from "react"
 import {
   FileCheck,
   Upload,
@@ -29,7 +29,6 @@ import {
   PengujianSharedData,
 } from "../../../types/pengujian"
 import { formatRupiah } from "./components/CostEstimationSummary"
-import { Input } from "../../ui/Input"
 import { Button } from "../../ui/Button"
 import { Badge } from "../../ui/Badge"
 import {
@@ -39,6 +38,15 @@ import {
   CardDescription,
   CardContent,
 } from "../../ui/Card"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  DateInput,
+  RadioCardGroup,
+  DropzoneUploader,
+  LegalStatementBox,
+} from "../../forms"
 
 interface Step4TambahanKonfirmasiProps {
   sharedData: PengujianSharedData
@@ -49,8 +57,6 @@ interface Step4TambahanKonfirmasiProps {
   onSubmit: (aksi: "draft" | "ajukan") => void
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
-
 export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = ({
   sharedData,
   setSharedData,
@@ -59,51 +65,8 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
   onBack,
   onSubmit,
 }) => {
-  const suratPengantarInputRef = useRef<HTMLInputElement>(null)
-  const ktmInputRef = useRef<HTMLInputElement>(null)
-
   const isMahasiswa = sharedData.kategori_tarif === "mahasiswa_pp54"
   const grandTotal = calculateGrandTotal(samples, sharedData.kategori_tarif)
-
-  const handleFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: "file_surat_pengantar" | "file_ktm"
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`Ukuran file maksimal 5 MB (File Anda: ${(file.size / (1024 * 1024)).toFixed(2)} MB)`)
-      e.target.value = ""
-      return
-    }
-
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"]
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Format file hanya mendukung PDF, PNG, JPG, atau JPEG")
-      e.target.value = ""
-      return
-    }
-
-    setSharedData((prev) => ({
-      ...prev,
-      [field]: file,
-    }))
-    toast.success(`File ${file.name} berhasil diunggah`)
-  }
-
-  const handleRemoveFile = (field: "file_surat_pengantar" | "file_ktm") => {
-    setSharedData((prev) => ({
-      ...prev,
-      [field]: null,
-    }))
-    if (field === "file_surat_pengantar" && suratPengantarInputRef.current) {
-      suratPengantarInputRef.current.value = ""
-    }
-    if (field === "file_ktm" && ktmInputRef.current) {
-      ktmInputRef.current.value = ""
-    }
-  }
 
   const handleTriggerSubmit = (aksi: "draft" | "ajukan") => {
     if (aksi === "ajukan") {
@@ -155,15 +118,8 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Tanggal BAPC */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Tanggal BAPC (Opsional)
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <input
-                type="date"
+            <FormField label="Tanggal BAPC" helperText="Opsional">
+              <DateInput
                 value={sharedData.tanggal_bapc}
                 onChange={(e) =>
                   setSharedData((prev) => ({
@@ -171,54 +127,56 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                     tanggal_bapc: e.target.value,
                   }))
                 }
-                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Nomor BAPC */}
           <div>
-            <Input
-              label="Nomor BAPC (Opsional)"
-              placeholder="Nomor BAPC jika ada"
-              value={sharedData.no_bapc}
-              onChange={(e) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  no_bapc: e.target.value,
-                }))
-              }
-            />
+            <FormField label="Nomor BAPC" helperText="Opsional">
+              <TextInput
+                placeholder="Nomor BAPC jika ada"
+                value={sharedData.no_bapc}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    no_bapc: e.target.value,
+                  }))
+                }
+              />
+            </FormField>
           </div>
 
           {/* Nomor Sample */}
           <div>
-            <Input
-              label="Nomor Sample (Opsional)"
-              placeholder="Contoh: SMPL-2026-001"
-              value={sharedData.no_sample}
-              onChange={(e) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  no_sample: e.target.value,
-                }))
-              }
-            />
+            <FormField label="Nomor Sample" helperText="Opsional">
+              <TextInput
+                placeholder="Contoh: SMPL-2026-001"
+                value={sharedData.no_sample}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    no_sample: e.target.value,
+                  }))
+                }
+              />
+            </FormField>
           </div>
 
           {/* Merek / Kode */}
           <div>
-            <Input
-              label="Merek / Kode (Opsional)"
-              placeholder="Merek atau kode spesimen"
-              value={sharedData.merek_kode}
-              onChange={(e) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  merek_kode: e.target.value,
-                }))
-              }
-            />
+            <FormField label="Merek / Kode" helperText="Opsional">
+              <TextInput
+                placeholder="Merek atau kode spesimen"
+                value={sharedData.merek_kode}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    merek_kode: e.target.value,
+                  }))
+                }
+              />
+            </FormField>
           </div>
         </div>
       </div>
@@ -232,53 +190,37 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Permintaan Evaluasi / Pernyataan Kesesuaian */}
-          <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+          <div className="space-y-3 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80">
             <div>
               <label className="text-xs font-bold text-slate-800 block">
                 Permintaan Evaluasi / Pernyataan Kesesuaian <span className="text-rose-500">*</span>
               </label>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Apakah hasil pengujian memerlukan evaluasi status kesesuaian (lulus/tidak lulus) terhadap standar acuan?
               </p>
             </div>
 
-            <div className="flex items-center gap-4 pt-1">
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="permintaan_evaluasi"
-                  checked={sharedData.permintaan_evaluasi === true}
-                  onChange={() =>
-                    setSharedData((prev) => ({
-                      ...prev,
-                      permintaan_evaluasi: true,
-                    }))
-                  }
-                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
-                />
-                <span>Ya, butuh evaluasi</span>
-              </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="permintaan_evaluasi"
-                  checked={sharedData.permintaan_evaluasi === false}
-                  onChange={() =>
-                    setSharedData((prev) => ({
-                      ...prev,
-                      permintaan_evaluasi: false,
-                      catatan_evaluasi: "",
-                    }))
-                  }
-                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
-                />
-                <span>Tidak (Hanya data numerik)</span>
-              </label>
-            </div>
+            <RadioCardGroup
+              name="permintaan_evaluasi"
+              value={sharedData.permintaan_evaluasi ? "ya" : "tidak"}
+              onChange={(val) => {
+                const isYa = val === "ya"
+                setSharedData((prev) => ({
+                  ...prev,
+                  permintaan_evaluasi: isYa,
+                  catatan_evaluasi: isYa ? prev.catatan_evaluasi : "",
+                }))
+              }}
+              gridCols={2}
+              options={[
+                { value: "ya", title: "Ya, butuh evaluasi", description: "Perlu status kelulusan spesifikasi" },
+                { value: "tidak", title: "Tidak", description: "Hanya data angka hasil uji" },
+              ]}
+            />
 
             {sharedData.permintaan_evaluasi && (
               <div className="pt-2 animate-in fade-in-50 duration-200">
-                <textarea
+                <TextareaInput
                   rows={2}
                   placeholder="Sebutkan acuan standar (Contoh: Evaluasi terhadap ambang batas SNI 06-4965-1999 Kelas A)..."
                   value={sharedData.catatan_evaluasi}
@@ -288,65 +230,48 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                       catatan_evaluasi: e.target.value,
                     }))
                   }
-                  className="w-full text-xs rounded-lg border border-brand-300 p-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
                 />
               </div>
             )}
           </div>
 
           {/* Pilihan Menyaksikan Pengujian */}
-          <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+          <div className="space-y-3 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80">
             <div>
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5 text-brand-600" />
                 Pilihan Menyaksikan Pengujian <span className="text-rose-500">*</span>
               </label>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Apakah perwakilan instansi Anda ingin hadir langsung di laboratorium saat proses pengujian berlangsung?
               </p>
             </div>
 
-            <div className="flex items-center gap-4 pt-1">
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="menyaksikan_uji"
-                  checked={sharedData.menyaksikan_uji === true}
-                  onChange={() =>
-                    setSharedData((prev) => ({
-                      ...prev,
-                      menyaksikan_uji: true,
-                    }))
-                  }
-                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
-                />
-                <span>Ya, ingin hadir</span>
-              </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                <input
-                  type="radio"
-                  name="menyaksikan_uji"
-                  checked={sharedData.menyaksikan_uji === false}
-                  onChange={() =>
-                    setSharedData((prev) => ({
-                      ...prev,
-                      menyaksikan_uji: false,
-                      catatan_menyaksikan: "",
-                    }))
-                  }
-                  className="w-4 h-4 text-brand-600 border-slate-300 focus:ring-brand-500"
-                />
-                <span>Tidak hadir</span>
-              </label>
-            </div>
+            <RadioCardGroup
+              name="menyaksikan_uji"
+              value={sharedData.menyaksikan_uji ? "ya" : "tidak"}
+              onChange={(val) => {
+                const isYa = val === "ya"
+                setSharedData((prev) => ({
+                  ...prev,
+                  menyaksikan_uji: isYa,
+                  catatan_menyaksikan: isYa ? prev.catatan_menyaksikan : "",
+                }))
+              }}
+              gridCols={2}
+              options={[
+                { value: "ya", title: "Ya, ingin hadir", description: "Menyaksikan pengujian di lab" },
+                { value: "tidak", title: "Tidak hadir", description: "Diserahkan sepenuhnya ke lab" },
+              ]}
+            />
 
             {sharedData.menyaksikan_uji && (
               <div className="pt-2 space-y-2 animate-in fade-in-50 duration-200">
-                <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800 flex items-start gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
+                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <span>Wajib mematuhi SOP K3 Laboratorium BBSPJIKKP dan mengenakan APD standar balai.</span>
                 </div>
-                <textarea
+                <TextareaInput
                   rows={2}
                   placeholder="Sebutkan perkiraan tanggal hadir & nama personil perwakilan yang akan datang..."
                   value={sharedData.catatan_menyaksikan}
@@ -356,7 +281,6 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                       catatan_menyaksikan: e.target.value,
                     }))
                   }
-                  className="w-full text-xs rounded-lg border border-brand-300 p-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400"
                 />
               </div>
             )}
@@ -446,30 +370,24 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* No Surat Pengantar */}
           <div>
-            <Input
-              label="Nomor Surat Pengantar (Opsional)"
-              placeholder="Contoh: 123/EXT-QA/IX/2026"
-              value={sharedData.no_surat_pengantar}
-              onChange={(e) =>
-                setSharedData((prev) => ({
-                  ...prev,
-                  no_surat_pengantar: e.target.value,
-                }))
-              }
-            />
+            <FormField label="Nomor Surat Pengantar" helperText="Opsional">
+              <TextInput
+                placeholder="Contoh: 123/EXT-QA/IX/2026"
+                value={sharedData.no_surat_pengantar}
+                onChange={(e) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    no_surat_pengantar: e.target.value,
+                  }))
+                }
+              />
+            </FormField>
           </div>
 
           {/* Tanggal Surat Pengantar */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Tanggal Surat Pengantar (Opsional)
-            </label>
-            <div className="relative flex items-center">
-              <div className="absolute left-3.5 text-slate-400 pointer-events-none">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <input
-                type="date"
+            <FormField label="Tanggal Surat Pengantar" helperText="Opsional">
+              <DateInput
                 value={sharedData.tgl_surat_pengantar}
                 onChange={(e) =>
                   setSharedData((prev) => ({
@@ -477,116 +395,43 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                     tgl_surat_pengantar: e.target.value,
                   }))
                 }
-                className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 pl-10 pr-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
-            </div>
+            </FormField>
           </div>
 
           {/* File Surat Pengantar */}
-          <div className="md:col-span-2 space-y-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Unggah Berkas Surat Pengantar (PDF/Gambar, Maks. 5MB)
-            </label>
-            {sharedData.file_surat_pengantar ? (
-              <div className="p-3.5 rounded-xl bg-brand-50/70 border border-brand-200 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5 truncate">
-                  <FileText className="w-4 h-4 text-brand-600 shrink-0" />
-                  <span className="font-bold text-slate-900 truncate">
-                    {sharedData.file_surat_pengantar.name}
-                  </span>
-                  <span className="text-[11px] text-slate-500 shrink-0">
-                    ({(sharedData.file_surat_pengantar.size / 1024).toFixed(1)} KB)
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFile("file_surat_pengantar")}
-                  className="text-slate-400 hover:text-rose-500 p-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div
-                onClick={() => suratPengantarInputRef.current?.click()}
-                className="p-5 rounded-xl border-2 border-dashed border-slate-300 hover:border-brand-500 hover:bg-brand-50/30 cursor-pointer text-center transition-all"
-              >
-                <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
-                <p className="text-xs font-semibold text-slate-700">
-                  Klik untuk memilih file Surat Pengantar
-                </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Format didukung: PDF, PNG, JPG (Maks. 5 MB)</p>
-                <input
-                  ref={suratPengantarInputRef}
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  className="hidden"
-                  onChange={(e) => handleFileUpload(e, "file_surat_pengantar")}
-                />
-              </div>
-            )}
+          <div className="md:col-span-2">
+            <DropzoneUploader
+              label="Unggah Berkas Surat Pengantar (Opsional)"
+              helperText="Format dokumen: PDF, PNG, atau JPG (Maksimal 5 MB)"
+              accept=".pdf,.png,.jpg,.jpeg"
+              maxSizeMB={5}
+              value={sharedData.file_surat_pengantar}
+              onChange={(file) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  file_surat_pengantar: file,
+                }))
+              }
+            />
           </div>
 
           {/* Upload KTM (Wajib jika Kategori Tarif Mahasiswa PP 54) */}
           {isMahasiswa && (
-            <div className="md:col-span-2 p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in-50 duration-200">
-              <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shrink-0 mt-0.5">
-                  <GraduationCap className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Unggah Kartu Tanda Mahasiswa (KTM) Aktif <span className="text-rose-500">*</span>
-                    </h4>
-                    <span className="text-[10px] font-semibold text-brand-700 bg-brand-50 border border-brand-200/80 px-2 py-0.5 rounded-full">
-                      Tarif Mahasiswa PP 54
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Lampirkan foto atau scan dokumen KTM aktif Anda sebagai bukti legalitas untuk verifikasi tarif pendidikan.
-                  </p>
-                </div>
-              </div>
-
-              {sharedData.file_ktm ? (
-                <div className="p-3.5 rounded-xl bg-white border border-brand-200 flex items-center justify-between gap-3 text-xs shadow-2xs">
-                  <div className="flex items-center gap-2.5 truncate">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-bold text-slate-900 truncate">
-                      {sharedData.file_ktm.name}
-                    </span>
-                    <span className="text-[11px] text-slate-500 shrink-0">
-                      ({(sharedData.file_ktm.size / 1024).toFixed(1)} KB)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFile("file_ktm")}
-                    className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => ktmInputRef.current?.click()}
-                  className="p-5 rounded-xl border-2 border-dashed border-slate-300 hover:border-brand-500 bg-white hover:bg-brand-50/30 cursor-pointer text-center transition-all group shadow-2xs"
-                >
-                  <Upload className="w-6 h-6 text-slate-400 group-hover:text-brand-600 mx-auto mb-1.5 transition-colors" />
-                  <p className="text-xs font-semibold text-slate-700 group-hover:text-brand-700">
-                    Klik untuk memilih file Foto / Scan KTM Anda (Wajib)
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Format didukung: PDF, PNG, JPG (Maks. 5 MB)</p>
-                  <input
-                    ref={ktmInputRef}
-                    type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    className="hidden"
-                    onChange={(e) => handleFileUpload(e, "file_ktm")}
-                  />
-                </div>
-              )}
+            <div className="md:col-span-2">
+              <DropzoneUploader
+                label="Unggah Kartu Tanda Mahasiswa (KTM) Aktif (Wajib)"
+                helperText="Lampirkan foto atau scan dokumen KTM aktif Anda sebagai bukti legalitas untuk verifikasi tarif pendidikan (Maksimal 5 MB)"
+                accept=".pdf,.png,.jpg,.jpeg"
+                maxSizeMB={5}
+                value={sharedData.file_ktm}
+                onChange={(file) =>
+                  setSharedData((prev) => ({
+                    ...prev,
+                    file_ktm: file,
+                  }))
+                }
+              />
             </div>
           )}
         </div>
@@ -720,43 +565,38 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
           {/* 6. PERNYATAAN & INTEGRITAS */}
           <div className="pt-6 border-t border-slate-200">
-            <label className="flex items-start gap-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/60 cursor-pointer transition-colors">
-              <input
-                type="checkbox"
-                checked={sharedData.setuju_syarat}
-                onChange={(e) =>
-                  setSharedData((prev) => ({
-                    ...prev,
-                    setuju_syarat: e.target.checked,
-                  }))
-                }
-                className="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0 cursor-pointer"
-              />
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-slate-900 block">
-                  Pernyataan Keabsahan Data & Persetujuan Ketentuan Layanan <span className="text-rose-500">*</span>
-                </span>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar
-                  milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium.
-                  Saya bersedia mematuhi seluruh prosedur keselamatan, syarat dan ketentuan pengujian
-                  laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku.
-                </p>
-              </div>
-            </label>
+            <LegalStatementBox
+              checked={sharedData.setuju_syarat}
+              onChange={(val) =>
+                setSharedData((prev) => ({
+                  ...prev,
+                  setuju_syarat: val,
+                }))
+              }
+              title="Pernyataan Keabsahan Sampel & Persetujuan Ketentuan Layanan"
+              badgeText="LHU Terakreditasi KAN"
+              keyPoints={[
+                "Data spesifikasi dan fisik sampel yang diserahkan benar milik pemohon serta layak uji.",
+                "Mematuhi prosedur keselamatan kerja (K3) dan melaksanakan pembayaran sesuai tarif PNBP resmi.",
+              ]}
+              legalTitle="Baca Syarat & Ketentuan Pengujian Laboratorium Lengkap"
+              legalFullText={
+                "Saya menyatakan dengan sesungguhnya bahwa data dan sampel yang diserahkan adalah benar milik pemohon dan dalam kondisi yang layak untuk dilakukan pengujian laboratorium. Saya bersedia mematuhi seluruh prosedur keselamatan kerja, syarat dan ketentuan pengujian laboratorium BBSPJIKKP, serta melaksanakan pembayaran sesuai tarif PNBP resmi yang berlaku sesuai peraturan perundang-undangan."
+              }
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+      {/* Sticky Navigation Buttons */}
+      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
           disabled={submitting}
           leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="px-5 py-2.5 font-semibold text-xs"
+          className="h-[42px] px-5 rounded-xl font-semibold text-sm"
         >
           Sebelumnya
         </Button>
@@ -768,7 +608,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             disabled={submitting}
             onClick={() => handleTriggerSubmit("draft")}
             leftIcon={<Save className="w-4 h-4 text-slate-600" />}
-            className="px-4 py-2.5 font-semibold text-xs border border-slate-200 shadow-2xs hover:bg-slate-100"
+            className="h-[42px] px-5 rounded-xl font-medium text-sm border border-slate-200 hover:bg-slate-100"
           >
             Simpan Draft
           </Button>
@@ -780,7 +620,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             onClick={() => handleTriggerSubmit("ajukan")}
             rightIcon={!submitting ? <Send className="w-4 h-4" /> : undefined}
             isLoading={submitting}
-            className="px-6 py-2.5 font-semibold text-xs shadow-sm"
+            className="h-[42px] px-7 rounded-xl font-semibold text-sm shadow-md shadow-brand-500/15"
           >
             {submitting ? "Mengirim..." : "Kirim Permohonan"}
           </Button>

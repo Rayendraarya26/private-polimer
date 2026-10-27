@@ -204,16 +204,16 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
         </div>
 
         {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi Fisik */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
           {/* Bentuk Fisik */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
               Bentuk Fisik
             </label>
             <select
               value={sample.bentuk_sampel}
               onChange={(e) => onUpdate({ ...sample, bentuk_sampel: e.target.value })}
-              className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
             >
               {BENTUK_OPTIONS.map((b) => (
                 <option key={b} value={b}>
@@ -225,8 +225,10 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
 
           {/* Jumlah */}
           <div>
-            <Input
-              label="Jumlah"
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              Jumlah <span className="text-rose-500">*</span>
+            </label>
+            <input
               type="number"
               min={1}
               required
@@ -234,18 +236,19 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               onChange={(e) =>
                 onUpdate({ ...sample, jumlah_sampel: parseInt(e.target.value, 10) || 1 })
               }
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
             />
           </div>
 
           {/* Satuan */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
               Satuan
             </label>
             <select
               value={sample.satuan_sampel}
               onChange={(e) => onUpdate({ ...sample, satuan_sampel: e.target.value })}
-              className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
             >
               {SATUAN_OPTIONS.map((s) => (
                 <option key={s} value={s}>
@@ -257,13 +260,13 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
 
           {/* Kondisi Fisik Awal */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
               Kondisi Fisik Awal
             </label>
             <select
               value={sample.kondisi_sampel}
               onChange={(e) => onUpdate({ ...sample, kondisi_sampel: e.target.value })}
-              className="w-full bg-white text-slate-900 text-xs rounded-lg border border-slate-300 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
             >
               {KONDISI_OPTIONS.map((k) => (
                 <option key={k} value={k}>
@@ -275,11 +278,15 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
 
           {/* Nomor Lot / Bets */}
           <div className="col-span-2 sm:col-span-1">
-            <Input
-              label="No. Lot / Bets"
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              No. Lot / Bets
+            </label>
+            <input
+              type="text"
               placeholder="LOT-2026-X (opsional)"
               value={sample.no_lot_bets}
               onChange={(e) => onUpdate({ ...sample, no_lot_bets: e.target.value })}
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
             />
           </div>
         </div>
@@ -321,13 +328,13 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               {/* Toolbar Pencarian & Aksi Cepat */}
               <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
                 <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Cari nama parameter atau metode acuan (misal: SNI, ASTM, Kuat Tarik)..."
                     value={paramSearch}
                     onChange={(e) => setParamSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full h-[40px] pl-10 pr-4 text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
                   />
                 </div>
 

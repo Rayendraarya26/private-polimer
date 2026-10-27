@@ -81,8 +81,8 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
     ],
   },
   {
-    title: "2. Lembaga Sertifikasi Produk & Sistem (LSPro BBKKP)",
-    desc: "Sertifikasi kesesuaian tanda SNI produk, sistem manajemen mutu ISO, dan industri hijau untuk badan usaha/pabrik.",
+    title: "2. Lembaga Sertifikasi BBSPJIKKP",
+    desc: "Sertifikasi kesesuaian tanda SNI produk, Sertifikasi Profesi, dan Produk Halal.",
     items: [
       {
         id: "sertifikasi-industri",
@@ -91,6 +91,15 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         icon: <Award className="w-6 h-6 text-indigo-600" />,
         badge: "SNI / ISO",
         route: "/permohonan/sertifikasi-industri",
+        isAvailable: true,
+      },
+      {
+        id: "sertifikasi_profesi",
+        name: "Sertifikasi Profesi (LSP)",
+        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
+        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
+        badge: "Lisensi BNSP",
+        route: "/permohonan/sertifikasi-profesi",
         isAvailable: true,
       },
       {
@@ -126,21 +135,21 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
       },
     ],
   },
-  {
-    title: "4. Lembaga Sertifikasi Profesi (LSP BBKKP)",
-    desc: "Uji sertifikasi kompetensi profesi SDM industri terlisensi BNSP untuk perorangan dan delegasi perusahaan.",
-    items: [
-      {
-        id: "sertifikasi_profesi",
-        name: "Sertifikasi Profesi (LSP)",
-        desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
-        icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
-        badge: "Lisensi BNSP",
-        route: "/permohonan/sertifikasi-profesi",
-        isAvailable: true,
-      },
-    ],
-  },
+  // {
+  //   title: "4. Lembaga Sertifikasi Profesi (LSP BBKKP)",
+  //   desc: "Uji sertifikasi kompetensi profesi SDM industri terlisensi BNSP untuk perorangan dan delegasi perusahaan.",
+  //   items: [
+  //     {
+  //       id: "sertifikasi_profesi",
+  //       name: "Sertifikasi Profesi (LSP)",
+  //       desc: "Uji kompetensi profesi industri penyamakan kulit, barang karet, dan transformasi industri 4.0.",
+  //       icon: <BadgeCheck className="w-6 h-6 text-emerald-600" />,
+  //       badge: "Lisensi BNSP",
+  //       route: "/permohonan/sertifikasi-profesi",
+  //       isAvailable: true,
+  //     },
+  //   ],
+  // },
   {
     title: "5. Pelatihan, Konsultasi & Rekayasa",
     desc: "Program peningkatan SDM industri dan asistensi teknologi manufaktur.",

@@ -1,8 +1,8 @@
-// components/input-service-requests/multiGrk/Step3Pernyataan.tsx
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
-import { ShieldCheck, Handshake } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../ui/Card"
+import { ShieldCheck, CheckCheck } from "lucide-react"
 import { GrkValidasiFormData } from "../../../../types/grk"
+import { LegalStatementBox } from "../../../forms"
 
 interface Props {
     formData: GrkValidasiFormData
@@ -10,9 +10,9 @@ interface Props {
 }
 
 export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
-
     const pernyataanPerubahan = Boolean(formData.pernyataanPerubahan)
     const pernyataanPemohon = Boolean(formData.pernyataanPemohon ?? (formData as any).pernyataanPermohonan)
+    const isAllChecked = pernyataanPerubahan && pernyataanPemohon
 
     const handleCheckboxChange = (field: "pernyataanPerubahan" | "pernyataanPemohon", checked: boolean) => {
         setFormData((prev) => ({
@@ -24,79 +24,76 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
         }))
     }
 
+    const handleToggleAll = () => {
+        const nextState = !isAllChecked
+        setFormData((prev) => ({
+            ...prev,
+            pernyataanPerubahan: nextState,
+            pernyataanPemohon: nextState,
+            pernyataanPermohonan: nextState,
+        }))
+    }
+
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
             <Card className="border-brand-100 shadow-sm">
                 <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <CardTitle className="text-base flex items-center gap-2">
+                            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                                 <ShieldCheck className="w-4 h-4 text-brand-600" />
-                                Pernyataan
+                                Pernyataan Hukum & Persetujuan Pemohon
                             </CardTitle>
+                            <CardDescription>
+                                Harap telaah dan setujui klausul pertanggungjawaban serta komitmen validasi GRK berikut
+                            </CardDescription>
                         </div>
+
+                        <button
+                            type="button"
+                            onClick={handleToggleAll}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer self-start sm:self-auto shrink-0 ${
+                                isAllChecked
+                                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                                    : "bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200"
+                            }`}
+                        >
+                            <CheckCheck className="w-3.5 h-3.5 text-brand-600" />
+                            {isAllChecked ? "Batalkan Semua" : "Setujui Semua Klausul"}
+                        </button>
                     </div>
                 </CardHeader>
 
-                <CardContent className="pt-6 space-y-6">
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-xs bg-white">
-                        <table className="w-full border-collapse text-left text-sm">
-                            <tbody className="divide-y divide-slate-200">
-                                <tr className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors">
-                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top text-xs font-bold text-slate-800">
-                                        <div className="flex justify-between items-start">
-                                            <span>Perubahan pada Laporan</span>
-                                            <span className="text-slate-400 font-normal">:</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4 align-top">
-                                        <label className="flex items-start gap-3 cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                id="perubahan_laporan"
-                                                name="perubahan_laporan"
-                                                checked={pernyataanPerubahan}
-                                                onChange={(e) => handleCheckboxChange("pernyataanPerubahan", e.target.checked)}
-                                                className="mt-0.5 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
-                                            />
-                                            <span className="text-xs text-slate-700 leading-relaxed">
-                                                Setelah Laporan*) diterbitkan, kami <strong className="font-bold text-slate-900">tidak akan</strong> meminta diadakannya perubahan pada laporan mengenai tanda-tanda contoh maupun alamat peminta Sertifikasi.
-                                            </span>
-                                        </label>
-                                    </td>
-                                </tr>
+                <CardContent className="pt-6 space-y-4">
+                    {/* Klausul 1: Perubahan Laporan */}
+                    <LegalStatementBox
+                        title="Pernyataan Perubahan pada Laporan Validasi"
+                        badgeText="Klausul Laporan"
+                        subtitle="Komitmen bahwa setelah laporan validasi diterbitkan secara sah, pemohon tidak akan mengajukan perubahan pada tanda contoh maupun data identitas."
+                        checked={pernyataanPerubahan}
+                        onChange={(checked) => handleCheckboxChange("pernyataanPerubahan", checked)}
+                        keyPoints={[
+                            "Setelah Laporan diterbitkan, kami tidak akan meminta diadakannya perubahan pada laporan mengenai tanda-tanda contoh maupun alamat peminta Validasi/Sertifikasi."
+                        ]}
+                        legalTitle="Klausul Resmi Regulasi Laporan"
+                        legalFullText="Setelah Laporan Validasi diterbitkan secara sah oleh Lembaga Validasi & Verifikasi (LVV) BBSPJIKKP, data identitas pemohon dan penandaan contoh bersifat final dan tidak dapat diubah tanpa prosedur penerbitan ulang resmi sesuai regulasi KAN dan ISO 14065."
+                    />
 
-                                <tr className="divide-x divide-slate-200 hover:bg-slate-50/30 transition-colors">
-                                    <td className="px-5 py-4 w-[32%] sm:w-[26%] align-top text-xs font-bold text-slate-800">
-                                        <div className="flex justify-between items-start">
-                                            <span>Pernyataan Pemohon</span>
-                                            <span className="text-slate-400 font-normal">:</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4 align-top">
-                                        <label className="flex items-start gap-3 cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                id="pernyataan_pemohon"
-                                                name="pernyataan_pemohon"
-                                                checked={pernyataanPemohon}
-                                                onChange={(e) => handleCheckboxChange("pernyataanPemohon", e.target.checked)}
-                                                className="mt-0.5 w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded cursor-pointer"
-                                            />
-                                            <span className="text-xs text-slate-700 leading-relaxed">
-                                                Kami telah mengisi data dengan benar, agar digunakan sebagaimana mestinya.
-                                            </span>
-                                        </label>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    {/* Klausul 2: Integritas Pemohon */}
+                    <LegalStatementBox
+                        title="Pernyataan Kebenaran Data dan Integritas Pemohon"
+                        badgeText="Integritas Pemohon"
+                        subtitle="Pernyataan resmi bahwa seluruh data teknis, kuantifikasi emisi GRK, dan dokumen yang diunggah adalah sah dan benar."
+                        checked={pernyataanPemohon}
+                        onChange={(checked) => handleCheckboxChange("pernyataanPemohon", checked)}
+                        keyPoints={[
+                            "Kami telah mengisi seluruh formulir dengan jujur, benar, dan sah secara hukum agar digunakan sebagaimana mestinya dalam proses validasi GRK."
+                        ]}
+                    />
                 </CardContent>
             </Card>
         </div>
     )
 }
-
 
 export default FormPernyataan

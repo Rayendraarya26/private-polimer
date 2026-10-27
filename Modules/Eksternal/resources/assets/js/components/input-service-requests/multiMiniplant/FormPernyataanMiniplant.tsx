@@ -5,6 +5,7 @@ import { DetailPermohonanData } from "./FormDetailPermohonan"
 import { PelangganData } from "./FormInformasiPelanggan"
 import { SelectedPerlakuanItem } from "./FormPerlakuanMiniplant"
 import { useMasterMiniplantQuery } from "../../../hooks/queries/useMasterQuery"
+import { LegalStatementBox } from "../../forms"
 
 export interface FormPernyataanMiniplantProps {
     jenisLayananJudul?: string
@@ -180,41 +181,19 @@ export const FormPernyataanMiniplant: React.FC<FormPernyataanMiniplantProps> = (
                 </div>
 
                 {/* 4. Kotak Pernyataan Pemohon */}
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
-                    <div className="flex items-start gap-2.5">
-                        <Info className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
-                        <div className="text-xs text-slate-700 space-y-2">
-                            <div>
-                                <p className="font-bold text-slate-900">Pernyataan Pemohon Layanan Miniplant</p>
-                                <p className="leading-relaxed text-slate-600 mt-0.5">
-                                    Dengan ini saya menyatakan bahwa data yang diisikan dalam formulir permohonan ini adalah benar dan dapat dipertanggungjawabkan, serta bersedia mematuhi ketentuan dan SOP layanan miniplant yang berlaku di BBSPJIKKP.
-                                </p>
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-200/80 text-[11px] text-slate-600 leading-relaxed">
-                                <span className="font-semibold text-slate-800">Catatan :</span>
-                                <ul className="list-disc list-inside mt-0.5 text-slate-600">
-                                    <li>Hasil Pekerjaan yang tidak diambil lebih dari 2 (dua) bulan setelah tanggal pekerjaan selesai apabila terjadi kerusakan bukan menjadi tanggung jawab BBKKP</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200">
-                        <label className="flex items-center gap-3 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={setujuPernyataan}
-                                disabled={loading}
-                                onChange={(e) => onChangePernyataan(e.target.checked)}
-                                className="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 cursor-pointer disabled:cursor-not-allowed"
-                            />
-                            <span className="text-xs font-semibold text-slate-800">
-                                Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas <span className="text-rose-500">*</span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
+                <LegalStatementBox
+                    checked={setujuPernyataan}
+                    onChange={onChangePernyataan}
+                    title="Pernyataan Pemohon Layanan Miniplant"
+                    subtitle="Komitmen kebenaran data dan tata tertib pengambilan hasil pekerjaan"
+                    bulletPoints={[
+                        "Seluruh data yang diisikan dalam formulir permohonan ini adalah benar dan dapat dipertanggungjawabkan.",
+                        "Pemohon bersedia mematuhi seluruh ketentuan dan SOP layanan miniplant yang berlaku di BBSPJIKKP.",
+                        "Hasil pekerjaan yang tidak diambil lebih dari 2 (dua) bulan setelah tanggal pekerjaan selesai, apabila terjadi kerusakan bukan menjadi tanggung jawab balai.",
+                    ]}
+                    checkboxLabel="Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas dengan penuh tanggung jawab."
+                    disabled={loading}
+                />
             </CardContent>
         </Card>
     )

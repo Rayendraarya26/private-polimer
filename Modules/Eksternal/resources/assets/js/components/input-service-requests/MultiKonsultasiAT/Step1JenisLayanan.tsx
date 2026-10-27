@@ -11,6 +11,7 @@ import {
     getMasterKonsultasiAt,
     MasterKonsultasiAtItem,
 } from "../../../services/konsultasiAt"
+import { FormField, TextInput } from "../../forms"
 
 const KATEGORI_LABEL: Record<string, string> = {
     konsultasi: "Konsultasi",
@@ -127,20 +128,18 @@ export const Step1JenisLayanan: React.FC<Step1JenisLayananProps> = ({
                 {/* Form Input Sederhana untuk Opsi 'Lainnya' */}
                 {layananKode === "lainnya" && (
                     <div className="mt-3 p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
-                        <label className="block text-xs font-semibold text-slate-800">
-                            Sebutkan Layanan Lainnya <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={layananLainnya}
-                            onChange={(e) => setLayananLainnya(e.target.value)}
-                            placeholder="Contoh: Audit Efisiensi Energi Mesin, Formulasi Komposit Karet, dll."
-                            className="w-full text-xs rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
-                            autoFocus
-                        />
-                        <p className="text-[11px] text-slate-500">
-                            Tuliskan kebutuhan spesifik konsultasi atau audit teknologi yang Anda perlukan.
-                        </p>
+                        <FormField
+                            label="Sebutkan Layanan Lainnya"
+                            required
+                            helperText="Tuliskan kebutuhan spesifik konsultasi atau audit teknologi yang Anda perlukan."
+                        >
+                            <TextInput
+                                value={layananLainnya}
+                                onChange={(e) => setLayananLainnya(e.target.value)}
+                                placeholder="Contoh: Audit Efisiensi Energi Mesin, Formulasi Komposit Karet, dll."
+                                autoFocus
+                            />
+                        </FormField>
                     </div>
                 )}
             </CardContent>

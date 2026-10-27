@@ -1,7 +1,7 @@
-import React, { useEffect } from "react"
+import React from "react"
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../ui/Card"
-import { UserCheck, Loader2 } from "lucide-react"
-import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
+import { FileText, Wrench } from "lucide-react"
+import { FormField, TextInput, TextareaInput } from "../../forms"
 
 export interface DetailPermohonanData {
     jasaDiminta?: 'proses' | 'mesin' | ''
@@ -31,7 +31,6 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
     fasilitasJudul,
     loading = false,
 }) => {
-
     const handleChange = (field: keyof DetailPermohonanData, value: string) => {
         setFormData?.((prev) => ({
             ...(prev || {}),
@@ -39,16 +38,13 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
         }))
     }
 
-    const jasaDiminta = formData?.jasaDiminta || ""
-
-
     return (
         <Card className="border-brand-100 shadow-sm">
             <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
                 <div className="flex items-start justify-between">
                     <div>
                         <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                            <UserCheck className="w-4 h-4 text-brand-600" />
+                            <FileText className="w-4 h-4 text-brand-600" />
                             Detail Permohonan
                         </CardTitle>
                         <CardDescription>
@@ -59,154 +55,111 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
             </CardHeader>
 
             <CardContent className="pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                    <div>
+                        <FormField label="Jenis Barang" required>
+                            <TextInput
+                                placeholder="Contoh: Kulit Sapi Wet Blue / Kompon Karet"
+                                value={formData?.jenisBarang || ""}
+                                onChange={(e) => handleChange("jenisBarang", e.target.value)}
+                            />
+                        </FormField>
+                    </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Jenis Barang <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Jenis Barang"
-                            name="jenis_barang"
-                            id="jenis_barang"
-                            value={formData?.jenisBarang}
-                            onChange={(e) => handleChange("jenisBarang", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Jumlah Barang <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="Jumlah barang yang akan diproses"
-                            name="jumlah_barang"
-                            id="jumlah_barang"
-                            min={1}
-                            value={formData?.jumlahBarang}
-                            onChange={(e) => handleChange("jumlahBarang", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                        />
+                        <FormField label="Jumlah Barang" required>
+                            <TextInput
+                                type="number"
+                                placeholder="Jumlah barang yang akan diproses"
+                                min={1}
+                                value={String(formData?.jumlahBarang ?? "")}
+                                onChange={(e) => handleChange("jumlahBarang", e.target.value)}
+                            />
+                        </FormField>
                     </div>
 
                     <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Perlakuan yang diminta <span className="text-slate-400 font-normal">(Opsional)</span>
-                        </label>
-                        <textarea
-                            rows={4}
-                            id="perlakuan_diminta"
-                            name="perlakuan_diminta"
-                            placeholder="Deskripsikan perlakuan atau catatan khusus yang diminta..."
-                            value={formData?.perlakuanDiminta}
-                            onChange={(e) => handleChange("perlakuanDiminta", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                        />
+                        <FormField
+                            label="Perlakuan yang Diminta"
+                            helperText="Deskripsikan perlakuan atau catatan khusus yang diminta (opsional)"
+                        >
+                            <TextareaInput
+                                rows={3}
+                                placeholder="Deskripsikan perlakuan atau catatan khusus yang diminta..."
+                                value={formData?.perlakuanDiminta || ""}
+                                onChange={(e) => handleChange("perlakuanDiminta", e.target.value)}
+                            />
+                        </FormField>
                     </div>
 
                     {/* Parameter Teknis Tambahan (Opsional) */}
-                    <div className="md:col-span-2 pt-2 border-t border-slate-100">
-                        <label className="block text-xs font-bold text-slate-800 mb-3">
-                            Parameter Teknis Mesin / Proses <span className="text-slate-400 font-normal">(Opsional)</span>
-                        </label>
-                        <div className="space-y-3.5 max-w-2xl">
+                    <div className="md:col-span-2 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Wrench className="w-4 h-4 text-brand-600" />
+                            <h4 className="text-xs font-bold text-slate-800">
+                                Parameter Teknis Mesin / Proses <span className="text-slate-400 font-normal">(Opsional)</span>
+                            </h4>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Tekanan */}
-                            <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr_60px_130px] items-center gap-3">
-                                <label htmlFor="tekanan_nilai" className="text-xs font-semibold text-slate-700">
-                                    Tekanan
-                                </label>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault()
-                                    }}
-                                    placeholder="Nilai Tekanan"
-                                    name="tekanan_nilai"
-                                    id="tekanan_nilai"
-                                    value={formData?.tekananNilai}
-                                    onChange={(e) => handleChange("tekananNilai", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
-                                <span className="text-xs font-semibold text-slate-600 sm:text-center">
-                                    Satuan
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="Misal: bar, psi"
-                                    name="tekanan_satuan"
-                                    id="tekanan_satuan"
-                                    value={formData?.tekananSatuan}
-                                    onChange={(e) => handleChange("tekananSatuan", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                                <label className="block text-xs font-bold text-slate-700">Tekanan</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <TextInput
+                                        type="number"
+                                        min={0}
+                                        placeholder="Nilai"
+                                        value={String(formData?.tekananNilai ?? "")}
+                                        onChange={(e) => handleChange("tekananNilai", e.target.value)}
+                                    />
+                                    <TextInput
+                                        placeholder="Satuan (bar, psi)"
+                                        value={formData?.tekananSatuan || ""}
+                                        onChange={(e) => handleChange("tekananSatuan", e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             {/* Waktu */}
-                            <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr_60px_130px] items-center gap-3">
-                                <label htmlFor="waktu_nilai" className="text-xs font-semibold text-slate-700">
-                                    Waktu
-                                </label>
-                                <input
-                                    type="number"
-                                    min={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault()
-                                    }}
-                                    placeholder="Nilai Waktu"
-                                    name="waktu_nilai"
-                                    id="waktu_nilai"
-                                    value={formData?.waktuNilai}
-                                    onChange={(e) => handleChange("waktuNilai", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
-                                <span className="text-xs font-semibold text-slate-600 sm:text-center">
-                                    Satuan
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="Misal: menit, jam"
-                                    name="waktu_satuan"
-                                    id="waktu_satuan"
-                                    value={formData?.waktuSatuan}
-                                    onChange={(e) => handleChange("waktuSatuan", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                                <label className="block text-xs font-bold text-slate-700">Waktu</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <TextInput
+                                        type="number"
+                                        min={0}
+                                        placeholder="Nilai"
+                                        value={String(formData?.waktuNilai ?? "")}
+                                        onChange={(e) => handleChange("waktuNilai", e.target.value)}
+                                    />
+                                    <TextInput
+                                        placeholder="Satuan (menit, jam)"
+                                        value={formData?.waktuSatuan || ""}
+                                        onChange={(e) => handleChange("waktuSatuan", e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             {/* Temperatur */}
-                            <div className="grid grid-cols-1 sm:grid-cols-[110px_1fr_60px_130px] items-center gap-3">
-                                <label htmlFor="temperatur_nilai" className="text-xs font-semibold text-slate-700">
-                                    Temperatur
-                                </label>
-                                <input
-                                    type="number"
-                                    placeholder="Nilai Temperatur"
-                                    name="temperatur_nilai"
-                                    id="temperatur_nilai"
-                                    value={formData?.temperaturNilai}
-                                    onChange={(e) => handleChange("temperaturNilai", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
-                                <span className="text-xs font-semibold text-slate-600 sm:text-center">
-                                    Satuan
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="Misal: °C"
-                                    name="temperatur_satuan"
-                                    id="temperatur_satuan"
-                                    value={formData?.temperaturSatuan}
-                                    onChange={(e) => handleChange("temperaturSatuan", e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                />
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                                <label className="block text-xs font-bold text-slate-700">Temperatur</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <TextInput
+                                        type="number"
+                                        placeholder="Nilai"
+                                        value={String(formData?.temperaturNilai ?? "")}
+                                        onChange={(e) => handleChange("temperaturNilai", e.target.value)}
+                                    />
+                                    <TextInput
+                                        placeholder="Satuan (°C)"
+                                        value={formData?.temperaturSatuan || ""}
+                                        onChange={(e) => handleChange("temperaturSatuan", e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </CardContent>
         </Card>
     )

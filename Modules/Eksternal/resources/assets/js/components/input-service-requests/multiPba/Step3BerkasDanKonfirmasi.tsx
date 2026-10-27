@@ -1,16 +1,12 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import {
   ShieldCheck,
-  UploadCloud,
-  FileText,
-  AlertCircle,
   Building2,
   Package,
-  X,
   FileCheck2,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card'
-import { toast } from 'react-hot-toast'
+import { DropzoneUploader, LegalStatementBox } from '../../forms'
 
 interface Step3SummaryData {
   namaPerusahaan: string
@@ -43,28 +39,6 @@ export const Step3BerkasDanKonfirmasi: React.FC<Step3BerkasDanKonfirmasiProps> =
   pernyataanKonfirmasi,
   setPernyataanKonfirmasi,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Ukuran file maksimal 10 MB')
-      return
-    }
-
-    setFileSuratPermohonan(file)
-    toast.success(`File ${file.name} berhasil dipilih`)
-  }
-
-  const handleRemoveFile = () => {
-    setFileSuratPermohonan(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
-
   const namaProdukDisplay =
     summaryData.produkPesanan === 'Yang lain' && summaryData.produkLainnya
       ? `Yang lain (${summaryData.produkLainnya})`
@@ -88,70 +62,21 @@ export const Step3BerkasDanKonfirmasi: React.FC<Step3BerkasDanKonfirmasiProps> =
 
       <CardContent className="pt-6 space-y-6">
         {/* 1. Unggah Surat Permohonan / PO */}
-        <div className="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 space-y-4">
-          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-            <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
-              <UploadCloud className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 tracking-tight">
-                Unggah Surat Permohonan / Purchase Order (PO)
-              </h4>
-              <p className="text-[11px] text-slate-500">
-                Pindaian (scan) surat permohonan resmi bertanda tangan dan berstempel atau dokumen PO (PDF / JPG / PNG, maks. 10 MB) - Opsional
-              </p>
-            </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-800">
+            Unggah Surat Permohonan / Purchase Order (PO) <span className="text-slate-400 font-normal">(Opsional)</span>
+          </label>
+          <DropzoneUploader
+            value={fileSuratPermohonan}
+            onChange={(file) => setFileSuratPermohonan(file)}
             accept=".pdf,.jpg,.jpeg,.png"
-            className="hidden"
-            onChange={handleFileChange}
+            maxSizeMB={10}
+            label="Pilih atau Tarik Berkas Surat Permohonan / PO ke Sini"
+            helperText="Scan surat permohonan resmi bertanda tangan dan berstempel atau dokumen PO (PDF / JPG / PNG, maks 10 MB)"
           />
-
-          {fileSuratPermohonan ? (
-            <div className="flex items-center justify-between p-3.5 bg-brand-50/60 border border-brand-200 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-900">{fileSuratPermohonan.name}</p>
-                  <p className="text-[11px] text-slate-500">
-                    {(fileSuratPermohonan.size / 1024 / 1024).toFixed(2)} MB • Berkas siap dilampirkan
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleRemoveFile}
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                title="Hapus berkas"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 hover:border-brand-500 rounded-xl p-5 text-center cursor-pointer transition-colors bg-white hover:bg-brand-50/30"
-            >
-              <div className="w-10 h-10 mx-auto rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-2">
-                <UploadCloud className="w-5 h-5" />
-              </div>
-              <p className="text-xs font-bold text-slate-800">
-                Klik di sini untuk memilih file scan surat permohonan atau PO
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Format yang didukung: PDF, JPG, PNG (maksimal 10 MB)
-              </p>
-            </div>
-          )}
         </div>
 
-        {/* 2. Ringkasan Data Permohonan (Format sama persis dengan Step4PernyataanKonfirmasi) */}
+        {/* 2. Ringkasan Data Permohonan */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Card Ringkasan Perusahaan & Pengiriman */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
@@ -231,39 +156,19 @@ export const Step3BerkasDanKonfirmasi: React.FC<Step3BerkasDanKonfirmasiProps> =
           </div>
         </div>
 
-        {/* 3. Klausul Pernyataan Pemohon (Sama persis dengan Step4PernyataanKonfirmasi) */}
-        <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-3">
-          <h4 className="text-xs font-bold text-amber-900 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600" />
-            Pernyataan Pemohon Produsen Bahan Acuan (PBA)
-          </h4>
-
-          <ul className="space-y-1.5 text-xs text-amber-950/80 leading-relaxed list-disc list-inside">
-            <li>
-              Seluruh data identitas perusahaan, narahubung teknis, dan alamat pengiriman fisik yang disampaikan adalah benar dan sah;
-            </li>
-            <li>
-              Kami memahami dan bersedia mematuhi seluruh prosedur operasional penyediaan Bahan Acuan Standar BBSPJIKKP;
-            </li>
-            <li>
-              Kami berkomitmen untuk melakukan penyelesaian pembayaran tarif PNBP resmi sesuai invoice yang diterbitkan oleh balai.
-            </li>
-          </ul>
-
-          <div className="pt-2 border-t border-amber-200/80">
-            <label className="flex items-start gap-2.5 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                className="mt-0.5 w-4 h-4 rounded border-amber-300 text-brand-600 focus:ring-brand-500"
-                checked={pernyataanKonfirmasi}
-                onChange={(e) => setPernyataanKonfirmasi(e.target.checked)}
-              />
-              <span className="text-xs font-semibold text-slate-800">
-                Saya telah membaca, memahami, dan menyetujui seluruh klausul pernyataan di atas dengan penuh tanggung jawab.
-              </span>
-            </label>
-          </div>
-        </div>
+        {/* 3. Klausul Pernyataan Pemohon */}
+        <LegalStatementBox
+          checked={pernyataanKonfirmasi}
+          onChange={setPernyataanKonfirmasi}
+          title="Pernyataan Pemohon Produsen Bahan Acuan (PBA)"
+          subtitle="Konfirmasi keabsahan identitas, kepatuhan SOP, dan tarif PNBP"
+          bulletPoints={[
+            "Seluruh data identitas perusahaan, narahubung teknis, dan alamat pengiriman fisik yang disampaikan adalah benar dan sah.",
+            "Kami memahami dan bersedia mematuhi seluruh prosedur operasional penyediaan Bahan Acuan Standar BBSPJIKKP.",
+            "Kami berkomitmen untuk melakukan penyelesaian pembayaran tarif PNBP resmi sesuai invoice yang diterbitkan oleh balai.",
+          ]}
+          checkboxLabel="Saya telah membaca, memahami, dan menyetujui seluruh klausul pernyataan di atas dengan penuh tanggung jawab."
+        />
       </CardContent>
     </Card>
   )

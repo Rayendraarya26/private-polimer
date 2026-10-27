@@ -19,6 +19,7 @@ import {
     CardContent,
     CardDescription,
 } from "../../ui/Card"
+import { FormField, TextareaInput } from "../../forms"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB
 
@@ -302,20 +303,18 @@ export const Step2UnggahDokumen: React.FC<Step2UnggahDokumenProps> = ({
                 )}
 
                 {/* Catatan Tambahan Dokumen (Opsional) */}
-                <div className="space-y-1.5 pt-2">
-                    <label className="block text-xs font-semibold text-slate-700">
-                        Keterangan / Catatan Tambahan Dokumen <span className="text-slate-400 font-normal">(Opsional)</span>
-                    </label>
-                    <textarea
-                        value={catatanDokumen}
-                        onChange={(e) => setCatatanDokumen(e.target.value)}
-                        rows={3}
-                        placeholder="Tuliskan keterangan berkas atau informasi pendukung lainnya jika ada..."
-                        className="w-full text-xs rounded-xl border border-slate-300 bg-white p-3 text-slate-800 placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all shadow-xs resize-none"
-                    />
-                    <p className="text-[11px] text-slate-500">
-                        Jika berkas Anda terdiri dari banyak dokumen atau folder, Anda dapat mengompresnya menjadi satu arsip <strong className="font-semibold text-slate-700">ZIP / RAR</strong> atau dokumen <strong className="font-semibold text-slate-700">PDF</strong>.
-                    </p>
+                <div className="pt-2">
+                    <FormField
+                        label="Keterangan / Catatan Tambahan Dokumen"
+                        helperText="Jika berkas Anda terdiri dari banyak dokumen atau folder, Anda dapat mengompresnya menjadi satu arsip ZIP / RAR atau dokumen PDF."
+                    >
+                        <TextareaInput
+                            value={catatanDokumen}
+                            onChange={(e) => setCatatanDokumen(e.target.value)}
+                            rows={3}
+                            placeholder="Tuliskan keterangan berkas atau informasi pendukung lainnya jika ada..."
+                        />
+                    </FormField>
                 </div>
             </CardContent>
         </Card>

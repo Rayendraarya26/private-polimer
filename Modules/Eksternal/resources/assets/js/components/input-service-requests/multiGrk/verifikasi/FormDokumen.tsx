@@ -1,8 +1,8 @@
-// components/input-service-requests/multiGrk/Step2TambahanDanDokumen.tsx
 import React from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
 import { FileText, Info } from "lucide-react"
 import { GrkVerifikasiFormData, INITIAL_DOKUMEN_ITEMS } from "../../../../types/grk"
+import { TextareaInput } from "../../../forms"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -82,14 +82,13 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                                             <label className="block text-xs font-bold text-slate-800 mb-1.5">
                                                 Keterangan
                                             </label>
-                                            <textarea
+                                            <TextareaInput
                                                 rows={3}
                                                 id={item.id}
                                                 name={item.id}
                                                 value={item.keterangan}
                                                 onChange={(e) => handleDokumenChange(item.id, e.target.value)}
                                                 placeholder="Sebutkan nomor dokumen atau berikan keterangan tidak ada"
-                                                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
                                             />
                                         </td>
                                     </tr>

@@ -14,6 +14,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card'
 import { RegionBase } from '../../../services/region-service'
 import { useProfileQuery } from '../../../hooks/queries/useProfileQuery'
+import { FormField, TextInput, TextareaInput, SelectInput } from '../../forms'
 
 interface Step1PerusahaanDanPengirimanProps {
   namaPerusahaan: string
@@ -167,36 +168,23 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Perusahaan / Lembaga <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: PT. Industri Karet Standar Nasional"
-                  value={namaPerusahaan}
-                  onChange={(e) => setNamaPerusahaan(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
+            <FormField label="Nama Perusahaan / Lembaga" required>
+              <TextInput
+                placeholder="Contoh: PT. Industri Karet Standar Nasional"
+                value={namaPerusahaan}
+                onChange={(e) => setNamaPerusahaan(e.target.value)}
+                leftIcon={<Building2 className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Perusahaan (Kantor/Legal) <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Alamat Perusahaan (Kantor/Legal)" required>
+              <TextareaInput
                 rows={2}
-                required
                 placeholder="Alamat kantor pusat / badan usaha pemohon"
                 value={alamatPerusahaan}
                 onChange={(e) => setAlamatPerusahaan(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed resize-none"
               />
-            </div>
+            </FormField>
           </div>
         </div>
 
@@ -217,56 +205,34 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Narahubung <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Nama lengkap PIC"
-                  value={contactPerson}
-                  onChange={(e) => setContactPerson(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
+            <FormField label="Nama Narahubung" required>
+              <TextInput
+                placeholder="Nama lengkap PIC"
+                value={contactPerson}
+                onChange={(e) => setContactPerson(e.target.value)}
+                leftIcon={<User className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                No. WhatsApp / HP <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="tel"
-                  required
-                  placeholder="Contoh: 08123456789"
-                  value={noKontak}
-                  onChange={(e) => setNoKontak(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
+            <FormField label="No. WhatsApp / HP" required>
+              <TextInput
+                type="tel"
+                placeholder="Contoh: 08123456789"
+                value={noKontak}
+                onChange={(e) => setNoKontak(e.target.value)}
+                leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Aktif <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="email"
-                  required
-                  placeholder="pic@perusahaan.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
+            <FormField label="Email Aktif" required>
+              <TextInput
+                type="email"
+                placeholder="pic@perusahaan.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
           </div>
         </div>
 
@@ -296,7 +262,7 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
               <label
                 className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
                   opsiAlamatKirim === 'pemohon'
-                    ? 'bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900'
+                    ? 'bg-brand-50/80 border-brand-500 ring-2 ring-brand-500/20 text-brand-900'
                     : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                 }`}
               >
@@ -316,12 +282,12 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
                 </div>
               </label>
 
-              {/* Opsi 2: Sesuai Alamat Pabrik (Jika profil memiliki alamat pabrik) */}
+              {/* Opsi 2: Sesuai Alamat Pabrik */}
               {alamatPabrik && (
                 <label
                   className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
                     opsiAlamatKirim === 'pabrik'
-                      ? 'bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900'
+                      ? 'bg-brand-50/80 border-brand-500 ring-2 ring-brand-500/20 text-brand-900'
                       : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                   }`}
                 >
@@ -344,7 +310,7 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
               <label
                 className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
                   opsiAlamatKirim === 'manual'
-                    ? 'bg-brand-50/80 border-brand-400 ring-2 ring-brand-500/20 text-brand-900'
+                    ? 'bg-brand-50/80 border-brand-500 ring-2 ring-brand-500/20 text-brand-900'
                     : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                 }`}
               >
@@ -439,67 +405,44 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
 
           {opsiAlamatKirim === 'manual' && (
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-4 animate-in fade-in-50 duration-200">
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                  Alamat Lengkap Pengiriman <span className="text-rose-500">*</span>
-                </label>
-                <textarea
+              <FormField label="Alamat Lengkap Pengiriman" required>
+                <TextareaInput
                   rows={3}
-                  required
                   placeholder="Tuliskan detail alamat pengiriman: nama lab, gedung, jalan, nomor, RT/RW, dan kode pos..."
                   value={alamatPengiriman}
                   onChange={(e) => setAlamatPengiriman(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 leading-relaxed resize-none transition-colors"
                 />
-              </div>
+              </FormField>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-                    <span>Provinsi Tujuan Pengiriman</span>
-                    {loadingRegions && <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-600" />}
-                  </label>
-                  <div className="relative">
-                    <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                    <select
-                      value={selectedProvId}
-                      onChange={(e) => {
-                        setSelectedProvId(e.target.value)
-                        setSelectedKabId('')
-                      }}
-                      className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium transition-colors"
-                    >
-                      <option value="">-- Pilih Provinsi --</option>
-                      {provinces.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nama}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                <FormField
+                  label="Provinsi Tujuan Pengiriman"
+                  helperText={loadingRegions ? 'Memuat data provinsi...' : undefined}
+                >
+                  <SelectInput
+                    value={selectedProvId}
+                    onChange={(val) => {
+                      setSelectedProvId(String(val))
+                      setSelectedKabId('')
+                    }}
+                    options={[
+                      { value: '', label: '-- Pilih Provinsi --' },
+                      ...provinces.map((p) => ({ value: String(p.id), label: p.nama })),
+                    ]}
+                  />
+                </FormField>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Kota / Kabupaten Tujuan Pengiriman
-                  </label>
-                  <div className="relative">
-                    <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                    <select
-                      value={selectedKabId}
-                      onChange={(e) => setSelectedKabId(e.target.value)}
-                      disabled={!selectedProvId}
-                      className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium disabled:bg-slate-100 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <option value="">-- Pilih Kota/Kabupaten --</option>
-                      {regencies.map((k) => (
-                        <option key={k.id} value={k.id}>
-                          {k.nama}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                <FormField label="Kota / Kabupaten Tujuan Pengiriman">
+                  <SelectInput
+                    value={selectedKabId}
+                    onChange={(val) => setSelectedKabId(String(val))}
+                    disabled={!selectedProvId}
+                    options={[
+                      { value: '', label: '-- Pilih Kota/Kabupaten --' },
+                      ...regencies.map((k) => ({ value: String(k.id), label: k.nama })),
+                    ]}
+                  />
+                </FormField>
               </div>
             </div>
           )}

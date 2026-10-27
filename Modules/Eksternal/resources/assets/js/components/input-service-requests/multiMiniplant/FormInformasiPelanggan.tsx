@@ -1,9 +1,10 @@
 import React, { useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../ui/Card"
-import { UserCheck, Loader2, Sparkles } from "lucide-react"
+import { UserCheck, User, Phone, MapPin } from "lucide-react"
 import { toast } from "react-hot-toast"
 import useProfile from "../../../hooks/useProfile"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
+import { FormField, TextInput, TextareaInput } from "../../forms"
 
 export interface PelangganData {
     namaPemohon?: string
@@ -119,7 +120,7 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
     return (
         <Card className="border-brand-100 shadow-sm">
             <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                             <UserCheck className="w-4 h-4 text-brand-600" />
@@ -129,60 +130,59 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
                             Data identitas dan kontak pemohon layanan miniplant
                         </CardDescription>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={handleApplyProfileData}
+                        disabled={isFieldDisabled}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 hover:border-brand-300 transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                        <UserCheck className="w-3.5 h-3.5 text-brand-600" />
+                        <span>Gunakan Profil Akun</span>
+                    </button>
                 </div>
             </CardHeader>
 
             <CardContent className="pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Nama Pemohon */}
-                    <div className="md:col-span-1 md:col-start-1">
-                        <label htmlFor="namaPemohon" className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Nama Peminta Jasa <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Nama Lengkap Peminta Jasa"
-                            name="namaPemohon"
-                            id="namaPemohon"
-                            disabled={isFieldDisabled}
-                            value={formData?.namaPemohon || ""}
-                            onChange={(e) => handleChange("namaPemohon", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                        />
+                    <div className="md:col-span-1">
+                        <FormField label="Nama Peminta Jasa" required>
+                            <TextInput
+                                placeholder="Nama Lengkap Peminta Jasa"
+                                disabled={isFieldDisabled}
+                                value={formData?.namaPemohon || ""}
+                                onChange={(e) => handleChange("namaPemohon", e.target.value)}
+                                leftIcon={<User className="w-4 h-4 text-slate-400" />}
+                            />
+                        </FormField>
                     </div>
 
                     {/* Nomor Telepon */}
-                    <div className="md:col-span-1 md:col-start-1">
-                        <label htmlFor="no_telp" className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Nomor Telepon / WhatsApp <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="tel"
-                            placeholder="Contoh: 081234567890"
-                            name="no_telp"
-                            id="no_telp"
-                            disabled={isFieldDisabled}
-                            value={formData?.no_telp || ""}
-                            onChange={(e) => handleChange("no_telp", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                        />
+                    <div className="md:col-span-1">
+                        <FormField label="Nomor Telepon / WhatsApp" required>
+                            <TextInput
+                                type="tel"
+                                placeholder="Contoh: 081234567890"
+                                disabled={isFieldDisabled}
+                                value={formData?.no_telp || ""}
+                                onChange={(e) => handleChange("no_telp", e.target.value)}
+                                leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
+                            />
+                        </FormField>
                     </div>
 
                     {/* Alamat */}
                     <div className="md:col-span-2">
-                        <label htmlFor="alamat" className="block text-xs font-bold text-slate-800 mb-1.5">
-                            Alamat Peminta Jasa <span className="text-rose-500">*</span>
-                        </label>
-                        <textarea
-                            rows={3}
-                            id="alamat"
-                            name="alamat"
-                            placeholder="Alamat lengkap instansi / pemohon..."
-                            disabled={isFieldDisabled}
-                            value={formData?.alamat || ""}
-                            onChange={(e) => handleChange("alamat", e.target.value)}
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                        />
+                        <FormField label="Alamat Peminta Jasa" required>
+                            <TextareaInput
+                                rows={3}
+                                placeholder="Alamat lengkap instansi / pemohon..."
+                                disabled={isFieldDisabled}
+                                value={formData?.alamat || ""}
+                                onChange={(e) => handleChange("alamat", e.target.value)}
+                            />
+                        </FormField>
                     </div>
                 </div>
             </CardContent>

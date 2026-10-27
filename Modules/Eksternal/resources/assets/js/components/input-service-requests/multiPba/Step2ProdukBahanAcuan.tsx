@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card'
 import { PbaProductItem } from '../../../types/pba'
+import { FormField, TextInput } from '../../forms'
 
 interface Step2ProdukBahanAcuanProps {
   catalog: PbaProductItem[]
@@ -84,34 +85,34 @@ export const Step2ProdukBahanAcuan: React.FC<Step2ProdukBahanAcuanProps> = ({
                 <div
                   key={item.id}
                   onClick={() => setProdukPesanan(item.nama)}
-                  className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-150 flex items-start justify-between gap-3 ${
+                  className={`relative cursor-pointer rounded-xl border p-4 transition-all duration-150 flex items-start justify-between gap-3 min-h-[58px] ${
                     isSelected
                       ? 'border-brand-600 bg-brand-50/50 ring-2 ring-brand-500/20 shadow-xs'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${isSelected ? 'bg-white shadow-xs' : 'bg-slate-100'}`}>
+                    <div className={`p-2.5 rounded-lg shrink-0 mt-0.5 ${isSelected ? 'bg-white shadow-xs' : 'bg-slate-100'}`}>
                       <Boxes className={`w-5 h-5 ${isSelected ? 'text-brand-600' : 'text-slate-500'}`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-xs font-bold text-slate-900 leading-snug">{item.nama}</h4>
+                        <h4 className="text-sm font-bold text-slate-900 leading-snug">{item.nama}</h4>
                         {item.standar && (
-                          <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                          <span className="text-[11px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-md">
                             {item.standar}
                           </span>
                         )}
                       </div>
                       {item.deskripsi && (
-                        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{item.deskripsi}</p>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">{item.deskripsi}</p>
                       )}
                     </div>
                   </div>
 
-                  {/* Radio Circle Indicator (Pixel-perfect centered white circle inside blue) */}
+                  {/* Radio Circle Indicator */}
                   <div
-                    className={`relative w-5 h-5 rounded-full shrink-0 mt-0.5 transition-all ${
+                    className={`relative w-5 h-5 rounded-full shrink-0 mt-1 transition-all ${
                       isSelected
                         ? 'bg-brand-600 shadow-2xs'
                         : 'border-2 border-slate-300 bg-white'
@@ -129,17 +130,16 @@ export const Step2ProdukBahanAcuan: React.FC<Step2ProdukBahanAcuanProps> = ({
           {/* Input Spesifikasi Kustom jika 'Yang lain' */}
           {produkPesanan === 'Yang lain' && (
             <div className="p-4 rounded-xl bg-white border border-brand-200 space-y-1.5 animate-in fade-in-50 duration-200">
-              <label className="block text-xs font-semibold text-slate-700">
-                Sebutkan Spesifikasi Bahan Acuan yang Dibutuhkan <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+              <FormField
+                label="Sebutkan Spesifikasi Bahan Acuan yang Dibutuhkan"
                 required
-                placeholder="Contoh: Standar Kalibrasi Mooney Viscometer Type B"
-                value={produkLainnya}
-                onChange={(e) => setProdukLainnya(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
-              />
+              >
+                <TextInput
+                  placeholder="Contoh: Standar Kalibrasi Mooney Viscometer Type B"
+                  value={produkLainnya}
+                  onChange={(e) => setProdukLainnya(e.target.value)}
+                />
+              </FormField>
             </div>
           )}
         </div>
@@ -160,36 +160,28 @@ export const Step2ProdukBahanAcuan: React.FC<Step2ProdukBahanAcuanProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jumlah yang Dipesan <span className="text-rose-500">*</span>
-              </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+            <FormField label="Jumlah yang Dipesan" required>
               <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min={1}
-                  required
-                  value={jumlah}
-                  onChange={(e) => setJumlah(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-28 rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-semibold"
-                />
-                <span className="text-xs text-slate-600 font-medium">{satuan}</span>
+                <div className="w-32">
+                  <TextInput
+                    type="number"
+                    min={1}
+                    value={String(jumlah)}
+                    onChange={(e) => setJumlah(Math.max(1, parseInt(e.target.value) || 1))}
+                  />
+                </div>
+                <span className="text-sm text-slate-700 font-semibold">{satuan}</span>
               </div>
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Catatan / Instruksi Tambahan (Opsional)
-              </label>
-              <input
-                type="text"
+            <FormField label="Catatan / Instruksi Tambahan (Opsional)">
+              <TextInput
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
                 placeholder="Catatan sertifikat CoA, instruksi pengemasan, dll."
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-medium"
               />
-            </div>
+            </FormField>
           </div>
         </div>
       </CardContent>

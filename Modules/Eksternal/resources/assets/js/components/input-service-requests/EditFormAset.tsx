@@ -22,6 +22,7 @@ import { Step1JenisDanPeriode } from './multiAset/Step1JenisDanPeriode'
 import { Step2DataPemohon } from './multiAset/Step2DataPemohon'
 import { Step3UnggahBerkasDanPernyataan } from './multiAset/Step3UnggahBerkasDanPernyataan'
 import { useAset } from '../../hooks/service-requests/useAset'
+import { RevisionBannerCallout, StickyFormActions } from '../forms'
 
 export const EditFormAset: React.FC = () => {
   const { id } = useParams()
@@ -163,6 +164,15 @@ export const EditFormAset: React.FC = () => {
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
       <Head title={`Perbaikan Permohonan Sewa Aset — ${permohonan?.no_permohonan || id}`} />
 
+      {/* Revision Notice */}
+      {(permohonan?.catatan_revisi || permohonan?.catatan) && (
+        <RevisionBannerCallout
+          catatan={permohonan?.catatan_revisi || permohonan?.catatan}
+          petugas={permohonan?.nama_petugas_revisi || permohonan?.diverifikasi_oleh}
+          tanggal={permohonan?.tgl_revisi || permohonan?.updated_at}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
         <div>
@@ -192,7 +202,7 @@ export const EditFormAset: React.FC = () => {
       </div>
 
       {/* Tab Nav */}
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto">
         {[
           { id: 0, label: '1. Fasilitas & Jadwal' },
           { id: 1, label: '2. Identitas Pemohon' },
@@ -202,9 +212,9 @@ export const EditFormAset: React.FC = () => {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
+            className={`px-4 py-2.5 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
               activeTab === tab.id
-                ? 'border-brand-600 text-brand-700 bg-brand-50/30'
+                ? 'border-brand-600 text-brand-700 bg-brand-50/40 rounded-t-lg'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -257,43 +267,18 @@ export const EditFormAset: React.FC = () => {
           />
         )}
 
-        {/* Action Buttons */}
-        <div className="mt-8 pt-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/permohonan/detail/${id}`)}
-            leftIcon={<ArrowLeft className="w-4 h-4" />}
-            disabled={submitting}
-          >
-            Batal
-          </Button>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleSave(false)}
-              isLoading={submitting}
-              leftIcon={<Save className="w-4 h-4" />}
-            >
-              Simpan Draf Perubahan
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => handleSave(true)}
-              isLoading={submitting}
-              leftIcon={<Send className="w-4 h-4" />}
-              className="bg-brand-600 hover:bg-brand-700 text-white font-semibold shadow-xs"
-            >
-              Simpan & Ajukan Ulang
-            </Button>
-          </div>
-        </div>
+        {/* Sticky Form Actions */}
+        <StickyFormActions
+          onBack={() => navigate(`/permohonan/detail/${id}`)}
+          onSaveDraft={() => handleSave(false)}
+          onSubmit={() => handleSave(true)}
+          backLabel="Batal"
+          saveDraftLabel="Simpan Draf"
+          submitLabel="Simpan & Ajukan Ulang"
+          isSubmitting={submitting}
+          isLastStep={true}
+          isSticky
+        />
       </div>
     </div>
   )

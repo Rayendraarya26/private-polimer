@@ -4,13 +4,20 @@ import {
   Calendar,
   Layers,
   MapPin,
-  CheckCircle2,
   PackageCheck,
   ShieldCheck,
+  CheckCircle2,
 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { InspeksiFormData, JenisInspeksi } from "../../../types/inspeksi"
 import { toast } from "react-hot-toast"
+import {
+  FormField,
+  TextInput,
+  DateInput,
+  SelectInput,
+  TextareaInput,
+} from "../../forms"
 
 interface Step1SpesifikasiInspeksiProps {
   formData: InspeksiFormData
@@ -47,7 +54,7 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
   }
 
   return (
-    <Card className="border-brand-100 shadow-sm">
+    <Card className="border-brand-100 shadow-sm overflow-hidden animate-in fade-in-50 duration-200">
       <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
         <div className="flex items-start justify-between">
           <div>
@@ -64,7 +71,7 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
 
       <CardContent className="pt-6 space-y-6">
         {/* 1. Data Surat Permohonan Klien */}
-        <div className="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 space-y-4">
+        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
             <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
               <FileText className="w-4 h-4" />
@@ -80,14 +87,9 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Surat Pemohon <span className="text-slate-400 font-normal">(opsional)</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="Nomor Surat Pemohon" helperText="Opsional jika ada pengantar resmi">
+              <TextInput
                 placeholder="Contoh: 018/KPA-DIR/VII/2026"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 value={dataPermohonan.no_surat_pemohon}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -99,35 +101,27 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
                   }))
                 }
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Tanggal Surat Pemohon <span className="text-slate-400 font-normal">(opsional)</span>
-              </label>
-              <div className="relative">
-                <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="date"
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  value={dataPermohonan.tgl_surat_pemohon}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      dataPermohonan: {
-                        ...prev.dataPermohonan,
-                        tgl_surat_pemohon: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </div>
+            <FormField label="Tanggal Surat Pemohon" helperText="Opsional">
+              <DateInput
+                value={dataPermohonan.tgl_surat_pemohon}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    dataPermohonan: {
+                      ...prev.dataPermohonan,
+                      tgl_surat_pemohon: e.target.value,
+                    },
+                  }))
+                }
+              />
+            </FormField>
           </div>
         </div>
 
         {/* 2. Jenis Inspeksi yang Diminta */}
-        <div className="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 space-y-4">
+        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
             <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
               <ShieldCheck className="w-4 h-4" />
@@ -146,24 +140,26 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             {/* Opsi 1: Inspeksi Kuantitas */}
             <div
               onClick={() => handleJenisToggle("kuantitas")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
-                ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
-                : "border-slate-300 hover:border-slate-400 bg-white"
-                }`}
+              className={`cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all flex items-start gap-3.5 select-none ${
+                dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
+                  ? "border-brand-600 bg-brand-50/60 ring-2 ring-brand-500/15 shadow-xs"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
-                  ? "bg-brand-600 border-brand-600 text-white"
-                  : "border-slate-300 bg-white"
-                  }`}
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
+                  dataSpesifikasi.jenis_inspeksi.includes("kuantitas")
+                    ? "bg-brand-600 border-brand-600 text-white"
+                    : "border-slate-300 bg-white"
+                }`}
               >
                 {dataSpesifikasi.jenis_inspeksi.includes("kuantitas") && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
                 )}
               </div>
-              <div>
+              <div className="space-y-1">
                 <p className="text-xs font-bold text-slate-900">Inspeksi Kuantitas</p>
-                <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                <p className="text-[11px] text-slate-600 leading-relaxed">
                   Pemeriksaan jumlah partai/lot kemasan, verifikasi volume fisik, penandaan kemasan, dan
                   kesesuaian jumlah pesanan.
                 </p>
@@ -173,24 +169,26 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             {/* Opsi 2: Inspeksi Kualitas */}
             <div
               onClick={() => handleJenisToggle("kualitas")}
-              className={`cursor-pointer border rounded-xl p-4 transition-all flex items-start gap-3 select-none ${dataSpesifikasi.jenis_inspeksi.includes("kualitas")
-                ? "border-brand-500 bg-brand-50/60 ring-1 ring-brand-500/30"
-                : "border-slate-300 hover:border-slate-400 bg-white"
-                }`}
+              className={`cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all flex items-start gap-3.5 select-none ${
+                dataSpesifikasi.jenis_inspeksi.includes("kualitas")
+                  ? "border-brand-600 bg-brand-50/60 ring-2 ring-brand-500/15 shadow-xs"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
             >
               <div
-                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${dataSpesifikasi.jenis_inspeksi.includes("kualitas")
-                  ? "bg-brand-600 border-brand-600 text-white"
-                  : "border-slate-300 bg-white"
-                  }`}
+                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
+                  dataSpesifikasi.jenis_inspeksi.includes("kualitas")
+                    ? "bg-brand-600 border-brand-600 text-white"
+                    : "border-slate-300 bg-white"
+                }`}
               >
                 {dataSpesifikasi.jenis_inspeksi.includes("kualitas") && (
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
                 )}
               </div>
-              <div>
+              <div className="space-y-1">
                 <p className="text-xs font-bold text-slate-900">Inspeksi Kualitas</p>
-                <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                <p className="text-[11px] text-slate-600 leading-relaxed">
                   Pengujian kesesuaian dimensi kemasan, kerapatan anyaman/mesh, gramatur, kekuatan tarik,
                   jahitan, serta hasil printing logo.
                 </p>
@@ -200,7 +198,7 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
         </div>
 
         {/* 3. Spesifikasi Karung Plastik */}
-        <div className="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 space-y-4">
+        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
             <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
               <Layers className="w-4 h-4" />
@@ -217,63 +215,57 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Komoditas / Nama Karung <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Contoh: Karung Plastik Beras Bantuan Pangan"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                value={dataSpesifikasi.komoditas}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    dataSpesifikasi: {
-                      ...prev.dataSpesifikasi,
-                      komoditas: e.target.value,
-                    },
-                  }))
-                }
-                required
-              />
+              <FormField label="Komoditas / Nama Karung" required>
+                <TextInput
+                  placeholder="Contoh: Karung Plastik Beras Bantuan Pangan"
+                  value={dataSpesifikasi.komoditas}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dataSpesifikasi: {
+                        ...prev.dataSpesifikasi,
+                        komoditas: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </FormField>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Kapasitas Karung <span className="text-rose-500">*</span>
-              </label>
-              <select
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                value={dataSpesifikasi.kapasitas_karung}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    dataSpesifikasi: {
-                      ...prev.dataSpesifikasi,
-                      kapasitas_karung: e.target.value,
-                    },
-                  }))
-                }
-              >
-                <option value="">-- Pilih Kapasitas Karung --</option>
-                <option value="5 kg">5 kg</option>
-                <option value="10 kg">10 kg</option>
-                <option value="20 kg">20 kg</option>
-                <option value="25 kg">25 kg</option>
-                <option value="50 kg">50 kg</option>
-                <option value="Lainnya">Lainnya / Custom</option>
-              </select>
+              <FormField label="Kapasitas Karung" required>
+                <SelectInput
+                  value={dataSpesifikasi.kapasitas_karung}
+                  onChange={(val) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dataSpesifikasi: {
+                        ...prev.dataSpesifikasi,
+                        kapasitas_karung: String(val),
+                      },
+                    }))
+                  }
+                  placeholder="-- Pilih Kapasitas Karung --"
+                  options={[
+                    { value: "5 kg", label: "5 kg" },
+                    { value: "10 kg", label: "10 kg" },
+                    { value: "20 kg", label: "20 kg" },
+                    { value: "25 kg", label: "25 kg" },
+                    { value: "50 kg", label: "50 kg" },
+                    { value: "Lainnya", label: "Lainnya / Custom" },
+                  ]}
+                />
+              </FormField>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Rincian Dimensi & Spesifikasi Karung yang Diminta <span className="text-slate-400 font-normal">(opsional)</span>
-            </label>
-            <textarea
+          <FormField
+            label="Rincian Dimensi & Spesifikasi Karung yang Diminta"
+            helperText="Opsional: dimensi, anyaman, gramatur, jahitan, dsb."
+          >
+            <TextareaInput
               rows={3}
               placeholder="Contoh: Kemasan beras 10kg, dimensi 30 cm x 45 cm, anyaman 10x10, gramatur dan jahitan sesuai spesifikasi..."
-              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               value={dataSpesifikasi.spesifikasi_dimensi}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -285,17 +277,14 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
                 }))
               }
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Perkiraan Jumlah Partai / Lot Pemeriksaan <span className="text-rose-500">*</span>
-            </label>
+          <FormField label="Perkiraan Jumlah Partai / Lot Pemeriksaan" required>
             <div className="flex items-center gap-3">
-              <input
+              <TextInput
                 type="number"
                 min={1}
-                className="w-28 rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-32"
                 value={dataSpesifikasi.jumlah_partai_lot}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -309,11 +298,11 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
               />
               <span className="text-xs text-slate-600 font-medium">Partai / Lot</span>
             </div>
-          </div>
+          </FormField>
         </div>
 
         {/* 4. Rencana Pelaksanaan & Lokasi Gudang */}
-        <div className="bg-slate-50/70 p-5 rounded-xl border border-slate-200/80 space-y-4">
+        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
             <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
               <MapPin className="w-4 h-4" />
@@ -330,14 +319,8 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Rencana Tanggal Inspeksi <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
-                <input
-                  type="date"
-                  className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+              <FormField label="Rencana Tanggal Inspeksi" required>
+                <DateInput
                   value={dataPelaksanaan.tgl_rencana_inspeksi}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -348,31 +331,27 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
                       },
                     }))
                   }
-                  required
                 />
-              </div>
+              </FormField>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Lengkap Pabrik / Gudang Inspeksi <span className="text-rose-500">*</span>
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Contoh: PT Cahaya Abadi Sentosa - Jl. Raya Solo-Sragen Km. 7, Desa Jaten, Kec. Jaten, Kab. Karanganyar, Jawa Tengah"
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                value={dataPelaksanaan.lokasi_inspeksi}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    dataPelaksanaan: {
-                      ...prev.dataPelaksanaan,
-                      lokasi_inspeksi: e.target.value,
-                    },
-                  }))
-                }
-                required
-              />
+              <FormField label="Alamat Lengkap Pabrik / Gudang Inspeksi" required>
+                <TextareaInput
+                  rows={2}
+                  placeholder="Contoh: PT Cahaya Abadi Sentosa - Jl. Raya Solo-Sragen Km. 7, Desa Jaten, Kec. Jaten, Kab. Karanganyar, Jawa Tengah"
+                  value={dataPelaksanaan.lokasi_inspeksi}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      dataPelaksanaan: {
+                        ...prev.dataPelaksanaan,
+                        lokasi_inspeksi: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </FormField>
             </div>
           </div>
         </div>

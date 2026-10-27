@@ -1,6 +1,7 @@
 import React from 'react'
 import { User, Phone, Mail, MapPin, CreditCard, Info } from 'lucide-react'
 import { Card, CardContent } from '../../ui/Card'
+import { FormField, TextInput, TextareaInput } from '../../forms'
 
 interface Step2DataPemohonProps {
   pemohonNama: string
@@ -64,86 +65,63 @@ export const Step2DataPemohon: React.FC<Step2DataPemohonProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Nama Pemohon */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nama Lengkap Pemohon / Nama Perusahaan / Instansi <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
+              <FormField
+                label="Nama Lengkap Pemohon / Perusahaan / Instansi"
+                required
+              >
+                <TextInput
                   value={pemohonNama}
                   onChange={(e) => setPemohonNama(e.target.value)}
                   placeholder="Contoh: PT. Kreasi Inovasi Mandiri atau Budi Santoso"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
+                  leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 />
-              </div>
+              </FormField>
             </div>
 
             {/* NIK / NIB */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                NIK (Perorangan) atau NIB (Perusahaan)
-              </label>
-              <div className="relative">
-                <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={pemohonNikNib}
-                  onChange={(e) => setPemohonNikNib(e.target.value)}
-                  placeholder="Nomor Induk Kependudukan / Berusaha"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-mono"
-                />
-              </div>
-            </div>
+            <FormField label="NIK (Perorangan) atau NIB (Perusahaan)">
+              <TextInput
+                value={pemohonNikNib}
+                onChange={(e) => setPemohonNikNib(e.target.value)}
+                placeholder="Nomor Induk Kependudukan / Berusaha"
+                leftIcon={<CreditCard className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
             {/* Nomor Telepon / WA */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Nomor Telepon / WhatsApp Aktif <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  value={pemohonTelepon}
-                  onChange={(e) => setPemohonTelepon(e.target.value)}
-                  placeholder="Contoh: 081234567890"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
-                />
-              </div>
-            </div>
+            <FormField label="Nomor Telepon / WhatsApp Aktif" required>
+              <TextInput
+                type="tel"
+                value={pemohonTelepon}
+                onChange={(e) => setPemohonTelepon(e.target.value)}
+                placeholder="Contoh: 081234567890"
+                leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
+              />
+            </FormField>
 
             {/* Alamat Email */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Alamat Email Aktif <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
+              <FormField label="Alamat Email Aktif" required>
+                <TextInput
                   type="email"
                   value={pemohonEmail}
                   onChange={(e) => setPemohonEmail(e.target.value)}
                   placeholder="Contoh: kontak@perusahaan.co.id"
-                  className="w-full text-xs rounded-lg border border-slate-300 pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 font-medium"
+                  leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
                 />
-              </div>
+              </FormField>
             </div>
 
             {/* Alamat Lengkap */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Alamat Lengkap Pemohon / Kantor
-              </label>
-              <div className="relative">
-                <textarea
+              <FormField label="Alamat Lengkap Pemohon / Kantor">
+                <TextareaInput
                   rows={2}
                   value={pemohonAlamat}
                   onChange={(e) => setPemohonAlamat(e.target.value)}
                   placeholder="Jl. Sukonandi No. 9, Semaki, Umbulharjo, Kota Yogyakarta"
-                  className="w-full text-xs rounded-lg border border-slate-300 p-3 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 leading-relaxed"
                 />
-              </div>
+              </FormField>
             </div>
           </div>
         </CardContent>

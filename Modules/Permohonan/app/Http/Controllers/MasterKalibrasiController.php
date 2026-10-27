@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Modules\Permohonan\Http\Controllers;
-
 
 use App\Classes\Breadcrumbs;
 use App\Http\Controllers\Controller;
@@ -10,14 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\Db2\MasterKalibrasi;
-use Illuminate\Support\Str;
-
 
 class MasterKalibrasiController extends Controller
 {
     private string $url = 'permohonan/master-kalibrasi';
     private string $view = 'permohonan::master-kalibrasi';
-
 
     // ================= INDEX =================
     public function index()
@@ -25,11 +20,13 @@ class MasterKalibrasiController extends Controller
         return view("{$this->view}.index", [
             'breadcrumbs' => [
                 new Breadcrumbs('Admin'),
+                new Breadcrumbs('Permohonan'),
                 new Breadcrumbs('Master Kalibrasi', url($this->url)),
             ],
+            'totalItems' => MasterKalibrasi::count(),
+            'totalActive' => MasterKalibrasi::active()->count(),
         ]);
     }
-
 
     // ================= AJAX ROUTER =================
     public function ajax(Request $request): JsonResponse
@@ -40,131 +37,139 @@ class MasterKalibrasiController extends Controller
         };
     }
 
-
     // ================= DATATABLE =================
     private function datatable(): JsonResponse
     {
-        $query = MasterKalibrasi::query()
-            ->select(['id', 'kalibrasi', 'tarif_satuan', 'tarif-internal']);
+        $query = MasterKalibrasi::query()->latest('updated_at');
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('jenis_nama', fn($row) => $row->jenisLayanan?->jenis_layanan ?? '-')
-
-
-            ->editColumn('kapabilitas', fn($row) => (int) $row->kapabilitas)
-            ->addColumn('kapabilitas_text', function ($row) {
-                return $row->kapabilitas
-                    ? '<span class="badge bg-success">true</span>'
-                    : '<span class="badge bg-danger">false</span>';
+            ->editColumn('kalibrasi', fn($row) => e($row->kalibrasi))
+            ->editColumn('tarif_satuan', function ($row) {
+                return '<span class="fw-bold text-gray-800">Rp ' . number_format((float) $row->tarif_satuan, 0, ',', '.') . '</span>';
+            })
+            ->editColumn('tarif_internal', function ($row) {
+                $tarif = (float) ($row->tarif_internal ?? 0);
+                if ($tarif > 0) {
+                    return '<span class="text-gray-700">Rp ' . number_format($tarif, 0, ',', '.') . '</span>';
+                }
+                return '<span class="text-muted fs-8">-</span>';
+            })
+            ->addColumn('status', function ($row) {
+                return $row->is_active
+                    ? '<span class="badge badge-light-success">Aktif</span>'
+                    : '<span class="badge badge-light-danger">Nonaktif</span>';
             })
             ->addColumn('aksi', function ($row) {
                 return '
-                    <div class="d-flex gap-2 justify-content-end">
+                    <a href="#"
+                        class="btn btn-light btn-active-light-primary btn-sm"
+                        data-kt-menu-trigger="hover"
+                        data-kt-menu-placement="bottom-end">
+                        Actions
+                        <i class="fa-duotone fa-chevron-down ms-2 fs-7"></i>
+                    </a>
 
+                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-125px py-4"
+                        data-kt-menu="true">
 
-                        <a href="#"
-                            class="btn btn-sm btn-light-warning edit"
-                            data-id="' . $row->id . '"
-                            data-lingkup="' . e($row->lingkup) . '"
-                            data-kapabilitas="' . $row->kapabilitas . '"
-                            data-jenis="' . $row->jenis_layanan_id . '">
-                            Edit
-                        </a>
+                        <div class="menu-item px-3">
+                            <a href="#"
+                                class="menu-link px-3 edit"
+                                data-id="' . $row->id . '"
+                                data-kalibrasi="' . e($row->kalibrasi) . '"
+                                data-tarif-satuan="' . (float) $row->tarif_satuan . '"
+                                data-tarif-internal="' . (float) ($row->tarif_internal ?? 0) . '"
+                                data-status="' . ($row->is_active ? 1 : 0) . '">
+                                Edit
+                            </a>
+                        </div>
 
-
-                        <a href="#"
-                            class="btn btn-sm btn-light-danger delete"
-                            data-id="' . $row->id . '">
-                            Hapus
-                        </a>
-
+                        <div class="menu-item px-3">
+                            <a href="#"
+                                class="menu-link px-3 delete"
+                                data-id="' . $row->id . '"
+                                data-nama="' . e($row->kalibrasi) . '">
+                                Hapus
+                            </a>
+                        </div>
 
                     </div>
                 ';
             })
-
-
-            ->rawColumns(['aksi', 'kapabilitas_text'])
+            ->rawColumns(['tarif_satuan', 'tarif_internal', 'status', 'aksi'])
             ->make(true);
     }
-
-
-    // ================= LIST JENIS =================
-    private function listJenis(): JsonResponse
-    {
-        return response()->json(
-            MasterJenisLayanan::orderBy('jenis_layanan')
-                ->get(['id', 'jenis_layanan'])
-        );
-    }
-
 
     // ================= STORE =================
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'lingkup' => 'required|string|max:255',
-            'jenis_layanan_id' => 'required|exists:master_jenis_layanan,id',
-            'kapabilitas' => 'required|integer',
+            'kalibrasi' => 'required|string|max:255',
+            'tarif_satuan' => 'required|numeric|min:0',
+            'tarif_internal' => 'nullable|numeric|min:0',
+            'is_active' => 'required|in:0,1',
+        ], [
+            'kalibrasi.required' => 'Nama alat / item kalibrasi wajib diisi.',
+            'tarif_satuan.required' => 'Tarif satuan wajib diisi.',
+            'tarif_satuan.numeric' => 'Tarif satuan harus berupa angka.',
+            'tarif_satuan.min' => 'Tarif satuan tidak boleh negatif.',
         ]);
 
-
-        $data = MasterLingkupLayanan::create([
-            'lingkup' => $validated['lingkup'],
-            'kapabilitas' => (int) $validated['kapabilitas'],
-            'jenis_layanan_id' => $validated['jenis_layanan_id'],
-            'slug' => Str::slug($validated['lingkup'] . '-' . uniqid()),
+        $data = MasterKalibrasi::create([
+            'kalibrasi' => trim($validated['kalibrasi']),
+            'tarif_satuan' => $validated['tarif_satuan'],
+            'tarif_internal' => $validated['tarif_internal'] ?? 0,
+            'is_active' => (bool) $validated['is_active'],
         ]);
-
 
         return response()->json([
             'success' => true,
-            'message' => 'Data berhasil ditambahkan',
+            'message' => 'Item kalibrasi berhasil ditambahkan',
             'data' => $data,
         ]);
     }
-
 
     // ================= UPDATE =================
     public function update(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
-            'lingkup' => 'required|string|max:255',
-            'jenis_layanan_id' => 'required|exists:master_jenis_layanan,id',
-            'kapabilitas' => 'required|integer',
+            'kalibrasi' => 'required|string|max:255',
+            'tarif_satuan' => 'required|numeric|min:0',
+            'tarif_internal' => 'nullable|numeric|min:0',
+            'is_active' => 'required|in:0,1',
+        ], [
+            'kalibrasi.required' => 'Nama alat / item kalibrasi wajib diisi.',
+            'tarif_satuan.required' => 'Tarif satuan wajib diisi.',
+            'tarif_satuan.numeric' => 'Tarif satuan harus berupa angka.',
+            'tarif_satuan.min' => 'Tarif satuan tidak boleh negatif.',
         ]);
 
+        $item = MasterKalibrasi::findOrFail($id);
 
-        $data = MasterLingkupLayanan::findOrFail($id);
-
-
-        $data->update([
-            'lingkup' => $validated['lingkup'],
-            'kapabilitas' => (int) $validated['kapabilitas'],
-            'jenis_layanan_id' => $validated['jenis_layanan_id'],
-            'slug' => Str::slug($validated['lingkup'] . '-' . $id),
+        $item->update([
+            'kalibrasi' => trim($validated['kalibrasi']),
+            'tarif_satuan' => $validated['tarif_satuan'],
+            'tarif_internal' => $validated['tarif_internal'] ?? 0,
+            'is_active' => (bool) $validated['is_active'],
         ]);
-
 
         return response()->json([
             'success' => true,
-            'message' => 'Data berhasil diperbarui',
-            'data' => $data,
+            'message' => 'Item kalibrasi berhasil diperbarui',
+            'data' => $item,
         ]);
     }
 
-
-    // ================= DELETE =================
+    // ================= DESTROY =================
     public function destroy($id): JsonResponse
     {
-        $data = MasterLingkupLayanan::findOrFail($id);
-        $data->delete();
-
+        $item = MasterKalibrasi::findOrFail($id);
+        $item->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Data berhasil dihapus',
+            'message' => 'Item kalibrasi berhasil dihapus',
         ]);
     }
 }

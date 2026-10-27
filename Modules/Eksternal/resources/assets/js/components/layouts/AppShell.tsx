@@ -20,6 +20,7 @@ import {
 import NotificationPopover from '../common/NotificationPopover';
 import ProfilePopover from '../common/ProfilePopover';
 import AppLauncherDropdown from '../common/AppLauncherDropdown';
+import { Footer } from './Footer';
 
 export interface NavItem {
   title: string;
@@ -372,6 +373,9 @@ export const AppShell: React.FC = () => {
             </Suspense>
           </div>
         </main>
+
+        {/* Footer Pelanggan */}
+        <Footer />
       </div>
 
       {/* Mobile Backdrop */}

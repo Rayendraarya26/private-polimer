@@ -24,6 +24,7 @@ import {
   RepeaterAccordion,
   RepeaterItem,
 } from "../../forms"
+import { TwoRowSelect } from "../../ui/TwoRowSelect"
 
 export interface KalibrasiUjiItem {
   id: string
@@ -59,7 +60,8 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
   const kalibrasiOptions = useMemo(() => {
     return masterKalibrasi.map((item: any) => ({
       value: String(item.id),
-      label: `${item.kalibrasi} — Rp ${Number(item.tarif_satuan || 0).toLocaleString("id-ID")}`,
+      label: item.kalibrasi,
+      subLabel: `Tarif: Rp ${Number(item.tarif_satuan || 0).toLocaleString("id-ID")}`,
     }))
   }, [masterKalibrasi])
 

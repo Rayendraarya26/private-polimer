@@ -174,6 +174,8 @@ class PermohonanController extends Controller
                     $layananNama = 'Inspeksi Teknis (Karung Plastik)';
                 elseif (str_contains($item->no_permohonan, 'ASET'))
                     $layananNama = 'Pemanfaatan & Sewa Aset Balai';
+                elseif (str_contains($item->no_permohonan, 'TKDN') || ($form instanceof \App\Models\Db2\FormTkdn))
+                    $layananNama = 'Penerimaan PNBP TKDN';
                 elseif (str_contains($item->no_permohonan, 'JASA') || str_contains($item->no_permohonan, 'LAIN'))
                     $layananNama = 'Pencatatan Jasa Lainnya (PNBP)';
                 else
@@ -205,6 +207,8 @@ class PermohonanController extends Controller
                 $komoditi = ucwords(str_replace('_', ' ', $form->jenis_sewa)) . ($form->durasi_hari ? ' (' . $form->durasi_hari . ' Hari)' : '');
             } elseif ($form instanceof \App\Models\Db2\FormJasaLainnya) {
                 $komoditi = $form->uraian ?: 'Layanan Jasa Lainnya (PNBP)';
+            } elseif ($form instanceof \App\Models\Db2\FormTkdn) {
+                $komoditi = $form->uraian_pekerjaan ?: 'Penerimaan PNBP TKDN';
             }
 
             $sertifikatData = null;
@@ -584,6 +588,7 @@ class PermohonanController extends Controller
             'formKonsultasiAt.master',
             'formAset',
             'formJasaLainnya',
+            'formTkdn.pencatat',
             'trackingLogs',
         ]);
 
@@ -652,6 +657,9 @@ class PermohonanController extends Controller
             } elseif ($permohonan->formJasaLainnya && $permohonan->formJasaLainnya->isNotEmpty()) {
                 $formData = $permohonan->formJasaLainnya->first();
                 $formableType = \App\Models\Db2\FormJasaLainnya::class;
+            } elseif ($permohonan->formTkdn && $permohonan->formTkdn->isNotEmpty()) {
+                $formData = $permohonan->formTkdn->first();
+                $formableType = \App\Models\Db2\FormTkdn::class;
             }
         }
 
@@ -678,6 +686,8 @@ class PermohonanController extends Controller
                 $formData->load(['items.masterMiniplant']);
             } elseif ($formData instanceof \App\Models\Db2\FormKonsultasiAt) {
                 $formData->load(['dokumen', 'master']);
+            } elseif ($formData instanceof \App\Models\Db2\FormTkdn) {
+                $formData->loadMissing(['pencatat']);
             }
         } catch (\Throwable $e) {
             // Ignore relation load failure
@@ -701,6 +711,16 @@ class PermohonanController extends Controller
             'tracking_logs' => $permohonan->trackingLogs ?? [],
             'creator' => $permohonan->creator,
         ]);
+
+        // Jika user adalah pelanggan dan invoice belum di-TTE oleh Bendahara, jangan kirimkan draf invoice & VA
+        if (!$isPegawai && empty($permohonan->pdf_tte)) {
+            $detailData['invoice_file'] = null;
+            $detailData['invoice_number'] = null;
+            $detailData['va'] = null;
+            $permohonan->invoice_file = null;
+            $permohonan->invoice_number = null;
+            $permohonan->va = null;
+        }
 
         return response()->json([
             'success' => true,
@@ -758,7 +778,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Invoice BSrE berhasil dikirim ke Bendahara.',
+            'message' => 'Permintaan TTE Invoice berhasil dikirim.',
             'data' => [
                 'tte_invoice_requested' => true,
                 'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
@@ -810,7 +830,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Kuitansi BSrE berhasil dikirim ke Bendahara.',
+            'message' => 'Permintaan TTE Kuitansi berhasil dikirim.',
             'data' => [
                 'tte_kuitansi_requested' => true,
                 'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,

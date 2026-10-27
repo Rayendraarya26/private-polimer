@@ -138,7 +138,7 @@ export const useDetailPermohonan = (id: string | undefined) => {
     try {
       setRequestingTte("invoice")
       const res = await api.post(`/eksternal/permohonan/${id}/request-tte-invoice`)
-      toast.success(res?.data?.message || "Permintaan TTE BSrE Invoice telah dikirim ke Bendahara.")
+      toast.success(res?.data?.message || "Permintaan TTE Invoice berhasil dikirim.")
       setPermohonan((prev: any) => ({ ...prev, tte_invoice_requested: true }))
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Invoice")
@@ -152,7 +152,7 @@ export const useDetailPermohonan = (id: string | undefined) => {
     try {
       setRequestingTte("kuitansi")
       const res = await api.post(`/eksternal/permohonan/${id}/request-tte-kuitansi`)
-      toast.success(res?.data?.message || "Permintaan TTE BSrE Kuitansi telah dikirim ke Bendahara.")
+      toast.success(res?.data?.message || "Permintaan TTE Kuitansi berhasil dikirim.")
       setPermohonan((prev: any) => ({ ...prev, tte_kuitansi_requested: true }))
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Kuitansi")
@@ -196,16 +196,15 @@ export const useDetailPermohonan = (id: string | undefined) => {
   const handleSimulasiBayar = async () => {
     if (!id) return
     const confirmed = window.confirm(
-      "Konfirmasi simulasi pembayaran untuk pengujian?\n\n" +
-      "Permohonan akan berstatus LUNAS, Kuitansi Digital terbit otomatis, " +
-      "dan status LUNAS disinkronkan ke SIS."
+      "Konfirmasi simulasi pembayaran?\n\n" +
+      "Status permohonan akan diubah menjadi LUNAS."
     )
     if (!confirmed) return
 
     try {
       setBayarLoading(true)
       const res = await api.post(`/eksternal/sertifikasi/${id}/simulasi-bayar`)
-      toast.success(res?.data?.message || "Simulasi pembayaran berhasil! Status kini LUNAS.")
+      toast.success(res?.data?.message || "Pembayaran berhasil diverifikasi.")
       await fetchData()
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal melakukan simulasi pembayaran")

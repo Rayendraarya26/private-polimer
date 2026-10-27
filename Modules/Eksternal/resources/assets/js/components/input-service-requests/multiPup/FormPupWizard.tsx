@@ -1,7 +1,8 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../ui/Button"
+import { Modal } from "../../ui/Modal"
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,6 +13,8 @@ import {
   Layers,
   Wrench,
   ShieldCheck,
+  RotateCcw,
+  AlertTriangle,
 } from "lucide-react"
 import { PupFormData } from "../../../types/pup"
 import api from "../../../utils/api"
@@ -28,6 +31,8 @@ const STEPS = [
   { id: 2, title: "Konfirmasi Alat", icon: Wrench, desc: "Kesiapan equipment LK" },
   { id: 3, title: "Biaya & Pernyataan", icon: ShieldCheck, desc: "Rincian biaya & komitmen" },
 ]
+
+const STORAGE_KEY = "DRAFT_PERMOHONAN_PUP"
 
 const INITIAL_FORM_DATA: PupFormData = {
   nama_pengisi: "",
@@ -49,10 +54,63 @@ const INITIAL_FORM_DATA: PupFormData = {
 
 export const FormPupWizard: React.FC = () => {
   const navigate = useNavigate()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState<PupFormData>(INITIAL_FORM_DATA)
+  const [formKey, setFormKey] = useState<number>(0)
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
+
+  // Inisialisasi state dari localStorage jika ada draf tersimpan
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.currentStep === "number" && parsed.currentStep >= 0 && parsed.currentStep < TOTAL_STEPS) {
+          return parsed.currentStep
+        }
+      }
+    } catch (e) {
+      console.error("Error loading draft currentStep:", e)
+    }
+    return 0
+  })
+
+  const [formData, setFormData] = useState<PupFormData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.formData) {
+          return { ...INITIAL_FORM_DATA, ...parsed.formData }
+        }
+      }
+    } catch (e) {
+      console.error("Error loading draft formData:", e)
+    }
+    return INITIAL_FORM_DATA
+  })
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingStep1, setIsLoadingStep1] = useState(true)
+
+  // Auto-save ke localStorage saat ada perubahan data
+  useEffect(() => {
+    try {
+      const draftData = {
+        currentStep,
+        formData,
+        savedAt: new Date().toISOString(),
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData))
+    } catch (e) {
+      console.error("Gagal menyimpan draf PUP:", e)
+    }
+  }, [currentStep, formData])
+
+  const hasDraft = Boolean(
+    currentStep > 0 ||
+    formData.nama_pengisi ||
+    formData.nama_lab_kalibrasi ||
+    formData.skema_items.length > 0
+  )
 
   const handleFieldChange = (field: keyof PupFormData, value: any) => {
     setFormData((prev) => ({
@@ -96,7 +154,6 @@ export const FormPupWizard: React.FC = () => {
     }
 
     if (currentStep === 2) {
-      // Validasi equipment spesifik jika ada skema tekanan yang dipilih
       const hasPressure = formData.skema_items.some((it) =>
         ["UP-PRESSURE-PNEUMATIK", "UP-PRESSURE-HIDROLIK"].includes(it.kode_skema)
       )
@@ -127,6 +184,19 @@ export const FormPupWizard: React.FC = () => {
     }
   }
 
+  const handleResetDraft = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch (e) {
+      console.error("Gagal menghapus draf:", e)
+    }
+    setFormData(INITIAL_FORM_DATA)
+    setCurrentStep(0)
+    setFormKey((k) => k + 1)
+    setShowResetModal(false)
+    toast.success("Draf formulir berhasil direset")
+  }
+
   const handleSubmit = async () => {
     if (!formData.pernyataan_en_score || !formData.pernyataan_proposal) {
       toast.error("Harap setujui seluruh pernyataan resmi pemohon sebelum mengirim pendaftaran!")
@@ -137,6 +207,12 @@ export const FormPupWizard: React.FC = () => {
       setIsSubmitting(true)
       const res = await api.post("/eksternal/pup", formData)
       const resData = res?.data?.data || res?.data
+
+      try {
+        localStorage.removeItem(STORAGE_KEY)
+      } catch (e) {
+        console.error("Gagal menghapus draf storage:", e)
+      }
 
       toast.success(res?.data?.message || "Pendaftaran Uji Profisiensi berhasil dikirim!")
       if (resData?.id) {
@@ -155,8 +231,21 @@ export const FormPupWizard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stepper Header Bar */}
+    <div className="space-y-4">
+      {/* Tombol Reset Draft */}
+      <div className={hasDraft ? "flex justify-end -mb-1" : "hidden"}>
+        <button
+          type="button"
+          onClick={() => setShowResetModal(true)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer"
+          title="Reset Seluruh Draf Formulir"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Reset Draft</span>
+        </button>
+      </div>
+
+      {/* Stepper Progress Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {STEPS.map((s, idx) => {
@@ -169,7 +258,7 @@ export const FormPupWizard: React.FC = () => {
                 type="button"
                 key={s.id}
                 onClick={() => {
-                  if (idx < currentStep) {
+                  if (idx <= currentStep) {
                     setCurrentStep(idx)
                     window.scrollTo({ top: 0, behavior: "smooth" })
                   }
@@ -183,7 +272,7 @@ export const FormPupWizard: React.FC = () => {
                 }`}
               >
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
                     isDone
                       ? "bg-emerald-600 text-white shadow-xs"
                       : isActive
@@ -208,77 +297,121 @@ export const FormPupWizard: React.FC = () => {
       </div>
 
       {/* Konten Setiap Step */}
-      <div className={currentStep === 0 ? "block" : "hidden"}>
-        <Step1IdentitasLab
-          formData={formData}
-          onChange={handleFieldChange}
-          onLoadingChange={setIsLoadingStep1}
-        />
-      </div>
+      <div key={`step-contents-${formKey}`}>
+        <div className={currentStep === 0 ? "block" : "hidden"}>
+          <Step1IdentitasLab
+            formData={formData}
+            onChange={handleFieldChange}
+            onLoadingChange={setIsLoadingStep1}
+          />
+        </div>
 
-      <div className={currentStep === 1 ? "block" : "hidden"}>
-        <Step2PilihanSkema formData={formData} onChange={handleFieldChange} />
-      </div>
+        <div className={currentStep === 1 ? "block" : "hidden"}>
+          <Step2PilihanSkema formData={formData} onChange={handleFieldChange} />
+        </div>
 
-      <div className={currentStep === 2 ? "block" : "hidden"}>
-        <Step3KonfirmasiEquipment formData={formData} onChange={handleFieldChange} />
-      </div>
+        <div className={currentStep === 2 ? "block" : "hidden"}>
+          <Step3KonfirmasiEquipment formData={formData} onChange={handleFieldChange} />
+        </div>
 
-      <div className={currentStep === 3 ? "block" : "hidden"}>
-        <Step4PernyataanKonfirmasi formData={formData} onChange={handleFieldChange} />
+        <div className={currentStep === 3 ? "block" : "hidden"}>
+          <Step4PernyataanKonfirmasi formData={formData} onChange={handleFieldChange} />
+        </div>
       </div>
 
       {/* Navigasi Bawah */}
-      <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+      <div className="flex items-center justify-between pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={handleBack}
           disabled={isSubmitting}
           leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 text-slate-700"
+          className="px-5 py-2.5 font-semibold text-xs border-slate-300 hover:bg-slate-50 text-slate-700"
         >
-          {currentStep === 0 ? "Kembali ke Katalog" : "Sebelumnya"}
+          {currentStep === 0 ? "Kembali ke Permohonan" : "Sebelumnya"}
         </Button>
 
-        {currentStep < TOTAL_STEPS - 1 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            disabled={currentStep === 0 && isLoadingStep1}
-            rightIcon={
-              currentStep === 0 && isLoadingStep1 ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <ArrowRight className="w-4 h-4" />
-              )
-            }
-            className="rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            {currentStep === 0 && isLoadingStep1 ? "Memuat Profil..." : "Selanjutnya"}
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={
-              isSubmitting ||
-              !formData.pernyataan_en_score ||
-              !formData.pernyataan_proposal
-            }
-            leftIcon={
-              isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )
-            }
-            className="rounded-xl px-7 py-2.5 text-xs font-semibold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            {isSubmitting ? "Mengirim Pendaftaran..." : "Kirim Formulir Pendaftaran"}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {currentStep < TOTAL_STEPS - 1 ? (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleNext}
+              disabled={currentStep === 0 && isLoadingStep1}
+              rightIcon={
+                currentStep === 0 && isLoadingStep1 ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="w-4 h-4" />
+                )
+              }
+              className="px-6 py-2.5 font-semibold text-xs shadow-xs"
+            >
+              {currentStep === 0 && isLoadingStep1 ? "Memuat Profil..." : "Langkah Berikutnya"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={
+                isSubmitting ||
+                !formData.pernyataan_en_score ||
+                !formData.pernyataan_proposal
+              }
+              leftIcon={
+                isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )
+              }
+              className="px-7 py-2.5 font-semibold text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              {isSubmitting ? "Mengirim Pendaftaran..." : "Kirim Permohonan"}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Modal Konfirmasi Reset Draft */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        title="Konfirmasi Reset Draft"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800">
+            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-bold">Apakah Anda yakin ingin mereset seluruh formulir?</p>
+              <p className="mt-1 text-rose-700">
+                Semua data pendaftaran uji profisiensi yang telah diisi akan dihapus dan formulir akan kembali kosong.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResetModal(false)}
+              className="px-4 py-2 text-xs"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleResetDraft}
+              className="px-4 py-2 text-xs bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              Ya, Reset Formulir
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

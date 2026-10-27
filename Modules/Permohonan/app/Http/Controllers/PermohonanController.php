@@ -155,13 +155,14 @@ class PermohonanController extends Controller
 
     private function datatableBendahara(Request $request): JsonResponse
     {
-        $statusPending = ['DRAFT', 'PERMOHONAN', 'REVISI', 'IN_REVIEW', 'KAJIAN_TEKNIS'];
+        $statusPending = ['DRAFT', 'PERMOHONAN', 'REVISI', 'KAJIAN_TEKNIS'];
         $statusPaid = ['PEMBAYARAN', 'PROSES', 'PROCESS', 'LUNAS', 'DONE', 'SELESAI'];
 
         // Instansi yang masih memiliki permohonan pending/revisi
         $excludePending = Permohonan::whereNotNull('tgl_order')
             ->whereNotNull('id_pt_ins')
             ->whereIn('status_workflow', $statusPending)
+            ->where('tte_invoice_requested', '!=', 1)
             ->pluck('id_pt_ins')
             ->unique()
             ->toArray();
@@ -170,13 +171,19 @@ class PermohonanController extends Controller
         $validIdPtIns = Permohonan::whereNotNull('tgl_order')
             ->whereNotNull('id_pt_ins')
             ->when(!empty($excludePending), fn($q) => $q->whereNotIn('id_pt_ins', $excludePending))
-            ->whereIn('status_workflow', $statusPaid)
+            ->where(function ($q) use ($statusPaid) {
+                $q->whereIn('status_workflow', $statusPaid)
+                  ->orWhere('tte_invoice_requested', true);
+            })
             ->pluck('id_pt_ins')
             ->unique()
             ->toArray();
 
         $collectiveIds = Permohonan::whereIn('id_pt_ins', $validIdPtIns)
-            ->whereIn('status_workflow', $statusPaid)
+            ->where(function ($q) use ($statusPaid) {
+                $q->whereIn('status_workflow', $statusPaid)
+                  ->orWhere('tte_invoice_requested', true);
+            })
             ->whereNotNull('tgl_order')
             ->orderBy('tgl_order', 'asc')
             ->get(['id', 'id_pt_ins'])
@@ -188,7 +195,10 @@ class PermohonanController extends Controller
         // 2. Ambil ID permohonan individual (tanpa id_pt_ins) yang siap bayar/proses
         $individualIds = Permohonan::whereNotNull('tgl_order')
             ->whereNull('id_pt_ins')
-            ->whereIn('status_workflow', $statusPaid)
+            ->where(function ($q) use ($statusPaid) {
+                $q->whereIn('status_workflow', $statusPaid)
+                  ->orWhere('tte_invoice_requested', true);
+            })
             ->pluck('id')
             ->toArray();
 
@@ -559,7 +569,7 @@ class PermohonanController extends Controller
             }
 
             $permohonan->update([
-                'status_workflow'          => 'IN_REVIEW',
+                'status_workflow'          => 'PEMBAYARAN',
                 'harga_permohonan'         => $total,
                 'status_penawaran'         => 'proses',
                 'catatan_admin'            => $path,
@@ -645,8 +655,8 @@ class PermohonanController extends Controller
 
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title' => 'Permohonan Disetujui & Tagihan Diterbitkan',
-            'content' => 'Permohonan Anda telah disetujui. Tagihan Invoice dan BNI Virtual Account ' . ($va ?: '') . ' telah terbit.',
+            'title' => 'Permohonan Disetujui',
+            'content' => 'Permohonan Anda telah disetujui.',
             'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
@@ -654,14 +664,14 @@ class PermohonanController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.',
+                'message' => 'Permohonan berhasil disetujui',
                 'data' => $permohonan,
             ]);
         }
 
         return redirect()
             ->route('permohonan.layanan.detail', ['id' => $id, 'd' => 'pembayaran'])
-            ->with('success', 'Permohonan berhasil disetujui, Invoice & BNI Virtual Account telah terbit otomatis.');
+            ->with('success', 'Permohonan berhasil disetujui');
     }
 
 
@@ -840,7 +850,7 @@ class PermohonanController extends Controller
                 $nominal = (float) $request->nominal;
 
                 $permohonan->update([
-                    'status_workflow'          => 'IN_REVIEW',
+                    'status_workflow'          => 'PEMBAYARAN',
                     'catatan_admin'            => $path,
                     'file_surat_penawaran'     => $path,
                     'harga_permohonan'         => $nominal,
@@ -1224,14 +1234,14 @@ class PermohonanController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Pembayaran manual berhasil dikonfirmasi LUNAS!',
+                    'message' => 'Pembayaran manual berhasil dikonfirmasi',
                     'data'    => $permohonan->fresh(),
                 ]);
             }
 
             return redirect()
                 ->route('permohonan.layanan.detail', ['id' => $id, 'detail' => 'pembayaran'])
-                ->with('success', 'Pembayaran manual berhasil dikonfirmasi LUNAS! Kuitansi siap ditandatangani.');
+                ->with('success', 'Pembayaran manual berhasil dikonfirmasi');
 
         } catch (\Throwable $e) {
             DB::rollBack();

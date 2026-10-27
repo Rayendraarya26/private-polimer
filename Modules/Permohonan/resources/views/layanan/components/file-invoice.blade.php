@@ -4,9 +4,9 @@
 
     $currentUser = auth()->user();
     $isBendahara = $currentUser && (
-        $currentUser->hasGroup(\App\Models\SysGroup::BENDAHARA) ||
-        $currentUser->hasGroup(\App\Models\SysGroup::ADMIN) ||
-        $currentUser->hasGroup(\App\Models\SysGroup::ROOT)
+        $currentUser->hasGroup(\App\Enums\SysGroup::BENDAHARA) ||
+        $currentUser->hasGroup(\App\Enums\SysGroup::ADMIN) ||
+        $currentUser->hasGroup(\App\Enums\SysGroup::ROOT)
     );
 
     $pegawai = \App\Models\Db1\Pegawai::where('user_id', auth()->id())->first();
@@ -27,25 +27,25 @@
             <div class="d-flex gap-2 align-items-center flex-wrap">
                 @if(!empty($permohonan->pdf_tte))
                     <span class="badge rounded-pill" style="background:#dcfce7;color:#166534">
-                        <i class="fas fa-shield-check me-1"></i> Invoice TTE BSrE
+                        Invoice TTE BSrE
                     </span>
                 @elseif($permohonan->tte_invoice_requested)
                     <span class="badge rounded-pill" style="background:#fef3c7;color:#92400e">
-                        <i class="fas fa-clock me-1"></i> Menunggu TTE Invoice
+                        Menunggu TTE Invoice
                     </span>
                 @elseif($invoiceFile)
                     <span class="badge rounded-pill" style="background:#dbeafe;color:#1d4ed8">
-                        <i class="fas fa-file-invoice me-1"></i> Draf Invoice Tersedia
+                        Draf Invoice Tersedia
                     </span>
                 @endif
 
                 @if(!empty($permohonan->kuitansi_pdf_tte))
                     <span class="badge rounded-pill" style="background:#dcfce7;color:#166534">
-                        <i class="fas fa-shield-check me-1"></i> Kuitansi TTE BSrE
+                        Kuitansi TTE BSrE
                     </span>
                 @elseif($permohonan->status_bayar === 'LUNAS')
                     <span class="badge rounded-pill" style="background:#fef3c7;color:#92400e">
-                        <i class="fas fa-clock me-1"></i> Menunggu TTE Kuitansi
+                        Menunggu TTE Kuitansi
                     </span>
                 @endif
             </div>

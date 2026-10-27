@@ -98,7 +98,7 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
         await api.post(`/permohonan/${targetId}/approve`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         })
-        toast.success(`Permohonan ${permohonanId} berhasil disetujui. Invoice & BNI Virtual Account otomatis terbit!`)
+        toast.success("Permohonan berhasil disetujui")
       } else if (actionType === "revisi") {
         if (!catatan.trim()) {
           toast.error("Catatan revisi wajib diisi")
@@ -106,7 +106,7 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
           return
         }
         await api.post(`/permohonan/${targetId}/revisi`, { catatan })
-        toast.success(`Permintaan revisi dikirimkan ke pelanggan ${pelangganName}.`)
+        toast.success("Permintaan revisi berhasil dikirim")
       } else if (actionType === "reject") {
         if (!catatan.trim()) {
           toast.error("Alasan penolakan wajib diisi")
@@ -114,9 +114,9 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
           return
         }
         await api.post(`/permohonan/${targetId}/reject`, { catatan })
-        toast.error(`Permohonan ${permohonanId} ditolak secara resmi.`)
+        toast.success("Permohonan berhasil ditolak")
       } else if (actionType === "disposisi") {
-        toast.success(`Permohonan berhasil didisposisikan kepada ${assignedOfficer}.`)
+        toast.success("Permohonan berhasil didisposisikan")
       }
 
       onSuccess()

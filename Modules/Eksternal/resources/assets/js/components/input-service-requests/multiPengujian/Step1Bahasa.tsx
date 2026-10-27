@@ -1,15 +1,73 @@
 import React from "react"
-import { Languages, Globe, ArrowRight, ShieldCheck } from "lucide-react"
+import { Languages, Globe, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react"
 import { BahasaLaporan, PengujianSharedData } from "../../../types/pengujian"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../../components/ui/Card"
 import { Button } from "../../ui/Button"
-import { RadioCardGroup } from "../../forms"
+import { Badge } from "../../ui/Badge"
+
+// Komponen Bendera Indonesia (Merah Putih)
+const IndonesiaFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Bendera Indonesia"
+  >
+    <rect width="60" height="20" fill="#E11D48" />
+    <rect y="20" width="60" height="20" fill="#FFFFFF" />
+  </svg>
+)
+
+// Komponen Bendera Inggris / Britania Raya (Union Jack)
+const UKFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
+  <svg
+    viewBox="0 0 60 40"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="Bendera Inggris"
+  >
+    <rect width="60" height="40" fill="#012169" />
+    <path d="M0 0 L60 40 M60 0 L0 40" stroke="#FFFFFF" strokeWidth="8" />
+    <path d="M0 0 L30 20 M60 40 L30 20" stroke="#C8102E" strokeWidth="2.6" />
+    <path d="M60 0 L30 20 M0 40 L30 20" stroke="#C8102E" strokeWidth="2.6" />
+    <path d="M30 0 v40 M0 20 h60" stroke="#FFFFFF" strokeWidth="12" />
+    <path d="M30 0 v40 M0 20 h60" stroke="#C8102E" strokeWidth="7" />
+  </svg>
+)
 
 interface Step1BahasaProps {
   sharedData: PengujianSharedData
   setSharedData: React.Dispatch<React.SetStateAction<PengujianSharedData>>
   onNext: () => void
 }
+
+const BAHASA_OPTIONS: {
+  value: BahasaLaporan
+  label: string
+  subLabel: string
+  code: string
+  description: string
+  icon: React.ElementType
+}[] = [
+  {
+    value: "id",
+    label: "Bahasa Indonesia",
+    subLabel: "Indonesian",
+    code: "ID",
+    description:
+      "Laporan diterbitkan dalam Bahasa Indonesia. Cocok untuk keperluan dalam negeri, instansi pemerintah, dan sertifikasi SNI.",
+    icon: IndonesiaFlag,
+  },
+  {
+    value: "en",
+    label: "Bahasa Inggris",
+    subLabel: "English",
+    code: "EN",
+    description:
+      "Laporan diterbitkan dalam Bahasa Inggris. Cocok untuk keperluan ekspor, mitra luar negeri, dan standar internasional.",
+    icon: UKFlag,
+  },
+]
 
 export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
   sharedData,
@@ -40,31 +98,72 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-5 sm:p-6 space-y-5">
-          <RadioCardGroup
-            name="bahasa_laporan"
-            value={sharedData.bahasa_laporan}
-            onChange={(val) => handleSelectBahasa(val as BahasaLaporan)}
-            gridCols={2}
-            options={[
-              {
-                value: "id",
-                title: "Bahasa Indonesia",
-                description:
-                  "Laporan diterbitkan dalam Bahasa Indonesia. Cocok untuk keperluan dalam negeri, instansi pemerintah, dan sertifikasi SNI.",
-                badge: "ID",
-                icon: <Languages className="w-5 h-5" />,
-              },
-              {
-                value: "en",
-                title: "Bahasa Inggris (English)",
-                description:
-                  "Laporan diterbitkan dalam Bahasa Inggris. Cocok untuk keperluan ekspor, mitra luar negeri, dan standar internasional.",
-                badge: "EN",
-                icon: <Globe className="w-5 h-5" />,
-              },
-            ]}
-          />
+        <CardContent className="p-5 sm:p-6 space-y-4">
+          <div
+            role="radiogroup"
+            aria-label="Bahasa Laporan Hasil Pengujian"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            {BAHASA_OPTIONS.map((opt) => {
+              const isSelected = sharedData.bahasa_laporan === opt.value
+              const Icon = opt.icon
+              return (
+                <div
+                  key={opt.value}
+                  id={`opsi-bahasa-${opt.value}`}
+                  role="radio"
+                  aria-checked={isSelected}
+                  tabIndex={0}
+                  onClick={() => handleSelectBahasa(opt.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      handleSelectBahasa(opt.value)
+                    }
+                  }}
+                  className={`group relative flex flex-col gap-4 rounded-xl border-2 p-4 sm:p-5 cursor-pointer transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 ${isSelected
+                    ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/10 shadow-sm"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-sm"
+                    }`}
+                >
+                  {/* Header: icon, title, indicator */}
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${isSelected
+                        ? "bg-white border-2 border-brand-500 shadow-sm ring-2 ring-brand-500/15"
+                        : "bg-slate-50 border border-slate-200/90 group-hover:bg-white group-hover:border-slate-300 shadow-2xs"
+                        }`}
+                    >
+                      <div className="w-7 h-[18px] rounded-xs overflow-hidden shadow-2xs border border-slate-300/80 flex items-center justify-center shrink-0">
+                        <Icon className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">
+                          {opt.label}
+                        </span>
+                        <Badge variant={isSelected ? "primary" : "neutral"} size="sm">
+                          {opt.code}
+                        </Badge>
+                      </div>
+                      <p className="mt-0.5 text-xs text-slate-500">{opt.subLabel}</p>
+                    </div>
+                    {isSelected ? (
+                      <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0 group-hover:border-slate-400 transition-colors" />
+                    )}
+                  </div>
+
+                  {/* Deskripsi */}
+                  <p className="text-xs leading-relaxed text-slate-600">
+                    {opt.description}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
 
           {/* Info tambahan */}
           <div className="flex items-start gap-2.5 rounded-xl border border-sky-100 bg-sky-50/70 p-3.5">

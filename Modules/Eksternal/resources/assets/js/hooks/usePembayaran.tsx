@@ -202,6 +202,15 @@ export function usePembayaran() {
   const openInvoice = useCallback(
     (item: any) => {
       if (!item?.id) return
+      if (!item?.pdf_tte) {
+        Swal.fire({
+          icon: "info",
+          title: "Invoice Belum Terbit",
+          text: "Menunggu tanda tangan elektronik Bendahara.",
+          confirmButtonColor: "#0270c7",
+        })
+        return
+      }
       const filename = `Invoice-${item.no_permohonan || item.id}.pdf`
       fetchAndOpenPdf(`/eksternal/pembayaran/${item.id}/stream-invoice`, "Invoice", filename)
     },

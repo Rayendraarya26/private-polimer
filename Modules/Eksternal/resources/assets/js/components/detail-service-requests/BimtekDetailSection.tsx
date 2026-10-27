@@ -563,7 +563,7 @@ export const BimtekDetailSection: React.FC<BimtekDetailSectionProps> = ({
                 </Button>
               )}
 
-              {openInvoice && (
+              {openInvoice && permohonan?.pdf_tte && (
                 <Button
                   type="button"
                   variant="outline"

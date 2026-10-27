@@ -17,17 +17,37 @@ class PembayaranController extends Controller
 
             $userId = auth()->id();
 
-            // Hanya permohonan yang sudah tahap pembayaran dan invoice telah disahkan TTE oleh Bendahara
+            // Ambil semua riwayat permohonan pembayaran (baik belum lunas maupun yang sudah lunas),
+            // kecuali yang berstatus DITOLAK atau BATAL.
             $data = Permohonan::with([
                 'detailPembayaran',
                 'detailPermohonan.lingkupLayanan',
-                'billing'
+                'detailPermohonan.formable',
+                'billing',
+                'penawaranBiaya'
             ])
-            ->where(function ($q) {
-                $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROCESS', 'DONE'])
-                  ->whereNotNull('pdf_tte');
-            })
             ->where('created_by', $userId)
+            // Hanya permohonan yang sudah tahap pembayaran atau sudah lunas/proses/selesai
+            ->where(function ($q) {
+                $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'PROCESS', 'DONE', 'SELESAI'])
+                  ->orWhere('status_bayar', 'LUNAS');
+            })
+            // Kecualikan tahap yang masih review, verifikasi berkas awal, revisi, draft, atau ditolak/batal
+            ->whereNotIn('status_workflow', [
+                'DRAFT', 'PERMOHONAN', 'IN_REVIEW', 'REVIEW', 'KAJIAN_TEKNIS', 'REVISI',
+                'DITOLAK', 'BATAL', 'REJECTED',
+                'draft', 'permohonan', 'in_review', 'review', 'kajian_teknis', 'revisi',
+                'ditolak', 'batal', 'rejected'
+            ])
+            ->where('status_bayar', '!=', 'BATAL')
+            ->where(function ($q) {
+                $q->whereNull('status_penawaran')
+                  ->orWhereNotIn('status_penawaran', ['tolak', 'DITOLAK', 'ditolak', 'REJECTED']);
+            })
+            ->whereDoesntHave('penawaranBiaya', function ($q) {
+                $q->whereIn('status_persetujuan', ['DITOLAK', 'tolak', 'REJECTED'])
+                  ->orWhereIn('status', ['DITOLAK', 'tolak', 'REJECTED']);
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -38,12 +58,20 @@ class PembayaranController extends Controller
                         optional(
                             $item->detailPermohonan->first()
                         )->lingkupLayanan
-                    )->lingkup ?? '-';
+                    )->lingkup;
+
+                if (empty($namaPermohonan) || $namaPermohonan === '-') {
+                    $firstDetail = $item->detailPermohonan->first();
+                    $form = $firstDetail?->formable;
+                    $namaPermohonan = $form?->nama_layanan 
+                        ?? $form?->nama_komoditas 
+                        ?? $form?->judul 
+                        ?? $form?->nama_kegiatan 
+                        ?? ($item->no_permohonan ? 'Layanan ' . $item->no_permohonan : '-');
+                }
 
                 $totalTagihan =
                     $item->detailPembayaran->sum('subtotal') ?: ($item->billing?->total_nominal ?? $item->harga_permohonan ?? 0);
-
-                $isTteSigned = !empty($item->pdf_tte);
 
                 return [
                     'id' => $item->id,
@@ -52,14 +80,16 @@ class PembayaranController extends Controller
                     'tgl_order' => $item->tgl_order,
                     'total_tagihan' => (float) $totalTagihan,
                     'status_bayar'   => $item->status_bayar,
-                    'va'             => $isTteSigned ? $item->va : null,
-                    'va_trx_id'      => $isTteSigned ? $item->va_trx_id : null,
-                    'va_expired_at'  => $isTteSigned ? $item->va_expired_at?->format('Y-m-d H:i:s') : null,
-                    'va_status'      => $isTteSigned ? ($item->va_status ?? 'PENDING') : 'MENUNGGU_TTE',
+                    'status_workflow'=> $item->status_workflow,
+                    'status_penawaran'=> $item->status_penawaran,
+                    'va'             => $item->va,
+                    'va_trx_id'      => $item->va_trx_id,
+                    'va_expired_at'  => $item->va_expired_at?->format('Y-m-d H:i:s'),
+                    'va_status'      => $item->va_status ?? ($item->status_bayar === 'LUNAS' ? 'PAID' : 'PENDING'),
 
-                    // Info invoice & kuitansi (hanya jika sudah ber-TTE resmi)
-                    'invoice_number'            => $isTteSigned ? ($item->invoice_number ?? $item->billing?->no_billing) : null,
-                    'invoice_file'              => $isTteSigned ? ($item->invoice_file ?? $item->billing?->file_invoice) : null,
+                    // Info invoice & kuitansi
+                    'invoice_number'            => $item->invoice_number ?? $item->billing?->no_billing,
+                    'invoice_file'              => $item->invoice_file ?? $item->billing?->file_invoice,
                     'pdf_tte'                   => $item->pdf_tte,
                     'tte_invoice_requested'     => (bool) $item->tte_invoice_requested,
                     'tte_invoice_requested_at'  => $item->tte_invoice_requested_at?->format('Y-m-d H:i:s'),
@@ -113,19 +143,17 @@ class PembayaranController extends Controller
                 ->where('created_by', $userId)
                 ->firstOrFail();
 
-            $isTteSigned = !empty($permohonan->pdf_tte);
-
             return response()->json([
                 'success' => true,
                 'data' => [
                     'id'                    => $permohonan->id,
-                    'invoice_number'        => $isTteSigned ? ($permohonan->invoice_number ?? $permohonan->billing?->no_billing) : null,
-                    'invoice_file'          => $isTteSigned ? ($permohonan->invoice_file ?? $permohonan->billing?->file_invoice) : null,
+                    'invoice_number'        => $permohonan->invoice_number ?? $permohonan->billing?->no_billing,
+                    'invoice_file'          => $permohonan->invoice_file ?? $permohonan->billing?->file_invoice,
                     'pdf_tte'               => $permohonan->pdf_tte,
-                    'va'                    => $isTteSigned ? $permohonan->va : null,
-                    'va_trx_id'             => $isTteSigned ? $permohonan->va_trx_id : null,
-                    'va_expired_at'         => $isTteSigned ? $permohonan->va_expired_at?->format('Y-m-d H:i:s') : null,
-                    'va_status'             => $isTteSigned ? ($permohonan->va_status ?? 'PENDING') : 'MENUNGGU_TTE',
+                    'va'                    => $permohonan->va,
+                    'va_trx_id'             => $permohonan->va_trx_id,
+                    'va_expired_at'         => $permohonan->va_expired_at?->format('Y-m-d H:i:s'),
+                    'va_status'             => $permohonan->va_status ?? ($permohonan->status_bayar === 'LUNAS' ? 'PAID' : 'PENDING'),
                     'kuitansi_number'       => $permohonan->kuitansi_number,
                     'kuitansi_file'         => $permohonan->kuitansi_file,
                     'kuitansi_generated_at' => $permohonan->kuitansi_generated_at?->format('Y-m-d H:i:s'),
@@ -220,27 +248,28 @@ class PembayaranController extends Controller
             ])->firstOrFail();
         }
 
-        // Proteksi: Pelanggan tidak boleh mengakses berkas invoice sebelum disahkan TTE oleh Bendahara
-        if (!$isPegawai && empty($permohonan->pdf_tte)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invoice resmi belum dapat diakses. Dokumen masih menunggu persetujuan dan Tanda Tangan Elektronik (TTE BSrE) oleh Bendahara Penerimaan.',
-            ], 403);
-        }
-
         try {
             $pdfContent = null;
 
-            // CEK 1: Apakah file fisik ada di storage publik?
-            if (!empty($permohonan->invoice_file)) {
-                if (str_starts_with($permohonan->invoice_file, 'dummy-esign|')) {
-                    $pathStr = explode('|', $permohonan->invoice_file)[1];
+            // CEK 0: Apakah ada pdf_tte fisik di storage publik?
+            if (!empty($permohonan->pdf_tte)) {
+                $path = storage_path('app/public/' . $permohonan->pdf_tte);
+                if (file_exists($path)) {
+                    $pdfContent = @file_get_contents($path);
+                }
+            }
+
+            // CEK 1: Apakah file fisik invoice ada di storage publik?
+            $invFile = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
+            if (empty($pdfContent) && !empty($invFile)) {
+                if (str_starts_with($invFile, 'dummy-esign|')) {
+                    $pathStr = explode('|', $invFile)[1];
                     $path = storage_path('app/public/' . $pathStr);
                     if (file_exists($path)) {
                         $pdfContent = @file_get_contents($path);
                     }
-                } elseif (str_ends_with(strtolower($permohonan->invoice_file), '.pdf')) {
-                    $path = storage_path('app/public/' . $permohonan->invoice_file);
+                } elseif (str_ends_with(strtolower($invFile), '.pdf')) {
+                    $path = storage_path('app/public/' . $invFile);
                     if (file_exists($path)) {
                         $pdfContent = @file_get_contents($path);
                     }

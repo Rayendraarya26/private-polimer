@@ -27,8 +27,40 @@ export type { PembayaranItem }
 
 const PembayaranPage: React.FC = () => {
   const [requestingTteId, setRequestingTteId] = useState<string | null>(null)
-  const { data = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
+  const { data: rawData = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
   const { openInvoice, openKuitansi, openSuratPenawaran, PdfPreviewModal } = usePembayaran()
+
+  const data = useMemo(() => {
+    return rawData.filter((item) => {
+      const wf = (item.status_workflow || "").toUpperCase()
+      const sp = (item.status_penawaran || "").toUpperCase()
+      const sb = (item.status_bayar || "").toUpperCase()
+
+      // Kecualikan tahap review / verifikasi berkas awal / draft / revisi / ditolak / batal
+      const isReviewOrInitialStage = [
+        "DRAFT",
+        "PERMOHONAN",
+        "IN_REVIEW",
+        "REVIEW",
+        "KAJIAN_TEKNIS",
+        "REVISI",
+      ].includes(wf)
+      const isRejectedOrCancelled =
+        ["DITOLAK", "BATAL", "REJECTED"].includes(wf) ||
+        ["TOLAK", "DITOLAK", "REJECTED"].includes(sp) ||
+        sb === "BATAL"
+
+      if (isReviewOrInitialStage || isRejectedOrCancelled) {
+        return false
+      }
+
+      // Hanya permohonan yang sudah masuk tahap pembayaran atau sudah lunas/proses/selesai
+      return (
+        ["PEMBAYARAN", "PROSES", "PROCESS", "DONE", "SELESAI"].includes(wf) ||
+        sb === "LUNAS"
+      )
+    })
+  }, [rawData])
 
 
   const handleRequestTteInvoice = async (row: PembayaranItem) => {
@@ -214,21 +246,23 @@ const PembayaranPage: React.FC = () => {
             </Button>
           )}
 
-          {/* Invoice Button (hanya tampil jika invoice sudah ber-TTE sah) */}
-          {row.pdf_tte && (
+          {/* Invoice Button */}
+          {(row.invoice_number || row.invoice_file || row.pdf_tte || row.total_tagihan > 0) && (
             <div className="inline-flex items-center gap-1">
               <Button
                 size="sm"
                 variant="outline"
                 leftIcon={<Receipt className="w-3.5 h-3.5" />}
                 onClick={() => openInvoice(row)}
-                title="Buka Invoice Resmi TTE BSrE"
+                title="Buka Invoice"
               >
                 Invoice
               </Button>
-              <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
-                TTE BSrE Sah
-              </span>
+              {row.pdf_tte && (
+                <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
+                  TTE BSrE Sah
+                </span>
+              )}
             </div>
           )}
 

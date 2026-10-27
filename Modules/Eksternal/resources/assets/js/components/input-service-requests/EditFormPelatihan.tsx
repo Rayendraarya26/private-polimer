@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useNavigate, useParams } from "react-router-dom"
 import usePelatihan from "../../hooks/service-requests/usePelatihan"
@@ -10,12 +10,20 @@ import {
   ArrowLeft,
   User,
   Building2,
-  BookOpen,
   FileUp,
   Save,
-  CheckCircle2,
   ExternalLink,
 } from "lucide-react"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  SelectInput,
+  DateInput,
+  DropzoneUploader,
+  LegalStatementBox,
+  StickyFormActions,
+} from "../forms"
 
 const STORAGE_URL = import.meta.env.VITE_STORAGE_URL || ""
 
@@ -95,34 +103,12 @@ const EditFormPelatihan: React.FC = () => {
     fetchDetail()
   }, [id, getDetailPelatihan])
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, type } = e.target as HTMLInputElement
-    if (type === "file") {
-      const fileInput = e.target as HTMLInputElement
-      const file = fileInput.files ? fileInput.files[0] : null
-      setFormData((prev) => ({
-        ...prev,
-        [name]: file,
-      }))
-    } else if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev) => ({
-        ...prev,
-        [name]: checked,
-      }))
-    } else {
-      const { value } = e.target
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
-    }
+  const setField = (field: keyof typeof initialState, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!id) return
 
     if (!formData.setuju_syarat) {
@@ -167,7 +153,7 @@ const EditFormPelatihan: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto py-6">
       <Head title="Koreksi Permohonan Pelatihan" />
 
       {/* Header */}
@@ -177,7 +163,7 @@ const EditFormPelatihan: React.FC = () => {
             <GraduationCap className="w-4 h-4" />
             <span>Koreksi Berkas Permohonan Pelatihan</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Perbarui Data Bimbingan Teknis / Pelatihan
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -199,8 +185,8 @@ const EditFormPelatihan: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 1. Biodata Peserta */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-brand-50 text-brand-600">
                 <User className="w-4 h-4" />
@@ -212,176 +198,125 @@ const EditFormPelatihan: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Lengkap Peserta <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+          <CardContent className="pt-4 space-y-4">
+            <FormField label="Nama Lengkap Peserta" required>
+              <TextInput
                 name="nama_lengkap"
                 value={formData.nama_lengkap}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("nama_lengkap", e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Tempat Lahir <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="Tempat Lahir" required>
+                <TextInput
                   name="tempat_lahir"
                   value={formData.tempat_lahir}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("tempat_lahir", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Tanggal Lahir <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+              <FormField label="Tanggal Lahir" required>
+                <DateInput
                   name="tanggal_lahir"
                   value={formData.tanggal_lahir}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("tanggal_lahir", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Jenis Kelamin <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Jenis Kelamin" required>
+                <SelectInput
                   name="gender"
                   value={formData.gender}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="">-- Pilih Gender --</option>
-                  <option value="Laki-laki">Laki-laki</option>
-                  <option value="Perempuan">Perempuan</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("gender", String(val))}
+                  options={[
+                    { value: "Laki-laki", label: "Laki-laki" },
+                    { value: "Perempuan", label: "Perempuan" },
+                  ]}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  NIK (16 Digit) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="NIK (16 Digit)" required>
+                <TextInput
                   name="nik_peserta"
                   value={formData.nik_peserta}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 16)
+                    setField("nik_peserta", value)
+                  }}
                   maxLength={16}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Pendidikan Terakhir <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Pendidikan Terakhir" required>
+                <SelectInput
                   name="pendidikan"
                   value={formData.pendidikan}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="S3">S3</option>
-                  <option value="S2">S2</option>
-                  <option value="S1">S1</option>
-                  <option value="D4">D4</option>
-                  <option value="D3">D3</option>
-                  <option value="D1 / SMA / SMK">D1 / SMA / SMK</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("pendidikan", String(val))}
+                  options={[
+                    { value: "S3", label: "S3" },
+                    { value: "S2", label: "S2" },
+                    { value: "S1", label: "S1" },
+                    { value: "D4", label: "D4" },
+                    { value: "D3", label: "D3" },
+                    { value: "D1 / SMA / SMK", label: "D1 / SMA / SMK" },
+                    { value: "Lainnya", label: "Lainnya" },
+                  ]}
+                />
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Agama <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Agama" required>
+                <SelectInput
                   name="agama"
                   value={formData.agama}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="">-- Pilih Agama --</option>
-                  <option value="Islam">Islam</option>
-                  <option value="Kristen">Kristen</option>
-                  <option value="Katolik">Katolik</option>
-                  <option value="Hindu">Hindu</option>
-                  <option value="Buddha">Buddha</option>
-                  <option value="Konghucu">Konghucu</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("agama", String(val))}
+                  options={[
+                    { value: "Islam", label: "Islam" },
+                    { value: "Kristen", label: "Kristen" },
+                    { value: "Katolik", label: "Katolik" },
+                    { value: "Hindu", label: "Hindu" },
+                    { value: "Buddha", label: "Buddha" },
+                    { value: "Konghucu", label: "Konghucu" },
+                  ]}
+                />
+              </FormField>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Domisili <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Alamat Domisili" required>
+              <TextareaInput
                 rows={2}
                 name="alamat_peserta"
                 value={formData.alamat_peserta}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("alamat_peserta", e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Nomor WhatsApp <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="Nomor WhatsApp" required>
+                <TextInput
                   name="whatsapp"
                   value={formData.whatsapp}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("whatsapp", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Alamat Email <span className="text-rose-500">*</span>
-                </label>
-                <input
+              <FormField label="Alamat Email" required>
+                <TextInput
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("email", e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
           </CardContent>
         </Card>
 
         {/* 2. Berkas Persyaratan */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
                 <FileUp className="w-4 h-4" />
@@ -393,26 +328,25 @@ const EditFormPelatihan: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* KTP */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Kartu Tanda Penduduk (KTP)
-                </label>
-                <input
-                  type="file"
-                  name="ktp_peserta"
-                  accept=".pdf, image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Kartu Tanda Penduduk (KTP)">
+                  <DropzoneUploader
+                    label="Pilih File KTP Baru"
+                    value={formData.ktp_peserta}
+                    onChange={(file) => setField("ktp_peserta", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewKtp && (
                   <a
                     href={previewKtp}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Berkas KTP Saat Ini
                   </a>
@@ -420,23 +354,22 @@ const EditFormPelatihan: React.FC = () => {
               </div>
 
               {/* Foto 3x4 */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Pas Foto Berwarna 3x4
-                </label>
-                <input
-                  type="file"
-                  name="foto_peserta"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Pas Foto Berwarna 3x4">
+                  <DropzoneUploader
+                    label="Pilih Pas Foto Baru"
+                    value={formData.foto_peserta}
+                    onChange={(file) => setField("foto_peserta", file)}
+                    accept=".jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewFoto && (
                   <a
                     href={previewFoto}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Pas Foto Saat Ini
                   </a>
@@ -447,8 +380,8 @@ const EditFormPelatihan: React.FC = () => {
         </Card>
 
         {/* 3. Informasi Instansi & Kebutuhan Materi */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
                 <Building2 className="w-4 h-4" />
@@ -460,113 +393,76 @@ const EditFormPelatihan: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Instansi / Usaha <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+          <CardContent className="pt-4 space-y-4">
+            <FormField label="Nama Instansi / Usaha" required>
+              <TextInput
                 name="nama_instansi"
                 value={formData.nama_instansi}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("nama_instansi", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Kantor Instansi <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Alamat Kantor Instansi" required>
+              <TextareaInput
                 rows={2}
                 name="alamat_instansi"
                 value={formData.alamat_instansi}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("alamat_instansi", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jenis Produk Industri
-              </label>
-              <input
-                type="text"
+            <FormField label="Jenis Produk Industri">
+              <TextInput
                 name="jenis_produk"
                 value={formData.jenis_produk}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                onChange={(e) => setField("jenis_produk", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Permasalahan Terkait Materi / Produksi <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Permasalahan Terkait Materi / Produksi" required>
+              <TextareaInput
                 rows={2}
                 name="masalah_materi"
                 value={formData.masalah_materi}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("masalah_materi", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Hal Khusus yang Ingin Dipelajari <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Hal Khusus yang Ingin Dipelajari" required>
+              <TextareaInput
                 rows={2}
                 name="hal_dipelajari"
                 value={formData.hal_dipelajari}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("hal_dipelajari", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <label className="flex items-start gap-3 p-4 bg-emerald-50/70 rounded-xl border border-emerald-200 cursor-pointer">
-              <input
-                type="checkbox"
-                name="setuju_syarat"
-                checked={formData.setuju_syarat}
-                onChange={handleChange}
-                className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-                required
-              />
-              <span className="text-xs font-bold text-emerald-900">
-                Dengan ini saya menyatakan bahwa data perbaikan yang saya masukkan adalah benar dan siap diproses ulang. <span className="text-rose-500">*</span>
-              </span>
-            </label>
+            <LegalStatementBox
+              title="Pernyataan Kebenaran Data Pelatihan"
+              subtitle="Verifikasi perbaikan isian formulir peserta pelatihan BBKKP"
+              bulletPoints={[
+                "Seluruh data perbaikan dan dokumen yang saya unggah adalah benar dan sah.",
+                "Peserta siap mengikuti bimbingan teknis sesuai jadwal pelaksanaan yang disepakati.",
+              ]}
+              checkboxLabel="Dengan ini saya menyatakan bahwa data perbaikan yang saya masukkan adalah benar dan siap diproses ulang."
+              checked={formData.setuju_syarat}
+              onChange={(checked) => setField("setuju_syarat", checked)}
+              required
+            />
           </CardContent>
         </Card>
 
         {/* Action Button */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/permohonan")}
-          >
-            Batal
-          </Button>
-
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={submitting}
-            isLoading={submitting}
-            leftIcon={<Save className="w-4 h-4" />}
-            className="shadow-md"
-          >
-            Simpan Perubahan Koreksi
-          </Button>
-        </div>
+        <StickyFormActions
+          canGoBack={true}
+          onBack={() => navigate("/permohonan")}
+          backLabel="Batal"
+          onSubmit={() => handleSubmit()}
+          submitLabel="Simpan Perubahan Koreksi"
+          isLastStep={true}
+          isSubmitting={submitting}
+          isSticky={true}
+        />
       </form>
     </div>
   )

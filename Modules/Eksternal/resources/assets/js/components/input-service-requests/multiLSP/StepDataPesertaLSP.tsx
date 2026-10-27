@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast"
 import { ParticipantLSP, emptyParticipantLSP } from "../../../types/lsp"
 import FormDataPesertaLSP from "./FormDataPesertaLSP"
 import { Button } from "../../ui/Button"
-import { UserPlus, UserCheck, Trash2, ArrowRight } from "lucide-react"
+import { UserPlus, UserCheck, Trash2, ArrowRight, Copy } from "lucide-react"
 
 interface Props {
   participants: ParticipantLSP[]
@@ -41,6 +41,26 @@ const StepDataPesertaLSP: React.FC<Props> = ({
     setNextId((prev) => prev + 1)
   }
 
+  const duplicateParticipant = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const target = participants.find((p) => p.id === id)
+    if (!target) return
+    const duplicated: ParticipantLSP = {
+      ...target,
+      id: nextId,
+      nama_lengkap: `${target.nama_lengkap} (Salinan)`,
+      ktp_peserta: null,
+      ijazah: null,
+      apl_01: null,
+      apl_02: null,
+      upload_lainya: null,
+    }
+    setParticipants((prev) => [...prev, duplicated])
+    setActiveId(nextId)
+    setNextId((prev) => prev + 1)
+    toast.success("Data peserta berhasil diduplikasi. Silakan periksa & unggah berkas asesi.")
+  }
+
   const removeParticipant = (id: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (participants.length === 1) return
@@ -64,6 +84,15 @@ const StepDataPesertaLSP: React.FC<Props> = ({
         if (type === "file") return { ...p, [name]: file }
         if (type === "checkbox") return { ...p, [name]: checked }
         return { ...p, [name]: value }
+      })
+    )
+  }
+
+  const updateParticipantField = (id: number, field: keyof ParticipantLSP, value: any) => {
+    setParticipants((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p
+        return { ...p, [field]: value }
       })
     )
   }
@@ -133,20 +162,19 @@ const StepDataPesertaLSP: React.FC<Props> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* Tab Navigasi Multi-Peserta */}
       {isInstansi && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-thin">
           {participants.map((p, index) => {
             const isActive = activeId === p.id
             return (
-              <button
+              <div
                 key={p.id}
-                type="button"
                 onClick={() => setActiveId(p.id)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 select-none ${
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer select-none ${
                   isActive
-                    ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/20"
+                    ? "bg-brand-600 text-white shadow-xs ring-2 ring-brand-500/20"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
@@ -155,23 +183,38 @@ const StepDataPesertaLSP: React.FC<Props> = ({
                   Peserta {index + 1}
                   {p.nama_lengkap ? `: ${p.nama_lengkap.split(" ")[0]}` : ""}
                 </span>
-                {participants.length > 1 && (
+
+                <div className="flex items-center gap-0.5 ml-1">
                   <span
-                    onClick={(e) => removeParticipant(p.id, e)}
-                    className="p-1 rounded-md hover:bg-rose-500/30 text-white/80 hover:text-white transition-colors"
-                    title="Hapus peserta ini"
+                    onClick={(e) => duplicateParticipant(p.id, e)}
+                    className={`p-1 rounded-md transition-colors ${
+                      isActive ? "hover:bg-white/20 text-white" : "hover:bg-slate-200 text-slate-500"
+                    }`}
+                    title="Duplikasi data peserta ini"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Copy className="w-3 h-3" />
                   </span>
-                )}
-              </button>
+
+                  {participants.length > 1 && (
+                    <span
+                      onClick={(e) => removeParticipant(p.id, e)}
+                      className={`p-1 rounded-md transition-colors ${
+                        isActive ? "hover:bg-rose-500/30 text-white" : "hover:bg-rose-100 text-rose-500"
+                      }`}
+                      title="Hapus peserta ini"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+              </div>
             )
           })}
 
           <button
             type="button"
             onClick={addParticipant}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border-2 border-dashed border-slate-300 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border-2 border-dashed border-slate-300 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Tambah Peserta</span>
@@ -188,6 +231,7 @@ const StepDataPesertaLSP: React.FC<Props> = ({
             <FormDataPesertaLSP
               formData={p}
               onChange={(e) => updateParticipant(p.id, e)}
+              onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
               jenisPelanggan={jenisPelanggan}
               detail={detail}
               pilihanProfil={profil}
@@ -207,7 +251,7 @@ const StepDataPesertaLSP: React.FC<Props> = ({
           size="lg"
           onClick={onNext}
           rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="shadow-sm"
+          className="shadow-sm font-bold text-xs px-6"
         >
           Lanjut ke Data Instansi & Persetujuan
         </Button>

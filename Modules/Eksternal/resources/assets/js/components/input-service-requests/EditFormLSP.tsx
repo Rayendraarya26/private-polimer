@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import { useParams, useNavigate } from "react-router-dom"
 import { useLSP } from "../../hooks/service-requests/useLSP"
@@ -11,11 +11,19 @@ import {
   User,
   Building2,
   FileUp,
-  FileCheck2,
   Save,
-  CheckCircle2,
   ExternalLink,
 } from "lucide-react"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  SelectInput,
+  DateInput,
+  DropzoneUploader,
+  LegalStatementBox,
+  StickyFormActions,
+} from "../forms"
 
 const BASE_STORAGE = "http://localhost:4700/storage/"
 
@@ -118,29 +126,16 @@ const EditFormLSP: React.FC = () => {
     fetchDetail()
   }, [id, getDetailLSP])
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, type } = e.target as HTMLInputElement
-    if (type === "file") {
-      const file = (e.target as HTMLInputElement).files?.[0] || null
-      setFormData((prev) => ({ ...prev, [name]: file }))
-    } else if (type === "checkbox") {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }))
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: e.target.value }))
-    }
+  const setField = (field: keyof typeof initialState, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!id) return
 
     if (!formData.setuju_syarat) {
-      toast.error("Anda harus menyetujui syarat & ketentuan")
+      toast.error("Anda harus menyetujui syarat & ketentuan koreksi")
       return
     }
 
@@ -161,45 +156,34 @@ const EditFormLSP: React.FC = () => {
       navigate("/permohonan")
     } catch (error) {
       console.error(error)
-      toast.error("Gagal menyimpan perubahan LSP")
+      toast.error("Gagal memperbarui data LSP")
     }
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <Head title="Koreksi Permohonan Sertifikasi LSP" />
+    <div className="max-w-4xl mx-auto py-6 space-y-6">
+      <Head title="Koreksi Permohonan LSP" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-brand-600 mb-1">
-            <Award className="w-4 h-4" />
-            <span>Koreksi Berkas Permohonan LSP</span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Perbarui Data Sertifikasi Kompetensi Profesi
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Lakukan perbaikan data dan unggah ulang berkas persyaratan yang diminta oleh verifikator.
-          </p>
-        </div>
-
-        <Button
+      <div className="flex items-center justify-between">
+        <button
           type="button"
-          variant="outline"
-          size="sm"
           onClick={() => navigate("/permohonan")}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
         >
-          Kembali ke Permohonan
-        </Button>
+          <ArrowLeft className="w-4 h-4" />
+          <span>Kembali ke Daftar Permohonan</span>
+        </button>
+
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-200">
+          <Award className="w-3.5 h-3.5" /> Koreksi LSP
+        </span>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 1. Biodata Calon Asesi */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-brand-50 text-brand-600">
                 <User className="w-4 h-4" />
@@ -211,188 +195,139 @@ const EditFormLSP: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Lengkap <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+          <CardContent className="pt-4 space-y-4">
+            <FormField label="Nama Lengkap" required>
+              <TextInput
                 name="nama_lengkap"
                 value={formData.nama_lengkap}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("nama_lengkap", e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Tempat Lahir <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="Tempat Lahir" required>
+                <TextInput
                   name="tempat_lahir"
                   value={formData.tempat_lahir}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("tempat_lahir", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Tanggal Lahir <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+              <FormField label="Tanggal Lahir" required>
+                <DateInput
                   name="tanggal_lahir"
                   value={formData.tanggal_lahir}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("tanggal_lahir", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Jenis Kelamin <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Jenis Kelamin" required>
+                <SelectInput
                   name="gender"
                   value={formData.gender}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="">-- Pilih Gender --</option>
-                  <option value="Laki-laki">Laki-laki</option>
-                  <option value="Perempuan">Perempuan</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("gender", String(val))}
+                  options={[
+                    { value: "Laki-laki", label: "Laki-laki" },
+                    { value: "Perempuan", label: "Perempuan" },
+                  ]}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  NIK (16 Digit) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="NIK (16 Digit)" required>
+                <TextInput
                   name="nik_peserta"
                   value={formData.nik_peserta}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 16)
+                    setField("nik_peserta", value)
+                  }}
                   maxLength={16}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Kewarganegaraan <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Kewarganegaraan" required>
+                <SelectInput
                   name="kewarganegaraan"
                   value={formData.kewarganegaraan}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="WNI">WNI</option>
-                  <option value="WNA">WNA</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("kewarganegaraan", String(val))}
+                  options={[
+                    { value: "WNI", label: "WNI" },
+                    { value: "WNA", label: "WNA" },
+                  ]}
+                />
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Pendidikan Terakhir <span className="text-rose-500">*</span>
-                </label>
-                <select
+              <FormField label="Pendidikan Terakhir" required>
+                <SelectInput
                   name="pendidikan"
                   value={formData.pendidikan}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                >
-                  <option value="S3">S3</option>
-                  <option value="S2">S2</option>
-                  <option value="S1">S1</option>
-                  <option value="D4">D4</option>
-                  <option value="D3">D3</option>
-                  <option value="D1 / SMA / SMK">D1 / SMA / SMK</option>
-                  <option value="Lainnya">Lainnya</option>
-                </select>
-              </div>
+                  onChange={(val) => setField("pendidikan", String(val))}
+                  options={[
+                    { value: "S3", label: "S3" },
+                    { value: "S2", label: "S2" },
+                    { value: "S1", label: "S1" },
+                    { value: "D4", label: "D4" },
+                    { value: "D3", label: "D3" },
+                    { value: "D1 / SMA / SMK", label: "D1 / SMA / SMK" },
+                    { value: "Lainnya", label: "Lainnya" },
+                  ]}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Alamat Domisili <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  name="alamat_peserta"
-                  value={formData.alamat_peserta}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
+                <FormField label="Alamat Domisili" required>
+                  <TextareaInput
+                    rows={2}
+                    name="alamat_peserta"
+                    value={formData.alamat_peserta}
+                    onChange={(e) => setField("alamat_peserta", e.target.value)}
+                  />
+                </FormField>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Kode Pos <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="kode_pos"
-                  value={formData.kode_pos}
-                  onChange={handleChange}
-                  maxLength={5}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
-                />
+                <FormField label="Kode Pos" required>
+                  <TextInput
+                    name="kode_pos"
+                    value={formData.kode_pos}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 5)
+                      setField("kode_pos", value)
+                    }}
+                    maxLength={5}
+                  />
+                </FormField>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Nomor WhatsApp <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <FormField label="Nomor WhatsApp" required>
+                <TextInput
                   name="whatsapp"
                   value={formData.whatsapp}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("whatsapp", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Alamat Email <span className="text-rose-500">*</span>
-                </label>
-                <input
+              <FormField label="Alamat Email" required>
+                <TextInput
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  required
+                  onChange={(e) => setField("email", e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
           </CardContent>
         </Card>
 
         {/* 2. Berkas Portofolio Persyaratan */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
                 <FileUp className="w-4 h-4" />
@@ -404,26 +339,25 @@ const EditFormLSP: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* KTP */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Kartu Tanda Penduduk (KTP)
-                </label>
-                <input
-                  type="file"
-                  name="ktp_peserta"
-                  accept=".pdf, image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Kartu Tanda Penduduk (KTP)">
+                  <DropzoneUploader
+                    label="Pilih File KTP Baru"
+                    value={formData.ktp_peserta}
+                    onChange={(file) => setField("ktp_peserta", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewFile.ktp_peserta && (
                   <a
                     href={previewFile.ktp_peserta}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Berkas KTP Saat Ini
                   </a>
@@ -431,23 +365,22 @@ const EditFormLSP: React.FC = () => {
               </div>
 
               {/* Ijazah */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Ijazah Terakhir
-                </label>
-                <input
-                  type="file"
-                  name="ijazah"
-                  accept=".pdf, image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Ijazah Terakhir">
+                  <DropzoneUploader
+                    label="Pilih File Ijazah Baru"
+                    value={formData.ijazah}
+                    onChange={(file) => setField("ijazah", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewFile.ijazah && (
                   <a
                     href={previewFile.ijazah}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Berkas Ijazah Saat Ini
                   </a>
@@ -455,23 +388,22 @@ const EditFormLSP: React.FC = () => {
               </div>
 
               {/* APL-01 */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Formulir APL-01
-                </label>
-                <input
-                  type="file"
-                  name="apl_01"
-                  accept=".pdf, image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Formulir APL-01">
+                  <DropzoneUploader
+                    label="Pilih File APL-01 Baru"
+                    value={formData.apl_01}
+                    onChange={(file) => setField("apl_01", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewFile.apl_01 && (
                   <a
                     href={previewFile.apl_01}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Berkas APL-01 Saat Ini
                   </a>
@@ -479,23 +411,22 @@ const EditFormLSP: React.FC = () => {
               </div>
 
               {/* APL-02 */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Formulir APL-02
-                </label>
-                <input
-                  type="file"
-                  name="apl_02"
-                  accept=".pdf, image/*"
-                  onChange={handleChange}
-                  className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700"
-                />
+              <div className="space-y-1.5">
+                <FormField label="Formulir APL-02">
+                  <DropzoneUploader
+                    label="Pilih File APL-02 Baru"
+                    value={formData.apl_02}
+                    onChange={(file) => setField("apl_02", file)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                  />
+                </FormField>
                 {previewFile.apl_02 && (
                   <a
                     href={previewFile.apl_02}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline pt-1"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" /> Lihat Berkas APL-02 Saat Ini
                   </a>
@@ -506,8 +437,8 @@ const EditFormLSP: React.FC = () => {
         </Card>
 
         {/* 3. Data Instansi & Persetujuan */}
-        <Card>
-          <CardHeader>
+        <Card className="border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="bg-slate-50/70 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
                 <Building2 className="w-4 h-4" />
@@ -519,113 +450,76 @@ const EditFormLSP: React.FC = () => {
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Instansi / Usaha <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
+          <CardContent className="pt-4 space-y-4">
+            <FormField label="Nama Instansi / Usaha" required>
+              <TextInput
                 name="nama_instansi"
                 value={formData.nama_instansi}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("nama_instansi", e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Kantor Instansi <span className="text-rose-500">*</span>
-              </label>
-              <textarea
+            <FormField label="Alamat Kantor Instansi" required>
+              <TextareaInput
                 rows={2}
                 name="alamat_instansi"
                 value={formData.alamat_instansi}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                required
+                onChange={(e) => setField("alamat_instansi", e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Jenis Bidang Usaha
-                </label>
-                <input
-                  type="text"
+              <FormField label="Jenis Bidang Usaha">
+                <TextInput
                   name="jenis_produk"
                   value={formData.jenis_produk}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  onChange={(e) => setField("jenis_produk", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Jabatan Pekerjaan
-                </label>
-                <input
-                  type="text"
+              <FormField label="Jabatan Pekerjaan">
+                <TextInput
                   name="jabatan"
                   value={formData.jabatan}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  onChange={(e) => setField("jabatan", e.target.value)}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Pengalaman Kerja
-                </label>
-                <input
-                  type="text"
+              <FormField label="Pengalaman Kerja">
+                <TextInput
                   name="pengalaman_kerja"
                   value={formData.pengalaman_kerja}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  onChange={(e) => setField("pengalaman_kerja", e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <label className="flex items-start gap-3 p-4 bg-emerald-50/70 rounded-xl border border-emerald-200 cursor-pointer">
-              <input
-                type="checkbox"
-                name="setuju_syarat"
-                checked={formData.setuju_syarat}
-                onChange={handleChange}
-                className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-                required
-              />
-              <span className="text-xs font-bold text-emerald-900">
-                Dengan ini saya menyatakan bahwa perbaikan data yang saya masukkan adalah benar dan siap diproses ulang. <span className="text-rose-500">*</span>
-              </span>
-            </label>
+            <LegalStatementBox
+              title="Pernyataan Kebenaran Data Koreksi"
+              subtitle="Verifikasi keabsahan data perbaikan permohonan sertifikasi LSP"
+              bulletPoints={[
+                "Seluruh data perbaikan dan dokumen yang saya unggah adalah sah, mutakhir, dan benar.",
+                "Saya bersedia mengikuti asesmen sesuai ketentuan LSP BBKKP.",
+              ]}
+              checkboxLabel="Dengan ini saya menyatakan bahwa perbaikan data yang saya masukkan adalah benar dan siap diproses ulang."
+              checked={formData.setuju_syarat}
+              onChange={(checked) => setField("setuju_syarat", checked)}
+              required
+            />
           </CardContent>
         </Card>
 
         {/* Action Button */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/permohonan")}
-          >
-            Batal
-          </Button>
-
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={submitting}
-            isLoading={submitting}
-            leftIcon={<Save className="w-4 h-4" />}
-            className="shadow-md"
-          >
-            Simpan Perubahan Koreksi
-          </Button>
-        </div>
+        <StickyFormActions
+          canGoBack={true}
+          onBack={() => navigate("/permohonan")}
+          backLabel="Batal"
+          onSubmit={() => handleSubmit()}
+          submitLabel="Simpan Perubahan Koreksi"
+          isLastStep={true}
+          isSubmitting={submitting}
+          isSticky={true}
+        />
       </form>
     </div>
   )

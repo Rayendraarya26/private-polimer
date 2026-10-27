@@ -4,20 +4,20 @@ import { ProfileClientType } from "../../../types/profile"
 import { ParticipantLSP } from "../../../types/lsp"
 import PhoneInputWithCountrySelect from "react-phone-number-input"
 import "react-phone-number-input/style.css"
-import { User, Briefcase, FileUp, CheckCircle2, ShieldAlert } from "lucide-react"
-
-const MAX_FILE_SIZE = 3 * 1024 * 1024
-
-const allowedTypes = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/jpg",
-]
+import { User, Briefcase, FileUp } from "lucide-react"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  SelectInput,
+  DateInput,
+  DropzoneUploader,
+} from "../../forms"
 
 interface Props {
   formData: ParticipantLSP
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onUpdateField?: (field: keyof ParticipantLSP, value: any) => void
   jenisPelanggan: string | undefined
   detail: any
   pilihanProfil: string
@@ -29,56 +29,49 @@ interface Props {
 const FormDataPesertaLSP: React.FC<Props> = ({
   formData,
   onChange,
+  onUpdateField,
   jenisPelanggan,
   detail,
   pilihanProfil,
   onPilihanProfilChange,
   isFieldDisabled,
 }) => {
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    label: string
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`Ukuran file ${label} maksimal 3 MB`)
-      e.target.value = ""
-      return
+  const setField = (field: keyof ParticipantLSP, value: any) => {
+    if (onUpdateField) {
+      onUpdateField(field, value)
+    } else {
+      onChange({
+        target: { name: field as string, value },
+      } as any)
     }
-
-    if (!allowedTypes.includes(file.type)) {
-      toast.error(`${label} harus berupa berkas PDF atau gambar (JPG/PNG)`)
-      e.target.value = ""
-      return
-    }
-
-    onChange(e as any)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* Profil Selector Card (for Instansi / Perusahaan) */}
       {jenisPelanggan !== ProfileClientType.PERORANGAN && (
         <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-          <label className="block text-xs font-semibold text-slate-700">
-            Pilih Sumber Data Peserta <span className="text-rose-500">*</span>
-          </label>
-          <select
-            value={pilihanProfil}
-            onChange={onPilihanProfilChange}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          <FormField
+            label="Pilih Sumber Data Peserta"
             required
+            helperText="Pilih apakah peserta adalah pimpinan, penanggung jawab, atau staf lainnya."
           >
-            <option value="Manual">Input Manual (Pegawai / Calon Asesi Delegasi)</option>
-            <option value="saya">Profil Saya (Akun Login)</option>
-            <option value="pimpinan">Pimpinan ({detail?.pimpinan || "Data Kosong"})</option>
-            <option value="penanggung_jawab">Penanggung Jawab / PIC ({detail?.pj_nama || "Data Kosong"})</option>
-          </select>
-          <p className="text-[11px] text-slate-500">
-            Pilih apakah peserta adalah pimpinan, penanggung jawab, atau staf lainnya.
-          </p>
+            <SelectInput
+              value={pilihanProfil}
+              onChange={(val) =>
+                onPilihanProfilChange({ target: { value: String(val) } } as any)
+              }
+              options={[
+                { value: "Manual", label: "Input Manual (Pegawai / Calon Asesi Delegasi)" },
+                { value: "saya", label: "Profil Saya (Akun Login)" },
+                { value: "pimpinan", label: `Pimpinan (${detail?.pimpinan || "Data Kosong"})` },
+                {
+                  value: "penanggung_jawab",
+                  label: `Penanggung Jawab / PIC (${detail?.pj_nama || "Data Kosong"})`,
+                },
+              ]}
+            />
+          </FormField>
         </div>
       )}
 
@@ -98,171 +91,128 @@ const FormDataPesertaLSP: React.FC<Props> = ({
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Nama Lengkap (tanpa gelar disarankan) <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="nama_lengkap"
-            value={formData.nama_lengkap}
-            onChange={onChange}
-            disabled={isFieldDisabled}
-            placeholder="Masukkan nama lengkap peserta..."
-            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
+        <div className="space-y-4">
+          <FormField
+            label="Nama Lengkap"
             required
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Tempat Lahir <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="tempat_lahir"
-              value={formData.tempat_lahir}
-              onChange={onChange}
-              placeholder="Kota kelahiran..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
+            helperText="Disarankan tanpa gelar sesuai data KTP"
+          >
+            <TextInput
+              name="nama_lengkap"
+              value={formData.nama_lengkap}
+              onChange={(e) => setField("nama_lengkap", e.target.value)}
+              disabled={isFieldDisabled}
+              placeholder="Masukkan nama lengkap peserta..."
             />
+          </FormField>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FormField label="Tempat Lahir" required>
+              <TextInput
+                name="tempat_lahir"
+                value={formData.tempat_lahir}
+                onChange={(e) => setField("tempat_lahir", e.target.value)}
+                placeholder="Kota kelahiran..."
+              />
+            </FormField>
+
+            <FormField label="Tanggal Lahir" required>
+              <DateInput
+                name="tanggal_lahir"
+                value={formData.tanggal_lahir}
+                onChange={(e) => setField("tanggal_lahir", e.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Jenis Kelamin" required>
+              <SelectInput
+                name="gender"
+                value={formData.gender}
+                onChange={(val) => setField("gender", String(val))}
+                placeholder="-- Pilih Gender --"
+                options={[
+                  { value: "Laki-laki", label: "Laki-laki" },
+                  { value: "Perempuan", label: "Perempuan" },
+                ]}
+              />
+            </FormField>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Tanggal Lahir <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="tanggal_lahir"
-              value={formData.tanggal_lahir}
-              onChange={onChange}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <FormField label="Nomor Induk Kependudukan (NIK)" required>
+              <TextInput
+                name="nik_peserta"
+                value={formData.nik_peserta || ""}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 16)
+                  setField("nik_peserta", value)
+                }}
+                inputMode="numeric"
+                maxLength={16}
+                placeholder="16 digit NIK..."
+              />
+            </FormField>
+
+            <FormField label="Kewarganegaraan" required>
+              <SelectInput
+                name="kewarganegaraan"
+                value={formData.kewarganegaraan}
+                onChange={(val) => setField("kewarganegaraan", String(val))}
+                placeholder="-- Pilih --"
+                options={[
+                  { value: "WNI", label: "WNI (Warga Negara Indonesia)" },
+                  { value: "WNA", label: "WNA (Warga Negara Asing)" },
+                ]}
+              />
+            </FormField>
+
+            <FormField label="Pendidikan Terakhir" required>
+              <SelectInput
+                name="pendidikan"
+                value={formData.pendidikan}
+                onChange={(val) => setField("pendidikan", String(val))}
+                placeholder="-- Pilih Pendidikan --"
+                options={[
+                  { value: "S3", label: "S3 / Doktoral" },
+                  { value: "S2", label: "S2 / Magister" },
+                  { value: "S1", label: "S1 / Sarjana" },
+                  { value: "D4", label: "D4 / Sarjana Terapan" },
+                  { value: "D3", label: "D3 / Diploma 3" },
+                  { value: "D1 / SMA / SMK", label: "D1 / SMA / SMK Sederajat" },
+                  { value: "Lainnya", label: "Lainnya" },
+                ]}
+              />
+            </FormField>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Jenis Kelamin <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={onChange}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            >
-              <option value="">-- Pilih Gender --</option>
-              <option value="Laki-laki">Laki-laki</option>
-              <option value="Perempuan">Perempuan</option>
-            </select>
-          </div>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="sm:col-span-3">
+              <FormField label="Alamat Lengkap Domisili" required>
+                <TextareaInput
+                  rows={2}
+                  name="alamat_peserta"
+                  value={formData.alamat_peserta}
+                  onChange={(e) => setField("alamat_peserta", e.target.value)}
+                  placeholder="Nama jalan, RT/RW, kelurahan, kecamatan, kota..."
+                />
+              </FormField>
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Nomor Induk Kependudukan (NIK) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="nik_peserta"
-              value={formData.nik_peserta || ""}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "").slice(0, 16)
-                onChange({
-                  ...e,
-                  target: { name: "nik_peserta", value },
-                } as any)
-              }}
-              inputMode="numeric"
-              maxLength={16}
-              placeholder="16 digit NIK..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Kewarganegaraan <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="kewarganegaraan"
-              value={formData.kewarganegaraan}
-              onChange={onChange}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            >
-              <option value="">-- Pilih --</option>
-              <option value="WNI">WNI (Warga Negara Indonesia)</option>
-              <option value="WNA">WNA (Warga Negara Asing)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Pendidikan Terakhir <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="pendidikan"
-              value={formData.pendidikan}
-              onChange={onChange}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            >
-              <option value="">-- Pilih Pendidikan --</option>
-              <option value="S3">S3 / Doktoral</option>
-              <option value="S2">S2 / Magister</option>
-              <option value="S1">S1 / Sarjana</option>
-              <option value="D4">D4 / Sarjana Terapan</option>
-              <option value="D3">D3 / Diploma 3</option>
-              <option value="D1 / SMA / SMK">D1 / SMA / SMK Sederajat</option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="sm:col-span-3">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Alamat Lengkap Domisili <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={2}
-              name="alamat_peserta"
-              value={formData.alamat_peserta}
-              onChange={onChange}
-              placeholder="Nama jalan, RT/RW, kelurahan, kecamatan, kota..."
-              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Kode Pos <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="kode_pos"
-              value={formData.kode_pos || ""}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "").slice(0, 5)
-                onChange({
-                  ...e,
-                  target: { name: "kode_pos", value },
-                } as any)
-              }}
-              inputMode="numeric"
-              maxLength={5}
-              placeholder="5 digit..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
-            />
+            <div>
+              <FormField label="Kode Pos" required>
+                <TextInput
+                  name="kode_pos"
+                  value={formData.kode_pos || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 5)
+                    setField("kode_pos", value)
+                  }}
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="5 digit..."
+                />
+              </FormField>
+            </div>
           </div>
         </div>
       </div>
@@ -284,75 +234,50 @@ const FormDataPesertaLSP: React.FC<Props> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Nomor WhatsApp Aktif <span className="text-rose-500">*</span>
-            </label>
-            <PhoneInputWithCountrySelect
-              international
-              defaultCountry="ID"
-              placeholder="Contoh: +62 812-3456-7890"
-              value={formData.whatsapp || ""}
-              onChange={(value) => {
-                onChange({
-                  target: {
-                    name: "whatsapp",
-                    value: value || "",
-                  },
-                } as any)
-              }}
-              disabled={isFieldDisabled}
-              className="w-full"
-            />
-          </div>
+          <FormField label="Nomor WhatsApp Aktif" required>
+            <div className="min-h-[42px] px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white flex items-center">
+              <PhoneInputWithCountrySelect
+                international
+                defaultCountry="ID"
+                placeholder="Contoh: +62 812-3456-7890"
+                value={formData.whatsapp || ""}
+                onChange={(value) => setField("whatsapp", value || "")}
+                disabled={isFieldDisabled}
+                className="w-full text-xs"
+              />
+            </div>
+          </FormField>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Alamat Email Aktif <span className="text-rose-500">*</span>
-            </label>
-            <input
+          <FormField label="Alamat Email Aktif" required>
+            <TextInput
               type="email"
               name="email"
               value={formData.email}
-              onChange={onChange}
+              onChange={(e) => setField("email", e.target.value)}
               disabled={isFieldDisabled}
               placeholder="email@example.com"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-100"
-              required
             />
-          </div>
+          </FormField>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Jabatan / Posisi Pekerjaan <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
+          <FormField label="Jabatan / Posisi Pekerjaan" required>
+            <TextInput
               name="jabatan"
               value={formData.jabatan || ""}
-              onChange={onChange}
+              onChange={(e) => setField("jabatan", e.target.value)}
               placeholder="Contoh: Operator Mesin / Analis Mutu..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Pengalaman Kerja Relevan <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
+          <FormField label="Pengalaman Kerja Relevan" required>
+            <TextInput
               name="pengalaman_kerja"
               value={formData.pengalaman_kerja || ""}
-              onChange={onChange}
+              onChange={(e) => setField("pengalaman_kerja", e.target.value)}
               placeholder="Contoh: 3 Tahun di Industri Plastik..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-              required
             />
-          </div>
+          </FormField>
         </div>
       </div>
 
@@ -368,110 +293,63 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 3. Unggah Berkas Persyaratan & Form APL
               </h3>
               <p className="text-xs text-slate-500">
-                Format: PDF, JPG, PNG, JPEG • Maksimal 3 MB per dokumen
+                Format: PDF, JPG, PNG • Maksimal 5 MB per dokumen
               </p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Upload KTP */}
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Kartu Tanda Penduduk (KTP) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="file"
-              name="ktp_peserta"
-              accept=".pdf, image/*"
-              onChange={(e) => handleFileChange(e, "KTP")}
-              className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-              required
+          <FormField label="Kartu Tanda Penduduk (KTP)" required>
+            <DropzoneUploader
+              label="Unggah Berkas KTP"
+              value={formData.ktp_peserta}
+              onChange={(file) => setField("ktp_peserta", file)}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
             />
-            {formData.ktp_peserta && (
-              <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> File: {formData.ktp_peserta.name}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          {/* Upload Ijazah */}
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Ijazah Terakhir <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="file"
-              name="ijazah"
-              accept=".pdf, image/*"
-              onChange={(e) => handleFileChange(e, "Ijazah")}
-              className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-              required
+          <FormField label="Ijazah Terakhir" required>
+            <DropzoneUploader
+              label="Unggah Ijazah"
+              value={formData.ijazah}
+              onChange={(file) => setField("ijazah", file)}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
             />
-            {formData.ijazah && (
-              <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> File: {formData.ijazah.name}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          {/* Upload APL-01 */}
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Formulir APL-01 (Permohonan) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="file"
-              name="apl_01"
-              accept=".pdf, image/*"
-              onChange={(e) => handleFileChange(e, "APL-01")}
-              className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-              required
+          <FormField label="Formulir APL-01 (Permohonan)" required>
+            <DropzoneUploader
+              label="Unggah Form APL-01"
+              value={formData.apl_01}
+              onChange={(file) => setField("apl_01", file)}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
             />
-            {formData.apl_01 && (
-              <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> File: {formData.apl_01.name}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          {/* Upload APL-02 */}
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Formulir APL-02 (Asesmen Mandiri) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="file"
-              name="apl_02"
-              accept=".pdf, image/*"
-              onChange={(e) => handleFileChange(e, "APL-02")}
-              className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
-              required
+          <FormField label="Formulir APL-02 (Asesmen Mandiri)" required>
+            <DropzoneUploader
+              label="Unggah Form APL-02"
+              value={formData.apl_02}
+              onChange={(file) => setField("apl_02", file)}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
             />
-            {formData.apl_02 && (
-              <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> File: {formData.apl_02.name}
-              </p>
-            )}
-          </div>
+          </FormField>
 
-          {/* Upload Dokumen Lainnya */}
-          <div className="sm:col-span-2 p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
-            <label className="block text-xs font-bold text-slate-800">
-              Dokumen Portofolio Tambahan / Sertifikat Terkait <span className="text-slate-400 font-normal">(Opsional)</span>
-            </label>
-            <input
-              type="file"
-              name="upload_lainya"
-              accept=".pdf, image/*"
-              onChange={(e) => handleFileChange(e, "Dokumen Lainnya")}
-              className="w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
-            />
-            {formData.upload_lainya && (
-              <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> File: {formData.upload_lainya.name}
-              </p>
-            )}
+          <div className="sm:col-span-2">
+            <FormField label="Dokumen Portofolio Tambahan / Sertifikat Terkait (Opsional)">
+              <DropzoneUploader
+                label="Unggah Portofolio Tambahan"
+                value={formData.upload_lainya}
+                onChange={(file) => setField("upload_lainya", file)}
+                accept=".pdf,.jpg,.jpeg,.png"
+                maxSizeMB={5}
+              />
+            </FormField>
           </div>
         </div>
       </div>

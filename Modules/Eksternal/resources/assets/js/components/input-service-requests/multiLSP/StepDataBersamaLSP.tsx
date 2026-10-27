@@ -9,9 +9,15 @@ import {
   ArrowLeft,
   Save,
   Send,
-  Info,
-  CheckCircle2,
 } from "lucide-react"
+import {
+  FormField,
+  TextInput,
+  TextareaInput,
+  RadioCardGroup,
+  LegalStatementBox,
+  StickyFormActions,
+} from "../../forms"
 
 interface Props {
   sharedData: SharedDataLSP
@@ -32,20 +38,6 @@ const StepDataBersamaLSP: React.FC<Props> = ({
   onBack,
   onSubmit,
 }) => {
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target
-    if (type === "checkbox") {
-      setSharedData((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }))
-    } else {
-      setSharedData((prev) => ({ ...prev, [name]: value }))
-    }
-  }
-
   const instansiLabel =
     jenisPelanggan === ProfileClientType.PERORANGAN
       ? "Unit Usaha / Tempat Bekerja"
@@ -54,7 +46,7 @@ const StepDataBersamaLSP: React.FC<Props> = ({
       : "Badan Usaha / Perusahaan"
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-200">
       {/* 1. Data Unit Usaha / Instansi Pemohon */}
       <div className="bg-slate-50/70 p-6 rounded-2xl border border-slate-200/80 space-y-5">
         <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
@@ -71,49 +63,34 @@ const StepDataBersamaLSP: React.FC<Props> = ({
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Nama {instansiLabel} <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="nama_instansi"
-            value={sharedData.nama_instansi}
-            onChange={handleChange}
-            placeholder={`Masukkan nama ${instansiLabel.toLowerCase()}...`}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            required
-          />
-        </div>
+        <div className="space-y-4">
+          <FormField label={`Nama ${instansiLabel}`} required>
+            <TextInput
+              name="nama_instansi"
+              value={sharedData.nama_instansi}
+              onChange={(e) => setSharedData((prev) => ({ ...prev, nama_instansi: e.target.value }))}
+              placeholder={`Masukkan nama ${instansiLabel.toLowerCase()}...`}
+            />
+          </FormField>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Alamat Kantor / Unit Usaha <span className="text-rose-500">*</span>
-          </label>
-          <textarea
-            rows={3}
-            name="alamat_instansi"
-            value={sharedData.alamat_instansi}
-            onChange={handleChange}
-            placeholder="Alamat domisili lengkap..."
-            className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            required
-          />
-        </div>
+          <FormField label="Alamat Kantor / Unit Usaha" required>
+            <TextareaInput
+              rows={3}
+              name="alamat_instansi"
+              value={sharedData.alamat_instansi}
+              onChange={(e) => setSharedData((prev) => ({ ...prev, alamat_instansi: e.target.value }))}
+              placeholder="Alamat domisili lengkap..."
+            />
+          </FormField>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Jenis Bidang Industri / Sektor Usaha <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="jenis_produk"
-            value={sharedData.jenis_produk}
-            onChange={handleChange}
-            placeholder="Contoh: Industri Plastik, Karet, Kemasan, Otomotif..."
-            className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            required
-          />
+          <FormField label="Jenis Bidang Industri / Sektor Usaha" required>
+            <TextInput
+              name="jenis_produk"
+              value={sharedData.jenis_produk}
+              onChange={(e) => setSharedData((prev) => ({ ...prev, jenis_produk: e.target.value }))}
+              placeholder="Contoh: Industri Plastik, Karet, Kemasan, Otomotif..."
+            />
+          </FormField>
         </div>
       </div>
 
@@ -134,145 +111,62 @@ const StepDataBersamaLSP: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Opsi 1: Together */}
-            <label
-              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                sharedData.billing_type === "together"
-                  ? "bg-brand-50/60 border-brand-300 ring-2 ring-brand-500/20"
-                  : "bg-white border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              <input
-                type="radio"
-                name="billing_type"
-                value="together"
-                checked={sharedData.billing_type === "together"}
-                onChange={handleChange}
-                className="mt-1 text-brand-600 focus:ring-brand-500"
-              />
-              <div className="text-xs space-y-1">
-                <span className="font-bold text-slate-900 block">
-                  Gabung Tagihan (1 Invoice Kolektif)
-                </span>
-                <p className="text-slate-500 leading-relaxed">
-                  Satu nomor invoice dan Virtual Account diterbitkan sekaligus untuk total {participantCount} peserta.
-                </p>
-              </div>
-            </label>
-
-            {/* Opsi 2: Split Bill */}
-            <label
-              className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                sharedData.billing_type === "split"
-                  ? "bg-brand-50/60 border-brand-300 ring-2 ring-brand-500/20"
-                  : "bg-white border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              <input
-                type="radio"
-                name="billing_type"
-                value="split"
-                checked={sharedData.billing_type === "split"}
-                onChange={handleChange}
-                className="mt-1 text-brand-600 focus:ring-brand-500"
-              />
-              <div className="text-xs space-y-1">
-                <span className="font-bold text-slate-900 block">
-                  Split Bill (Invoice Per Peserta)
-                </span>
-                <p className="text-slate-500 leading-relaxed">
-                  Masing-masing dari {participantCount} peserta mendapat nomor permohonan dan nomor VA terpisah.
-                </p>
-              </div>
-            </label>
-          </div>
+          <RadioCardGroup
+            options={[
+              {
+                value: "together",
+                title: "Gabung Tagihan (1 Invoice Kolektif)",
+                description: `Satu nomor invoice dan Virtual Account diterbitkan sekaligus untuk total ${participantCount} peserta.`,
+                icon: <CreditCard className="w-4 h-4" />,
+              },
+              {
+                value: "split",
+                title: "Split Bill (Invoice Per Peserta)",
+                description: `Masing-masing dari ${participantCount} peserta mendapat nomor permohonan dan nomor VA terpisah.`,
+                icon: <CreditCard className="w-4 h-4" />,
+              },
+            ]}
+            value={sharedData.billing_type}
+            onChange={(val) => setSharedData((prev) => ({ ...prev, billing_type: val as "together" | "split" }))}
+            gridCols={2}
+          />
         </div>
       )}
 
-      {/* 3. Persetujuan & Komitmen Asesi */}
-      <div className="bg-slate-50/70 p-6 rounded-2xl border border-slate-200/80 space-y-4">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-          <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-            <FileCheck2 className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              3. Persetujuan Syarat & Ketentuan Asesmen
-            </h3>
-            <p className="text-xs text-slate-500">
-              Tata tertib dan kewajiban peserta uji kompetensi LSP BBKKP
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 text-xs text-slate-700 leading-relaxed">
-          <ol className="list-decimal list-inside space-y-1.5 font-medium text-slate-600">
-            <li>Bersedia hadir dan mengikuti rangkaian uji kompetensi sesuai jadwal yang ditetapkan oleh LSP.</li>
-            <li>Menyelesaikan dan mengumpulkan seluruh bukti portofolio asesmen mandiri secara jujur dan akurat.</li>
-            <li>Melunasi tarif PNBP sertifikasi kompetensi sesuai batas waktu tagihan yang ditentukan.</li>
-            <li>Mematuhi kode etik profesi dan tata tertib asesmen LSP BBKKP.</li>
-          </ol>
-        </div>
-
-        <label className="flex items-start gap-3 p-4 bg-emerald-50/70 rounded-xl border border-emerald-200 cursor-pointer">
-          <input
-            type="checkbox"
-            name="setuju_syarat"
-            checked={sharedData.setuju_syarat}
-            onChange={handleChange}
-            className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-            required
-          />
-          <div className="text-xs text-emerald-900">
-            <span className="font-bold block">
-              Saya menyatakan bahwa data yang diisi benar dan menyetujui seluruh ketentuan di atas. <span className="text-rose-500">*</span>
-            </span>
-            <span className="text-[11px] text-emerald-700">
-              Permohonan akan diverifikasi oleh tim sekretariat LSP BBKKP sebelum jadwal uji kompetensi diterbitkan.
-            </span>
-          </div>
-        </label>
-      </div>
+      {/* 3. Persetujuan Syarat & Ketentuan Asesmen dengan LegalStatementBox */}
+      <LegalStatementBox
+        title="3. Persetujuan Syarat & Ketentuan Asesmen"
+        subtitle="Tata tertib dan kewajiban peserta uji kompetensi LSP BBKKP"
+        bulletPoints={[
+          "Bersedia hadir dan mengikuti rangkaian uji kompetensi sesuai jadwal yang ditetapkan oleh LSP BBKKP.",
+          "Menyelesaikan dan mengumpulkan seluruh bukti portofolio asesmen mandiri secara jujur, akurat, dan dapat dipertanggungjawabkan.",
+          "Melunasi tarif PNBP sertifikasi kompetensi sesuai batas waktu tagihan yang ditentukan sistem.",
+          "Mematuhi seluruh kode etik profesi dan tata tertib asesmen LSP BBKKP.",
+        ]}
+        checkboxLabel="Saya menyatakan bahwa data yang diisi benar dan menyetujui seluruh ketentuan asesmen di atas."
+        checked={sharedData.setuju_syarat}
+        onChange={(checked) => setSharedData((prev) => ({ ...prev, setuju_syarat: checked }))}
+        required
+        subtext="Permohonan akan diverifikasi oleh tim sekretariat LSP BBKKP sebelum jadwal uji kompetensi diterbitkan."
+      />
 
       {/* Navigasi & Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={submitting}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-        >
-          Kembali ke Data Peserta
-        </Button>
-
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => onSubmit("draft")}
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Simpan Draft
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            disabled={submitting}
-            onClick={() => onSubmit("ajukan")}
-            isLoading={submitting}
-            leftIcon={<Send className="w-4 h-4" />}
-            className="shadow-md"
-          >
-            {participantCount > 1
-              ? `Simpan & Ajukan (${participantCount} Peserta)`
-              : "Simpan & Ajukan Permohonan"}
-          </Button>
-        </div>
-      </div>
+      <StickyFormActions
+        canGoBack={true}
+        onBack={onBack}
+        backLabel="Kembali ke Data Peserta"
+        onSaveDraft={() => onSubmit("draft")}
+        saveDraftLabel="Simpan Draft"
+        onSubmit={() => onSubmit("ajukan")}
+        submitLabel={
+          participantCount > 1
+            ? `Simpan & Ajukan (${participantCount} Peserta)`
+            : "Simpan & Ajukan Permohonan"
+        }
+        isLastStep={true}
+        isSubmitting={submitting}
+        isSticky={true}
+      />
     </div>
   )
 }

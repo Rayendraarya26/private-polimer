@@ -278,7 +278,7 @@ export const Step3KonfirmasiEquipment: React.FC<Step3Props> = ({ formData, onCha
               <label className="block font-semibold text-slate-700 mb-1.5">
                 Media tekanan yang tersedia di laboratorium Anda: <span className="text-rose-500">*</span>
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {["Udara", "Silicon oil", "Air", "Alkohol"].map((med) => {
                   const currentM = eq.pressure_gauge?.media_tekanan || []
                   return (

@@ -415,7 +415,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                   Informasi Spesifikasi Alat #{index + 1}
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Nama Alat */}
                   <FormField
                     label="Nama Alat"
@@ -470,7 +470,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                   </FormField>
 
                   {/* Kondisi Alat */}
-                  <div className="sm:col-span-2 lg:col-span-4">
+                  <div className="md:col-span-2">
                     <FormField
                       label="Kondisi Fisik & Operasional Alat"
                       required
@@ -500,7 +500,7 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {alat.nomorSeriList.map((seri, sIdx) => (
                     <div key={sIdx} className="flex items-center gap-2">
                       <span className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 font-mono font-bold text-xs flex items-center justify-center shrink-0">

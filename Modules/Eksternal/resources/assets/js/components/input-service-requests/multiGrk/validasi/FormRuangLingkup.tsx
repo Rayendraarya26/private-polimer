@@ -103,7 +103,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Periode Waktu <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input
                                 type={formData.periodeMulai ? "date" : "text"}
                                 placeholder="Tgl Mulai"

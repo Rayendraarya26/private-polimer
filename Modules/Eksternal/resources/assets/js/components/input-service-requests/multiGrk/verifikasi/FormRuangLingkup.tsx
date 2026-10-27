@@ -149,7 +149,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Batasan Pelaporan (Reporting boundary) <span className="text-red-500">*</span>
                         </label>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 p-4 rounded-xl border border-slate-200/80 bg-slate-50/40">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 rounded-xl border border-slate-200/80 bg-slate-50/40">
                             {[
                                 { id: "kategori_1", label: "Kategori 1 (Emisi Langsung)" },
                                 { id: "kategori_2", label: "Kategori 2 (Emisi Tidak Langsung dari energi yang diimpor)" },

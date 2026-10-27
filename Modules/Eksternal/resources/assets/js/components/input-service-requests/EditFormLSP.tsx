@@ -204,7 +204,7 @@ const EditFormLSP: React.FC = () => {
               />
             </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Tempat Lahir" required>
                 <TextInput
                   name="tempat_lahir"
@@ -232,9 +232,7 @@ const EditFormLSP: React.FC = () => {
                   ]}
                 />
               </FormField>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField label="NIK (16 Digit)" required>
                 <TextInput
                   name="nik_peserta"
@@ -277,31 +275,27 @@ const EditFormLSP: React.FC = () => {
               </FormField>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="sm:col-span-3">
-                <FormField label="Alamat Domisili" required>
-                  <TextareaInput
-                    rows={2}
-                    name="alamat_peserta"
-                    value={formData.alamat_peserta}
-                    onChange={(e) => setField("alamat_peserta", e.target.value)}
-                  />
-                </FormField>
-              </div>
+            <FormField label="Alamat Domisili" required>
+              <TextareaInput
+                rows={2}
+                name="alamat_peserta"
+                value={formData.alamat_peserta}
+                onChange={(e) => setField("alamat_peserta", e.target.value)}
+              />
+            </FormField>
 
-              <div>
-                <FormField label="Kode Pos" required>
-                  <TextInput
-                    name="kode_pos"
-                    value={formData.kode_pos}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 5)
-                      setField("kode_pos", value)
-                    }}
-                    maxLength={5}
-                  />
-                </FormField>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label="Kode Pos" required>
+                <TextInput
+                  name="kode_pos"
+                  value={formData.kode_pos}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 5)
+                    setField("kode_pos", value)
+                  }}
+                  maxLength={5}
+                />
+              </FormField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -468,7 +462,7 @@ const EditFormLSP: React.FC = () => {
               />
             </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Jenis Bidang Usaha">
                 <TextInput
                   name="jenis_produk"
@@ -485,13 +479,15 @@ const EditFormLSP: React.FC = () => {
                 />
               </FormField>
 
-              <FormField label="Pengalaman Kerja">
-                <TextInput
-                  name="pengalaman_kerja"
-                  value={formData.pengalaman_kerja}
-                  onChange={(e) => setField("pengalaman_kerja", e.target.value)}
-                />
-              </FormField>
+              <div className="md:col-span-2">
+                <FormField label="Pengalaman Kerja">
+                  <TextInput
+                    name="pengalaman_kerja"
+                    value={formData.pengalaman_kerja}
+                    onChange={(e) => setField("pengalaman_kerja", e.target.value)}
+                  />
+                </FormField>
+              </div>
             </div>
 
             <LegalStatementBox

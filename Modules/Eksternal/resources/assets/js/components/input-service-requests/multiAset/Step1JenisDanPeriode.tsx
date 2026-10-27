@@ -123,7 +123,7 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
             <h3 className="text-sm font-bold text-slate-800">Jadwal & Periode Pemanfaatan</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Tanggal Mulai" required>
               <DateInput
                 min={todayStr}
@@ -145,12 +145,14 @@ export const Step1JenisDanPeriode: React.FC<Step1JenisDanPeriodeProps> = ({
               />
             </FormField>
 
-            <FormField label="Estimasi Durasi">
-              <div className="flex items-center gap-2 px-3.5 min-h-[42px] bg-white border border-slate-200 rounded-xl text-sm font-bold text-brand-700">
-                <Clock className="w-4 h-4 text-brand-600 shrink-0" />
-                <span>{durasiHari} Hari Kalender</span>
-              </div>
-            </FormField>
+            <div className="md:col-span-2">
+              <FormField label="Estimasi Durasi">
+                <div className="flex items-center gap-2 px-3.5 min-h-[42px] bg-white border border-slate-200 rounded-xl text-sm font-bold text-brand-700">
+                  <Clock className="w-4 h-4 text-brand-600 shrink-0" />
+                  <span>{durasiHari} Hari Kalender</span>
+                </div>
+              </FormField>
+            </div>
           </div>
         </CardContent>
       </Card>

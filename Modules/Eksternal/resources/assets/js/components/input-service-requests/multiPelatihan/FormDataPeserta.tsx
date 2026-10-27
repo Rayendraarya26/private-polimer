@@ -96,7 +96,7 @@ const FormDataPeserta: React.FC<Props> = ({
             />
           </FormField>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Tempat Lahir" required>
               <TextInput
                 name="tempat_lahir"
@@ -126,9 +126,6 @@ const FormDataPeserta: React.FC<Props> = ({
                 ]}
               />
             </FormField>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField label="Nomor Induk Kependudukan (NIK)" required>
               <TextInput
                 name="nik_peserta"

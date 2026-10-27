@@ -213,7 +213,7 @@ export const Step2PilihanSkema: React.FC<Step2Props> = ({ formData, onChange }) 
           </div>
         ) : (
           <div className="max-h-[520px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredSkema.map((skema) => {
                 const checked = isSelected(skema.kode_skema)
                 const isCentrifugeOrOverhead =

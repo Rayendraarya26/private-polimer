@@ -207,7 +207,7 @@ const EditFormPelatihan: React.FC = () => {
               />
             </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="Tempat Lahir" required>
                 <TextInput
                   name="tempat_lahir"
@@ -235,9 +235,6 @@ const EditFormPelatihan: React.FC = () => {
                   ]}
                 />
               </FormField>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField label="NIK (16 Digit)" required>
                 <TextInput
                   name="nik_peserta"

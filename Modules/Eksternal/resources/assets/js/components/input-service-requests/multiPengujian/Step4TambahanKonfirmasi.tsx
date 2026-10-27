@@ -115,7 +115,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
               1. Data Tambahan BAPC & Penomoran Sampel (Opsional)
             </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Tanggal BAPC */}
           <div>
             <FormField label="Tanggal BAPC" helperText="Opsional">

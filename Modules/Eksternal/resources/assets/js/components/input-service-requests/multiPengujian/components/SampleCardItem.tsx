@@ -203,8 +203,8 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi Fisik */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
+        {/* Row 2: Bentuk, Jumlah, Satuan, No. Lot & Kondisi Fisik (Max 2 Kolom) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Bentuk Fisik */}
           <div>
             <label className="block text-xs font-bold text-slate-800 mb-1.5">
@@ -218,6 +218,24 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
               {BENTUK_OPTIONS.map((b) => (
                 <option key={b} value={b}>
                   {b}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Kondisi Fisik Awal */}
+          <div>
+            <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              Kondisi Fisik Awal
+            </label>
+            <select
+              value={sample.kondisi_sampel}
+              onChange={(e) => onUpdate({ ...sample, kondisi_sampel: e.target.value })}
+              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
+            >
+              {KONDISI_OPTIONS.map((k) => (
+                <option key={k} value={k}>
+                  {k}
                 </option>
               ))}
             </select>
@@ -258,26 +276,8 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             </select>
           </div>
 
-          {/* Kondisi Fisik Awal */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1.5">
-              Kondisi Fisik Awal
-            </label>
-            <select
-              value={sample.kondisi_sampel}
-              onChange={(e) => onUpdate({ ...sample, kondisi_sampel: e.target.value })}
-              className="w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer transition-colors"
-            >
-              {KONDISI_OPTIONS.map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Nomor Lot / Bets */}
-          <div className="col-span-2 sm:col-span-1">
+          <div className="md:col-span-2">
             <label className="block text-xs font-bold text-slate-800 mb-1.5">
               No. Lot / Bets
             </label>

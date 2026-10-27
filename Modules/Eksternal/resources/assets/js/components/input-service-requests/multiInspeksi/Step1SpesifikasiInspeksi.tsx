@@ -213,8 +213,8 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <FormField label="Komoditas / Nama Karung" required>
                 <TextInput
                   placeholder="Contoh: Karung Plastik Beras Bantuan Pangan"
@@ -317,7 +317,7 @@ export const Step1SpesifikasiInspeksi: React.FC<Step1SpesifikasiInspeksiProps> =
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <FormField label="Rencana Tanggal Inspeksi" required>
                 <DateInput

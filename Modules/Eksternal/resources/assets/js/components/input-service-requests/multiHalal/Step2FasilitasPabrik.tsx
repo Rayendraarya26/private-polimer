@@ -201,8 +201,8 @@ export const Step2FasilitasPabrik: React.FC<Step2Props> = ({ payload, onChange }
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                     <FormField label="Nama Pabrik / Dapur / Fasilitas" required>
                       <TextInput
                         placeholder="Contoh: Dapur Produksi Sentra Sleman"
@@ -226,7 +226,7 @@ export const Step2FasilitasPabrik: React.FC<Step2Props> = ({ payload, onChange }
                     </FormField>
                   </div>
 
-                  <div className="sm:col-span-3">
+                  <div className="md:col-span-2">
                     <FormField label="Alamat Lengkap Fasilitas" required>
                       <TextInput
                         placeholder="Alamat lengkap lokasi pengolahan/dapur..."

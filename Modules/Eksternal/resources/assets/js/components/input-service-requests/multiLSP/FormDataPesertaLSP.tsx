@@ -106,7 +106,7 @@ const FormDataPesertaLSP: React.FC<Props> = ({
             />
           </FormField>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Tempat Lahir" required>
               <TextInput
                 name="tempat_lahir"
@@ -136,9 +136,7 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 ]}
               />
             </FormField>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField label="Nomor Induk Kependudukan (NIK)" required>
               <TextInput
                 name="nik_peserta"
@@ -185,34 +183,30 @@ const FormDataPesertaLSP: React.FC<Props> = ({
             </FormField>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="sm:col-span-3">
-              <FormField label="Alamat Lengkap Domisili" required>
-                <TextareaInput
-                  rows={2}
-                  name="alamat_peserta"
-                  value={formData.alamat_peserta}
-                  onChange={(e) => setField("alamat_peserta", e.target.value)}
-                  placeholder="Nama jalan, RT/RW, kelurahan, kecamatan, kota..."
-                />
-              </FormField>
-            </div>
+          <FormField label="Alamat Lengkap Domisili" required>
+            <TextareaInput
+              rows={2}
+              name="alamat_peserta"
+              value={formData.alamat_peserta}
+              onChange={(e) => setField("alamat_peserta", e.target.value)}
+              placeholder="Nama jalan, RT/RW, kelurahan, kecamatan, kota..."
+            />
+          </FormField>
 
-            <div>
-              <FormField label="Kode Pos" required>
-                <TextInput
-                  name="kode_pos"
-                  value={formData.kode_pos || ""}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 5)
-                    setField("kode_pos", value)
-                  }}
-                  inputMode="numeric"
-                  maxLength={5}
-                  placeholder="5 digit..."
-                />
-              </FormField>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Kode Pos" required>
+              <TextInput
+                name="kode_pos"
+                value={formData.kode_pos || ""}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 5)
+                  setField("kode_pos", value)
+                }}
+                inputMode="numeric"
+                maxLength={5}
+                placeholder="5 digit kode pos..."
+              />
+            </FormField>
           </div>
         </div>
       </div>

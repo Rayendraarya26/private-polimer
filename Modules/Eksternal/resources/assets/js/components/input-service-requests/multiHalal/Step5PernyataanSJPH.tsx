@@ -155,7 +155,7 @@ export const Step5PernyataanSJPH: React.FC<Step5Props> = ({ payload, onChange })
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
               <span className="text-[11px] text-slate-500 block mb-0.5">Jalur Sertifikasi</span>
               <span className="text-xs font-bold text-brand-700 uppercase">

@@ -348,7 +348,8 @@ export const Step1ProfilDanJalur: React.FC<Step1Props> = ({ payload, onChange })
               <span>Gunakan Data Profil</span>
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Nama Usaha / Perusahaan" required>
               <TextInput
                 placeholder="Contoh: PT Sumber Berkah Pangan"

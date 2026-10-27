@@ -101,7 +101,7 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
                             </h4>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Tekanan */}
                             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
                                 <label className="block text-xs font-bold text-slate-700">Tekanan</label>
@@ -141,7 +141,7 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
                             </div>
 
                             {/* Temperatur */}
-                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                            <div className="md:col-span-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
                                 <label className="block text-xs font-bold text-slate-700">Temperatur</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <TextInput

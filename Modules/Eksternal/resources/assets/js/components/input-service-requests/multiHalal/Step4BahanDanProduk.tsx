@@ -280,7 +280,7 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Kategori Bahan <span className="text-red-500">*</span>
@@ -369,7 +369,7 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                   </div>
 
                   {bahan.is_bersertifikat ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-lg border border-slate-200/80">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-3 rounded-lg border border-slate-200/80">
                       <div>
                         <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Lembaga Penerbit
@@ -394,7 +394,7 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                           className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-brand-500"
                         />
                       </div>
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-[11px] font-medium text-slate-600 mb-1">
                           Masa Berlaku Sertifikat
                         </label>
@@ -482,7 +482,7 @@ export const Step4BahanDanProduk: React.FC<Step4Props> = ({ payload, onChange })
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Klasifikasi Produk <span className="text-red-500">*</span>

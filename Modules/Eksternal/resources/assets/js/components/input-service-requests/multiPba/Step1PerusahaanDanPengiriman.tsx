@@ -204,7 +204,7 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Nama Narahubung" required>
               <TextInput
                 placeholder="Nama lengkap PIC"
@@ -224,15 +224,17 @@ export const Step1PerusahaanDanPengiriman: React.FC<Step1PerusahaanDanPengiriman
               />
             </FormField>
 
-            <FormField label="Email Aktif" required>
-              <TextInput
-                type="email"
-                placeholder="pic@perusahaan.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
-              />
-            </FormField>
+            <div className="md:col-span-2">
+              <FormField label="Email Aktif" required>
+                <TextInput
+                  type="email"
+                  placeholder="pic@perusahaan.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+                />
+              </FormField>
+            </div>
           </div>
         </div>
 

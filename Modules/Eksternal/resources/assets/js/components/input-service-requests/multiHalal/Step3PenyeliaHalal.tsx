@@ -76,7 +76,7 @@ export const Step3PenyeliaHalal: React.FC<Step3Props> = ({ payload, onChange }) 
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Nama Lengkap Penyelia" required>
               <TextInput
                 placeholder="Nama lengkap sesuai KTP"
@@ -164,7 +164,7 @@ export const Step3PenyeliaHalal: React.FC<Step3Props> = ({ payload, onChange }) 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DropzoneUploader
               label="SK Penetapan Penyelia"
               helperText="Surat penetapan resmi pimpinan (PDF/JPG/PNG)"
@@ -183,14 +183,16 @@ export const Step3PenyeliaHalal: React.FC<Step3Props> = ({ payload, onChange }) 
               onChange={(file) => onChange((prev) => ({ ...prev, file_ktp_penyelia: file }))}
             />
 
-            <DropzoneUploader
-              label="Sertifikat Pelatihan Penyelia"
-              helperText="Sertifikat pelatihan PPH / SKKNI (PDF/JPG/PNG)"
-              accept=".pdf,.jpg,.jpeg,.png"
-              maxSizeMB={10}
-              value={payload.file_sertifikat_penyelia}
-              onChange={(file) => onChange((prev) => ({ ...prev, file_sertifikat_penyelia: file }))}
-            />
+            <div className="md:col-span-2">
+              <DropzoneUploader
+                label="Sertifikat Pelatihan Penyelia"
+                helperText="Sertifikat pelatihan PPH / SKKNI (PDF/JPG/PNG)"
+                accept=".pdf,.jpg,.jpeg,.png"
+                maxSizeMB={10}
+                value={payload.file_sertifikat_penyelia}
+                onChange={(file) => onChange((prev) => ({ ...prev, file_sertifikat_penyelia: file }))}
+              />
+            </div>
           </div>
         </div>
       </CardContent>

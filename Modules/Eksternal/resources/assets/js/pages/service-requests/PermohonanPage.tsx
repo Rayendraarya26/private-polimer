@@ -18,7 +18,6 @@ import {
   Sparkles,
   Info,
   Sprout,
-  MapPinPen,
   PackageCheck,
   Building2,
 } from "lucide-react"
@@ -114,17 +113,8 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
   },
   {
     title: "3. Verifikasi dan Validasi",
-    desc: "Layanan verifikasi TKDN, verifikasi teknis, dan audit kesiapan industri.",
+    desc: "Layanan verifikasi dan validasi emisi gas rumah kaca (GRK) terakreditasi KAN serta audit kesiapan industri.",
     items: [
-      {
-        id: "tkdn",
-        name: "Tingkat Komponen Dalam Negeri (TKDN)",
-        desc: "Verifikasi dan validasi Tingkat Komponen Dalam Negeri (TKDN).",
-        icon: <MapPinPen className="w-6 h-6 text-indigo-600" />,
-        badge: "Terakreditasi KAN",
-        // route: "/permohonan/tkdn",
-        isAvailable: false,
-      },
       {
         id: "grk",
         name: "Emisi Gas Rumah Kaca (GRK)",
@@ -134,7 +124,6 @@ const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[]
         route: "/permohonan/grk",
         isAvailable: true,
       },
-
     ],
   },
   {

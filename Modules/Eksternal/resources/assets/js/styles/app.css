@@ -12,20 +12,20 @@
   /* Universal Form Styling for Modern UI Consistency (using :where to avoid specificity clash) */
   .form-control,
   :where(input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], textarea) {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-400;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400 placeholder:text-sm;
   }
   
   .form-select,
   :where(select) {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-400;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-400;
   }
 
   .form-label {
-    @apply block text-xs font-semibold text-slate-700 mb-1.5;
+    @apply block text-sm font-semibold text-slate-800 mb-1.5;
   }
 
   .form-group {
-    @apply mb-3.5;
+    @apply mb-4;
   }
 
   .is-invalid {
@@ -33,12 +33,12 @@
   }
 
   .invalid-feedback {
-    @apply text-[11px] text-rose-500 mt-1 block font-medium;
+    @apply text-xs text-rose-500 mt-1.5 block font-medium;
   }
 
   /* Universal Buttons */
   .btn {
-    @apply inline-flex items-center justify-center font-semibold rounded-lg px-4 py-2 text-xs transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
+    @apply inline-flex items-center justify-center font-semibold rounded-xl px-4 py-2 text-xs transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed shadow-sm;
   }
 
   .btn-primary {
@@ -66,11 +66,11 @@
   }
 
   .btn-sm {
-    @apply px-3 py-1.5 text-[11px];
+    @apply px-3 py-1.5 text-[11px] rounded-lg;
   }
 
   .btn-lg {
-    @apply px-5 py-2.5 text-sm;
+    @apply px-5 py-2.5 text-sm rounded-xl;
   }
 
 }
@@ -80,13 +80,13 @@
   display: flex !important;
   align-items: center !important;
   width: 100% !important;
-  height: 38px !important;
+  height: 42px !important;
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important; /* border-slate-300 */
-  border-radius: 0.5rem !important; /* rounded-lg */
-  padding: 0 0.875rem !important; /* px-3.5 */
-  font-size: 0.75rem !important; /* text-xs */
-  color: #1e293b !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  padding: 0 1rem !important; /* px-4 */
+  font-size: 0.875rem !important; /* text-sm */
+  color: #0f172a !important;
   transition: all 0.15s ease-in-out !important;
 }
 

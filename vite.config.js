@@ -1,8 +1,20 @@
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 
 export default defineConfig({
+    resolve: {
+        preserveSymlinks: true,
+    },
+    server: {
+        fs: {
+            allow: [
+                searchForWorkspaceRoot(process.cwd()),
+                fs.realpathSync(process.cwd()),
+            ],
+        },
+    },
     plugins: [
         laravel({
             input: [

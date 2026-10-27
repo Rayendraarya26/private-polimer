@@ -67,3 +67,28 @@
     </div>
 </div>
 
+<!-- ================= INFORMASI PENCATATAN ================= -->
+<div class="mt-4">
+    <h6 class="text-primary border-bottom pb-2 mb-3">Informasi Pencatatan</h6>
+
+    <div class="detail-row">
+        <div class="detail-label">Dicatat Oleh</div>
+        <div>:</div>
+        <div class="detail-value fw-semibold text-dark">{{ $form->pencatat?->name ?? 'Bendahara / Tim Marketing' }}</div>
+    </div>
+
+    @if($form->pencatat?->email)
+    <div class="detail-row">
+        <div class="detail-label">Email Pencatat</div>
+        <div>:</div>
+        <div class="detail-value text-muted">{{ $form->pencatat->email }}</div>
+    </div>
+    @endif
+
+    <div class="detail-row">
+        <div class="detail-label">Waktu Pencatatan</div>
+        <div>:</div>
+        <div class="detail-value text-muted">{{ $form->created_at ? \Carbon\Carbon::parse($form->created_at)->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</div>
+    </div>
+</div>
+

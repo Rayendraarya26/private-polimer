@@ -2,6 +2,8 @@
 
 namespace Modules\Eksternal\Services;
 
+use App\Models\Db2\MasterKomoditasPengujian;
+use App\Models\Db2\MasterParameterPengujian;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -81,6 +83,32 @@ class MasterPengujianService
      */
     public static function getMasterKomoditi(): array
     {
+        try {
+            $dbRows = MasterKomoditasPengujian::where('is_active', true)
+                ->withCount(['parameters' => function ($q) {
+                    $q->where('is_active', true);
+                }])
+                ->orderBy('nama')
+                ->get();
+
+            if ($dbRows->isNotEmpty()) {
+                return $dbRows->map(function ($kmd) {
+                    return [
+                        'id'               => (int) $kmd->id,
+                        'kode'             => $kmd->kode ?? ('KMD-' . $kmd->id),
+                        'nama'             => $kmd->nama,
+                        'ruang_lingkup'    => $kmd->ruang_lingkup ?: $kmd->nama,
+                        'parameters_count' => (int) ($kmd->parameters_count ?? 0),
+                        'waktu_jam'        => (int) ($kmd->waktu_jam ?? 0),
+                        'spm'              => (int) ($kmd->spm ?? 0),
+                        'is_active'        => (bool) $kmd->is_active,
+                    ];
+                })->values()->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('MasterPengujianService::getMasterKomoditi DB error: ' . $e->getMessage());
+        }
+
         $all = self::loadMasterData();
         return array_map(function ($kmd) {
             return [
@@ -99,6 +127,34 @@ class MasterPengujianService
      */
     public static function getParametersByKomoditi(int $komoditiId): array
     {
+        try {
+            $dbParams = MasterParameterPengujian::where('komoditas_id', $komoditiId)
+                ->where('is_active', true)
+                ->orderBy('nama')
+                ->get();
+
+            if ($dbParams->isNotEmpty()) {
+                return $dbParams->map(function ($p) use ($komoditiId) {
+                    return [
+                        'id'              => (int) $p->id,
+                        'komoditi_id'     => $komoditiId,
+                        'komoditas_id'    => $komoditiId,
+                        'kode'            => $p->kode ?? ('PAR-' . $p->id),
+                        'nama'            => $p->nama,
+                        'metode_uji'      => $p->metode_uji ?: 'SNI / Standar Metode Uji Balai',
+                        'satuan'          => $p->satuan ?: 'Per Parameter',
+                        'waktu_jam'       => (int) ($p->waktu_jam ?? 0),
+                        'tarif_umum'      => (float) ($p->tarif_umum ?? 0),
+                        'tarif_mahasiswa' => (float) ($p->tarif_mahasiswa ?? 0),
+                        'deskripsi'       => $p->deskripsi ?? '',
+                        'is_active'       => (bool) $p->is_active,
+                    ];
+                })->values()->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('MasterPengujianService::getParametersByKomoditi DB error: ' . $e->getMessage());
+        }
+
         $all = self::loadMasterData();
         foreach ($all as $kmd) {
             if ((int) $kmd['id'] === $komoditiId) {
@@ -113,6 +169,31 @@ class MasterPengujianService
      */
     public static function findParameter(int $komoditiId, int $parameterId): ?array
     {
+        try {
+            $p = MasterParameterPengujian::where('komoditas_id', $komoditiId)
+                ->where('id', $parameterId)
+                ->first();
+
+            if ($p) {
+                return [
+                    'id'              => (int) $p->id,
+                    'komoditi_id'     => $komoditiId,
+                    'komoditas_id'    => $komoditiId,
+                    'kode'            => $p->kode ?? ('PAR-' . $p->id),
+                    'nama'            => $p->nama,
+                    'metode_uji'      => $p->metode_uji ?: 'SNI / Standar Metode Uji Balai',
+                    'satuan'          => $p->satuan ?: 'Per Parameter',
+                    'waktu_jam'       => (int) ($p->waktu_jam ?? 0),
+                    'tarif_umum'      => (float) ($p->tarif_umum ?? 0),
+                    'tarif_mahasiswa' => (float) ($p->tarif_mahasiswa ?? 0),
+                    'deskripsi'       => $p->deskripsi ?? '',
+                    'is_active'       => (bool) $p->is_active,
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('MasterPengujianService::findParameter DB error: ' . $e->getMessage());
+        }
+
         $params = self::getParametersByKomoditi($komoditiId);
         foreach ($params as $p) {
             if ((int) $p['id'] === $parameterId) {

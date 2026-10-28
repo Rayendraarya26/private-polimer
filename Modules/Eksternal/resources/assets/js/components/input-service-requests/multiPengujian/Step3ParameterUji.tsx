@@ -170,13 +170,17 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
             leftIcon={<Plus className="w-4 h-4 text-brand-600" />}
             className="w-full sm:w-auto h-10 px-4 rounded-lg font-semibold text-xs border-brand-300 bg-white text-brand-700 hover:bg-brand-50 hover:border-brand-400 shadow-none shrink-0"
           >
-            Tambah Sampel Lain
+            Tambah Sampel
           </Button>
         </div>
       </StepPanel>
 
-      {/* Ringkasan biaya real-time */}
-      <CostEstimationSummary samples={samples} kategoriTarif={kategoriTarif} />
+      {/* Ringkasan biaya real-time (setengah lebar di sisi kanan) */}
+      <div className="flex justify-end">
+        <div className="w-full md:w-1/2">
+          <CostEstimationSummary samples={samples} kategoriTarif={kategoriTarif} />
+        </div>
+      </div>
 
       <WizardNav onBack={onBack} onNext={handleValidateAndNext} />
     </div>

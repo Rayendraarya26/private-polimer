@@ -153,11 +153,11 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
         <div className="space-y-8">
           {/* 1. PEMOHON & BIAYA */}
           <div>
-            <SectionHeading number={1} title="Pemohon & Penanggung Biaya" />
+            <SectionHeading title="Pemohon & Penanggung Biaya" />
 
             <div className="mb-4">
               <FieldLabel htmlFor="input-nama-pemohon" required>
-                Nama Pemohon
+                NAMA PEMOHON
               </FieldLabel>
               <input
                 id="input-nama-pemohon"
@@ -174,7 +174,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
               />
             </div>
 
-            <FieldLabel required>Siapa yang menanggung biaya pengujian?</FieldLabel>
+            <FieldLabel required>PENANGGUNG BIAYA PENGUJIAN</FieldLabel>
             <OptionGroup label="Penanggung Biaya Pengujian">
               <OptionCard
                 id="opsi-biaya-pemohon"
@@ -219,7 +219,6 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
           {/* 2. ALAMAT PENGIRIMAN */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={2}
               title="Alamat Pengiriman Laporan"
               required
               description="Ke mana dokumen fisik laporan hasil uji akan dikirim."
@@ -290,8 +289,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
           {/* 3. CATATAN */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={3}
-              title="Catatan Tambahan untuk Laboratorium"
+              title="Keterangan / Catatan Permintaan"
               optional
               description="Tuliskan instruksi khusus jika ada (misal: kebutuhan khusus penanganan sampel atau tenggat waktu)."
             />

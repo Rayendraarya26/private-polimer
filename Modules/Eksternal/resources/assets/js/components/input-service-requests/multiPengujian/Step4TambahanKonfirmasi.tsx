@@ -129,13 +129,12 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* 1. DATA TAMBAHAN BAPC & SAMPEL */}
           <div>
             <SectionHeading
-              number={1}
               title="Data BAPC & Penomoran Sampel"
               optional
               description="Jika pengujian sampel ini berkaitan dengan Berita Acara Pengambilan Contoh (BAPC)."
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <FieldLabel htmlFor="input-tgl-bapc" optional>
                   Tanggal BAPC
@@ -215,54 +214,55 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* 2. EVALUASI KESESUAIAN & KEHADIRAN */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={2}
               title="Evaluasi Kesesuaian & Kehadiran"
               required
               description="Preferensi evaluasi terhadap standar serta kehadiran menyaksikan pengujian di laboratorium."
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Evaluasi */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-3 shadow-none">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">
-                    Permintaan Evaluasi / Kesesuaian <span className="text-rose-500">*</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Apakah perlu pernyataan kesesuaian (lulus/tidak lulus) terhadap standar acuan?
-                  </p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 space-y-4 shadow-none flex flex-col justify-between">
+                <div className="space-y-3.5">
+                  <div className="min-h-[46px]">
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Permintaan Evaluasi / Kesesuaian <span className="text-rose-500">*</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Pernyataan kesesuaian (lulus/tidak lulus) terhadap standar acuan spesifikasi.
+                    </p>
+                  </div>
+
+                  <OptionGroup label="Permintaan Evaluasi" cols={1}>
+                    <OptionCard
+                      compact
+                      selected={sharedData.permintaan_evaluasi}
+                      onSelect={() =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          permintaan_evaluasi: true,
+                        }))
+                      }
+                      title="Ya, butuh evaluasi kesesuaian"
+                      description="Disertai status kelulusan spesifikasi standar acuan"
+                    />
+                    <OptionCard
+                      compact
+                      selected={!sharedData.permintaan_evaluasi}
+                      onSelect={() =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          permintaan_evaluasi: false,
+                          catatan_evaluasi: "",
+                        }))
+                      }
+                      title="Tidak butuh evaluasi"
+                      description="Hanya cantumkan data numerik hasil uji laboratorium"
+                    />
+                  </OptionGroup>
                 </div>
 
-                <OptionGroup label="Permintaan Evaluasi" cols={2}>
-                  <OptionCard
-                    compact
-                    selected={sharedData.permintaan_evaluasi}
-                    onSelect={() =>
-                      setSharedData((prev) => ({
-                        ...prev,
-                        permintaan_evaluasi: true,
-                      }))
-                    }
-                    title="Ya, butuh evaluasi"
-                    description="Status kelulusan spesifikasi"
-                  />
-                  <OptionCard
-                    compact
-                    selected={!sharedData.permintaan_evaluasi}
-                    onSelect={() =>
-                      setSharedData((prev) => ({
-                        ...prev,
-                        permintaan_evaluasi: false,
-                        catatan_evaluasi: "",
-                      }))
-                    }
-                    title="Tidak butuh"
-                    description="Hanya data numerik hasil uji"
-                  />
-                </OptionGroup>
-
                 {sharedData.permintaan_evaluasi && (
-                  <div className="pt-2 animate-[wizardFadeUp_.25s_ease-out]">
+                  <div className="pt-3 border-t border-slate-200 animate-[wizardFadeUp_.25s_ease-out] space-y-1.5">
                     <FieldLabel htmlFor="input-catatan-evaluasi" required>
                       Acuan Standar Evaluasi
                     </FieldLabel>
@@ -270,7 +270,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                       id="input-catatan-evaluasi"
                       rows={2}
                       className={textareaClass}
-                      placeholder="Sebutkan acuan standar (misal: Evaluasi terhadap ambang batas SNI 06-4965-1999 Kelas A)..."
+                      placeholder="Sebutkan acuan standar (misal: SNI 06-4965-1999 Kelas A)..."
                       value={sharedData.catatan_evaluasi}
                       onChange={(e) =>
                         setSharedData((prev) => ({
@@ -284,46 +284,48 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
               </div>
 
               {/* Menyaksikan */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-3 shadow-none">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">
-                    Menyaksikan Pengujian di Lab <span className="text-rose-500">*</span>
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Apakah perwakilan instansi Anda ingin hadir langsung saat proses pengujian berlangsung?
-                  </p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 space-y-4 shadow-none flex flex-col justify-between">
+                <div className="space-y-3.5">
+                  <div className="min-h-[46px]">
+                    <h4 className="text-sm font-bold text-slate-900">
+                      Menyaksikan Pengujian di Lab <span className="text-rose-500">*</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Kehadiran perwakilan instansi langsung saat proses pengujian di laboratorium.
+                    </p>
+                  </div>
+
+                  <OptionGroup label="Menyaksikan Pengujian" cols={1}>
+                    <OptionCard
+                      compact
+                      selected={sharedData.menyaksikan_uji}
+                      onSelect={() =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          menyaksikan_uji: true,
+                        }))
+                      }
+                      title="Ya, ingin hadir menyaksikan"
+                      description="Hadir langsung di laboratorium BBSPJIKKP"
+                    />
+                    <OptionCard
+                      compact
+                      selected={!sharedData.menyaksikan_uji}
+                      onSelect={() =>
+                        setSharedData((prev) => ({
+                          ...prev,
+                          menyaksikan_uji: false,
+                          catatan_menyaksikan: "",
+                        }))
+                      }
+                      title="Tidak hadir menyaksikan"
+                      description="Proses pengujian diserahkan sepenuhnya ke lab"
+                    />
+                  </OptionGroup>
                 </div>
 
-                <OptionGroup label="Menyaksikan Pengujian" cols={2}>
-                  <OptionCard
-                    compact
-                    selected={sharedData.menyaksikan_uji}
-                    onSelect={() =>
-                      setSharedData((prev) => ({
-                        ...prev,
-                        menyaksikan_uji: true,
-                      }))
-                    }
-                    title="Ya, ingin hadir"
-                    description="Menyaksikan di lab BBSPJIKKP"
-                  />
-                  <OptionCard
-                    compact
-                    selected={!sharedData.menyaksikan_uji}
-                    onSelect={() =>
-                      setSharedData((prev) => ({
-                        ...prev,
-                        menyaksikan_uji: false,
-                        catatan_menyaksikan: "",
-                      }))
-                    }
-                    title="Tidak hadir"
-                    description="Diserahkan sepenuhnya ke lab"
-                  />
-                </OptionGroup>
-
                 {sharedData.menyaksikan_uji && (
-                  <div className="pt-2 space-y-2 animate-[wizardFadeUp_.25s_ease-out]">
+                  <div className="pt-3 border-t border-slate-200 animate-[wizardFadeUp_.25s_ease-out] space-y-2">
                     <FieldLabel htmlFor="input-catatan-menyaksikan" required>
                       Perkiraan Tanggal & Nama Personil
                     </FieldLabel>
@@ -331,7 +333,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
                       id="input-catatan-menyaksikan"
                       rows={2}
                       className={textareaClass}
-                      placeholder="Sebutkan perkiraan tanggal hadir & nama personil perwakilan..."
+                      placeholder="Perkiraan tanggal hadir & nama personil perwakilan..."
                       value={sharedData.catatan_menyaksikan}
                       onChange={(e) =>
                         setSharedData((prev) => ({
@@ -350,7 +352,6 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* 3. METODE PEMBAYARAN */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={3}
               title="Tata Cara Pembayaran PNBP"
               required
               description="Pilih kanal pembayaran tarif resmi Penerimaan Negara Bukan Pajak."
@@ -393,7 +394,6 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* 4. BERKAS PENDUKUNG */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={4}
               title="Surat Pengantar & Berkas Pendukung"
               description="Lampirkan berkas surat permohonan atau dokumen pendukung pengujian."
             />
@@ -480,7 +480,6 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
           {/* 5. RINGKASAN PERMOHONAN */}
           <div className="pt-6 border-t border-slate-200">
             <SectionHeading
-              number={5}
               title="Ringkasan Formulir Pengujian Laboratorium"
               description="Tinjauan menyeluruh sebelum permohonan resmi dikirimkan."
               action={
@@ -491,7 +490,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             />
 
             {/* Info Grid Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs mb-5">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                 <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
                   Bahasa Laporan

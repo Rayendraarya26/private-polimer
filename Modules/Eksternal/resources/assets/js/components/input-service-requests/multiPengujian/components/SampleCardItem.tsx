@@ -84,7 +84,6 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
     return komoditiList.map((kmd) => ({
       value: kmd.id,
       label: kmd.nama,
-      description: kmd.ruang_lingkup ? `Ruang Lingkup: ${kmd.ruang_lingkup}` : undefined,
     }))
   }, [komoditiList])
 
@@ -189,7 +188,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
             <FieldLabel required>Komoditas</FieldLabel>
             <SearchableSelect
               placeholder="Pilih komoditas pengujian"
-              searchPlaceholder="Cari komoditas atau ruang lingkup..."
+              searchPlaceholder="Cari komoditas..."
               options={komoditiOptions}
               value={sample.master_komoditi_id || ""}
               onChange={(val) => handleKomoditiChange(String(val))}
@@ -200,7 +199,7 @@ export const SampleCardItem: React.FC<SampleCardItemProps> = ({
         </div>
 
         {/* Detail fisik */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <FieldLabel htmlFor={`${idPrefix}-bentuk`}>Bentuk</FieldLabel>
             <select

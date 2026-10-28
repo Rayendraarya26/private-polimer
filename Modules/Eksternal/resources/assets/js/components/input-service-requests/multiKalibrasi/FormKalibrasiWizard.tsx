@@ -19,11 +19,7 @@ import FormInformasiAlat, { AlatKalibrasiItem } from "./FormInformasiAlat"
 import FormInformasiPelanggan, { PelangganData } from "./FormInformasiPelanggan"
 import FormPelaksanaanKalibrasi, { PelaksanaanKalibrasiData } from "./FormPelaksanaanKalibrasi"
 import FormPernyataan from "./FormPernyataan"
-import {
-  DraftStatusIndicator,
-  DraftStatus,
-  StickyFormActions,
-} from "../../forms"
+import { StickyFormActions } from "../../forms"
 
 const TOTAL_STEPS = 4
 
@@ -62,8 +58,6 @@ export const FormKalibrasiWizard: React.FC = () => {
   const [setujuPernyataan, setSetujuPernyataan] = useState(false)
   const [formKey, setFormKey] = useState<number>(0)
   const [showResetModal, setShowResetModal] = useState<boolean>(false)
-  const [draftStatus, setDraftStatus] = useState<DraftStatus>("idle")
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null)
   const [stepErrors, setStepErrors] = useState<string[]>([])
 
   // Inisialisasi state dari localStorage jika ada draf tersimpan
@@ -81,6 +75,13 @@ export const FormKalibrasiWizard: React.FC = () => {
     }
     return 0
   })
+
+  // Langkah terjauh yang pernah berhasil dicapai untuk navigasi bebas
+  const [maxStepReached, setMaxStepReached] = useState<number>(currentStep)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, currentStep))
+  }, [currentStep])
 
   const [dataAlat, setDataAlat] = useState<AlatKalibrasiItem[]>(() => {
     try {
@@ -195,7 +196,6 @@ export const FormKalibrasiWizard: React.FC = () => {
   useEffect(() => {
     try {
       if (hasDraft) {
-        setDraftStatus("saving")
         localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
@@ -205,17 +205,11 @@ export const FormKalibrasiWizard: React.FC = () => {
             dataPelanggan,
           })
         )
-        const now = new Date()
-        const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-        setLastSavedTime(timeStr)
-        setDraftStatus("saved")
       } else {
         localStorage.removeItem(STORAGE_KEY)
-        setDraftStatus("idle")
       }
     } catch (error) {
       console.error("Gagal menyimpan draf kalibrasi ke localStorage:", error)
-      setDraftStatus("error")
     }
   }, [hasDraft, currentStep, dataAlat, dataPelaksanaan, dataPelanggan])
 
@@ -231,9 +225,9 @@ export const FormKalibrasiWizard: React.FC = () => {
     setDataPelaksanaan({ ...DEFAULT_PELAKSANAAN })
     setDataPelanggan({ ...DEFAULT_PELANGGAN })
     setCurrentStep(0)
+    setMaxStepReached(0)
     setSetujuPernyataan(false)
     setHasDraft(false)
-    setDraftStatus("idle")
     setStepErrors([])
     setFormKey((prev) => prev + 1)
     toast.success("Draf formulir berhasil direset.")
@@ -276,14 +270,11 @@ export const FormKalibrasiWizard: React.FC = () => {
       if (!dataPelanggan.alamatPemohon?.trim()) {
         errors.push("Alamat pemohon wajib diisi.")
       }
-      const opsi = dataPelanggan.opsiAlamatKirim || "pemohon"
-      if (opsi === "manual") {
-        if (!dataPelanggan.namaKirim?.trim()) {
-          errors.push("Nama penerima pengiriman dokumen fisik wajib diisi.")
-        }
-        if (!dataPelanggan.alamatKirim?.trim()) {
-          errors.push("Alamat pengiriman dokumen fisik wajib diisi.")
-        }
+      if (!dataPelanggan.namaKirim?.trim()) {
+        errors.push("Nama pada pengalamatan laporan kalibrasi wajib diisi.")
+      }
+      if (!dataPelanggan.alamatKirim?.trim()) {
+        errors.push("Alamat pada pengalamatan laporan kalibrasi wajib diisi.")
       }
     } else if (currentStep === 3) {
       if (!setujuPernyataan) {
@@ -312,9 +303,7 @@ export const FormKalibrasiWizard: React.FC = () => {
   }
 
   const handleBack = () => {
-    if (currentStep === 0) {
-      navigate("/permohonan")
-    } else {
+    if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1)
       setStepErrors([])
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -344,14 +333,8 @@ export const FormKalibrasiWizard: React.FC = () => {
         setIsSavingDraft(true)
       }
 
-      const opsi = dataPelanggan.opsiAlamatKirim || "pemohon"
-      const finalAlamatKirim =
-        opsi === "pemohon"
-          ? dataPelanggan.alamatPemohon || ""
-          : dataPelanggan.alamatKirim || dataPelanggan.alamatPemohon || ""
-      const finalNamaKirim = dataPelanggan.namaKirim?.trim()
-        ? dataPelanggan.namaKirim
-        : dataPelanggan.namaPemohon || ""
+      const finalAlamatKirim = dataPelanggan.alamatKirim?.trim() || dataPelanggan.alamatPemohon || ""
+      const finalNamaKirim = dataPelanggan.namaKirim?.trim() || dataPelanggan.namaPemohon || ""
 
       const payload = {
         aksi,
@@ -428,78 +411,99 @@ export const FormKalibrasiWizard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Toolbar: Draft Status Reassurance & Reset Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-        <DraftStatusIndicator
-          status={draftStatus}
-          lastSavedTime={lastSavedTime}
-        />
-
-        {hasDraft && (
+    <div className="space-y-5">
+      {/* Tombol Reset Draft */}
+      {hasDraft && (
+        <div className="flex justify-end -mb-2">
           <button
             type="button"
             onClick={() => setShowResetModal(true)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline transition-colors cursor-pointer self-end sm:self-auto"
-            title="Reset Seluruh Draf Formulir"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
+            title="Reset seluruh draf formulir"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Mulai Ulang / Reset Draf</span>
+            <span>Reset Draft</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stepper Progress Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-card">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+      <nav aria-label="Langkah pengisian kalibrasi" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
             const isActive = currentStep === idx
-            const isDone = currentStep > idx
+            const isPassed = idx < currentStep
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <button
-                type="button"
-                key={s.id}
-                onClick={() => {
-                  if (idx <= currentStep) {
-                    setCurrentStep(idx)
-                    setStepErrors([])
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                }}
-                className={`flex items-center gap-3 p-3.5 rounded-xl text-left transition-all select-none ${
-                  isActive
-                    ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20 shadow-2xs"
-                    : isDone
-                    ? "bg-emerald-50/50 border border-emerald-200/80 hover:bg-emerald-50 cursor-pointer"
-                    : "bg-slate-50 border border-slate-200/60 opacity-60 cursor-not-allowed"
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-2xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-kalibrasi-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setCurrentStep(idx)
+                      setStepErrors([])
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                  }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-200 outline-none focus:outline-none ring-0 shadow-none ${
+                    isActive
+                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                </div>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${
+                      isPassed && !isActive
+                        ? "bg-emerald-500 text-white"
+                        : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-slate-200/80 text-slate-400"
+                    }`}
+                  >
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
+                  </div>
 
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase block text-slate-400">
-                    Langkah {idx + 1}
-                  </span>
-                  <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
-                </div>
-              </button>
+                  <div className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${
+                        isActive
+                          ? "text-brand-700"
+                          : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                          ? "text-slate-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <p
+                      className={`block text-xs sm:text-sm font-bold truncate ${
+                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                      }`}
+                    >
+                      {s.title}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate hidden sm:block">{s.desc}</p>
+                  </div>
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       {/* Step Contents */}
       <div key={`step-contents-${formKey}`}>
@@ -535,19 +539,15 @@ export const FormKalibrasiWizard: React.FC = () => {
         </div>
       </div>
 
-      {/* Sticky Form Navigation Actions */}
+      {/* Form Navigation Actions (Non-sticky, sesuai form pengujian) */}
       <StickyFormActions
-        isSticky={true}
-        canGoBack={true}
+        isSticky={false}
+        canGoBack={currentStep > 0}
         onBack={handleBack}
-        backLabel={currentStep === 0 ? "Kembali ke Permohonan" : "Langkah Sebelumnya"}
         onNext={handleNext}
-        nextLabel="Langkah Selanjutnya"
-        onSaveDraft={() => handleSubmit("draft")}
-        saveDraftLabel="Simpan Draf"
+        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? () => handleSubmit("draft") : undefined}
         isLastStep={currentStep === TOTAL_STEPS - 1}
         onSubmit={() => handleSubmit("ajukan")}
-        submitLabel="Kirimkan Permohonan"
         isSubmitting={isSubmitting}
         isSavingDraft={isSavingDraft}
         errorCount={stepErrors.length}
@@ -567,10 +567,10 @@ export const FormKalibrasiWizard: React.FC = () => {
           </div>
 
           <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
-            Mulai Ulang / Reset Draft?
+            Reset Draft Formulir?
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed mb-6">
-            Seluruh data instrumen, parameter kalibrasi, dan alamat yang telah diisikan akan dihapus dari penyimpanan lokal browser Anda.
+            Seluruh data instrumen, parameter kalibrasi, dan alamat yang telah diisikan akan dihapus dan kembali ke langkah awal.
           </p>
 
           <div className="flex items-center gap-3">
@@ -588,7 +588,7 @@ export const FormKalibrasiWizard: React.FC = () => {
               onClick={confirmResetDraft}
               className="flex-1 rounded-xl py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
             >
-              Ya, Reset Draf
+              Ya, Reset Draft
             </Button>
           </div>
         </div>

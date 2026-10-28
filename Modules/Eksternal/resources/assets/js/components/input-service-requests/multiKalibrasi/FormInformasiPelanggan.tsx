@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react"
 import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
-import { UserCheck, Truck, Building2, MapPin, Phone, User, Home } from "lucide-react"
+import { MapPinHouse } from "lucide-react"
 import {
-  FormField,
-  TextInput,
-  TextareaInput,
-  RadioCardGroup,
-} from "../../forms"
+  StepPanel,
+  SectionHeading,
+  FieldLabel,
+  FieldHint,
+  inputClass,
+  textareaClass,
+} from "./WizardUI"
 
 export interface PelangganData {
   namaPemohon: string
@@ -31,7 +32,6 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
   const { profile, isLoading } = useProfileQuery()
 
   const detail = (profile?.detail || {}) as Record<string, any>
-  const alamatPabrik = detail?.alamat_pabrik || detail?.pabrik_alamat || ""
   const profileAlamat = profile?.alamat_lengkap || profile?.alamat || detail?.alamat || detail?.alamat_lengkap || ""
   const profileName = profile?.name || profile?.nama || profile?.nama_lengkap || detail?.nama_lengkap || ""
 
@@ -40,42 +40,13 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
     no_telp: dataPelanggan?.no_telp || "",
     hasilKalibrasiUntuk: dataPelanggan?.hasilKalibrasiUntuk || "",
     alamatPemohon: dataPelanggan?.alamatPemohon || "",
-    namaKirim: dataPelanggan?.namaKirim || dataPelanggan?.namaPemohon || "",
-    alamatKirim: dataPelanggan?.alamatKirim || dataPelanggan?.alamatPemohon || "",
-    opsiAlamatKirim: dataPelanggan?.opsiAlamatKirim || "pemohon",
+    namaKirim: dataPelanggan?.namaKirim || profileName || "",
+    alamatKirim: dataPelanggan?.alamatKirim || profileAlamat || "",
+    opsiAlamatKirim: "manual",
   }))
 
   const handleChange = (field: keyof PelangganData, value: string) => {
-    let updated = { ...formData, [field]: value }
-
-    if (field === "alamatPemohon" && (formData.opsiAlamatKirim || "pemohon") === "pemohon") {
-      updated.alamatKirim = value
-    }
-
-    if (field === "namaPemohon" && (!formData.namaKirim || formData.namaKirim === formData.namaPemohon)) {
-      updated.namaKirim = value
-    }
-
-    setFormData(updated)
-    if (onChangePelanggan) onChangePelanggan(updated)
-  }
-
-  const handleSelectOpsiAlamat = (opsi: "pemohon" | "pabrik" | "manual") => {
-    let targetAlamat = formData.alamatKirim || ""
-
-    if (opsi === "pemohon") {
-      targetAlamat = formData.alamatPemohon || profileAlamat || ""
-    } else if (opsi === "pabrik") {
-      targetAlamat = alamatPabrik || ""
-    }
-
-    const updated: PelangganData = {
-      ...formData,
-      opsiAlamatKirim: opsi,
-      alamatKirim: targetAlamat,
-      namaKirim: formData.namaKirim || formData.namaPemohon || profileName || "",
-    }
-
+    const updated = { ...formData, [field]: value }
     setFormData(updated)
     if (onChangePelanggan) onChangePelanggan(updated)
   }
@@ -87,9 +58,9 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
         no_telp: dataPelanggan.no_telp || "",
         hasilKalibrasiUntuk: dataPelanggan.hasilKalibrasiUntuk || "",
         alamatPemohon: dataPelanggan.alamatPemohon || "",
-        namaKirim: dataPelanggan.namaKirim || dataPelanggan.namaPemohon || "",
-        alamatKirim: dataPelanggan.alamatKirim || dataPelanggan.alamatPemohon || "",
-        opsiAlamatKirim: dataPelanggan.opsiAlamatKirim || "pemohon",
+        namaKirim: dataPelanggan.namaKirim || profileName || "",
+        alamatKirim: dataPelanggan.alamatKirim || profileAlamat || "",
+        opsiAlamatKirim: "manual",
       })
     }
   }, [dataPelanggan])
@@ -99,8 +70,8 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
       setFormData((prev) => {
         const defaultNama = prev.namaPemohon || profileName || ""
         const defaultAlamat = prev.alamatPemohon || profileAlamat || ""
-        const defaultNamaKirim = prev.namaKirim || defaultNama || ""
-        const defaultAlamatKirim = prev.alamatKirim || defaultAlamat || ""
+        const defaultNamaKirim = prev.namaKirim || profileName || defaultNama || ""
+        const defaultAlamatKirim = prev.alamatKirim || profileAlamat || defaultAlamat || ""
 
         const next: PelangganData = {
           ...prev,
@@ -121,7 +92,7 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
           alamatPemohon: defaultAlamat,
           namaKirim: defaultNamaKirim,
           alamatKirim: defaultAlamatKirim,
-          opsiAlamatKirim: prev.opsiAlamatKirim || "pemohon",
+          opsiAlamatKirim: "manual",
         }
         if (onChangePelanggan) onChangePelanggan(next)
         return next
@@ -130,162 +101,122 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
   }, [profile, isLoading])
 
   return (
-    <Card className="rounded-2xl border-slate-200/90 shadow-card bg-white overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-brand-50/70 via-sky-50/30 to-white pb-4 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-brand-600 text-white shadow-2xs">
-            <UserCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <CardTitle className="text-base font-bold text-slate-900 tracking-tight">
-              Informasi Pelanggan & Alamat Pengiriman
-            </CardTitle>
-            <CardDescription className="text-xs text-slate-600">
-              Data pemohon, identitas kepemilikan sertifikat, dan tujuan pengiriman fisik laporan hasil kalibrasi
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
+    <StepPanel
+      icon={MapPinHouse}
+      title="Informasi Pelanggan & Pengalamatan Laporan"
+      description="Data pemohon, identitas kepemilikan sertifikat, dan pengalamatan laporan hasil kalibrasi."
+    >
+      {/* 1. Data Pemohon */}
+      <div>
+        <SectionHeading
+          title="Identitas Pemohon & Sertifikat"
+          required
+        />
 
-      <CardContent className="p-6 sm:p-7 space-y-7">
-        {/* Section 1: Data Pemohon */}
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FormField
-              label="Nama Pemohon / Kontak Person"
-              required
-              tooltip="Nama pejabat atau staf resmi yang mengajukan permohonan kalibrasi"
-            >
-              <TextInput
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel htmlFor="input-nama-pemohon" required>
+                Nama Pemohon
+              </FieldLabel>
+              <input
+                id="input-nama-pemohon"
+                type="text"
+                className={inputClass}
                 placeholder="Contoh: Budi Santoso, S.T."
-                leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 value={formData.namaPemohon}
                 onChange={(e) => handleChange("namaPemohon", e.target.value)}
               />
-            </FormField>
+            </div>
 
-            <FormField
-              label="Hasil Kalibrasi / Sertifikat Dibuat Untuk"
-              required
-              tooltip="Nama perusahaan, instansi, atau perorangan yang akan dicetak sebagai pemilik sah pada sertifikat kalibrasi"
-              helperText="Pastikan ejaan nama PT / Pabrik sesuai dokumen legalitas"
-            >
-              <TextInput
+            <div>
+              <FieldLabel htmlFor="input-sertifikat-untuk" required>
+                Sertifikat Dibuat Untuk
+              </FieldLabel>
+              <input
+                id="input-sertifikat-untuk"
+                type="text"
+                className={inputClass}
                 placeholder="Contoh: PT Industri Maju Bersama"
-                leftIcon={<Building2 className="w-4 h-4 text-slate-400" />}
                 value={formData.hasilKalibrasiUntuk}
                 onChange={(e) => handleChange("hasilKalibrasiUntuk", e.target.value)}
               />
-            </FormField>
+            </div>
           </div>
 
-          <FormField
-            label="Nomor Telepon / WhatsApp Pemohon"
-            required
-            tooltip="Nomor yang dapat dihubungi analis untuk konfirmasi teknis"
-          >
-            <TextInput
-              type="tel"
-              placeholder="Contoh: 081234567890"
-              leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
-              value={formData.no_telp || ""}
-              onChange={(e) => handleChange("no_telp", e.target.value)}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel htmlFor="input-no-telp" required>
+                Nomor Telpon / Whatsapp Pemohon
+                </FieldLabel>
+                <input
+                id="input-no-telp"
+                type="tel"
+                className={inputClass}
+                placeholder="Contoh: 081234567890"
+                value={formData.no_telp || ""}
+                onChange={(e) => handleChange("no_telp", e.target.value)}
+              />
+            </div>
+          </div>
 
-          <FormField
-            label="Alamat Lengkap Pemohon / Kantor"
-            required
-            helperText="Alamat domisili resmi entitas pemilik alat"
-          >
-            <TextareaInput
+          <div>
+            <FieldLabel htmlFor="input-alamat-pemohon" required>
+              Alamat Lengkap Pemohon
+            </FieldLabel>
+            <textarea
+              id="input-alamat-pemohon"
               rows={3}
+              className={textareaClass}
               placeholder="Tuliskan nama jalan, nomor bangunan, dan kota..."
               value={formData.alamatPemohon}
               onChange={(e) => handleChange("alamatPemohon", e.target.value)}
             />
-          </FormField>
-        </div>
-
-        {/* Section 2: Tujuan Pengiriman Dokumen Fisik */}
-        <div className="pt-6 border-t border-slate-200/80 space-y-5">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 shadow-2xs">
-              <Truck className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">
-                Alamat Pengiriman Dokumen Fisik Sertifikat Kalibrasi <span className="text-rose-500">*</span>
-              </h4>
-              <p className="text-xs text-slate-500">
-                Tentukan penerima dan alamat tujuan pengiriman kurir untuk hardcopy laporan hasil kalibrasi
-              </p>
-            </div>
           </div>
+        </div>
+      </div>
 
-          <FormField label="Pilih Tujuan Pengiriman">
-            <RadioCardGroup
-              value={formData.opsiAlamatKirim || "pemohon"}
-              onChange={(val) => handleSelectOpsiAlamat(val as any)}
-              gridCols={2}
-              options={[
-                {
-                  value: "pemohon",
-                  title: "Sesuai Alamat Kantor",
-                  description: "Dikirim ke alamat kantor pemohon yang tertera di atas",
-                  icon: <Building2 className="w-4.5 h-4.5 text-brand-600" />,
-                  badge: "Default",
-                },
-                {
-                  value: "pabrik",
-                  title: "Sesuai Alamat Pabrik",
-                  description: "Dikirim ke lokasi fasilitas pabrik yang tersimpan di profil",
-                  icon: <Home className="w-4.5 h-4.5 text-emerald-600" />,
-                  badge: "Pabrik",
-                },
-                {
-                  value: "manual",
-                  title: "Alamat Berbeda (Kustom)",
-                  description: "Tuliskan alamat penerima cabang atau lokasi lain",
-                  icon: <MapPin className="w-4.5 h-4.5 text-amber-600" />,
-                  badge: "Kustom",
-                },
-              ]}
-            />
-          </FormField>
+      {/* 2. Pengalamatan Laporan Kalibrasi */}
+      <div className="pt-6 border-t border-slate-200">
+        <SectionHeading
+          title="Pengalamatan Laporan Kalibrasi"
+          required
+          description="Ke mana dokumen fisik laporan hasil uji akan dikirim."
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
-            <FormField
-              label="Nama Penerima Paket Dokumen"
-              required
-              helperText="Nama PIC atau divisi penerima surat (misal: Divisi QA/QC)"
-            >
-              <TextInput
-                placeholder="Contoh: Budi Santoso (Divisi QA/QC)"
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel htmlFor="input-nama-kirim" required>
+                Nama
+              </FieldLabel>
+              <input
+                id="input-nama-kirim"
+                type="text"
+                className={inputClass}
+                placeholder="Masukkan nama..."
                 value={formData.namaKirim || ""}
                 onChange={(e) => handleChange("namaKirim", e.target.value)}
               />
-            </FormField>
-
-            <div className="md:col-span-2">
-              <FormField
-                label="Alamat Lengkap Pengiriman Dokumen"
-                required
-                helperText="Cantumkan kode pos dan instruksi kurir bila ada"
-              >
-                <TextareaInput
-                  rows={3}
-                  disabled={(formData.opsiAlamatKirim || "pemohon") === "pemohon"}
-                  placeholder="Masukkan alamat tujuan pengiriman dokumen lengkap..."
-                  value={formData.alamatKirim || ""}
-                  onChange={(e) => handleChange("alamatKirim", e.target.value)}
-                />
-              </FormField>
             </div>
           </div>
+
+          <div>
+            <FieldLabel htmlFor="input-alamat-kirim" required>
+              Alamat
+            </FieldLabel>
+            <textarea
+              id="input-alamat-kirim"
+              rows={3}
+              className={textareaClass}
+              placeholder="Masukkan alamat lengkap..."
+              value={formData.alamatKirim || ""}
+              onChange={(e) => handleChange("alamatKirim", e.target.value)}
+            />
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StepPanel>
   )
 }
 

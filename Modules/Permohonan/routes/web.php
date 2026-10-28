@@ -20,6 +20,7 @@ use Modules\Permohonan\Http\Controllers\JasaLainnyaController;
 use Modules\Permohonan\Http\Controllers\PbaController;
 use Modules\Permohonan\Http\Controllers\TkdnController;
 use Modules\Permohonan\Http\Controllers\MasterKalibrasiController;
+use Modules\Permohonan\Http\Controllers\MasterPengujianController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -74,13 +75,13 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         'layanan/{id}/approval-invoice',
         [InvoiceController::class, 'approvalInvoice']
     )->withoutMiddleware([Restriction::class])
-     ->name('permohonan.approval-invoice');
+        ->name('permohonan.approval-invoice');
 
     Route::post(
         'layanan/{id}/konfirmasi-pembayaran-manual',
         [PermohonanController::class, 'konfirmasiPembayaranManual']
     )->withoutMiddleware([Restriction::class])
-     ->name('permohonan.konfirmasi-bayar-manual');
+        ->name('permohonan.konfirmasi-bayar-manual');
 
     Route::get(
         'layanan/{id}/approval-invoice',
@@ -100,7 +101,7 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         'layanan/{id}/approval-kuitansi-tte',
         [InvoiceController::class, 'approvalKuitansiTte']
     )->withoutMiddleware([Restriction::class])
-     ->name('permohonan.kuitansi.approval-tte');
+        ->name('permohonan.kuitansi.approval-tte');
 
     Route::get('{id}/kuitansi/download-tte', [InvoiceController::class, 'downloadKuitansiTte'])
         ->name('permohonan.kuitansi.download-tte');
@@ -112,7 +113,7 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         'layanan/{id}/kuitansi/preview',
         [InvoiceController::class, 'previewKuitansi']
     )->withoutMiddleware([Restriction::class])
-     ->name('permohonan.preview-kuitansi');
+        ->name('permohonan.preview-kuitansi');
 
 
     Route::prefix('master-lokasi')->name('permohonan.master-lokasi.')->group(function () {
@@ -172,6 +173,21 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         Route::put('/{id}', [MasterKalibrasiController::class, 'update'])->name('update');
         Route::delete('/{id}', [MasterKalibrasiController::class, 'destroy'])->name('destroy');
 
+    });
+
+    Route::prefix('master-pengujian')->name('permohonan.master-pengujian.')->group(function () {
+        Route::get('/', [MasterPengujianController::class, 'index'])->name('index');
+        Route::get('/ajax', [MasterPengujianController::class, 'ajax'])->name('ajax');
+
+        // Parameter Uji
+        Route::post('/parameter', [MasterPengujianController::class, 'storeParameter'])->name('parameter.store');
+        Route::put('/parameter/{id}', [MasterPengujianController::class, 'updateParameter'])->name('parameter.update');
+        Route::delete('/parameter/{id}', [MasterPengujianController::class, 'destroyParameter'])->name('parameter.destroy');
+
+        // Komoditas
+        Route::post('/komoditas', [MasterPengujianController::class, 'storeKomoditas'])->name('komoditas.store');
+        Route::put('/komoditas/{id}', [MasterPengujianController::class, 'updateKomoditas'])->name('komoditas.update');
+        Route::delete('/komoditas/{id}', [MasterPengujianController::class, 'destroyKomoditas'])->name('komoditas.destroy');
     });
 
 

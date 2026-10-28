@@ -14,6 +14,9 @@ return new class extends Migration {
             if (Schema::hasColumn('form_kalibrasi', 'master_klasifikasi_kalibasi_id')) {
                 $table->dropColumn('master_klasifikasi_kalibasi_id');
             }
+            if (Schema::hasColumn('form_kalibrasi', 'master_klasifikasi_kalibrasi_id')) {
+                $table->dropColumn('master_klasifikasi_kalibrasi_id');
+            }
             if (!Schema::hasColumn('form_kalibrasi', 'jenis_klasifikasi')) {
                 $table->uuid('jenis_klasifikasi')
                     ->nullable()
@@ -23,9 +26,9 @@ return new class extends Migration {
         });
 
         // Update jenis_klasifikasi pada permohonan kalibrasi yang sudah ada
-        $defaultKlasifikasi = \Illuminate\Support\Facades\DB::table('master_klasifikasi_kalibasi')
+        $defaultKlasifikasi = \Illuminate\Support\Facades\DB::table('master_klasifikasi_kalibrasi')
             ->where('klasifikasi', 'MASSA DAN BESARAN TERKAIT')
-            ->first() ?: \Illuminate\Support\Facades\DB::table('master_klasifikasi_kalibasi')->first();
+            ->first() ?: \Illuminate\Support\Facades\DB::table('master_klasifikasi_kalibrasi')->first();
 
         if ($defaultKlasifikasi) {
             \Illuminate\Support\Facades\DB::table('form_kalibrasi')

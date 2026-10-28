@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('master_klasifikasi_kalibasi', function (Blueprint $table) {
+        Schema::create('master_klasifikasi_kalibrasi', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('klasifikasi');
             $table->timestamps();
@@ -23,6 +23,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_klasifikasi_kalibasi');
+        Schema::dropIfExists('master_klasifikasi_kalibrasi');
     }
 };

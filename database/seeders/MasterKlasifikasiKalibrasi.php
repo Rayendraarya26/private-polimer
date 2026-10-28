@@ -28,7 +28,7 @@ class MasterKlasifikasiKalibrasi extends Seeder
         ];
 
         foreach ($klasifikasiList as $klasifikasi) {
-            DB::table('master_klasifikasi_kalibasi')->updateOrInsert(
+            DB::table('master_klasifikasi_kalibrasi')->updateOrInsert(
                 ['klasifikasi' => $klasifikasi],
                 [
                     'id' => (string) Str::uuid(),
@@ -39,9 +39,9 @@ class MasterKlasifikasiKalibrasi extends Seeder
         }
 
         // Update jenis_klasifikasi pada permohonan kalibrasi yang sudah ada jika belum terisi
-        $defaultId = DB::table('master_klasifikasi_kalibasi')
+        $defaultId = DB::table('master_klasifikasi_kalibrasi')
             ->where('klasifikasi', 'SUHU DAN KELEMBABAN')
-            ->value('id') ?: DB::table('master_klasifikasi_kalibasi')->value('id');
+            ->value('id') ?: DB::table('master_klasifikasi_kalibrasi')->value('id');
 
         if ($defaultId) {
             DB::table('form_kalibrasi')

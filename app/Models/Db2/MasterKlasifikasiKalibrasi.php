@@ -11,7 +11,7 @@ class MasterKlasifikasiKalibrasi extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    protected $table = 'master_klasifikasi_kalibasi';
+    protected $table = 'master_klasifikasi_kalibrasi';
     protected $guarded = ['id'];
 
     protected $fillable = [

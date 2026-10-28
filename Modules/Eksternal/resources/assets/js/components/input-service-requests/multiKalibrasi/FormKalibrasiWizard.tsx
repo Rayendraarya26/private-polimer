@@ -24,10 +24,10 @@ import { StickyFormActions } from "../../forms"
 const TOTAL_STEPS = 4
 
 const STEPS = [
-  { id: 0, title: "Alat & Kalibrasi", icon: Toolbox, desc: "Data alat, nomor seri, dan parameter kalibrasi" },
-  { id: 1, title: "Pelaksanaan Kalibrasi", icon: UserCheck, desc: "Lokasi in-house/on-site & bahasa sertifikat" },
-  { id: 2, title: "Informasi Pelanggan", icon: MapPinHouse, desc: "Data pemohon & alamat pengiriman fisik" },
-  { id: 3, title: "Pernyataan & Ringkasan", icon: ShieldCheck, desc: "Persetujuan pemohon & review biaya" },
+  { id: 0, title: "Alat & Kalibrasi", icon: Toolbox, desc: "Data alat & parameter" },
+  { id: 1, title: "Pelaksanaan Kalibrasi", icon: UserCheck, desc: "Lokasi & sertifikat" },
+  { id: 2, title: "Informasi Pelanggan", icon: MapPinHouse, desc: "Data pemohon & alamat" },
+  { id: 3, title: "Pernyataan & Ringkasan", icon: ShieldCheck, desc: "Review & persetujuan" },
 ]
 
 const STORAGE_KEY = "DRAFT_PERMOHONAN_KALIBRASI"
@@ -496,7 +496,7 @@ export const FormKalibrasiWizard: React.FC = () => {
                     >
                       {s.title}
                     </p>
-                    <p className="text-xs text-slate-500 truncate hidden sm:block">{s.desc}</p>
+                    <p className="text-xs text-slate-500 truncate hidden sm:block" title={s.desc}>{s.desc}</p>
                   </div>
                 </button>
               </li>
@@ -550,8 +550,6 @@ export const FormKalibrasiWizard: React.FC = () => {
         onSubmit={() => handleSubmit("ajukan")}
         isSubmitting={isSubmitting}
         isSavingDraft={isSavingDraft}
-        errorCount={stepErrors.length}
-        onErrorClick={() => window.scrollTo({ top: 120, behavior: "smooth" })}
       />
 
       {/* Modal Konfirmasi Reset Draf */}

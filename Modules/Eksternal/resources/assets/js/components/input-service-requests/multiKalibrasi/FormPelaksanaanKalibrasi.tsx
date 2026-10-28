@@ -8,6 +8,7 @@ import {
   FieldHint,
   OptionGroup,
   OptionCard,
+  OptionIcon,
   textareaClass,
   cx,
 } from "./WizardUI"
@@ -113,41 +114,21 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
         <OptionGroup label="Lokasi Pelaksanaan" cols={2}>
           <OptionCard
             id="lokasi-labkal"
+            compact
             selected={formData.lokasi === "LABKAL BBKKP"}
             onSelect={() => handleChange("lokasi", "LABKAL BBKKP")}
             title="Laboratorium Kalibrasi BBKKP"
             description="Instrumen diantar atau dikirim ke laboratorium BBKKP"
-            leading={
-              <div
-                className={cx(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                  formData.lokasi === "LABKAL BBKKP"
-                    ? "bg-brand-100 text-brand-600 border border-brand-200"
-                    : "bg-slate-100 text-slate-500 border border-slate-200/60 group-hover:bg-slate-200/70"
-                )}
-              >
-                <Building2 className="w-5 h-5" />
-              </div>
-            }
+            leading={<OptionIcon icon={Building2} active={formData.lokasi === "LABKAL BBKKP"} />}
           />
           <OptionCard
             id="lokasi-onsite"
+            compact
             selected={formData.lokasi === "Tempat Client"}
             onSelect={() => handleChange("lokasi", "Tempat Client")}
-            title="On-site / Tempat Client  "
+            title="On-site / Tempat Client"
             description="Petugas kalibrasi hadir langsung ke fasilitas Anda"
-            leading={
-              <div
-                className={cx(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                  formData.lokasi === "Tempat Client"
-                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                    : "bg-slate-100 text-slate-500 border border-slate-200/60 group-hover:bg-slate-200/70"
-                )}
-              >
-                <Truck className="w-5 h-5" />
-              </div>
-            }
+            leading={<OptionIcon icon={Truck} active={formData.lokasi === "Tempat Client"} />}
           />
         </OptionGroup>
       </div>
@@ -161,41 +142,21 @@ export const FormPelaksanaanKalibrasi: React.FC<FormPelaksanaanKalibrasiProps> =
         <OptionGroup label="Bahasa Sertifikat" cols={2}>
           <OptionCard
             id="bahasa-id"
+            compact
             selected={formData.bahasa === "indonesia"}
             onSelect={() => handleChange("bahasa", "indonesia")}
             title="Bahasa Indonesia"
             description="Format sertifikat resmi standar KAN / SNI"
-            leading={
-              <div
-                className={cx(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                  formData.bahasa === "indonesia"
-                    ? "bg-rose-100 text-rose-600 border border-rose-200"
-                    : "bg-slate-100 text-slate-500 border border-slate-200/60 group-hover:bg-slate-200/70"
-                )}
-              >
-                <Languages className="w-5 h-5" />
-              </div>
-            }
+            leading={<OptionIcon icon={Languages} active={formData.bahasa === "indonesia"} />}
           />
           <OptionCard
             id="bahasa-en"
+            compact
             selected={formData.bahasa === "inggris"}
             onSelect={() => handleChange("bahasa", "inggris")}
             title="English"
             description="Official calibration certificate for export / audit"
-            leading={
-              <div
-                className={cx(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                  formData.bahasa === "inggris"
-                    ? "bg-indigo-100 text-indigo-600 border border-indigo-200"
-                    : "bg-slate-100 text-slate-500 border border-slate-200/60 group-hover:bg-slate-200/70"
-                )}
-              >
-                <Globe className="w-5 h-5" />
-              </div>
-            }
+            leading={<OptionIcon icon={Globe} active={formData.bahasa === "inggris"} />}
           />
         </OptionGroup>
       </div>

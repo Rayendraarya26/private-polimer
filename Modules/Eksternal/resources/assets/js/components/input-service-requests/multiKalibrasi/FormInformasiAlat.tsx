@@ -4,7 +4,6 @@ import { Button } from "../../ui/Button"
 import {
   Toolbox,
   Plus,
-  Minus,
   Trash2,
   Loader2,
   Tag,
@@ -16,6 +15,7 @@ import {
   StepPanel,
   FieldLabel,
   FieldHint,
+  QuantityStepper,
   inputClass,
   cx,
 } from "./WizardUI"
@@ -548,53 +548,15 @@ export const FormInformasiAlat: React.FC<FormInformasiAlatProps> = ({
                               {k.nama}
                             </td>
                             <td className="px-3 py-3 text-center">
-                              <div className="inline-flex items-center border border-slate-300 rounded-lg overflow-hidden bg-white shadow-none">
-                                <button
-                                  type="button"
-                                  disabled={k.jumlah <= 1}
-                                  onClick={() =>
-                                    handleUpdateJumlahKalibrasi(
-                                      alat.id,
-                                      k.id,
-                                      Math.max(1, k.jumlah - 1)
-                                    )
-                                  }
-                                  className="w-7 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                  title="Kurangi jumlah"
-                                >
-                                  <Minus className="w-3.5 h-3.5" />
-                                </button>
-                                <input
-                                  type="number"
-                                  min={1}
-                                  max={alat.jumlah}
-                                  value={k.jumlah}
-                                  onChange={(e) =>
-                                    handleUpdateJumlahKalibrasi(
-                                      alat.id,
-                                      k.id,
-                                      Math.min(alat.jumlah, Math.max(1, parseInt(e.target.value) || 1))
-                                    )
-                                  }
-                                  title={`Jumlah kalibrasi (Maksimal ${alat.jumlah} unit)`}
-                                  className="w-10 h-8 text-center text-xs font-bold text-slate-900 border-x border-slate-200 bg-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={k.jumlah >= alat.jumlah}
-                                  onClick={() =>
-                                    handleUpdateJumlahKalibrasi(
-                                      alat.id,
-                                      k.id,
-                                      Math.min(alat.jumlah, k.jumlah + 1)
-                                    )
-                                  }
-                                  className="w-7 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                  title="Tambah jumlah"
-                                >
-                                  <Plus className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                              <QuantityStepper
+                                value={k.jumlah}
+                                min={1}
+                                max={alat.jumlah}
+                                onChange={(val) =>
+                                  handleUpdateJumlahKalibrasi(alat.id, k.id, val)
+                                }
+                                title={`Jumlah kalibrasi (Maksimal ${alat.jumlah} unit)`}
+                              />
                             </td>
                             <td className="px-4 py-3 text-right text-slate-600 font-mono">
                               Rp {k.tarifSatuan.toLocaleString("id-ID")}

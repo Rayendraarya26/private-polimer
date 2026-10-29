@@ -328,10 +328,13 @@ class MenuSeeder extends Seeder
                             ['name' => 'approvalInvoice', 'controller' => $modulePermohonan . '\InvoiceController@approvalInvoice'],
                             ['name' => 'page', 'controller' => $modulePermohonan . '\InvoiceController@page'],
                             ['name' => 'approvalKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@approvalKuitansi'],
+                            ['name' => 'approvalKuitansiTte', 'controller' => $modulePermohonan . '\InvoiceController@approvalKuitansiTte'],
                             ['name' => 'generateKuitansi', 'controller' => $modulePermohonan . '\InvoiceController@generateKuitansi'],
                             ['name' => 'preview', 'controller' => $modulePermohonan . '\InvoiceController@previewKuitansi'],
                             ['name' => 'downloadTte', 'controller' => $modulePermohonan . '\InvoiceController@downloadTte'],
                             ['name' => 'streamTte', 'controller' => $modulePermohonan . '\InvoiceController@streamTte'],
+                            ['name' => 'downloadKuitansiTte', 'controller' => $modulePermohonan . '\InvoiceController@downloadKuitansiTte'],
+                            ['name' => 'streamKuitansiTte', 'controller' => $modulePermohonan . '\InvoiceController@streamKuitansiTte'],
                         ]
                     ],
                     [

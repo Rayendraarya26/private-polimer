@@ -666,10 +666,40 @@ class InvoiceController extends Controller
         $permohonan = Permohonan::findOrFail($id);
 
         if (empty($permohonan->kuitansi_pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk kuitansi ini');
+            if ($permohonan->status_bayar !== 'LUNAS') {
+                abort(403, 'Pembayaran belum lunas, kuitansi belum tersedia.');
+            }
+
+            if ($permohonan->kuitansi_file && Storage::disk('public')->exists($permohonan->kuitansi_file)) {
+                $filePath = storage_path('app/public/' . $permohonan->kuitansi_file);
+                $fileName = 'kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number ?: $permohonan->no_permohonan) . '.pdf';
+                return response()->download($filePath, $fileName);
+            }
+
+            // Jika file draf belum pernah disimpan fisik, generate dulu
+            $this->previewKuitansi($id);
+            $permohonan->refresh();
+
+            if ($permohonan->kuitansi_file && Storage::disk('public')->exists($permohonan->kuitansi_file)) {
+                $filePath = storage_path('app/public/' . $permohonan->kuitansi_file);
+                $fileName = 'kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number ?: $permohonan->no_permohonan) . '.pdf';
+                return response()->download($filePath, $fileName);
+            }
+
+            abort(404, 'File kuitansi belum tersedia');
         }
 
         try {
+            if (str_starts_with($permohonan->kuitansi_pdf_tte, 'dummy-esign|')) {
+                $pathStr = explode('|', $permohonan->kuitansi_pdf_tte)[1];
+                $path = storage_path('app/public/' . $pathStr);
+                if (!file_exists($path)) {
+                    abort(404, 'File TTE Kuitansi Dummy tidak ditemukan');
+                }
+                $fileName = 'kuitansi-' . str_replace('/', '-', $permohonan->no_permohonan) . '.pdf';
+                return response()->download($path, $fileName);
+            }
+
             $tteService = new TteService();
             $result     = $tteService->verifyById($permohonan->kuitansi_pdf_tte);
 
@@ -699,7 +729,7 @@ class InvoiceController extends Controller
         $permohonan = Permohonan::findOrFail($id);
 
         if (empty($permohonan->kuitansi_pdf_tte)) {
-            abort(404, 'TTE belum tersedia untuk kuitansi ini');
+            return $this->previewKuitansi($id);
         }
 
         try {

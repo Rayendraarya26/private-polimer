@@ -208,7 +208,7 @@ class PermohonanController extends Controller
             return DataTables::eloquent(
                 Permohonan::query()
                     ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
-                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file'])
+                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte'])
                     ->whereRaw('1=0')
             )->make(true);
         }
@@ -216,7 +216,7 @@ class PermohonanController extends Controller
 
         $query = Permohonan::query()
             ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable'])
-            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file'])
+            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte'])
             ->whereIn('id', $representativeIds);
 
 
@@ -306,6 +306,11 @@ class PermohonanController extends Controller
             ->editColumn('status_workflow', fn($row) => strtolower($row->status_workflow))
             ->addColumn('invoice_status', fn($row) => $row->invoice_file ? 'generated' : 'not_generated')
             ->addColumn('invoice_file_val', fn($row) => $row->invoice_file ?? '')
+            ->addColumn('pdf_tte_val', fn($row) => $row->pdf_tte ?? '')
+            ->addColumn('has_tte', fn($row) => !empty($row->pdf_tte))
+            ->addColumn('kuitansi_pdf_tte', fn($row) => $row->kuitansi_pdf_tte ?? '')
+            ->addColumn('has_kuitansi_tte', fn($row) => !empty($row->kuitansi_pdf_tte))
+            ->addColumn('status_bayar', fn($row) => $row->status_bayar ?? '')
             ->addColumn('aksi', function ($row) {
                 $url = route('permohonan.layanan.detail', $row->id);
                 return '<a href="' . $url . '" class="btn btn-sm btn-primary">Detail</a>';

@@ -297,12 +297,14 @@ PHP vars dipakai di konten DAN di script section
                                 <div class="text-muted fs-7 mt-1">Passphrase sertifikat elektronik BSRE Anda</div>
                             </div>
 
-                            <div class="separator separator-content my-3 text-muted fs-8 fw-bold">ATAU OTP EMAIL (BSrE v2)</div>
+                            <div class="separator separator-content my-3 text-muted fs-8 fw-bold">ATAU OTP EMAIL (BSrE v2)
+                            </div>
 
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <label class="form-label fw-semibold fs-6 mb-0">Kode OTP (TOTP)</label>
-                                    <button type="button" id="btnRequestOtpBlade" class="btn btn-link btn-color-primary p-0 fs-7" {{ !$pegawai?->nik ? 'disabled' : '' }}>
+                                    <button type="button" id="btnRequestOtpBlade"
+                                        class="btn btn-link btn-color-primary p-0 fs-7" {{ !$pegawai?->nik ? 'disabled' : '' }}>
                                         <i class="fa-duotone fa-envelope-open-text me-1"></i>Kirim OTP ke Email
                                     </button>
                                 </div>
@@ -380,7 +382,7 @@ PHP vars dipakai di konten DAN di script section
                             <div id="resultSuccess" class="d-none">
                                 <i class="fa-duotone fa-circle-check fs-5x text-success mb-5"></i>
                                 <h3 class="text-success mb-3" id="resultSuccessTitle">Invoice Berhasil Ditandatangani</h3>
-                                <p class="text-muted mb-6">
+                                <p class="text-muted mb-6" id="resultSuccessDesc">
                                     Dokumen invoice telah ditandatangani secara elektronik dan tersimpan di server.
                                 </p>
                                 <a id="btnDownloadTte" href="#" target="_blank" class="btn btn-success">
@@ -409,6 +411,77 @@ PHP vars dipakai di konten DAN di script section
                 </div>
             </div>
         </div>
+
+        @if($isBendahara)
+            {{-- Modal Konfirmasi Pembayaran Manual --}}
+            <div class="modal fade" id="modalKonfirmasiBayarTable" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered mw-650px">
+                    <div class="modal-content rounded">
+                        <form id="formKonfirmasiBayarTable" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            {{-- Header --}}
+                            <div class="modal-header">
+                                <h2 class="fw-bold">Konfirmasi Pembayaran</h2>
+                                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                    <i class="fa-duotone fa-xmark fs-1"></i>
+                                </div>
+                            </div>
+
+                            <div class="modal-body py-10 px-lg-17">
+                                {{-- Informasi permohonan (tulisan biasa) --}}
+                                <div class="mb-7">
+                                    <div class="fs-6 text-gray-600">Verifikasi transaksi penerimaan transfer bank:</div>
+                                    <div class="fs-5 text-gray-900 fw-bold mt-1" id="modalKonfirmasiBayarSubtitle">-</div>
+                                </div>
+
+                                {{-- Tanggal Pembayaran --}}
+                                <div class="mb-5">
+                                    <label class="form-label required fw-semibold fs-6">Tanggal Pembayaran</label>
+                                    <input type="date" name="tgl_bayar" class="form-control form-control-solid"
+                                        value="{{ date('Y-m-d') }}" required />
+                                </div>
+
+                                {{-- Nomor Bukti Transfer / Trx ID --}}
+                                <div class="mb-5">
+                                    <label class="form-label fw-semibold fs-6">Nomor Bukti Transfer / Trx ID</label>
+                                    <input type="text" name="nomor_bukti_transfer" class="form-control form-control-solid"
+                                        placeholder="Contoh: BNI-TRX-20261022-0012" />
+                                    <div class="text-muted fs-7 mt-1">Nomor referensi atau catatan struk transfer bank pemohon
+                                    </div>
+                                </div>
+
+                                {{-- File Bukti Bayar / Transfer --}}
+                                <div class="mb-5">
+                                    <label class="form-label fw-semibold fs-6">File Bukti Bayar / Transfer</label>
+                                    <input type="file" name="file_bukti_bayar" class="form-control form-control-solid"
+                                        accept=".pdf,.jpg,.jpeg,.png" />
+                                    <div class="text-muted fs-7 mt-1">Format: PDF, JPG, PNG (Maksimal 5 MB)</div>
+                                </div>
+
+                                {{-- Catatan Verifikasi --}}
+                                <div class="mb-5">
+                                    <label class="form-label fw-semibold fs-6">Catatan Verifikasi</label>
+                                    <textarea name="catatan" class="form-control form-control-solid" rows="3"
+                                        placeholder="Catatan opsional dari bendahara..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer flex-center">
+                                <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" id="btnSubmitKonfirmasiBayar" class="btn btn-primary">
+                                    <span class="indicator-label" id="btnSubmitKonfirmasiBayarLabel">
+                                        <i class="fa-duotone fa-check-circle me-2"></i>Konfirmasi Pembayaran
+                                    </span>
+                                    <span class="indicator-progress d-none" id="btnSubmitKonfirmasiBayarLoading">
+                                        <span class="spinner-border spinner-border-sm align-middle me-2"></span>Memproses...
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
 
 @endsection
 
@@ -521,7 +594,7 @@ PHP vars dipakai di konten DAN di script section
                                 };
                                 const uData = data ? data.toUpperCase() : '';
                                 const color = map[uData] ?? 'secondary';
-                                
+
                                 let labelText = '-';
                                 if (uData === 'PROCESS' || uData === 'PROSES') {
                                     labelText = 'Proses';
@@ -542,11 +615,11 @@ PHP vars dipakai di konten DAN di script section
                                 if (isBendahara) {
                                     if (data === 'generated')
                                         return `<span class="badge badge-light-success">
-                                                            <i class="fa-duotone fa-file-check me-1"></i>Sudah Generate
-                                                        </span>`;
+                                                                        <i class="fa-duotone fa-file-check me-1"></i>Sudah Generate
+                                                                    </span>`;
                                     return `<span class="badge badge-light-warning">
-                                                        <i class="fa-duotone fa-file-xmark me-1"></i>Belum Generate
-                                                    </span>`;
+                                                                    <i class="fa-duotone fa-file-xmark me-1"></i>Belum Generate
+                                                                </span>`;
                                 } else {
                                     if (data == 1 || data === true)
                                         return `<span class="badge badge-light-info">Sudah Mengisi</span>`;
@@ -568,37 +641,82 @@ PHP vars dipakai di konten DAN di script section
                                     `/permohonan/layanan/${row.id}/approval-invoice`;
 
 
-                                // Cek apakah invoice sudah pernah di-generate
-                                const hasInvoice = isBendahara && !!row.invoice_file_val;
-                                const approvalLabel = hasInvoice ? 'Regenerate Invoice' : 'Approval Invoice';
+                                // Cek apakah invoice sudah di-TTE atau sudah di-generate
+                                const hasTte = isBendahara && Boolean(row.has_tte || row.pdf_tte_val);
+                                const hasInvoice = isBendahara && Boolean(row.invoice_file_val || hasTte);
 
+                                // Tampilkan TTE Invoice HANYA jika invoice belum di-TTE
+                                const tteInvoiceItem = (isBendahara && !hasTte) ? `
+                                                        <div class="menu-item px-3">
+                                                            <a href="#"
+                                                               class="menu-link px-3 btn-approval-invoice"
+                                                               data-url="${urlApproval}"
+                                                               data-mode="tte">
+                                                                TTE Invoice
+                                                            </a>
+                                                        </div>` : '';
 
-                                const approvalItem = isBendahara ? `
-                                            <div class="menu-item px-3">
-                                                <a href="#"
-                                                   class="menu-link px-3 btn-approval-invoice"
-                                                   data-url="${urlApproval}"
-                                                   data-mode="${hasInvoice ? 'regenerate' : 'generate'}">
-                                                    ${approvalLabel}
-                                                </a>
-                                            </div>` : '';
+                                // Tampilkan Regenerate Invoice jika invoice sudah di-TTE / di-generate
+                                const regenerateInvoiceItem = (isBendahara && hasTte) ? `
+                                                        <div class="menu-item px-3">
+                                                            <a href="#"
+                                                               class="menu-link px-3 btn-approval-invoice"
+                                                               data-url="${urlApproval}"
+                                                               data-mode="regenerate">
+                                                                Regenerate Invoice
+                                                            </a>
+                                                        </div>` : '';
+
+                                // Konfirmasi Pembayaran untuk Bendahara
+                                const uStatus = (row.status_workflow || '').toUpperCase();
+                                const uBayar = (row.status_bayar || '').toUpperCase();
+                                const isBelumLunas = uBayar !== 'LUNAS' && (uStatus === 'PEMBAYARAN' || uStatus === 'PROCESS' || uStatus === 'PROSES');
+                                const urlKonfirmasi = `/permohonan/layanan/${row.id}/konfirmasi-pembayaran-manual`;
+
+                                const konfirmasiBayarItem = (isBendahara && isBelumLunas) ? `
+                                                        <div class="menu-item px-3">
+                                                            <a href="#"
+                                                               class="menu-link px-3 btn-konfirmasi-bayar"
+                                                               data-url="${urlKonfirmasi}"
+                                                               data-no="${row.no_permohonan || ''}">
+                                                                Konfirmasi Pembayaran
+                                                            </a>
+                                                        </div>` : '';
+
+                                // TTE Kuitansi untuk Bendahara jika sudah LUNAS dan kuitansi belum di-TTE
+                                const isLunas = uBayar === 'LUNAS';
+                                const hasKuitansiTte = Boolean(row.has_kuitansi_tte || row.kuitansi_pdf_tte);
+                                const urlApprovalKuitansi = `/permohonan/layanan/${row.id}/approval-kuitansi-tte`;
+
+                                const tteKuitansiItem = (isBendahara && isLunas && !hasKuitansiTte) ? `
+                                                        <div class="menu-item px-3">
+                                                            <a href="#"
+                                                               class="menu-link px-3 btn-approval-invoice"
+                                                               data-url="${urlApprovalKuitansi}"
+                                                               data-mode="kuitansi">
+                                                                TTE Kuitansi
+                                                            </a>
+                                                        </div>` : '';
 
 
                                 return `
-                                        <a href="#"
-                                           class="btn btn-light btn-active-light-primary btn-sm"
-                                           data-kt-menu-trigger="hover"
-                                           data-kt-menu-placement="bottom-end">
-                                            Actions <i class="fa-duotone fa-chevron-down ms-2 fs-7"></i>
-                                        </a>
-                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded
-                                                    menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-200px py-4"
-                                             data-kt-menu="true">
-                                            <div class="menu-item px-3">
-                                                <a href="${urlDetail}" class="menu-link px-3">Detail</a>
-                                            </div>
-                                            ${approvalItem}
-                                        </div>`;
+                                                    <a href="#"
+                                                       class="btn btn-light btn-active-light-primary btn-sm"
+                                                       data-kt-menu-trigger="hover"
+                                                       data-kt-menu-placement="bottom-end">
+                                                        Actions <i class="fa-duotone fa-chevron-down ms-2 fs-7"></i>
+                                                    </a>
+                                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded
+                                                                menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-200px py-4"
+                                                         data-kt-menu="true">
+                                                        <div class="menu-item px-3">
+                                                            <a href="${urlDetail}" class="menu-link px-3">Detail</a>
+                                                        </div>
+                                                        ${tteInvoiceItem}
+                                                        ${regenerateInvoiceItem}
+                                                        ${konfirmasiBayarItem}
+                                                        ${tteKuitansiItem}
+                                                    </div>`;
                             }
                         }
                         ]
@@ -707,6 +825,7 @@ PHP vars dipakai di konten DAN di script section
 
                     let currentApprovalUrl = null;
                     let currentIsRegenerate = false;
+                    let currentMode = 'tte';
 
                     // ── Helpers ───────────────────────────────────────────────────
                     const loadingSection = document.getElementById('approvalLoadingSection');
@@ -818,7 +937,7 @@ PHP vars dipakai di konten DAN di script section
                     };
 
                     // Tampilkan hasil sukses — file_link dari InvoiceController response
-                    const showSuccess = (verifyUrl, isRegenerate) => {
+                    const showSuccess = (verifyUrl, isRegenerate, isKuitansi) => {
                         formSection.classList.add('d-none');
                         resultSection.classList.remove('d-none');
                         resultSuccess.classList.remove('d-none');
@@ -826,7 +945,16 @@ PHP vars dipakai di konten DAN di script section
                         // verify_url adalah URL permanen halaman verifikasi (tidak expired)
                         btnDownload.href = verifyUrl || '#';
                         btnDownload.target = '_blank';
-                        resultSuccessTitle.textContent = isRegenerate ? 'Invoice Berhasil Di-regenerate' : 'Invoice Berhasil Ditandatangani';
+                        const descEl = document.getElementById('resultSuccessDesc');
+                        if (isKuitansi) {
+                            resultSuccessTitle.textContent = 'Kuitansi Berhasil Ditandatangani';
+                            if (descEl) descEl.textContent = 'Dokumen kuitansi telah ditandatangani secara elektronik dan tersimpan di server.';
+                            btnDownload.innerHTML = '<i class="fa-duotone fa-shield-check me-2"></i>Download Kuitansi TTE';
+                        } else {
+                            resultSuccessTitle.textContent = isRegenerate ? 'Invoice Berhasil Di-regenerate' : 'Invoice Berhasil Ditandatangani';
+                            if (descEl) descEl.textContent = 'Dokumen invoice telah ditandatangani secara elektronik dan tersimpan di server.';
+                            btnDownload.innerHTML = '<i class="fa-duotone fa-shield-check me-2"></i>Download Invoice TTE';
+                        }
                     };
 
                     // Tampilkan pesan error dari server / network
@@ -851,22 +979,30 @@ PHP vars dipakai di konten DAN di script section
                         e.stopPropagation(); // cegah KTMenu intercept
 
                         currentApprovalUrl = btn.dataset.url;
-                        currentIsRegenerate = btn.dataset.mode === 'regenerate';
+                        currentMode = btn.dataset.mode || 'tte';
+                        currentIsRegenerate = currentMode === 'regenerate';
 
-                        // Update judul modal sesuai mode
-                        modalTitle.textContent = currentIsRegenerate
-                            ? 'Regenerate Invoice (TTE)'
-                            : 'Approval Invoice (TTE)';
-
-                        // Update teks tombol submit sesuai mode
-                        btnSubmitLabel.innerHTML = currentIsRegenerate
-                            ? '<i class="fa-duotone fa-rotate-right me-2"></i>Regenerate & Tanda Tangan'
-                            : '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Elektronik';
-
-                        btnSubmitLoading.textContent = currentIsRegenerate
-                            ? 'Memproses Regenerate...'
-                            : 'Memproses TTE...';
-                        currentApprovalUrl = btn.dataset.url;
+                        // Update judul modal, teks tombol submit, dan step sesuai mode
+                        const step2El = document.querySelector('#tteStep2 span');
+                        if (currentMode === 'kuitansi') {
+                            modalTitle.textContent = 'TTE Kuitansi (BSrE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Kuitansi';
+                            btnSubmitLoading.textContent = 'Memproses TTE Kuitansi...';
+                            if (step2El) step2El.textContent = 'Generate dokumen kuitansi PDF';
+                            tteMessages[1].label = 'Membuat dokumen kuitansi...';
+                        } else if (currentIsRegenerate) {
+                            modalTitle.textContent = 'Regenerate Invoice (TTE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-rotate-right me-2"></i>Regenerate & Tanda Tangan';
+                            btnSubmitLoading.textContent = 'Memproses Regenerate...';
+                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
+                            tteMessages[1].label = 'Membuat dokumen invoice...';
+                        } else {
+                            modalTitle.textContent = 'TTE Invoice (BSrE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Elektronik';
+                            btnSubmitLoading.textContent = 'Memproses TTE...';
+                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
+                            tteMessages[1].label = 'Membuat dokumen invoice...';
+                        }
 
                         // getOrCreateInstance: cegah multiple Bootstrap Modal instance
                         bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -924,7 +1060,7 @@ PHP vars dipakai di konten DAN di script section
                             if (!res.ok || !data.success) {
                                 throw new Error(data.message || `Terjadi kesalahan (HTTP ${res.status})`);
                             }
-                            showSuccess(data.verify_url, currentIsRegenerate);
+                            showSuccess(data.verify_url, currentIsRegenerate, currentMode === 'kuitansi');
                             dt.draw(); // refresh DataTable agar status terupdate
 
                         } catch (err) {
@@ -948,6 +1084,102 @@ PHP vars dipakai di konten DAN di script section
                     });
                 };
 
+                // ── Konfirmasi Pembayaran (Bendahara) ────────────────────
+                const handleKonfirmasiPembayaran = function () {
+                    const modalEl = document.getElementById('modalKonfirmasiBayarTable');
+                    if (!modalEl) return;
+
+                    const form = document.getElementById('formKonfirmasiBayarTable');
+                    const subtitle = document.getElementById('modalKonfirmasiBayarSubtitle');
+                    const btnSubmit = document.getElementById('btnSubmitKonfirmasiBayar');
+                    const labelSpan = btnSubmit ? btnSubmit.querySelector('.indicator-label') : null;
+                    const progressSpan = btnSubmit ? btnSubmit.querySelector('.indicator-progress') : null;
+
+                    // Delegated click tombol konfirmasi pembayaran dari DataTable
+                    document.addEventListener('click', function (e) {
+                        const btn = e.target.closest('.btn-konfirmasi-bayar');
+                        if (!btn) return;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        form.action = btn.dataset.url;
+                        if (subtitle) {
+                            subtitle.textContent = `Nomor Permohonan: ${btn.dataset.no || '-'}`;
+                        }
+
+                        // Reset input form
+                        form.reset();
+                        const tglInput = form.querySelector('input[name="tgl_bayar"]');
+                        if (tglInput) tglInput.value = new Date().toISOString().split('T')[0];
+
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    });
+
+                    // Submit form via fetch
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+
+                        if (btnSubmit) {
+                            btnSubmit.disabled = true;
+                            labelSpan?.classList.add('d-none');
+                            progressSpan?.classList.remove('d-none');
+                        }
+
+                        try {
+                            const formData = new FormData(form);
+                            const res = await fetch(form.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Accept': 'application/json',
+                                },
+                                body: formData,
+                            });
+
+                            const data = await res.json();
+                            if (!res.ok) {
+                                throw new Error(data.message || `Terjadi kesalahan (HTTP ${res.status})`);
+                            }
+
+                            bootstrap.Modal.getInstance(modalEl).hide();
+                            form.reset();
+
+                            // Refresh datatable
+                            dt.draw();
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: data.message || 'Pembayaran manual berhasil diverifikasi lunas.',
+                                    customClass: { confirmButton: 'btn btn-primary' }
+                                });
+                            } else {
+                                alert(data.message || 'Pembayaran manual berhasil diverifikasi lunas.');
+                            }
+
+                        } catch (err) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: err.message || 'Terjadi kesalahan saat memproses konfirmasi.',
+                                    customClass: { confirmButton: 'btn btn-primary' }
+                                });
+                            } else {
+                                alert(err.message || 'Terjadi kesalahan saat memproses konfirmasi.');
+                            }
+                        } finally {
+                            if (btnSubmit) {
+                                btnSubmit.disabled = false;
+                                labelSpan?.classList.remove('d-none');
+                                progressSpan?.classList.add('d-none');
+                            }
+                        }
+                    });
+                };
+
                 // ── Public API ────────────────────────────────────────────────────
                 return {
                     init: function () {
@@ -955,6 +1187,7 @@ PHP vars dipakai di konten DAN di script section
                         handleSearch();
                         handleFilters();
                         handleApprovalInvoice();
+                        handleKonfirmasiPembayaran();
                     }
                 };
 

@@ -36,28 +36,22 @@ const PembayaranPage: React.FC = () => {
       const sp = (item.status_penawaran || "").toUpperCase()
       const sb = (item.status_bayar || "").toUpperCase()
 
-      // Kecualikan tahap review / verifikasi berkas awal / draft / revisi / ditolak / batal
-      const isReviewOrInitialStage = [
-        "DRAFT",
-        "PERMOHONAN",
-        "IN_REVIEW",
-        "REVIEW",
-        "KAJIAN_TEKNIS",
-        "REVISI",
-      ].includes(wf)
       const isRejectedOrCancelled =
         ["DITOLAK", "BATAL", "REJECTED"].includes(wf) ||
         ["TOLAK", "DITOLAK", "REJECTED"].includes(sp) ||
         sb === "BATAL"
 
-      if (isReviewOrInitialStage || isRejectedOrCancelled) {
+      if (isRejectedOrCancelled) {
         return false
       }
 
-      // Hanya permohonan yang sudah masuk tahap pembayaran atau sudah lunas/proses/selesai
+      // Tampilkan jika sudah tahap pembayaran, lunas/proses/selesai, atau sudah memiliki tagihan/invoice/VA
       return (
         ["PEMBAYARAN", "PROSES", "PROCESS", "DONE", "SELESAI"].includes(wf) ||
-        sb === "LUNAS"
+        sb === "LUNAS" ||
+        Boolean(item.invoice_number) ||
+        Boolean(item.va) ||
+        (typeof item.total_tagihan === "number" && item.total_tagihan > 0)
       )
     })
   }, [rawData])
@@ -248,68 +242,35 @@ const PembayaranPage: React.FC = () => {
 
           {/* Invoice Button */}
           {(row.invoice_number || row.invoice_file || row.pdf_tte || row.total_tagihan > 0) && (
-            <div className="inline-flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={<Receipt className="w-3.5 h-3.5" />}
-                onClick={() => openInvoice(row)}
-                title="Buka Invoice"
-              >
-                Invoice
-              </Button>
-              {row.pdf_tte && (
-                <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
-                  TTE BSrE Sah
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Kuitansi Button & TTE Request */}
-          <div className="inline-flex items-center gap-1">
             <Button
               size="sm"
-              variant={row.status_bayar === "LUNAS" ? "success" : "secondary"}
-              leftIcon={<FileCheck className="w-3.5 h-3.5" />}
-              onClick={() => {
-                if (row.status_bayar !== "LUNAS" && !row.kuitansi_file) {
-                  showInfo(
-                    "Kuitansi Belum Tersedia",
-                    "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
-                  )
-                  return
-                }
-                openKuitansi(row)
-              }}
+              variant="outline"
+              leftIcon={<Receipt className="w-3.5 h-3.5" />}
+              onClick={() => openInvoice(row)}
+              title="Buka Invoice"
             >
-              Kuitansi
+              Invoice
             </Button>
+          )}
 
-            {row.status_bayar === "LUNAS" && (
-              !row.kuitansi_pdf_tte ? (
-                row.tte_kuitansi_requested ? (
-                  <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
-                    TTE Diminta
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleRequestTteKuitansi(row)}
-                    disabled={requestingTteId === `kwt-${row.id}`}
-                    className="px-2 py-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
-                    title="Minta TTE BSrE Resmi Bendahara"
-                  >
-                    Minta TTE
-                  </button>
+          {/* Kuitansi Button */}
+          <Button
+            size="sm"
+            variant={row.status_bayar === "LUNAS" ? "success" : "secondary"}
+            leftIcon={<FileCheck className="w-3.5 h-3.5" />}
+            onClick={() => {
+              if (row.status_bayar !== "LUNAS" && !row.kuitansi_file) {
+                showInfo(
+                  "Kuitansi Belum Tersedia",
+                  "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
                 )
-              ) : (
-                <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
-                  TTE BSrE Sah
-                </span>
-              )
-            )}
-          </div>
+                return
+              }
+              openKuitansi(row)
+            }}
+          >
+            Kuitansi
+          </Button>
         </div>
       ),
     },

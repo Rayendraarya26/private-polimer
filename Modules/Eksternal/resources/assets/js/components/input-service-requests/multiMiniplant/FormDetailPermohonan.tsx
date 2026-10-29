@@ -101,20 +101,22 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
                             </h4>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                             {/* Tekanan */}
-                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 hover:border-slate-300 transition-colors">
                                 <label className="block text-xs font-bold text-slate-700">Tekanan</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <TextInput
                                         type="number"
                                         min={0}
                                         placeholder="Nilai"
+                                        className="text-xs px-3"
                                         value={String(formData?.tekananNilai ?? "")}
                                         onChange={(e) => handleChange("tekananNilai", e.target.value)}
                                     />
                                     <TextInput
                                         placeholder="Satuan (bar, psi)"
+                                        className="text-xs px-3"
                                         value={formData?.tekananSatuan || ""}
                                         onChange={(e) => handleChange("tekananSatuan", e.target.value)}
                                     />
@@ -122,18 +124,20 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
                             </div>
 
                             {/* Waktu */}
-                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 hover:border-slate-300 transition-colors">
                                 <label className="block text-xs font-bold text-slate-700">Waktu</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <TextInput
                                         type="number"
                                         min={0}
                                         placeholder="Nilai"
+                                        className="text-xs px-3"
                                         value={String(formData?.waktuNilai ?? "")}
                                         onChange={(e) => handleChange("waktuNilai", e.target.value)}
                                     />
                                     <TextInput
                                         placeholder="Satuan (menit, jam)"
+                                        className="text-xs px-3"
                                         value={formData?.waktuSatuan || ""}
                                         onChange={(e) => handleChange("waktuSatuan", e.target.value)}
                                     />
@@ -141,17 +145,19 @@ export const FormDetailPermohonan: React.FC<FormDetailPermohonanProps> = ({
                             </div>
 
                             {/* Temperatur */}
-                            <div className="md:col-span-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 hover:border-slate-300 transition-colors">
                                 <label className="block text-xs font-bold text-slate-700">Temperatur</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <TextInput
                                         type="number"
                                         placeholder="Nilai"
+                                        className="text-xs px-3"
                                         value={String(formData?.temperaturNilai ?? "")}
                                         onChange={(e) => handleChange("temperaturNilai", e.target.value)}
                                     />
                                     <TextInput
                                         placeholder="Satuan (°C)"
+                                        className="text-xs px-3"
                                         value={formData?.temperaturSatuan || ""}
                                         onChange={(e) => handleChange("temperaturSatuan", e.target.value)}
                                     />

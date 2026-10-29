@@ -19,6 +19,7 @@ export interface SubmitKonsultasiAtPayload {
     layananLainnya?: string
     catatanDokumen?: string
     files: File[]
+    isDraft?: boolean
 }
 
 export const submitKonsultasiAt = async (payload: SubmitKonsultasiAtPayload) => {
@@ -26,6 +27,10 @@ export const submitKonsultasiAt = async (payload: SubmitKonsultasiAtPayload) => 
     formData.append("layanan_kode", payload.layananKode)
     if (payload.layananLainnya) formData.append("layanan_lainnya", payload.layananLainnya)
     if (payload.catatanDokumen) formData.append("catatan_dokumen", payload.catatanDokumen)
+    if (payload.isDraft) {
+        formData.append("is_draft", "1")
+        formData.append("aksi", "draft")
+    }
     payload.files.forEach((file) => formData.append("dokumen[]", file))
 
     const response = await api.post("/eksternal/konsultasi-at", formData)

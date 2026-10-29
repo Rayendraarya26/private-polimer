@@ -59,11 +59,14 @@ class KonsultasiAtController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $isDraft = $request->boolean('is_draft') || $request->input('aksi') === 'draft';
+        $isAjukan = !$isDraft;
+
         $request->validate([
             'layanan_kode' => 'required|string|exists:master_konsultasi_at,kode',
             'layanan_lainnya' => 'nullable|required_if:layanan_kode,lainnya|string|max:255',
             'catatan_dokumen' => 'nullable|string',
-            'dokumen' => 'required|array|min:1',
+            'dokumen' => $isAjukan ? 'required|array|min:1' : 'nullable|array',
             'dokumen.*' => 'file|max:51200',
         ], [
             'layanan_kode.required' => 'Layanan wajib dipilih.',
@@ -84,17 +87,19 @@ class KonsultasiAtController extends Controller
 
         // Identitas pemohon selalu diambil dari profil sesi, bukan dari request (anti-pemalsuan)
         $profil = $this->resolveProfilPemohon(auth()->user());
-        $kosong = array_keys(array_filter(
-            ['nama' => $profil['nama_pemohon'], 'no. telepon/WhatsApp' => $profil['no_telp'], 'alamat' => $profil['alamat_pemohon']],
-            fn ($v) => blank($v)
-        ));
-        if (!empty($kosong)) {
-            $pesan = 'Profil Anda belum lengkap (' . implode(', ', $kosong) . '). Lengkapi profil terlebih dahulu sebelum mengajukan permohonan.';
-            return response()->json([
-                'status' => 'error',
-                'message' => $pesan,
-                'errors' => ['profil' => [$pesan]],
-            ], 422);
+        if ($isAjukan) {
+            $kosong = array_keys(array_filter(
+                ['nama' => $profil['nama_pemohon'], 'no. telepon/WhatsApp' => $profil['no_telp'], 'alamat' => $profil['alamat_pemohon']],
+                fn ($v) => blank($v)
+            ));
+            if (!empty($kosong)) {
+                $pesan = 'Profil Anda belum lengkap (' . implode(', ', $kosong) . '). Lengkapi profil terlebih dahulu sebelum mengajukan permohonan.';
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $pesan,
+                    'errors' => ['profil' => [$pesan]],
+                ], 422);
+            }
         }
 
         $isLainnya = $master->kode === 'lainnya';
@@ -123,9 +128,9 @@ class KonsultasiAtController extends Controller
                 'id_pt_ins' => null,
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
-                'tgl_order' => now(),
+                'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
@@ -134,15 +139,15 @@ class KonsultasiAtController extends Controller
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
                 'master_konsultasi_at_id' => $master->id,
-                'nama_pemohon' => $profil['nama_pemohon'],
-                'no_telp' => $profil['no_telp'],
-                'email_pemohon' => $profil['email_pemohon'],
-                'alamat_pemohon' => $profil['alamat_pemohon'],
+                'nama_pemohon' => $profil['nama_pemohon'] ?: (auth()->user()?->name ?: 'Draft Pemohon'),
+                'no_telp' => $profil['no_telp'] ?: '-',
+                'email_pemohon' => $profil['email_pemohon'] ?: (auth()->user()?->email ?: '-'),
+                'alamat_pemohon' => $profil['alamat_pemohon'] ?: '-',
                 'layanan_kode' => $master->kode,
                 'layanan_nama' => $master->nama,
                 'layanan_lainnya' => $isLainnya ? $request->input('layanan_lainnya') : null,
                 'catatan_dokumen' => $request->input('catatan_dokumen'),
-                'status_layanan' => 'pengajuan',
+                'status_layanan' => $isAjukan ? 'pengajuan' : 'draft',
             ]);
 
             $lingkup = MasterLingkupLayanan::where('slug', 'konsultasi-audit-teknologi')->first();
@@ -193,31 +198,37 @@ class KonsultasiAtController extends Controller
                 ]);
             }
 
-            PermohonanTrackingLog::create([
-                'id' => (string) Str::uuid(),
-                'permohonan_id' => $permohonan->id,
-                'sumber' => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul' => 'Permohonan Konsultasi dan Audit Teknologi Diajukan',
-                'deskripsi' => 'Permohonan #' . $permohonan->no_permohonan . ' (' . $master->nama . ') berhasil diajukan dan menunggu verifikasi petugas.',
-            ]);
+            if ($isAjukan) {
+                PermohonanTrackingLog::create([
+                    'id' => (string) Str::uuid(),
+                    'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
+                    'milestone_code' => 'PERMOHONAN_MASUK',
+                    'judul' => 'Permohonan Konsultasi dan Audit Teknologi Diajukan',
+                    'deskripsi' => 'Permohonan #' . $permohonan->no_permohonan . ' (' . $master->nama . ') berhasil diajukan dan menunggu verifikasi petugas.',
+                ]);
+            }
 
             DB::commit();
 
-            try {
-                NotifHelper::notifyMany(
-                    NotifHelper::getAdminUserIds(),
-                    'Permohonan Konsultasi dan Audit Teknologi Baru',
-                    'Permohonan baru #' . $permohonan->no_permohonan . ': ' . $master->nama,
-                    '/admin/permohonan'
-                );
-            } catch (\Throwable $th) {
-                Log::warning('Gagal kirim notif internal konsultasi AT: ' . $th->getMessage());
+            if ($isAjukan) {
+                try {
+                    NotifHelper::notifyMany(
+                        NotifHelper::getAdminUserIds(),
+                        'Permohonan Konsultasi dan Audit Teknologi Baru',
+                        'Permohonan baru #' . $permohonan->no_permohonan . ': ' . $master->nama,
+                        '/admin/permohonan'
+                    );
+                } catch (\Throwable $th) {
+                    Log::warning('Gagal kirim notif internal konsultasi AT: ' . $th->getMessage());
+                }
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Permohonan #' . $permohonan->no_permohonan . ' berhasil dikirim.',
+                'message' => $isAjukan
+                    ? 'Permohonan #' . $permohonan->no_permohonan . ' berhasil dikirim.'
+                    : 'Draft permohonan #' . $permohonan->no_permohonan . ' berhasil disimpan di database.',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,

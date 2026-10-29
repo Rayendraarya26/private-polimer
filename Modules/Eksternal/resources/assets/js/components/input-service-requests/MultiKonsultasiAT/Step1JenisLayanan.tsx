@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react"
-import { Loader2, Check } from "lucide-react"
+import { Loader2, Cpu } from "lucide-react"
 import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardDescription,
-} from "../../ui/Card"
+    StepPanel,
+    SectionHeading,
+    OptionGroup,
+    OptionCard,
+    FieldLabel,
+    FieldHint,
+    Callout,
+} from "./WizardUI"
 import {
     getMasterKonsultasiAt,
     MasterKonsultasiAtItem,
 } from "../../../services/konsultasiAt"
-import { FormField, TextInput } from "../../forms"
+import { TextInput } from "../../forms"
 
 const KATEGORI_LABEL: Record<string, string> = {
     konsultasi: "Konsultasi",
@@ -20,7 +22,7 @@ const KATEGORI_LABEL: Record<string, string> = {
     lainnya: "Lainnya",
 }
 
-interface Step1JenisLayananProps {
+export interface Step1JenisLayananProps {
     layananKode: string
     setLayananKode: (val: string) => void
     layananLainnya: string
@@ -49,19 +51,18 @@ export const Step1JenisLayanan: React.FC<Step1JenisLayananProps> = ({
     }, [])
 
     return (
-        <Card className="border-slate-200/90 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div>
-                    <CardTitle className="text-base flex items-center gap-2">
-                        Pilih Layanan Konsultasi & Audit Teknologi
-                    </CardTitle>
-                    <CardDescription>
-                        Pilih satu layanan yang sesuai dengan kebutuhan Anda.
-                    </CardDescription>
-                </div>
-            </CardHeader>
+        <StepPanel
+            icon={Cpu}
+            title="Pilih Layanan Konsultasi & Audit Teknologi"
+            description="Pilih satu layanan yang sesuai dengan kebutuhan Anda."
+        >
+            <div className="space-y-6">
+                <SectionHeading
+                    title="Layanan yang Dibutuhkan"
+                    description="Pilih fokus layanan konsultasi atau audit teknologi yang ingin diajukan."
+                    required
+                />
 
-            <CardContent className="pt-4 space-y-4">
                 {loading && (
                     <div className="flex items-center justify-center gap-2 py-12 text-xs text-slate-500">
                         <Loader2 className="w-5 h-5 animate-spin text-brand-600" />
@@ -70,83 +71,48 @@ export const Step1JenisLayanan: React.FC<Step1JenisLayananProps> = ({
                 )}
 
                 {error && (
-                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-center">
-                        <p className="text-xs font-medium text-rose-700">{error}</p>
-                    </div>
+                    <Callout tone="danger">
+                        {error}
+                    </Callout>
                 )}
 
-                {/* Grid Pilihan Layanan 2 Kolom Bersih */}
+                {/* Grid Pilihan Layanan dengan OptionGroup & OptionCard standar kalibrasi */}
                 {!loading && !error && items.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {items.map((opt) => {
-                            const isSelected = layananKode === opt.kode
-
-                            return (
-                                <div
-                                    key={opt.kode}
-                                    onClick={() => setLayananKode(opt.kode)}
-                                    className={`relative rounded-xl border p-4 cursor-pointer transition-all duration-150 flex items-start justify-between gap-3 ${
-                                        isSelected
-                                            ? "border-brand-600 bg-brand-50/30 ring-1 ring-brand-600 shadow-xs"
-                                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40"
-                                    }`}
-                                >
-                                    <div className="flex-1 min-w-0 pr-1">
-                                        <p className="text-[11px] font-medium text-slate-400 mb-0.5">
-                                            {KATEGORI_LABEL[opt.kategori] ?? opt.kategori}
-                                        </p>
-                                        <h3
-                                            className={`text-sm font-semibold leading-snug transition-colors ${
-                                                isSelected ? "text-brand-900" : "text-slate-800"
-                                            }`}
-                                        >
-                                            {opt.nama}
-                                        </h3>
-                                        {opt.deskripsi && (
-                                            <p className="text-xs text-slate-500 leading-relaxed mt-1 line-clamp-2">
-                                                {opt.deskripsi}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Indikator Pilihan Centang / Radio */}
-                                    <div
-                                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                                            isSelected
-                                                ? "bg-brand-600 text-white"
-                                                : "border-2 border-slate-300 bg-white"
-                                        }`}
-                                    >
-                                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
+                    <OptionGroup label="Pilihan Layanan" cols={2}>
+                        {items.map((opt) => (
+                            <OptionCard
+                                key={opt.kode}
+                                selected={layananKode === opt.kode}
+                                onSelect={() => setLayananKode(opt.kode)}
+                                category={KATEGORI_LABEL[opt.kategori] ?? opt.kategori}
+                                title={opt.nama}
+                                description={opt.deskripsi}
+                            />
+                        ))}
+                    </OptionGroup>
                 )}
 
                 {/* Form Input Sederhana untuk Opsi 'Lainnya' */}
                 {layananKode === "lainnya" && (
-                    <div className="mt-3 p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
-                        <FormField
-                            label="Sebutkan Layanan Lainnya"
-                            required
-                            helperText="Tuliskan kebutuhan spesifik konsultasi atau audit teknologi yang Anda perlukan."
-                        >
-                            <TextInput
-                                value={layananLainnya}
-                                onChange={(e) => setLayananLainnya(e.target.value)}
-                                placeholder="Contoh: Audit Efisiensi Energi Mesin, Formulasi Komposit Karet, dll."
-                                autoFocus
-                            />
-                        </FormField>
+                    <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
+                        <FieldLabel required htmlFor="input-layanan-lainnya">
+                            Sebutkan Layanan Lainnya
+                        </FieldLabel>
+                        <TextInput
+                            id="input-layanan-lainnya"
+                            value={layananLainnya}
+                            onChange={(e) => setLayananLainnya(e.target.value)}
+                            placeholder="Contoh: Audit Efisiensi Energi Mesin, Formulasi Komposit Karet, dll."
+                            autoFocus
+                        />
+                        <FieldHint>
+                            Tuliskan kebutuhan spesifik konsultasi atau audit teknologi yang Anda perlukan.
+                        </FieldHint>
                     </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </StepPanel>
     )
 }
 
 export default Step1JenisLayanan
-
-

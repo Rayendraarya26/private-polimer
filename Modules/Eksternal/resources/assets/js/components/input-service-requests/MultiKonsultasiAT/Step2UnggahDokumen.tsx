@@ -13,13 +13,10 @@ import {
 } from "lucide-react"
 import { Button } from "../../ui/Button"
 import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardDescription,
-} from "../../ui/Card"
-import { FormField, TextareaInput } from "../../forms"
+    StepPanel,
+    SectionHeading,
+} from "./WizardUI"
+import { TextareaInput } from "../../forms"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB
 
@@ -149,175 +146,177 @@ export const Step2UnggahDokumen: React.FC<Step2UnggahDokumenProps> = ({
     const totalFileSize = uploadedFiles.reduce((acc, f) => acc + f.size, 0)
 
     return (
-        <Card className="border-slate-200/80 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
+        <StepPanel
+            icon={UploadCloud}
+            title="Unggah Dokumen Permohonan"
+            description="Unggah berkas dokumen pendukung seperti surat permohonan, spesifikasi teknis, alur proses, proposal, atau berkas pendukung lainnya. Mendukung semua format berkas (PDF, ZIP, RAR, Dokumen, Gambar, dll.)."
+        >
+            <div className="space-y-6">
+                {/* Bagian 1: Berkas Dokumen Pendukung (Tanpa Nomor) */}
                 <div>
-                    <CardTitle className="text-base flex items-center gap-2">
-                        Unggah Dokumen Permohonan
-                    </CardTitle>
-                    <CardDescription>
-                        Unggah berkas dokumen pendukung seperti surat permohonan, spesifikasi teknis, alur proses, proposal, atau berkas pendukung lainnya. Mendukung semua format berkas (PDF, ZIP, RAR, Dokumen, Gambar, dll.).
-                    </CardDescription>
-                </div>
-            </CardHeader>
+                    <SectionHeading
+                        title="Berkas Dokumen Pendukung"
+                        description="Unggah berkas dokumen teknis, proposal, atau surat permohonan pendukung."
+                        required
+                    />
 
-            <CardContent className="pt-5 space-y-5">
-                {/* Hidden Native File Input */}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="*/*,.pdf,.zip,.rar,.7z,.tar,.gz,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png"
-                    className="hidden"
-                    onChange={handleFileChange}
-                />
+                    {/* Hidden Native File Input */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="*/*,.pdf,.zip,.rar,.7z,.tar,.gz,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png"
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
 
-                {/* Main Upload Dropzone Area (Shown if no files selected yet) */}
-                {uploadedFiles.length === 0 ? (
-                    <div
-                        onClick={() => fileInputRef.current?.click()}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-200 ${
-                            isDragging
-                                ? "border-brand-500 bg-brand-50/70 ring-4 ring-brand-500/10 scale-[1.01]"
-                                : "border-slate-300 hover:border-brand-500 bg-slate-50/40 hover:bg-brand-50/20"
-                        }`}
-                    >
-                        <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-3.5 shadow-xs">
-                            <UploadCloud className="w-8 h-8" />
-                        </div>
-                        <p className="text-sm font-bold text-slate-800">
-                            Klik untuk memilih berkas atau seret ke area ini
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1.5 max-w-lg mx-auto leading-relaxed">
-                            Mendukung format <strong className="text-slate-700 font-semibold">PDF, ZIP, RAR</strong>, Word, Excel, Foto/Scan, dll. (Maksimal 50 MB per berkas).
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-xs font-semibold text-white shadow-sm transition-colors">
-                                <Plus className="w-4 h-4" />
-                                Pilih File
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    /* Files List Container */
-                    <div className="space-y-4">
-                        {/* Summary bar */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                            <div className="flex items-center gap-2 text-xs">
-                                <span className="font-bold text-slate-800">
-                                    {uploadedFiles.length} berkas dipilih
-                                </span>
-                                <span className="text-slate-400">•</span>
-                                <span className="text-slate-500 font-medium">
-                                    Total: {formatFileSize(totalFileSize)}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-2 self-end sm:self-auto">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="text-xs rounded-xl flex items-center gap-1.5 h-8 bg-white"
-                                >
-                                    <Plus className="w-3.5 h-3.5 text-brand-600" />
-                                    Tambah Berkas
-                                </Button>
-
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleClearAllFiles}
-                                    className="text-xs rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-8"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                                    Hapus Semua
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* List of uploaded file cards */}
-                        <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-                            {uploadedFiles.map((file, idx) => {
-                                const details = getFileDetails(file.name)
-                                const IconComp = details.icon
-
-                                return (
-                                    <div
-                                        key={`${file.name}-${idx}`}
-                                        className="group rounded-xl border border-slate-200 bg-white hover:border-brand-300 p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div
-                                                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${details.iconBg}`}
-                                            >
-                                                <IconComp className="w-5 h-5" />
-                                            </div>
-
-                                            <div className="min-w-0 space-y-0.5">
-                                                <p className="text-xs font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
-                                                    {file.name}
-                                                </p>
-                                                <p className="text-[11px] text-slate-500">
-                                                    {formatFileSize(file.size)}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveFile(idx)}
-                                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                                            title="Hapus berkas ini"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* Compact dropzone below files */}
+                    {/* Dropzone Area (Belum ada berkas) */}
+                    {uploadedFiles.length === 0 ? (
                         <div
                             onClick={() => fileInputRef.current?.click()}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
-                            className={`border border-dashed rounded-xl p-3 text-center cursor-pointer transition-colors ${
+                            className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-200 ${
                                 isDragging
-                                    ? "border-brand-500 bg-brand-50/70"
-                                    : "border-slate-300 hover:border-brand-400 bg-slate-50/50 hover:bg-brand-50/20"
+                                    ? "border-brand-500 bg-brand-50/70 ring-4 ring-brand-500/10 scale-[1.01]"
+                                    : "border-slate-300 hover:border-brand-500 bg-slate-50/40 hover:bg-brand-50/20"
                             }`}
                         >
-                            <p className="text-[11px] text-slate-600">
-                                <strong className="text-brand-600 font-semibold cursor-pointer">Klik di sini</strong> atau seret berkas tambahan untuk menambahkan berkas lainnya
+                            <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-3.5 shadow-xs">
+                                <UploadCloud className="w-8 h-8" />
+                            </div>
+                            <p className="text-sm font-bold text-slate-800">
+                                Klik untuk memilih berkas atau seret ke area ini
                             </p>
-                        </div>
-                    </div>
-                )}
+                            <p className="text-xs text-slate-500 mt-1.5 max-w-lg mx-auto leading-relaxed">
+                                Mendukung format <strong className="text-slate-700 font-semibold">PDF, ZIP, RAR</strong>, Word, Excel, Foto/Scan, dll. (Maksimal 50 MB per berkas).
+                            </p>
 
-                {/* Catatan Tambahan Dokumen (Opsional) */}
-                <div className="pt-2">
-                    <FormField
-                        label="Keterangan / Catatan Tambahan Dokumen"
-                        helperText="Jika berkas Anda terdiri dari banyak dokumen atau folder, Anda dapat mengompresnya menjadi satu arsip ZIP / RAR atau dokumen PDF."
-                    >
-                        <TextareaInput
-                            value={catatanDokumen}
-                            onChange={(e) => setCatatanDokumen(e.target.value)}
-                            rows={3}
-                            placeholder="Tuliskan keterangan berkas atau informasi pendukung lainnya jika ada..."
-                        />
-                    </FormField>
+                            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-xs font-semibold text-white shadow-sm transition-colors">
+                                    <Plus className="w-4 h-4" />
+                                    Pilih Berkas
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Daftar Berkas Terpilih */
+                        <div className="space-y-4">
+                            {/* Summary bar */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="font-bold text-slate-800">
+                                        {uploadedFiles.length} berkas dipilih
+                                    </span>
+                                    <span className="text-slate-400">•</span>
+                                    <span className="text-slate-500 font-medium">
+                                        Total: {formatFileSize(totalFileSize)}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2 self-end sm:self-auto">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="text-xs rounded-xl flex items-center gap-1.5 h-8 bg-white"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 text-brand-600" />
+                                        Tambah Berkas
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleClearAllFiles}
+                                        className="text-xs rounded-xl text-rose-600 hover:text-rose-700 hover:bg-rose-50 h-8"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                        Hapus Semua
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* List of uploaded file cards */}
+                            <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+                                {uploadedFiles.map((file, idx) => {
+                                    const details = getFileDetails(file.name)
+                                    const IconComp = details.icon
+
+                                    return (
+                                        <div
+                                            key={`${file.name}-${idx}`}
+                                            className="group rounded-xl border border-slate-200 bg-white hover:border-brand-300 p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-center justify-between gap-3"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div
+                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${details.iconBg}`}
+                                                >
+                                                    <IconComp className="w-5 h-5" />
+                                                </div>
+
+                                                <div className="min-w-0 space-y-0.5">
+                                                    <p className="text-xs font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
+                                                        {file.name}
+                                                    </p>
+                                                    <p className="text-[11px] text-slate-500">
+                                                        {formatFileSize(file.size)}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveFile(idx)}
+                                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                                                title="Hapus berkas ini"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
+                            {/* Dropzone berkas tambahan */}
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`border border-dashed rounded-xl p-3 text-center cursor-pointer transition-colors ${
+                                    isDragging
+                                        ? "border-brand-500 bg-brand-50/70"
+                                        : "border-slate-300 hover:border-brand-400 bg-slate-50/50 hover:bg-brand-50/20"
+                                }`}
+                            >
+                                <p className="text-[11px] text-slate-600">
+                                    <strong className="text-brand-600 font-semibold cursor-pointer">Klik di sini</strong> atau seret berkas untuk menambahkan berkas lainnya
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </CardContent>
-        </Card>
+
+                {/* Bagian 2: Catatan Tambahan Dokumen (Tanpa Nomor) */}
+                <div className="pt-2 border-t border-slate-100">
+                    <SectionHeading
+                        title="Keterangan / Catatan Tambahan Dokumen"
+                        description="Jika berkas Anda terdiri dari banyak dokumen atau folder, Anda dapat mengompresnya menjadi satu arsip ZIP / RAR atau dokumen PDF."
+                        optional
+                    />
+                    <TextareaInput
+                        value={catatanDokumen}
+                        onChange={(e) => setCatatanDokumen(e.target.value)}
+                        rows={3}
+                        placeholder="Tuliskan keterangan berkas atau informasi pendukung lainnya jika ada..."
+                    />
+                </div>
+            </div>
+        </StepPanel>
     )
 }
 

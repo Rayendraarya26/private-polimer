@@ -391,6 +391,9 @@ class PembayaranController extends Controller
                         if (!empty($result['file_link'])) {
                             $pdfContent = @file_get_contents($result['file_link']);
                         }
+                        if (empty($pdfContent) && !empty($result['file_path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($result['file_path'])) {
+                            $pdfContent = \Illuminate\Support\Facades\Storage::disk('public')->get($result['file_path']);
+                        }
                     } catch (\Throwable $e) {
                         Log::warning('Gagal verifikasi kuitansi via TTE: ' . $e->getMessage());
                     }

@@ -677,6 +677,12 @@ class InvoiceController extends Controller
                 abort(404, 'File TTE Kuitansi tidak ditemukan di server');
             }
 
+            if (!empty($result['file_path']) && Storage::disk('public')->exists($result['file_path'])) {
+                $filePath = storage_path('app/public/' . $result['file_path']);
+                $fileName = $result['file_name'] ?? ('kuitansi-' . $permohonan->no_permohonan . '.pdf');
+                return response()->download($filePath, $fileName);
+            }
+
             return redirect($result['file_link']);
 
         } catch (\Exception $e) {
@@ -714,10 +720,16 @@ class InvoiceController extends Controller
                 }
 
                 $pdfContent = @file_get_contents($result['file_link']);
-                if ($pdfContent === false) {
+                if ($pdfContent === false || empty($pdfContent)) {
+                    if (!empty($result['file_path']) && Storage::disk('public')->exists($result['file_path'])) {
+                        $pdfContent = Storage::disk('public')->get($result['file_path']);
+                    }
+                }
+
+                if ($pdfContent === false || empty($pdfContent)) {
                     return redirect($result['file_link']);
                 }
-                $fileName = 'kuitansi-' . $permohonan->no_permohonan . '.pdf';
+                $fileName = $result['file_name'] ?? ('kuitansi-' . $permohonan->no_permohonan . '.pdf');
             }
 
             return response($pdfContent, 200, [

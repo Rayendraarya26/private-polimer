@@ -483,6 +483,7 @@ class TteService
             return [
                 'id'        => $esignId,
                 'file_link' => $fileUrl,
+                'file_path' => $cached['file_path'] ?? ($matched ?? null),
                 'file_name' => $fileName,
                 'status'    => 'VALID',
                 'is_dummy'  => true,

@@ -1,8 +1,8 @@
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
 import { FileText, Info } from "lucide-react"
 import { GrkVerifikasiFormData, INITIAL_DOKUMEN_ITEMS } from "../../../../types/grk"
 import { TextareaInput } from "../../../forms"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -40,20 +40,12 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
-            <Card className="border-brand-100 shadow-sm">
-                <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-brand-600" />
-                                Ketersediaan Dokumen
-                            </CardTitle>
-                        </div>
-
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-6 space-y-4">
+            <StepPanel
+                icon={FileText}
+                title="Ketersediaan Dokumen"
+                description="Informasi kelengkapan dokumen pendukung permohonan verifikasi GRK"
+            >
+                <div className="space-y-4">
                     <p className="text-xs font-medium text-slate-700">
                         Dokumen Dapat di upload setelah kajian permohonan.
                     </p>
@@ -96,8 +88,8 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                             </tbody>
                         </table>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </StepPanel>
         </div>
     )
 }

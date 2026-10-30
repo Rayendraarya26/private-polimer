@@ -1,9 +1,9 @@
 import React, { useEffect } from "react"
 import useProfile from "../../../../hooks/useProfile"
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../ui/Card"
-import { Building, Sparkles } from "lucide-react"
+import { Building } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
 import { FormField, TextInput, TextareaInput } from "../../../forms"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -28,46 +28,13 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
         }))
     }, [detailProfile, profile, setFormData])
 
-    const handleApplyProfile = () => {
-        if (!detailProfile && !profile) return
-        setFormData((prev) => ({
-            ...prev,
-            namaPemilik: detailProfile?.pemilik || detailProfile?.nama || profile?.name || prev.namaPemilik || "",
-            namaPimpinan: detailProfile?.pimpinan || prev.namaPimpinan || "",
-            namaPj: detailProfile?.pj_nama || prev.namaPj || "",
-        }))
-    }
-
     return (
-        <Card className="border-brand-100 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                            <Building className="w-4 h-4 text-brand-600" />
-                            Informasi Organisasi Verifikasi GRK
-                        </CardTitle>
-                        <CardDescription>
-                            Lengkapi data identitas pimpinan, fasilitas operasional, dan periode pelaporan
-                        </CardDescription>
-                    </div>
-
-                    {profile && (
-                        <button
-                            type="button"
-                            onClick={handleApplyProfile}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition-colors cursor-pointer self-start sm:self-auto shrink-0"
-                            title="Salin ulang data nama pimpinan dan pemilik dari profil akun Anda"
-                        >
-                            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-                            Gunakan Profil Akun
-                        </button>
-                    )}
-                </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+        <StepPanel
+            icon={Building}
+            title="Informasi Organisasi Verifikasi GRK"
+            description="Lengkapi data identitas pimpinan, fasilitas operasional, dan periode pelaporan"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Input Nama Pemilik */}
                     <FormField label="Nama Pemilik" required>
                         <TextInput
@@ -252,8 +219,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                         </FormField>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+        </StepPanel>
     )
 }
 

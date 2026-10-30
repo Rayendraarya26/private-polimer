@@ -1,9 +1,8 @@
-// components/input-service-requests/multiGrk/validasi/FormInformasiTambahan.tsx
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
 import { Building } from "lucide-react"
 import { GrkValidasiFormData } from "../../../../types/grk"
 import { FormField, TextInput } from "../../../forms"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkValidasiFormData
@@ -33,20 +32,12 @@ export const FormInformasiTambahan: React.FC<Props> = ({ formData, setFormData }
     const setPihakEksternal = (val: string) => handleChange("pihakEksternal", val)
 
     return (
-        <Card className="border-brand-100 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                            <Building className="w-4 h-4 text-brand-600" />
-                            Informasi Tambahan
-                        </CardTitle>
-                    </div>
-                </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 space-y-6">
-                <div className="space-y-4">
+        <StepPanel
+            icon={Building}
+            title="Informasi Tambahan"
+            description="Informasi keterlibatan konsultan dan publikasi kepada pihak eksternal"
+        >
+            <div className="space-y-4">
                     <div className="space-y-2">
                         <label className="block text-xs font-bold text-slate-800">
                             Apakah perusahaan telah melibatkan konsultan untuk inventarisasi dan pelaporan emisi GRK? <span className="text-red-500">*</span>
@@ -153,8 +144,7 @@ export const FormInformasiTambahan: React.FC<Props> = ({ formData, setFormData }
                         </div>
                     )}
                 </div>
-            </CardContent>
-        </Card>
+        </StepPanel>
     )
 }
 

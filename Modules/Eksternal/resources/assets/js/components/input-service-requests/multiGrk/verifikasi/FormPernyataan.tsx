@@ -1,8 +1,8 @@
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../ui/Card"
 import { ShieldCheck, CheckCheck } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
 import { LegalStatementBox } from "../../../forms"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -36,35 +36,26 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
-            <Card className="border-brand-100 shadow-sm">
-                <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                                <ShieldCheck className="w-4 h-4 text-brand-600" />
-                                Pernyataan Hukum & Persetujuan Pemohon
-                            </CardTitle>
-                            <CardDescription>
-                                Harap telaah dan setujui klausul pertanggungjawaban serta komitmen verifikasi GRK berikut
-                            </CardDescription>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={handleToggleAll}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer self-start sm:self-auto shrink-0 ${
-                                isAllChecked
-                                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                                    : "bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200"
-                            }`}
-                        >
-                            <CheckCheck className="w-3.5 h-3.5 text-brand-600" />
-                            {isAllChecked ? "Batalkan Semua" : "Setujui Semua Klausul"}
-                        </button>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-6 space-y-4">
+            <StepPanel
+                icon={ShieldCheck}
+                title="Pernyataan Hukum & Persetujuan Pemohon"
+                description="Harap telaah dan setujui klausul pertanggungjawaban serta komitmen verifikasi GRK berikut"
+                action={
+                    <button
+                        type="button"
+                        onClick={handleToggleAll}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer self-start sm:self-auto shrink-0 ${
+                            isAllChecked
+                                ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                                : "bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200"
+                        }`}
+                    >
+                        <CheckCheck className="w-3.5 h-3.5 text-brand-600" />
+                        {isAllChecked ? "Batalkan Semua" : "Setujui Semua Klausul"}
+                    </button>
+                }
+            >
+                <div className="space-y-4">
                     {/* Klausul 1: Perubahan Laporan */}
                     <LegalStatementBox
                         title="Pernyataan Perubahan pada Laporan Verifikasi"
@@ -90,8 +81,8 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
                             "Kami telah mengisi seluruh formulir dengan jujur, benar, dan sah secara hukum agar digunakan sebagaimana mestinya dalam proses verifikasi GRK."
                         ]}
                     />
-                </CardContent>
-            </Card>
+                    </div>
+            </StepPanel>
         </div>
     )
 }

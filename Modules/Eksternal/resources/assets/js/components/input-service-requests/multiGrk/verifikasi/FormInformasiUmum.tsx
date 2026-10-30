@@ -1,8 +1,8 @@
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../ui/Card"
 import { Globe } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
 import { FormField, TextInput, TextareaInput } from "../../../forms"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -14,23 +14,12 @@ export const FormInformasiUmum: React.FC<Props> = ({
     setFormData
 }) => {
     return (
-        <Card className="border-brand-100 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                            <Globe className="w-4 h-4 text-brand-600" />
-                            Informasi Umum Verifikasi GRK
-                        </CardTitle>
-                        <CardDescription>
-                            Tentukan identitas program verifikasi emisi dan standar acuan yang digunakan
-                        </CardDescription>
-                    </div>
-                </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+        <StepPanel
+            icon={Globe}
+            title="Informasi Umum Verifikasi GRK"
+            description="Tentukan identitas program verifikasi emisi dan standar acuan yang digunakan"
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Verifikasi GRK */}
                     <div className="col-span-1 md:col-span-2">
                         <FormField
@@ -106,8 +95,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                         </FormField>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+        </StepPanel>
     )
 }
 

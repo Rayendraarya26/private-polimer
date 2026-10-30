@@ -1,7 +1,7 @@
 import React from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "../../../ui/Card"
 import { Building } from "lucide-react"
 import { GrkValidasiFormData } from "../../../../types/grk"
+import { StepPanel } from "../../common"
 
 interface Props {
     formData: GrkValidasiFormData
@@ -27,20 +27,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
     }
 
     return (
-        <Card className="border-brand-100 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <CardTitle className="text-base flex items-center gap-2">
-                            <Building className="w-4 h-4 text-brand-600" />
-                            Informasi Lingkup
-                        </CardTitle>
-                    </div>
-                </div>
-            </CardHeader>
-
-            <CardContent className="pt-6 space-y-6">
-                <div className="space-y-6">
+        <StepPanel
+            icon={Building}
+            title="Informasi Lingkup"
+            description="Tentukan batasan proyek, tipe mitigasi, serta cakupan gas rumah kaca"
+        >
+            <div className="space-y-6">
                     {/* Batasan Proyek */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-bold text-slate-800 mb-1.5">
@@ -386,8 +378,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                     </div>
 
                 </div>
-            </CardContent>
-        </Card>
+        </StepPanel>
     )
 }
 

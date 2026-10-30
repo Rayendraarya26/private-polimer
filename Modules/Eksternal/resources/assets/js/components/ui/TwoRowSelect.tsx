@@ -188,7 +188,7 @@ export const TwoRowSelect: React.FC<TwoRowSelectProps> = ({
         </label>
       )}
 
-      <div className="relative">
+      <div className={cn("relative", isOpen && "z-30")}>
         {/* Tombol Pemicu Dropdown Utama */}
         <button
           id={selectId}

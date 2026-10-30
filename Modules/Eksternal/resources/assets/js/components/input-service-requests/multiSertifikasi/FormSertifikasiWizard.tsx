@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import Swal from "sweetalert2"
@@ -14,13 +14,15 @@ import Step1JenisPermohonan from "./Step1JenisPermohonan"
 import Step2KategoriDanKomoditi from "./Step2KategoriDanKomoditi"
 import Step3PerusahaanDanPabrik from "./Step3PerusahaanDanPabrik"
 import Step4PernyataanKonfirmasi from "./Step4PernyataanKonfirmasi"
-import { Layers, Package, Building2, CheckSquare, Check, Sparkles, RefreshCw, Trash2, FileEdit } from "lucide-react"
+import { Layers, Package, Building2, CheckSquare, Check, RotateCcw, AlertTriangle } from "lucide-react"
+import { Modal } from "../../ui/Modal"
+import { Button } from "../../ui/Button"
 
 const STEPS = [
-  { id: 0, title: "Jenis Permohonan", icon: Layers, desc: "Baru vs perpanjangan sertifikat" },
-  { id: 1, title: "Kategori & Komoditi", icon: Package, desc: "Ruang lingkup, produk & dokumen" },
-  { id: 2, title: "Kondisi Perusahaan", icon: Building2, desc: "Legalitas PT & fasilitas pabrik" },
-  { id: 3, title: "Pernyataan & Kirim", icon: CheckSquare, desc: "Pakta integritas & konfirmasi" },
+  { id: 0, title: "Jenis Permohonan", icon: Layers },
+  { id: 1, title: "Kategori Sertifikat", icon: Package, },
+  { id: 2, title: "Kondisi Perusahaan", icon: Building2, },
+  { id: 3, title: "Pernyataan", icon: CheckSquare },
 ]
 
 interface Props {
@@ -37,9 +39,14 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
   const { data: provinces = [] } = useProvincesQuery()
 
   const { submitting, createPermohonanSertifikasi } = useSertifikasi()
-  const { existingDraft, autoSave, clearDraft, isSaving } = useSertifikasiDraft(String(userId))
+  const { existingDraft, autoSave, clearDraft } = useSertifikasiDraft(String(userId))
 
   const [step, setStep] = useState(0)
+  const [maxStepReached, setMaxStepReached] = useState<number>(step)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, step))
+  }, [step])
   const [formData, setFormData] = useState<SertifikasiFormData>(() => {
     const init = { ...initialSertifikasiFormData }
     if (skemaId && init.pengajuan.length > 0) {
@@ -47,53 +54,65 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
     }
     return init
   })
-  const [draftDismissed, setDraftDismissed] = useState(false)
-  const draftClearedRef = React.useRef(false)
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
+  const draftClearedRef = useRef(false)
+  const restoredRef = useRef(false)
+
+  const hasDraftContent = Boolean(
+    formData.nama_perusahaan ||
+    formData.pengajuan.some((p) => p.skema_id || p.items.length > 0)
+  )
+
+  // Otomatis terapkan draf dari IndexedDB saat pertama kali dimuat (seperti audit teknologi)
+  useEffect(() => {
+    if (!existingDraft || restoredRef.current || draftClearedRef.current) return
+
+    restoredRef.current = true
+    const { draftId, updatedAt, step: savedStep, currentStep, ...rest } = existingDraft
+    setFormData((prev) => ({
+      ...prev,
+      ...rest,
+    }))
+    const targetStep = typeof savedStep === "number" ? savedStep : typeof currentStep === "number" ? currentStep : null
+    if (targetStep !== null && targetStep >= 0 && targetStep < STEPS.length) {
+      setStep(targetStep)
+    }
+  }, [existingDraft])
 
   // Auto-save form data changes to IndexedDB
-  // Skip auto-save if user just cleared the draft to prevent immediate re-save
   useEffect(() => {
     if (draftClearedRef.current) return
-    // Only auto-save if user has filled at least some basic field
-    if (formData.nama_perusahaan || formData.pengajuan.some(p => p.skema_id || p.items.some(i => i.nama_produk))) {
-      autoSave(formData)
+    if (hasDraftContent) {
+      autoSave({
+        ...formData,
+        step,
+      })
     }
-  }, [formData, autoSave])
+  }, [formData, step, autoSave, hasDraftContent])
 
   // Re-enable auto-save after user makes meaningful edits post-discard
   useEffect(() => {
     if (!draftClearedRef.current) return
-    // Only re-enable auto-save when user has manually filled skema or items (not just profile prefill)
-    const hasUserEdits = formData.pengajuan.some(p => p.skema_id || p.items.length > 0)
+    const hasUserEdits = formData.pengajuan.some((p) => p.skema_id || p.items.length > 0)
     if (hasUserEdits) {
       draftClearedRef.current = false
     }
   }, [formData])
 
-  // Restore Draft Action
-  const handleRestoreDraft = () => {
-    if (existingDraft) {
-      const { draftId, updatedAt, ...rest } = existingDraft
-      draftClearedRef.current = false
-      setFormData(rest)
-      toast.success("Draf permohonan berhasil dipulihkan.")
-      setDraftDismissed(true)
-    }
-  }
-
-  // Discard Draft Action
-  const handleDiscardDraft = async () => {
+  // Reset Draft Action (Konfirmasi via Modal)
+  const confirmResetDraft = async () => {
+    setShowResetModal(false)
     draftClearedRef.current = true
+    restoredRef.current = true
     await clearDraft()
-    // Reset form to initial clean state
     const init = { ...initialSertifikasiFormData }
     if (skemaId && init.pengajuan.length > 0) {
       init.pengajuan[0].skema_id = skemaId
     }
     setFormData(init)
     setStep(0)
-    setDraftDismissed(true)
-    toast.success("Draf lama telah dihapus. Formulir dikosongkan.")
+    setMaxStepReached(0)
+    toast.success("Draf formulir sertifikasi berhasil direset.")
   }
 
   // Prefill from user profile if available
@@ -340,6 +359,7 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
       await createPermohonanSertifikasi(
         { ...formData, aksi },
         async () => {
+          draftClearedRef.current = true
           await clearDraft()
           Swal.fire({
             title: aksi === "ajukan" ? "Permohonan Berhasil Dikirim!" : "Draft Berhasil Disimpan!",
@@ -359,93 +379,98 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
   )
 
   return (
-    <div className="space-y-6">
-      {/* Banner Pemulihan Draf Offline (IndexedDB) */}
-      {existingDraft && !draftDismissed && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-brand-50 via-sky-50 to-indigo-50 border border-brand-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-              <FileEdit className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900">
-                Draf Permohonan Tersimpan Ditemukan
-              </h4>
-              <p className="text-[11px] text-slate-600">
-                Anda memiliki draf pengisian formulir sertifikasi di peramban ini ({existingDraft.updatedAt ? new Date(existingDraft.updatedAt).toLocaleString("id-ID") : "Sebelumnya"}).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={handleDiscardDraft}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors flex items-center gap-1.5"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-              Buang Draf
-            </button>
-            <button
-              type="button"
-              onClick={handleRestoreDraft}
-              className="px-3.5 py-1.5 rounded-lg bg-brand-600 text-white hover:bg-brand-700 text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Lanjutkan Draf
-            </button>
-          </div>
+    <div className="space-y-5">
+      {/* Tombol Reset Draft (Seragam dengan Kalibrasi, Pengujian, & Audit Teknologi) */}
+      {hasDraftContent && (
+        <div className="flex justify-end -mb-2">
+          <button
+            type="button"
+            onClick={() => setShowResetModal(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer"
+            title="Reset seluruh draf formulir"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Draft</span>
+          </button>
         </div>
       )}
 
-      {/* Stepper Navigation Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-soft">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      {/* Stepper Progress Bar (Seragam dengan Kalibrasi, Pengujian, & Audit Teknologi) */}
+      <nav aria-label="Langkah pengisian permohonan sertifikasi" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
-            const isCompleted = step > idx
-            const isCurrent = step === idx
+            const isActive = step === idx
+            const isPassed = idx < step
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <div
-                key={s.id}
-                onClick={() => {
-                  if (idx < step) {
-                    setStep(idx)
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                }}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                  isCurrent
-                    ? "bg-brand-50/80 border-2 border-brand-600 shadow-sm"
-                    : isCompleted
-                    ? "bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70"
-                    : "bg-transparent border border-transparent opacity-60"
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                    isCompleted
-                      ? "bg-emerald-600 text-white"
-                      : isCurrent
-                      ? "bg-brand-600 text-white"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-sertifikasi-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onFocus={(e) => e.currentTarget.blur()}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setStep(idx)
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                  }}
+                  style={{ outline: "none", boxShadow: "none" }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${isActive
+                    ? "bg-white border-2 border-brand-600 shadow-none"
+                    : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                        ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                        : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
+                    }`}
                 >
-                  {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-                </div>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${isPassed && !isActive
+                      ? "bg-emerald-500 text-white"
+                      : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                          ? "bg-slate-100 text-slate-700"
+                          : "bg-slate-200/80 text-slate-400"
+                      }`}
+                  >
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
+                  </div>
 
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider text-slate-400 block uppercase">
-                    Langkah {idx + 1}
-                  </span>
-                  <p className="text-xs font-bold text-slate-900 truncate">{s.title}</p>
-                </div>
-              </div>
+                  <div className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${isActive
+                        ? "text-brand-700"
+                        : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                            ? "text-slate-600"
+                            : "text-slate-400"
+                        }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <p
+                      className={`block text-xs sm:text-sm font-bold truncate ${isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                        }`}
+                    >
+                      {s.title}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate hidden sm:block" title={s.desc}>
+                      {s.desc}
+                    </p>
+                  </div>
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       {/* Wizard Steps Content */}
       <div className="transition-all duration-300">
@@ -454,6 +479,7 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
             formData={formData}
             setFormData={setFormData}
             onNext={handleNext}
+            onBack={handleBack}
           />
         )}
 
@@ -489,6 +515,46 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
           />
         )}
       </div>
+
+      {/* Modal Konfirmasi Reset Draf (Seragam dengan Kalibrasi, Pengujian, & Audit Teknologi) */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        size="sm"
+        className="max-w-md p-0 overflow-hidden rounded-2xl"
+      >
+        <div className="p-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/80 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <AlertTriangle className="w-7 h-7 text-amber-500" />
+          </div>
+
+          <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
+            Reset Draft Formulir?
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed mb-6">
+            Seluruh data permohonan sertifikasi, komoditi, data perusahaan, fasilitas pabrik, dan berkas yang telah diisi akan dihapus dan kembali ke langkah awal.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResetModal(false)}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={confirmResetDraft}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+            >
+              Ya, Reset Draft
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

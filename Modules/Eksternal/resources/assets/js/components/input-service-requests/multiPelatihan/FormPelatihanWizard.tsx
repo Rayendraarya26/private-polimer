@@ -34,6 +34,11 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
   const { createPendaftaran: createPendaftaranLSP } = useLSP()
 
   const [step, setStep] = useState(0)
+  const [maxStepReached, setMaxStepReached] = useState<number>(step)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, step))
+  }, [step])
   const [nextId, setNextId] = useState(1)
   const [activeId, setActiveId] = useState(0)
   const [participants, setParticipants] = useState<ParticipantData[]>([emptyParticipant(0)])
@@ -273,48 +278,85 @@ const FormPelatihanWizard: React.FC<Props> = ({ skemaId, kapabilitas }) => {
   return (
     <div className="space-y-6">
       {/* Stepper Indicator */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <nav aria-label="Langkah pendaftaran pelatihan" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
             const isActive = step === idx
-            const isDone = step > idx
+            const isPassed = idx < step
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <div
-                key={s.id}
-                className={`flex items-center gap-3.5 p-3 rounded-xl transition-all ${
-                  isActive
-                    ? "bg-brand-50/80 border border-brand-200 ring-2 ring-brand-500/20"
-                    : isDone
-                    ? "bg-emerald-50/60 border border-emerald-200"
-                    : "bg-slate-50 border border-slate-200/60 opacity-60"
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-pelatihan-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onFocus={(e) => e.currentTarget.blur()}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setStep(idx)
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                  }}
+                  style={{ outline: "none", boxShadow: "none" }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
+                    isActive
+                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                </div>
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${
+                      isPassed && !isActive
+                        ? "bg-emerald-500 text-white"
+                        : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-slate-200/80 text-slate-400"
+                    }`}
+                  >
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
+                  </div>
 
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold tracking-wider uppercase block text-slate-600">
-                    Langkah {idx + 1}
-                  </span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-600 hidden sm:block truncate">{s.desc}</p>
-                </div>
-              </div>
+                  <div className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${
+                        isActive
+                          ? "text-brand-700"
+                          : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                          ? "text-slate-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <p
+                      className={`block text-xs sm:text-sm font-bold truncate ${
+                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                      }`}
+                    >
+                      {s.title}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate hidden sm:block" title={s.desc}>
+                      {s.desc}
+                    </p>
+                  </div>
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       {/* Step Content */}
       {step === 0 && (

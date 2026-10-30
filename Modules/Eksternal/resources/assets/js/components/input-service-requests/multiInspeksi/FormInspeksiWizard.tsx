@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
-import { Button } from "../../ui/Button"
 import {
   PackageCheck,
   Target,
   Wallet,
   ShieldCheck,
-  ArrowLeft,
-  ArrowRight,
-  Send,
-  Loader2,
   Check,
 } from "lucide-react"
 
@@ -19,6 +14,7 @@ import {
   initialInspeksiFormData,
 } from "../../../types/inspeksi"
 import { submitPermohonanInspeksi } from "../../../services/inspeksi"
+import { StickyFormActions } from "../../forms"
 
 import Step1SpesifikasiInspeksi from "./Step1SpesifikasiInspeksi"
 import Step2PenerimaDanTujuan from "./Step2PenerimaDanTujuan"
@@ -56,6 +52,12 @@ export const FormInspeksiWizard: React.FC = () => {
     return 0
   })
 
+  const [maxStepReached, setMaxStepReached] = useState<number>(currentStep)
+
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, currentStep))
+  }, [currentStep])
+
   // Inisialisasi form data dari localStorage
   const [formData, setFormData] = useState<InspeksiFormData>(() => {
     const initial = initialInspeksiFormData()
@@ -69,7 +71,6 @@ export const FormInspeksiWizard: React.FC = () => {
             ...parsed.formData,
             file_surat_permohonan: null, // File tidak dapat diserialisasi ke localStorage
           }
-          // Bersihkan sisa nilai mock hardcoded dari draft sebelumnya jika ada
           if (loaded.dataSpesifikasi?.komoditas === "Karung Plastik Beras Bantuan Pangan") {
             loaded.dataSpesifikasi.komoditas = ""
           }
@@ -146,7 +147,7 @@ export const FormInspeksiWizard: React.FC = () => {
         return false
       }
       if (!formData.dataPenerima.penerima_hasil_nama?.trim()) {
-        toast.error("Nama instansi penerima hasil inspeksi (contoh: Perum BULOG) wajib diisi")
+        toast.error("Nama instansi penerima hasil inspeksi wajib diisi")
         return false
       }
     } else if (currentStep === 2) {
@@ -160,6 +161,15 @@ export const FormInspeksiWizard: React.FC = () => {
       }
       if (!formData.dataPic.pemohon_pic_kontak?.trim()) {
         toast.error("Nomor WhatsApp/HP kontak PIC wajib diisi")
+        return false
+      }
+    } else if (currentStep === 3) {
+      if (!formData.file_surat_permohonan) {
+        toast.error("Harap unggah scan surat permohonan resmi")
+        return false
+      }
+      if (!setujuPernyataan) {
+        toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
         return false
       }
     }
@@ -188,8 +198,7 @@ export const FormInspeksiWizard: React.FC = () => {
 
   // Handle Pengiriman Permohonan ke Backend
   const handleSubmit = async () => {
-    if (!setujuPernyataan) {
-      toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
+    if (!validateCurrentStep()) {
       return
     }
 
@@ -230,136 +239,130 @@ export const FormInspeksiWizard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Stepper Progress Bar (Sama persis dengan FormKalibrasiWizard) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="space-y-6">
+      {/* Stepper Progress Bar (Flat border-only, identik dengan FormKalibrasiWizard) */}
+      <nav aria-label="Tahapan Permohonan" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
             const isActive = currentStep === idx
-            const isDone = currentStep > idx
+            const isPassed = idx < currentStep
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <button
-                type="button"
-                key={s.id}
-                onClick={() => {
-                  if (idx <= currentStep) {
-                    setCurrentStep(idx)
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                }}
-                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                  isActive
-                    ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20"
-                    : isDone
-                    ? "bg-slate-50 border border-slate-200 hover:bg-slate-100/70 cursor-pointer"
-                    : "bg-slate-50/50 border border-slate-200/50 opacity-60 cursor-not-allowed"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-inspeksi-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onFocus={(e) => e.currentTarget.blur()}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setCurrentStep(idx)
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                  }}
+                  style={{ outline: "none", boxShadow: "none" }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
+                    isActive
+                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                </div>
-
-                <div className="min-w-0">
-                  <span
-                    className={`text-[10px] font-bold tracking-wider uppercase block ${
-                      isActive ? "text-brand-600" : isDone ? "text-emerald-600" : "text-slate-500"
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${
+                      isPassed && !isActive
+                        ? "bg-emerald-500 text-white"
+                        : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-slate-200/80 text-slate-400"
                     }`}
                   >
-                    Langkah {idx + 1}
-                  </span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
-                </div>
-              </button>
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
+                  </div>
+
+                  <div className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${
+                        isActive
+                          ? "text-brand-700"
+                          : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                          ? "text-slate-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <p
+                      className={`block text-xs sm:text-sm font-bold truncate ${
+                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                      }`}
+                    >
+                      {s.title}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate hidden sm:block">{s.desc}</p>
+                  </div>
+                </button>
+              </li>
             )
           })}
+        </ol>
+      </nav>
+
+      {/* Step Contents */}
+      <div>
+        <div className={currentStep === 0 ? "block" : "hidden"}>
+          <Step1SpesifikasiInspeksi
+            formData={formData}
+            setFormData={setFormData}
+          />
+        </div>
+
+        <div className={currentStep === 1 ? "block" : "hidden"}>
+          <Step2PenerimaDanTujuan
+            formData={formData}
+            setFormData={setFormData}
+          />
+        </div>
+
+        <div className={currentStep === 2 ? "block" : "hidden"}>
+          <Step3BiayaDanPemohon
+            formData={formData}
+            setFormData={setFormData}
+          />
+        </div>
+
+        <div className={currentStep === 3 ? "block" : "hidden"}>
+          <Step4PernyataanKonfirmasi
+            formData={formData}
+            setFormData={setFormData}
+            setujuPernyataan={setujuPernyataan}
+            onChangePernyataan={setSetujuPernyataan}
+          />
         </div>
       </div>
 
-      {/* Step Contents (Kept in DOM with block/hidden to prevent state reset) */}
-      <div className={currentStep === 0 ? "block" : "hidden"}>
-        <Step1SpesifikasiInspeksi
-          formData={formData}
-          setFormData={setFormData}
-        />
-      </div>
-
-      <div className={currentStep === 1 ? "block" : "hidden"}>
-        <Step2PenerimaDanTujuan
-          formData={formData}
-          setFormData={setFormData}
-        />
-      </div>
-
-      <div className={currentStep === 2 ? "block" : "hidden"}>
-        <Step3BiayaDanPemohon
-          formData={formData}
-          setFormData={setFormData}
-        />
-      </div>
-
-      <div className={currentStep === 3 ? "block" : "hidden"}>
-        <Step4PernyataanKonfirmasi
-          formData={formData}
-          setFormData={setFormData}
-          setujuPernyataan={setujuPernyataan}
-          onChangePernyataan={setSetujuPernyataan}
-        />
-      </div>
-
-      {/* Navigation Buttons (Sama persis dengan FormKalibrasiWizard) */}
-      <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          disabled={isSubmitting}
-          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-slate-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {currentStep === 0 ? "Batal" : "Sebelumnya"}
-        </Button>
-
-        {currentStep < TOTAL_STEPS - 1 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            Selanjutnya
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !setujuPernyataan}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Mengirim...
-              </>
-            ) : (
-              <>
-                Kirim Permohonan
-                <Send className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+      {/* Form Navigation Actions (StickyFormActions flat non-sticky, identik Kalibrasi) */}
+      <StickyFormActions
+        isSticky={false}
+        canGoBack={true}
+        onBack={handleBack}
+        onNext={handleNext}
+        isLastStep={currentStep === TOTAL_STEPS - 1}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        backLabel={currentStep === 0 ? "Batal" : "Sebelumnya"}
+      />
     </div>
   )
 }

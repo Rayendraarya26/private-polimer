@@ -398,13 +398,15 @@ export const FormPengujianWizard: React.FC = () => {
                   id={`stepper-langkah-${idx + 1}`}
                   disabled={!canNavigate}
                   aria-current={isActive ? "step" : undefined}
+                  onFocus={(e) => e.currentTarget.blur()}
                   onClick={() => {
                     if (canNavigate) {
                       setStep(idx)
                       scrollToTop()
                     }
                   }}
-                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-300 outline-none focus:outline-none focus-visible:outline-none ring-0 shadow-none ${
+                  style={{ outline: "none", boxShadow: "none" }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-300 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
                     isActive
                       ? "bg-white border-2 border-brand-600 shadow-none"
                       : isPassed

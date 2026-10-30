@@ -1,21 +1,19 @@
 import React, { useEffect } from "react"
 import {
   Wallet,
-  UserCheck,
-  Building2,
-  Phone,
-  Mail,
   CheckSquare,
   Square,
 } from "lucide-react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
 import { InspeksiFormData } from "../../../types/inspeksi"
 import useProfile from "../../../hooks/useProfile"
 import {
-  FormField,
-  TextInput,
-  TextareaInput,
-} from "../../forms"
+  StepPanel,
+  SectionHeading,
+  FieldLabel,
+  FieldHint,
+  inputClass,
+  textareaClass,
+} from "../common"
 
 interface Step3BiayaDanPemohonProps {
   formData: InspeksiFormData
@@ -96,58 +94,44 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
   }
 
   return (
-    <Card className="border-brand-100 shadow-sm overflow-hidden animate-in fade-in-50 duration-200">
-      <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-              <Wallet className="w-4 h-4 text-brand-600" />
-              3. Penanggung Biaya & Identitas Pemohon
-            </CardTitle>
-            <CardDescription>
-              Lengkapi data entitas penanggung biaya inspeksi serta kontak personel penanggung jawab (PIC)
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-6 space-y-6">
-        {/* 1. Biaya Inspeksi Ditanggung Oleh */}
-        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
-                <Wallet className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-slate-900 tracking-tight">
-                  Biaya Inspeksi Ditanggung Oleh
-                </h4>
-                <p className="text-[11px] text-slate-500">
-                  Pihak yang bertanggung jawab atas pembiayaan jasa inspeksi
-                </p>
-              </div>
-            </div>
-
+    <StepPanel
+      icon={Wallet}
+      title="Penanggung Biaya & Identitas Pemohon"
+      description="Lengkapi data entitas penanggung biaya inspeksi serta kontak personel penanggung jawab (PIC)."
+    >
+      {/* 1. Biaya Inspeksi Ditanggung Oleh */}
+      <div>
+        <SectionHeading
+          title="Biaya Inspeksi Ditanggung Oleh"
+          description="Pihak yang bertanggung jawab atas pembiayaan jasa inspeksi operasional & PNBP."
+          required
+          action={
             <button
               type="button"
               onClick={handleToggleSamaDenganPemohon}
-              className="flex items-center gap-2 text-xs font-medium text-brand-600 hover:text-brand-700 select-none cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:text-brand-700 select-none cursor-pointer px-2.5 py-1 rounded-md hover:bg-brand-50 transition-colors"
             >
               {dataBiaya.biaya_sama_dengan_pemohon ? (
                 <CheckSquare className="w-4 h-4 text-brand-600" />
               ) : (
                 <Square className="w-4 h-4 text-slate-400" />
               )}
-              <span>Sama dengan akun pemohon</span>
+              <span>Sama dengan akun profil</span>
             </button>
-          </div>
+          }
+        />
 
-          <div className="space-y-4">
-            <FormField label="Nama Perusahaan / Entitas Penanggung Biaya" required>
-              <TextInput
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FieldLabel htmlFor="biaya_nama" required>
+                Nama Perusahaan / Entitas Penanggung Biaya
+              </FieldLabel>
+              <input
+                id="biaya_nama"
+                type="text"
                 placeholder="Contoh: PT. Karunia Plastindo Abadi"
-                leftIcon={<Building2 className="w-4 h-4 text-slate-400" />}
+                className={inputClass}
                 value={dataBiaya.biaya_nama}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -159,30 +143,18 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
                   }))
                 }
               />
-            </FormField>
+              <FieldHint>Nama badan usaha atau pihak yang akan menerima tagihan penawaran biaya</FieldHint>
+            </div>
 
-            <FormField label="Alamat Lengkap Penanggung Biaya">
-              <TextareaInput
-                rows={2}
-                placeholder="Contoh: Jln Raya Narogong Km 23.5, Desa Dayeuh, Kec. Cileungsi, Kab. Bogor, Jawa Barat"
-                value={dataBiaya.biaya_alamat}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    dataBiaya: {
-                      ...prev.dataBiaya,
-                      biaya_alamat: e.target.value,
-                    },
-                  }))
-                }
-              />
-            </FormField>
-
-            <FormField label="Email Penanggung Biaya / Bagian Keuangan" helperText="Opsional">
-              <TextInput
+            <div>
+              <FieldLabel htmlFor="biaya_email" optional>
+                Email Penanggung Biaya / Keuangan
+              </FieldLabel>
+              <input
+                id="biaya_email"
                 type="email"
-                placeholder="Contoh: adm.tender@karuniaplastindo.com"
-                leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+                placeholder="Contoh: finance@karuniaplastindo.com"
+                className={inputClass}
                 value={dataBiaya.biaya_email}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -194,30 +166,54 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
                   }))
                 }
               />
-            </FormField>
+              <FieldHint>Alamat email untuk pengiriman invoice dan billing PNBP</FieldHint>
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="biaya_alamat" optional>
+              Alamat Lengkap Penanggung Biaya
+            </FieldLabel>
+            <textarea
+              id="biaya_alamat"
+              rows={2}
+              placeholder="Contoh: Jln Raya Narogong Km 23.5, Desa Dayeuh, Kec. Cileungsi, Kab. Bogor, Jawa Barat"
+              className={textareaClass}
+              value={dataBiaya.biaya_alamat}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  dataBiaya: {
+                    ...prev.dataBiaya,
+                    biaya_alamat: e.target.value,
+                  },
+                }))
+              }
+            />
+            <FieldHint>Alamat kantor domisili perusahaan penanggung biaya</FieldHint>
           </div>
         </div>
+      </div>
 
-        {/* 2. Permintaan Diajukan Kepada BBSPJIKKP Oleh */}
-        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
-          <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-            <div className="p-1.5 rounded-lg bg-brand-50 text-brand-600">
-              <UserCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 tracking-tight">
-                Permintaan Inspeksi Diajukan Oleh (Personel PIC)
-              </h4>
-              <p className="text-[11px] text-slate-500">
-                Kontak personel yang bertanggung jawab atas proses permohonan inspeksi ini
-              </p>
-            </div>
-          </div>
+      {/* 2. Permintaan Diajukan Kepada BBSPJIKKP Oleh */}
+      <div className="pt-6 border-t border-slate-200">
+        <SectionHeading
+          title="Permintaan Inspeksi Diajukan Oleh (Personel PIC)"
+          description="Kontak personel perwakilan yang bertanggung jawab atas kelancaran proses permohonan inspeksi ini."
+          required
+        />
 
+        <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Nama Lengkap PIC / Pemohon" required>
-              <TextInput
+            <div>
+              <FieldLabel htmlFor="pemohon_pic_nama" required>
+                Nama Lengkap PIC / Pemohon
+              </FieldLabel>
+              <input
+                id="pemohon_pic_nama"
+                type="text"
                 placeholder="Contoh: Agung Budi Prasetya"
+                className={inputClass}
                 value={dataPic.pemohon_pic_nama}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -229,12 +225,18 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
                   }))
                 }
               />
-            </FormField>
+              <FieldHint>Nama penanggung jawab operasional</FieldHint>
+            </div>
 
-            <FormField label="Nomor WhatsApp / HP Aktif" required>
-              <TextInput
+            <div>
+              <FieldLabel htmlFor="pemohon_pic_kontak" required>
+                Nomor WhatsApp / HP Aktif
+              </FieldLabel>
+              <input
+                id="pemohon_pic_kontak"
+                type="text"
                 placeholder="Contoh: 0856-9396-8191"
-                leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
+                className={inputClass}
                 value={dataPic.pemohon_pic_kontak}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -246,13 +248,19 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
                   }))
                 }
               />
-            </FormField>
+              <FieldHint>Nomor aktif untuk koordinasi jadwal kedatangan tim inspektur</FieldHint>
+            </div>
           </div>
 
-          <FormField label="Alamat Kantor / Unit Kerja PIC">
-            <TextareaInput
+          <div>
+            <FieldLabel htmlFor="pemohon_pic_alamat" optional>
+              Alamat Kantor / Unit Kerja PIC
+            </FieldLabel>
+            <textarea
+              id="pemohon_pic_alamat"
               rows={2}
               placeholder="Alamat kantor atau pabrik tempat PIC bertugas..."
+              className={textareaClass}
               value={dataPic.pemohon_pic_alamat}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -264,10 +272,11 @@ export const Step3BiayaDanPemohon: React.FC<Step3BiayaDanPemohonProps> = ({
                 }))
               }
             />
-          </FormField>
+            <FieldHint>Alamat unit kerja penanggung jawab</FieldHint>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </StepPanel>
   )
 }
 

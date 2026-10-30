@@ -223,7 +223,7 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
       <StepPanel
         icon={Layers}
         title="Jenis Permohonan"
-        description="Baru vs perpanjangan sertifikat"
+        description="Pilih jenis permohonan sertifikas baru atau perpanjangan"
       >
         <div className="space-y-6">
           {formData.pengajuan.map((p, idx) => {

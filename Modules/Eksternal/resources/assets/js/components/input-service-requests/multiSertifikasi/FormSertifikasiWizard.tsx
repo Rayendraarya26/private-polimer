@@ -18,11 +18,18 @@ import { Layers, Package, Building2, CheckSquare, Check, RotateCcw, AlertTriangl
 import { Modal } from "../../ui/Modal"
 import { Button } from "../../ui/Button"
 
-const STEPS = [
-  { id: 0, title: "Jenis Permohonan", icon: Layers },
-  { id: 1, title: "Kategori Sertifikat", icon: Package, },
-  { id: 2, title: "Kondisi Perusahaan", icon: Building2, },
-  { id: 3, title: "Pernyataan", icon: CheckSquare },
+interface StepItem {
+  id: number
+  title: string
+  icon: React.ElementType
+  desc?: string
+}
+
+const STEPS: StepItem[] = [
+  { id: 0, title: "Jenis Permohonan", icon: Layers},
+  { id: 1, title: "Kategori Sertifikat", icon: Package},
+  { id: 2, title: "Kondisi Perusahaan", icon: Building2},
+  { id: 3, title: "Pernyataan", icon: CheckSquare},
 ]
 
 interface Props {
@@ -461,9 +468,11 @@ export const FormSertifikasiWizard: React.FC<Props> = ({ skemaId }) => {
                     >
                       {s.title}
                     </p>
-                    <p className="text-xs text-slate-500 truncate hidden sm:block" title={s.desc}>
-                      {s.desc}
-                    </p>
+                    {s.desc && (
+                      <p className="text-xs text-slate-500 truncate hidden sm:block" title={s.desc}>
+                        {s.desc}
+                      </p>
+                    )}
                   </div>
                 </button>
               </li>

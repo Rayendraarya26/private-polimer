@@ -265,48 +265,44 @@ export const FormInspeksiWizard: React.FC = () => {
                     }
                   }}
                   style={{ outline: "none", boxShadow: "none" }}
-                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
-                    isActive
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${isActive
                       ? "bg-white border-2 border-brand-600 shadow-none"
                       : isPassed
-                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
-                      : canNavigate
-                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
-                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
-                  }`}
+                        ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                        : canNavigate
+                          ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                          : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
+                    }`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${
-                      isPassed && !isActive
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-none ${isPassed && !isActive
                         ? "bg-emerald-500 text-white"
                         : isActive
-                        ? "bg-brand-600 text-white"
-                        : canNavigate
-                        ? "bg-slate-100 text-slate-700"
-                        : "bg-slate-200/80 text-slate-400"
-                    }`}
+                          ? "bg-brand-600 text-white"
+                          : canNavigate
+                            ? "bg-slate-100 text-slate-700"
+                            : "bg-slate-200/80 text-slate-400"
+                      }`}
                   >
                     {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
                   </div>
 
                   <div className="min-w-0">
                     <span
-                      className={`block text-[11px] font-semibold ${
-                        isActive
+                      className={`block text-[11px] font-semibold ${isActive
                           ? "text-brand-700"
                           : isPassed
-                          ? "text-emerald-700"
-                          : canNavigate
-                          ? "text-slate-600"
-                          : "text-slate-400"
-                      }`}
+                            ? "text-emerald-700"
+                            : canNavigate
+                              ? "text-slate-600"
+                              : "text-slate-400"
+                        }`}
                     >
                       Langkah {idx + 1}
                     </span>
                     <p
-                      className={`block text-xs sm:text-sm font-bold truncate ${
-                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
-                      }`}
+                      className={`block text-xs sm:text-sm font-bold truncate ${isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                        }`}
                     >
                       {s.title}
                     </p>

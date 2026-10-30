@@ -191,10 +191,10 @@ export const SelectInput: React.FC<SelectInputProps> = ({
         aria-expanded={isOpen}
         className={cn(
           'w-full h-[42px] bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-4 text-left flex items-center justify-between transition-all duration-200 shadow-2xs cursor-pointer',
-          'focus:outline-none focus:ring-3 focus:ring-brand-500/20 focus:border-brand-600 hover:border-slate-400',
+          'focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 hover:border-slate-400',
           disabled && 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200 shadow-none',
           hasError && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20',
-          isOpen && 'ring-3 ring-brand-500/20 border-brand-600',
+          isOpen && 'ring-2 ring-brand-500/20 border-brand-600',
           className
         )}
       >

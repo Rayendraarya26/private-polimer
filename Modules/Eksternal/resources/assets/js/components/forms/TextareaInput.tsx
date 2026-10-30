@@ -33,7 +33,7 @@ export const TextareaInput = forwardRef<HTMLTextAreaElement, TextareaInputProps>
           disabled={disabled}
           className={cn(
             'w-full bg-white text-slate-900 placeholder:text-slate-400 text-sm rounded-xl border border-slate-300 p-3.5 transition-all duration-200 shadow-2xs resize-y min-h-[88px]',
-            'focus:outline-none focus:ring-3 focus:ring-brand-500/20 focus:border-brand-600 hover:border-slate-400',
+            'focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 hover:border-slate-400',
             'disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed disabled:border-slate-200 disabled:shadow-none',
             hasError &&
               'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20 bg-rose-50/20 text-rose-950',

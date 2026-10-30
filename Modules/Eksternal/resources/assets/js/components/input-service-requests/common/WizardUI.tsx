@@ -1,5 +1,6 @@
 import React from "react"
-import { Check, Info, AlertTriangle } from "lucide-react"
+import { Check, Info, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react"
+import { Button } from "../../ui/Button"
 import { StickyFormActions } from "../../forms"
 
 /**
@@ -32,6 +33,7 @@ export interface StepPanelProps {
   action?: React.ReactNode
   children: React.ReactNode
   flush?: boolean
+  className?: string
 }
 
 export const StepPanel: React.FC<StepPanelProps> = ({
@@ -41,9 +43,16 @@ export const StepPanel: React.FC<StepPanelProps> = ({
   action,
   children,
   flush = false,
+  className,
 }) => (
-  <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-none">
-    <header className="px-5 sm:px-6 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+  <section
+    className={cx(
+      "rounded-2xl border border-slate-200 bg-white shadow-none",
+      flush ? "overflow-hidden" : "overflow-visible",
+      className
+    )}
+  >
+    <header className="px-5 sm:px-6 py-3.5 border-b border-slate-200 rounded-t-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
       <div>
         <h2 className="text-base sm:text-[17px] font-bold text-slate-900 flex items-center gap-2.5">
           <Icon className="w-5 h-5 text-brand-600 shrink-0" />
@@ -390,18 +399,48 @@ export interface WizardNavProps {
   backLabel?: string
   loading?: boolean
   disabled?: boolean
+  className?: string
 }
 
 export const WizardNav: React.FC<WizardNavProps> = ({
   onBack,
   onNext,
   nextLabel = "Selanjutnya",
+  backLabel = "Sebelumnya",
+  loading = false,
+  disabled = false,
+  className,
 }) => (
-  <StickyFormActions
-    canGoBack={Boolean(onBack)}
-    onBack={onBack}
-    onNext={onNext}
-    nextLabel={nextLabel}
-    isSticky={false}
-  />
+  <div className={cx("flex items-center justify-between pt-4 border-t border-slate-200 mt-6", className)}>
+    <div>
+      {onBack ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          disabled={loading || disabled}
+          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          className="px-5 py-2.5 font-semibold text-xs border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl"
+        >
+          {backLabel}
+        </Button>
+      ) : (
+        <div />
+      )}
+    </div>
+
+    <div className="flex items-center gap-3">
+      <Button
+        type="button"
+        variant="primary"
+        onClick={onNext}
+        disabled={loading || disabled}
+        isLoading={loading}
+        rightIcon={!loading ? <ArrowRight className="w-4 h-4" /> : undefined}
+        className="px-6 py-2.5 font-bold text-xs shadow-sm bg-brand-600 hover:bg-brand-700 text-white rounded-xl"
+      >
+        {nextLabel}
+      </Button>
+    </div>
+  </div>
 )

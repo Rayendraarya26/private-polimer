@@ -61,7 +61,7 @@ export const RadioCardGroup: React.FC<RadioCardGroupProps> = ({
               }
             }}
             className={cn(
-              'p-4 rounded-2xl border-2 transition-all flex flex-col justify-between cursor-pointer select-none text-left relative focus:outline-none focus-visible:ring-3 focus-visible:ring-brand-500/30',
+              'p-4 rounded-2xl border-2 transition-all flex flex-col justify-between cursor-pointer select-none text-left relative focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30',
               isSelected
                 ? 'bg-brand-50/70 border-brand-600 ring-2 ring-brand-500/15 shadow-xs'
                 : 'bg-white border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/50 shadow-2xs',

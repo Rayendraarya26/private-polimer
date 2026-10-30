@@ -181,12 +181,36 @@
   }
 }
 
-/* Hilangkan outline / blink hitam browser saat elemen interaktif / card option diklik */
+/* Hilangkan outline / border hitam browser saat elemen form & interaktif diklik / fokus / resting */
+input,
+input:focus,
+input:focus-visible,
+textarea,
+textarea:focus,
+textarea:focus-visible,
+select,
+select:focus,
+select:focus-visible,
+button,
+button:focus,
+button:focus-visible,
+button:active,
+[role="radio"],
+[role="radio"]:focus,
+[role="radio"]:focus-visible,
+[role="checkbox"],
+[role="checkbox"]:focus,
+[role="checkbox"]:focus-visible {
+  outline: none !important;
+  outline-style: none !important;
+  outline-width: 0 !important;
+  outline-offset: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 [role="radio"]:focus,
 [role="radio"]:focus-visible,
 [role="checkbox"]:focus,
 [role="checkbox"]:focus-visible {
-  outline: none !important;
   box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
 }

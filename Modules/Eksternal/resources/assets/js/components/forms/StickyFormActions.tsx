@@ -16,6 +16,7 @@ export interface StickyFormActionsProps {
   isSavingDraft?: boolean;
   canGoBack?: boolean;
   isLastStep?: boolean;
+  disabled?: boolean;
   errorCount?: number;
   onErrorClick?: () => void;
   className?: string;
@@ -35,6 +36,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
   isSavingDraft = false,
   canGoBack = true,
   isLastStep = false,
+  disabled = false,
   errorCount = 0,
   onErrorClick,
   className,
@@ -106,7 +108,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
             <Button
               type="button"
               variant="primary"
-              disabled={isSubmitting || isSavingDraft}
+              disabled={isSubmitting || isSavingDraft || disabled}
               isLoading={isSubmitting}
               onClick={onSubmit}
               rightIcon={!isSubmitting ? <Send className="w-4 h-4" /> : undefined}
@@ -118,7 +120,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
             <Button
               type="button"
               variant="primary"
-              disabled={isSubmitting || isSavingDraft}
+              disabled={isSubmitting || isSavingDraft || disabled}
               onClick={onNext}
               rightIcon={<ArrowRight className="w-4 h-4" />}
               className="flex-1 sm:flex-initial px-6 py-2.5 font-bold text-xs shadow-sm bg-brand-600 hover:bg-brand-700"

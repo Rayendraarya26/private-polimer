@@ -7,7 +7,6 @@ import useProfile from '../useProfile'
 import { updateProfile } from '../../services/profile'
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { refEducations } from '../../constants/common'
-import { useNavigate } from 'react-router-dom'
 import { getE164PhoneNumber, getPlainE164PhoneNumber } from '../../utils/common'
 
 export type Fields = {
@@ -34,7 +33,6 @@ export type Fields = {
 }
 
 export default () => {
-  const navigate = useNavigate()
   const { profile, getMyProfile } = useProfile()
   const [submitting, setSubmitting] = useState<boolean>(false)
   const { executeRecaptcha } = useGoogleReCaptcha()
@@ -139,9 +137,9 @@ export default () => {
         whatsapp_otp: '',
         npwp: npwp || '',
         nib: nib || '',
-        dok_npwp: null,
-        dok_nib: null,
-        dok_lainnya: null,
+        dok_npwp: undefined,
+        dok_nib: undefined,
+        dok_lainnya: undefined,
       }
     },
     [profile]
@@ -170,9 +168,8 @@ export default () => {
           }
         })
         await updateProfile(formData)
-        getMyProfile()
+        await getMyProfile()
         toast.success('Profile berhasil diperbarui')
-        navigate('/dashboard', { replace: true });
       } catch (error) {
         toast.error(getErrorMessage(error))
       } finally {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { User, KeyRound, LogOut, ChevronDown, ShieldCheck, Mail } from "lucide-react"
+import { User, KeyRound, LogOut, ChevronDown } from "lucide-react"
 import { RootState } from "../../store"
 import { getAvatar } from "../../utils/avatar"
 
@@ -18,7 +18,19 @@ export const ProfilePopover: React.FC = () => {
   const userType = profile?.detail?.type
     ? profile.detail.type.toUpperCase()
     : "PORTAL PELANGGAN"
-  const initial = userName.charAt(0).toUpperCase()
+  
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean)
+    if (parts.length === 0) return 'U'
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  const initial = getInitials(userName)
+  const hasCustomPicture = Boolean(
+    profile?.picture &&
+    !profile.picture.includes('default.png') &&
+    !profile.picture.startsWith('https://ui-avatars.com')
+  )
 
   // Handler hover masuk
   const handleMouseEnter = () => {
@@ -106,28 +118,31 @@ export const ProfilePopover: React.FC = () => {
           </span>
         </div>
 
-        {/* Avatar Bulat */}
+        {/* Avatar Bulat (Menggunakan Desain Inisial Brand Blue Sesuai Git Awal) */}
         <div className="relative">
-          <img
-            src={getAvatar(profile?.picture, userName)}
-            alt={userName}
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-brand-100 shadow-xs group-hover:ring-brand-200 transition-all"
-            onError={(e) => {
-              // Fallback gambar jika URL eksternal gagal dimuat
-              const target = e.target as HTMLImageElement
-              target.onerror = null
-              target.style.display = "none"
-              const fallback = target.nextElementSibling as HTMLElement
-              if (fallback) fallback.style.display = "flex"
-            }}
-          />
-          {/* Fallback Inisial Huruf */}
+          {hasCustomPicture ? (
+            <img
+              src={profile!.picture!}
+              alt={userName}
+              className="w-9 h-9 rounded-full object-cover ring-2 ring-brand-100 shadow-xs group-hover:ring-brand-200 transition-all"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = "none"
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) fallback.style.display = "flex"
+              }}
+            />
+          ) : null}
+
+          {/* Inisial Huruf Brand Blue (#4E8ABC) dengan Teks Putih */}
           <div
-            style={{ display: "none" }}
-            className="w-9 h-9 rounded-full bg-brand-600 text-white items-center justify-center font-bold text-sm shadow-xs ring-2 ring-brand-100"
+            className={`w-9 h-9 rounded-full bg-brand-600 text-white items-center justify-center font-bold text-xs shadow-xs ring-2 ring-brand-100 group-hover:ring-brand-200 transition-all ${
+              hasCustomPicture ? "hidden" : "flex"
+            }`}
           >
             {initial}
           </div>
+
           {/* Status Online Dot */}
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white" />
         </div>
@@ -145,38 +160,10 @@ export const ProfilePopover: React.FC = () => {
         <div
           role="menu"
           aria-label="Menu Profil"
-          className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 z-50 overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95 duration-150"
+          className="absolute right-0 mt-2 w-56 sm:w-60 bg-white rounded-2xl shadow-xl border border-slate-200/90 z-50 overflow-hidden flex flex-col animate-in fade-in-50 zoom-in-95 duration-150 p-1"
         >
-          {/* Header Popover: Ringkasan Identitas Pengguna */}
-          <div className="p-4 border-b border-slate-100 bg-gradient-to-br from-slate-50 via-white to-brand-50/20">
-            <div className="flex items-start gap-3">
-              <div className="relative shrink-0">
-                <img
-                  src={getAvatar(profile?.picture, userName)}
-                  alt={userName}
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-brand-200 shadow-xs"
-                />
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white" />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-bold text-slate-900 tracking-tight truncate">
-                  {userName}
-                </h4>
-                <div className="flex items-center gap-1 text-[11px] text-slate-500 truncate mt-0.5">
-                  <Mail className="w-3 h-3 shrink-0 text-slate-400" />
-                  <span className="truncate">{userEmail}</span>
-                </div>
-                <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200/80">
-                  <ShieldCheck className="w-3 h-3 text-brand-600" />
-                  <span>{userType}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* List Menu Navigasi */}
-          <div className="p-1.5 space-y-0.5">
+          <div className="space-y-0.5">
             {/* Profil Saya */}
             <Link
               to="/profile/update"

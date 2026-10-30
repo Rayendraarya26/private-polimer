@@ -256,9 +256,9 @@ const FormPerorangan: React.FC = () => {
               </div>
 
               {!isRequested && !isWhatsappChanged && profile?.detail?.whatsapp_verified === YesNoOption.YES && (
-                <div className="flex items-center gap-2 text-emerald-800 text-xs font-semibold mt-2 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+                <div className="flex items-center gap-2 text-emerald-800 text-xs mt-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Nomor WhatsApp telah terverifikasi resmi</span>
+                  <span>Nomor WhatsApp telah terverifikasi</span>
                 </div>
               )}
             </FormField>
@@ -491,7 +491,7 @@ const FormPerorangan: React.FC = () => {
               error={errors?.dok_npwp?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_npwp") || profile?.detail?.dok_npwp}
+                value={rhf.watch("dok_npwp") !== undefined ? rhf.watch("dok_npwp") : profile?.detail?.dok_npwp}
                 onChange={(file) => rhf.setValue("dok_npwp", file as any)}
                 hasError={!!errors?.dok_npwp?.message}
                 label="Unggah File NPWP"
@@ -506,7 +506,7 @@ const FormPerorangan: React.FC = () => {
               error={errors?.dok_nib?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_nib") || profile?.detail?.dok_nib}
+                value={rhf.watch("dok_nib") !== undefined ? rhf.watch("dok_nib") : profile?.detail?.dok_nib}
                 onChange={(file) => rhf.setValue("dok_nib", file as any)}
                 hasError={!!errors?.dok_nib?.message}
                 label="Unggah File NIB"

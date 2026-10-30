@@ -565,7 +565,7 @@ const FormPerusahaan: React.FC = () => {
               error={errors?.dok_npwp?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_npwp") || profile?.detail?.dok_npwp}
+                value={rhf.watch("dok_npwp") !== undefined ? rhf.watch("dok_npwp") : profile?.detail?.dok_npwp}
                 onChange={(file) => rhf.setValue("dok_npwp", file as any)}
                 hasError={!!errors?.dok_npwp?.message}
                 label="Unggah File NPWP"
@@ -580,7 +580,7 @@ const FormPerusahaan: React.FC = () => {
               error={errors?.dok_nib?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_nib") || profile?.detail?.dok_nib}
+                value={rhf.watch("dok_nib") !== undefined ? rhf.watch("dok_nib") : profile?.detail?.dok_nib}
                 onChange={(file) => rhf.setValue("dok_nib", file as any)}
                 hasError={!!errors?.dok_nib?.message}
                 label="Unggah File NIB"
@@ -594,7 +594,7 @@ const FormPerusahaan: React.FC = () => {
               error={errors?.dok_akta_pendirian?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_akta_pendirian") || profile?.detail?.dok_akta_pendirian}
+                value={rhf.watch("dok_akta_pendirian") !== undefined ? rhf.watch("dok_akta_pendirian") : profile?.detail?.dok_akta_pendirian}
                 onChange={(file) => rhf.setValue("dok_akta_pendirian", file as any)}
                 label="Unggah Akta Pendirian"
                 helperText="PDF / Gambar (Maks. 5 MB)"
@@ -607,7 +607,7 @@ const FormPerusahaan: React.FC = () => {
               error={errors?.dok_iup?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_iup") || profile?.detail?.dok_iup}
+                value={rhf.watch("dok_iup") !== undefined ? rhf.watch("dok_iup") : profile?.detail?.dok_iup}
                 onChange={(file) => rhf.setValue("dok_iup", file as any)}
                 label="Unggah Izin Usaha"
                 helperText="PDF / Gambar (Maks. 5 MB)"

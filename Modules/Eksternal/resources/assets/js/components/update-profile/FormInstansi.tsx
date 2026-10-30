@@ -502,7 +502,7 @@ const FormInstansi: React.FC = () => {
               error={errors?.dok_npwp?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_npwp") || profile?.detail?.dok_npwp}
+                value={rhf.watch("dok_npwp") !== undefined ? rhf.watch("dok_npwp") : profile?.detail?.dok_npwp}
                 onChange={(file) => rhf.setValue("dok_npwp", file as any)}
                 label="Unggah File NPWP Instansi"
                 helperText="PDF / Gambar (Maks. 5 MB)"
@@ -515,7 +515,7 @@ const FormInstansi: React.FC = () => {
               error={errors?.dok_nib?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_nib") || profile?.detail?.dok_nib}
+                value={rhf.watch("dok_nib") !== undefined ? rhf.watch("dok_nib") : profile?.detail?.dok_nib}
                 onChange={(file) => rhf.setValue("dok_nib", file as any)}
                 label="Unggah File NIB"
                 helperText="PDF / Gambar (Maks. 5 MB)"
@@ -529,7 +529,7 @@ const FormInstansi: React.FC = () => {
               error={errors?.dok_sk_nomenklatur?.message}
             >
               <DropzoneUploader
-                value={rhf.watch("dok_sk_nomenklatur") || profile?.detail?.dok_sk_nomenklatur}
+                value={rhf.watch("dok_sk_nomenklatur") !== undefined ? rhf.watch("dok_sk_nomenklatur") : profile?.detail?.dok_sk_nomenklatur}
                 onChange={(file) => rhf.setValue("dok_sk_nomenklatur", file as any)}
                 hasError={!!errors?.dok_sk_nomenklatur?.message}
                 label="Unggah SK Nomenklatur"

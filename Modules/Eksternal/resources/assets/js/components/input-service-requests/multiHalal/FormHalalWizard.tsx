@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../ui/Button"
+import { Modal } from "../../ui/Modal"
 import {
   FileText,
   Building2,
@@ -13,6 +14,8 @@ import {
   Send,
   Loader2,
   Check,
+  RotateCcw,
+  AlertTriangle,
 } from "lucide-react"
 
 import {
@@ -20,6 +23,9 @@ import {
   initialFormHalalPayload,
 } from "../../../types/halal"
 import { submitPermohonanHalal } from "../../../services/halal"
+import { StickyFormActions } from "../../forms"
+import useProfile from "../../../hooks/useProfile"
+import { useHalalDraft } from "../../../hooks/useHalalDraft"
 
 import { Step1ProfilDanJalur } from "./Step1ProfilDanJalur"
 import { Step2FasilitasPabrik } from "./Step2FasilitasPabrik"
@@ -28,7 +34,6 @@ import { Step4BahanDanProduk } from "./Step4BahanDanProduk"
 import { Step5PernyataanSJPH } from "./Step5PernyataanSJPH"
 
 const TOTAL_STEPS = 5
-const STORAGE_KEY = "DRAFT_PERMOHONAN_HALAL"
 
 const STEPS = [
   { id: 0, title: "Jalur & Pelaku Usaha", icon: FileText, desc: "Pilih jalur sertifikasi & data usaha" },
@@ -40,73 +45,131 @@ const STEPS = [
 
 export const FormHalalWizard: React.FC = () => {
   const navigate = useNavigate()
+  const { profile } = useProfile()
+  const userId = profile?.id || (profile?.detail as any)?.id || "guest"
+  const { existingDraft, autoSave, saveManual, clearDraft, isSaving } = useHalalDraft(String(userId))
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currentStep, setCurrentStep] = useState<number>(0)
+  const [maxStepReached, setMaxStepReached] = useState<number>(0)
+  const [payload, setPayload] = useState<FormHalalPayload>(initialFormHalalPayload)
+  const [showResetModal, setShowResetModal] = useState<boolean>(false)
+  const draftClearedRef = useRef(false)
+  const restoredRef = useRef(false)
 
-  // Inisialisasi step dari localStorage
-  const [currentStep, setCurrentStep] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (typeof parsed.currentStep === "number" && parsed.currentStep >= 0 && parsed.currentStep < TOTAL_STEPS) {
-          return parsed.currentStep
-        }
+  useEffect(() => {
+    setMaxStepReached((prev) => Math.max(prev, currentStep))
+  }, [currentStep])
+
+  // Restore draft dari IndexedDB (termasuk berkas File asli)
+  useEffect(() => {
+    if (!existingDraft || restoredRef.current || draftClearedRef.current) return
+
+    restoredRef.current = true
+    const { currentStep: savedStep, payload: savedPayload } = existingDraft
+
+    if (savedPayload) {
+      const ensureFile = (f: any, defaultName: string = "dokumen.pdf"): File | null => {
+        if (!f) return null
+        if (f instanceof File) return f
+        if (f instanceof Blob) return new File([f], (f as any).name || defaultName, { type: f.type })
+        return null
       }
-    } catch (e) {
-      console.error("Gagal memuat currentStep draf halal:", e)
-    }
-    return 0
-  })
 
-  // Inisialisasi payload dari localStorage
-  const [payload, setPayload] = useState<FormHalalPayload>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed.payload) {
-          return {
-            ...initialFormHalalPayload,
-            ...parsed.payload,
-            file_denah_lokasi: null,
-            file_sk_penyelia: null,
-            file_ktp_penyelia: null,
-            file_sertifikat_penyelia: null,
-            file_alur_proses: null,
-            file_surat_permohonan: null,
-            file_manual_sjph: null,
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Gagal memuat payload draf halal:", e)
-    }
-    return initialFormHalalPayload
-  })
+      const restoredProduk = Array.isArray(savedPayload.dataProduk)
+        ? savedPayload.dataProduk.map((p: any) => ({
+            ...p,
+            foto: ensureFile(p.foto, "foto_produk.jpg"),
+          }))
+        : []
 
-  // Simpan draf ke localStorage setiap ada perubahan
+      setPayload((prev) => ({
+        ...prev,
+        ...savedPayload,
+        dataProduk: restoredProduk.length > 0 ? restoredProduk : prev.dataProduk,
+        file_denah_lokasi: ensureFile(savedPayload.file_denah_lokasi, "denah_lokasi.pdf"),
+        file_sk_penyelia: ensureFile(savedPayload.file_sk_penyelia, "sk_penyelia.pdf"),
+        file_ktp_penyelia: ensureFile(savedPayload.file_ktp_penyelia, "ktp_penyelia.pdf"),
+        file_sertifikat_penyelia: ensureFile(savedPayload.file_sertifikat_penyelia, "sertifikat_penyelia.pdf"),
+        file_alur_proses: ensureFile(savedPayload.file_alur_proses, "alur_proses.pdf"),
+        file_surat_permohonan: ensureFile(savedPayload.file_surat_permohonan, "surat_permohonan.pdf"),
+        file_manual_sjph: ensureFile(savedPayload.file_manual_sjph, "manual_sjph.pdf"),
+      }))
+    }
+
+    if (typeof savedStep === "number" && savedStep >= 0 && savedStep < TOTAL_STEPS) {
+      setCurrentStep(savedStep)
+    }
+  }, [existingDraft])
+
+  // Migrasi satu kali dari localStorage lama jika belum ada di IndexedDB
   useEffect(() => {
     try {
-      const serializablePayload = {
-        ...payload,
-        file_denah_lokasi: null,
-        file_sk_penyelia: null,
-        file_ktp_penyelia: null,
-        file_sertifikat_penyelia: null,
-        file_alur_proses: null,
-        file_surat_permohonan: null,
-        file_manual_sjph: null,
-        dataProduk: payload.dataProduk.map((p) => ({ ...p, foto: null })),
+      const oldStorage = localStorage.getItem("DRAFT_PERMOHONAN_HALAL")
+      if (oldStorage && !existingDraft && !restoredRef.current) {
+        const parsed = JSON.parse(oldStorage)
+        if (parsed.payload) {
+          setPayload((prev) => ({
+            ...prev,
+            ...parsed.payload,
+          }))
+          if (typeof parsed.currentStep === "number") {
+            setCurrentStep(parsed.currentStep)
+          }
+          autoSave({ currentStep: parsed.currentStep || 0, payload: parsed.payload })
+          localStorage.removeItem("DRAFT_PERMOHONAN_HALAL")
+        }
       }
-      const serializableData = {
-        currentStep,
-        payload: serializablePayload,
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializableData))
-    } catch (error) {
-      console.error("Gagal menyimpan draf halal:", error)
+    } catch (e) {
+      console.error("Gagal migrasi draf lama:", e)
     }
-  }, [currentStep, payload])
+  }, [existingDraft, autoSave])
+
+  const hasDraftContent = Boolean(
+    payload.dataPengajuan.kode_fasilitasi ||
+    payload.dataPelakuUsaha.nama_usaha ||
+    payload.dataPelakuUsaha.nib ||
+    payload.dataFasilitas.pabrik.length > 0 ||
+    payload.dataPenyelia.penyelia_nama ||
+    payload.dataBahan.length > 0 ||
+    payload.dataProduk.length > 0 ||
+    payload.file_surat_permohonan ||
+    payload.file_manual_sjph
+  )
+
+  // Simpan draf ke IndexedDB secara otomatis setiap ada perubahan
+  useEffect(() => {
+    if (draftClearedRef.current) return
+    if (hasDraftContent) {
+      autoSave({
+        currentStep,
+        payload,
+      })
+    }
+  }, [currentStep, payload, autoSave, hasDraftContent])
+
+  // Re-enable auto-save saat ada perubahan data baru setelah discard
+  useEffect(() => {
+    if (!draftClearedRef.current) return
+    if (hasDraftContent) {
+      draftClearedRef.current = false
+    }
+  }, [hasDraftContent])
+
+  // Handler: Hapus Draf dan Reset Formulir
+  const confirmResetDraft = async () => {
+    setShowResetModal(false)
+    draftClearedRef.current = true
+    restoredRef.current = true
+    await clearDraft()
+    try {
+      localStorage.removeItem("DRAFT_PERMOHONAN_HALAL")
+    } catch (e) {}
+    setPayload(initialFormHalalPayload)
+    setCurrentStep(0)
+    setMaxStepReached(0)
+    toast.success("Draf formulir sertifikasi halal berhasil direset.")
+  }
 
   const validateCurrentStep = (): boolean => {
     // Validasi Step 0
@@ -286,8 +349,10 @@ export const FormHalalWizard: React.FC = () => {
 
       if (response?.success || response?.status === "success") {
         toast.success(response?.message || "Permohonan Sertifikasi Halal berhasil diajukan!")
+        draftClearedRef.current = true
+        await clearDraft()
         try {
-          localStorage.removeItem(STORAGE_KEY)
+          localStorage.removeItem("DRAFT_PERMOHONAN_HALAL")
         } catch (e) {
           console.error("Gagal menghapus draf storage:", e)
         }
@@ -307,62 +372,109 @@ export const FormHalalWizard: React.FC = () => {
     }
   }
 
+  const handleSaveDraft = async () => {
+    const success = await saveManual({ currentStep, payload })
+    if (success) {
+      toast.success("Draf permohonan sertifikasi halal (termasuk berkas) berhasil disimpan ke IndexedDB!")
+    } else {
+      toast.error("Gagal menyimpan draf.")
+    }
+  }
+
   return (
-    <div className="space-y-4">
-      {/* Stepper Progress Bar (Sama persis dengan FormKalibrasiWizard & FormInspeksiWizard) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div className="space-y-6">
+      {/* Tombol Reset Draft */}
+      {hasDraftContent && (
+        <div className="flex justify-end -mb-2">
+          <button
+            type="button"
+            onClick={() => setShowResetModal(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer"
+            title="Reset seluruh draf formulir"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Draft</span>
+          </button>
+        </div>
+      )}
+
+      {/* Stepper Progress Bar */}
+      <nav aria-label="Langkah pengisian" className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-none">
+        <ol className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-3">
           {STEPS.map((s, idx) => {
             const Icon = s.icon
             const isActive = currentStep === idx
-            const isDone = currentStep > idx
+            const isPassed = idx < currentStep
+            const isReachable = idx <= maxStepReached
+            const canNavigate = isReachable && !isActive
 
             return (
-              <button
-                type="button"
-                key={s.id}
-                onClick={() => {
-                  if (idx <= currentStep) {
-                    setCurrentStep(idx)
-                    window.scrollTo({ top: 0, behavior: "smooth" })
-                  }
-                }}
-                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                  isActive
-                    ? "bg-brand-50/90 border border-brand-300 ring-2 ring-brand-500/20"
-                    : isDone
-                    ? "bg-slate-50 border border-slate-200 hover:bg-slate-100/70 cursor-pointer"
-                    : "bg-slate-50/50 border border-slate-200/50 opacity-60 cursor-not-allowed"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
-                    isDone
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : isActive
-                      ? "bg-brand-600 text-white shadow-md shadow-brand-500/30"
-                      : "bg-slate-200 text-slate-600"
+              <li key={s.id}>
+                <button
+                  type="button"
+                  id={`stepper-langkah-${idx + 1}`}
+                  disabled={!canNavigate}
+                  aria-current={isActive ? "step" : undefined}
+                  onFocus={(e) => e.currentTarget.blur()}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setCurrentStep(idx)
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                  }}
+                  style={{ outline: "none", boxShadow: "none" }}
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-300 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
+                    isActive
+                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      : isPassed
+                      ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
+                      : canNavigate
+                      ? "bg-white border border-slate-200 hover:border-brand-400 cursor-pointer shadow-none"
+                      : "bg-slate-50 border border-slate-200 cursor-not-allowed opacity-60 shadow-none"
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-                </div>
-
-                <div className="min-w-0">
                   <span
-                    className={`text-[10px] font-bold tracking-wider uppercase block ${
-                      isActive ? "text-brand-600" : isDone ? "text-emerald-600" : "text-slate-500"
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 shadow-none ${
+                      isPassed && !isActive
+                        ? "bg-emerald-500 text-white"
+                        : isActive
+                        ? "bg-brand-600 text-white"
+                        : canNavigate
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-slate-200/80 text-slate-400"
                     }`}
                   >
-                    Langkah {idx + 1}
+                    {isPassed && !isActive ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <Icon className="w-5 h-5" />}
                   </span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{s.title}</p>
-                  <p className="text-[11px] text-slate-500 truncate hidden sm:block">{s.desc}</p>
-                </div>
-              </button>
+
+                  <span className="min-w-0">
+                    <span
+                      className={`block text-[11px] font-semibold ${
+                        isActive
+                          ? "text-brand-700"
+                          : isPassed
+                          ? "text-emerald-700"
+                          : canNavigate
+                          ? "text-slate-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Langkah {idx + 1}
+                    </span>
+                    <span
+                      className={`block text-xs sm:text-sm font-bold truncate ${
+                        isActive || isPassed || canNavigate ? "text-slate-900" : "text-slate-500"
+                      }`}
+                    >
+                      {s.title}
+                    </span>
+                  </span>
+                </button>
+              </li>
             )
           })}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       {/* Step Contents (Kept in DOM with block/hidden to prevent state reset) */}
       <div className={currentStep === 0 ? "block" : "hidden"}>
@@ -385,49 +497,60 @@ export const FormHalalWizard: React.FC = () => {
         <Step5PernyataanSJPH payload={payload} onChange={setPayload} />
       </div>
 
-      {/* Navigation Buttons (Sama persis dengan FormKalibrasiWizard & FormInspeksiWizard) */}
-      <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          disabled={isSubmitting}
-          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-slate-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {currentStep === 0 ? "Batal" : "Sebelumnya"}
-        </Button>
+      {/* Form Navigation Actions (Non-sticky, sesuai form pengujian & kalibrasi) */}
+      <StickyFormActions
+        isSticky={false}
+        canGoBack={true}
+        backLabel={currentStep === 0 ? "Batal" : "Sebelumnya"}
+        onBack={handleBack}
+        onNext={handleNext}
+        isLastStep={currentStep === TOTAL_STEPS - 1}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        onSaveDraft={handleSaveDraft}
+        nextLabel="Selanjutnya"
+        submitLabel="Kirim Permohonan"
+      />
 
-        {currentStep < TOTAL_STEPS - 1 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            Selanjutnya
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Mengirim...
-              </>
-            ) : (
-              <>
-                Kirim Permohonan
-                <Send className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+      {/* Modal Konfirmasi Reset Draf (Seragam dengan Kalibrasi, Pengujian, & Sertifikasi) */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        size="sm"
+        className="max-w-md p-0 overflow-hidden rounded-2xl"
+      >
+        <div className="p-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/80 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <AlertTriangle className="w-7 h-7 text-amber-500" />
+          </div>
+
+          <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
+            Reset Draft Formulir?
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed mb-6">
+            Seluruh data permohonan sertifikasi halal, fasilitas, penyelia, bahan, produk, dan berkas yang telah diunggah akan dihapus dan kembali ke langkah awal.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResetModal(false)}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={confirmResetDraft}
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
+            >
+              Ya, Reset Draft
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

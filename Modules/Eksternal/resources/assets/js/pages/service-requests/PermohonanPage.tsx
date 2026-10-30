@@ -39,7 +39,7 @@ interface ServiceItem {
 
 const serviceCategories: { title: string; desc: string; items: ServiceItem[] }[] = [
   {
-    title: "1. Pengujian & Laboratorium Kalibrasi",
+    title: "1. Laboratorium Pengujian & Kalibrasi",
     desc: "Layanan pengujian mutu material kulit, karet, plastik dan kalibrasi peralatan standar industri.",
     items: [
       {

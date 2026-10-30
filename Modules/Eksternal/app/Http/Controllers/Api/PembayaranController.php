@@ -27,16 +27,18 @@ class PembayaranController extends Controller
                 'penawaranBiaya'
             ])
             ->where('created_by', $userId)
-            // Hanya permohonan yang sudah tahap pembayaran atau sudah lunas/proses/selesai
+            // Tampilkan permohonan yang sudah tahap pembayaran, sudah lunas/proses/selesai, atau sudah memiliki tagihan/billing/invoice/VA
             ->where(function ($q) {
                 $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'PROCESS', 'DONE', 'SELESAI'])
-                  ->orWhere('status_bayar', 'LUNAS');
+                  ->orWhere('status_bayar', 'LUNAS')
+                  ->orWhereNotNull('invoice_number')
+                  ->orWhereNotNull('va')
+                  ->orHas('billing')
+                  ->orHas('detailPembayaran');
             })
-            // Kecualikan tahap yang masih review, verifikasi berkas awal, revisi, draft, atau ditolak/batal
+            // Kecualikan permohonan yang ditolak atau dibatalkan
             ->whereNotIn('status_workflow', [
-                'DRAFT', 'PERMOHONAN', 'IN_REVIEW', 'REVIEW', 'KAJIAN_TEKNIS', 'REVISI',
                 'DITOLAK', 'BATAL', 'REJECTED',
-                'draft', 'permohonan', 'in_review', 'review', 'kajian_teknis', 'revisi',
                 'ditolak', 'batal', 'rejected'
             ])
             ->where('status_bayar', '!=', 'BATAL')
@@ -45,8 +47,7 @@ class PembayaranController extends Controller
                   ->orWhereNotIn('status_penawaran', ['tolak', 'DITOLAK', 'ditolak', 'REJECTED']);
             })
             ->whereDoesntHave('penawaranBiaya', function ($q) {
-                $q->whereIn('status_persetujuan', ['DITOLAK', 'tolak', 'REJECTED'])
-                  ->orWhereIn('status', ['DITOLAK', 'tolak', 'REJECTED']);
+                $q->whereIn('status_persetujuan', ['DITOLAK', 'tolak', 'REJECTED']);
             })
             ->orderBy('created_at', 'desc')
             ->get();

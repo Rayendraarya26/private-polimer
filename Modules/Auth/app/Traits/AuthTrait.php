@@ -28,7 +28,7 @@ trait AuthTrait
 
     public function setAccess(string|int $groupID, string $groupName): void
     {
-        $group_selected      = $groupID;
+        $group_selected = $groupID;
         $group_selected_name = $groupName;
 
         $dataMenu = DB::table('sys_menu')
@@ -62,17 +62,17 @@ trait AuthTrait
         $groupAvailable = [];
         foreach (Auth::user()->sys_user_groups as $g) {
             $groupAvailable[] = [
-                'group_id'   => $g->group_id,
+                'group_id' => $g->group_id,
                 'group_name' => $g->sys_group->name,
             ];
         }
 
         $dataSession = [
-            'group_selected'      => $group_selected,
+            'group_selected' => $group_selected,
             'group_selected_name' => $group_selected_name,
-            'group_available'     => $groupAvailable,
-            'permission'          => $menuAction,
-            'menu'                => $this->buildTree($dataMenu->toArray()),
+            'group_available' => $groupAvailable,
+            'permission' => $menuAction,
+            'menu' => $this->buildTree($dataMenu->toArray()),
         ];
 
         session($dataSession);

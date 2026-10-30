@@ -213,24 +213,111 @@ class SertifikasiController extends Controller
                 ]);
             }
 
-            // Ambil permohonan sertifikasi yang selesai
+            // Ambil permohonan sertifikasi industri yang selesai
             $permohonanSelesai = Permohonan::where('created_by', $user->id)
                 ->where('status_workflow', 'DONE')
-                ->with(['detailPermohonan.lingkupLayanan', 'formSertifikasi'])
+                ->where(function ($q) {
+                    $q->whereHas('formSertifikasi')
+                      ->orWhereHas('detailPermohonan.lingkupLayanan', function ($ql) {
+                          $ql->whereHas('jenisLayanan', function ($qj) {
+                              $qj->where('slug', 'sertifikasi');
+                          });
+                      });
+                })
+                ->with(['detailPermohonan.lingkupLayanan', 'formSertifikasi.items'])
                 ->orderByDesc('created_at')
                 ->get();
 
             $sertifikats = $permohonanSelesai->map(function ($p) {
                 $form = $p->formSertifikasi?->first();
                 $lingkup = $p->detailPermohonan?->first()?->lingkupLayanan;
+                $nomorSertifikat = $p->nomor_sertifikat ?: ($form?->sertifikat_lama_nomor ?: ('SRT/' . substr($p->id, 0, 8)));
+
+                $items = !empty($form?->komoditas_json) && is_array($form->komoditas_json)
+                    ? $form->komoditas_json
+                    : ($form?->items && $form->items->isNotEmpty()
+                        ? $form->items->map(function ($it) {
+                            return [
+                                'id' => $it->id,
+                                'komoditi_id' => $it->komoditi_id,
+                                'nama_produk' => $it->nama_produk,
+                                'merk_dagang' => $it->merk_dagang,
+                                'tipe_jenis' => $it->tipe_jenis,
+                                'ukuran' => $it->ukuran ?? '-',
+                                'standar_sni_iso' => $it->standar_sni_iso ?? '-',
+                                'kapasitas_produksi' => $it->kapasitas_produksi ?? '0',
+                                'satuan_produksi' => $it->satuan_produksi ?? '',
+                                'keterangan' => $it->keterangan ?? '-',
+                            ];
+                        })->values()->toArray()
+                        : []);
+
+                $firstKomoditi = !empty($items) ? ($items[0]['nama_produk'] ?? null) : null;
+                if (empty($items)) {
+                    $namaKomoditi = $firstKomoditi ?: ($lingkup?->lingkup ?? 'Komoditi Industri');
+                    $items = [
+                        [
+                            'id' => 1,
+                            'nama_produk' => $namaKomoditi,
+                            'merk_dagang' => 'Merek Terdaftar',
+                            'tipe_jenis' => 'Standard',
+                            'ukuran' => 'Sesuai Spesifikasi',
+                            'standar_sni_iso' => 'SNI Terkait',
+                            'kapasitas_produksi' => '1000',
+                            'satuan_produksi' => 'Unit',
+                            'keterangan' => 'Sertifikasi aktif periode sebelumnya',
+                        ]
+                    ];
+                    $firstKomoditi = $namaKomoditi;
+                }
+
+                $tglTerbit = $p->tanggal_sertifikat_terbit
+                    ? $p->tanggal_sertifikat_terbit->format('d-m-Y')
+                    : ($p->tgl_order ? $p->tgl_order->format('d-m-Y') : '-');
+
+                // Dokumen dari permohonan sertifikasi sebelumnya
+                $dokumenMap = [];
+                $legalitas = is_array($form?->file_dokumen_pendukung_json) ? $form->file_dokumen_pendukung_json : (is_array($form?->file_dokumen_pendukung) ? $form->file_dokumen_pendukung : []);
+
+                $docMappings = [
+                    'surat_permohonan' => $form?->file_surat_permohonan,
+                    'sistem_mutu' => $form?->file_manual_mutu,
+                    'alur_produksi' => $form?->file_proses_produksi ?: $form?->file_denah_lokasi,
+                    'legalitas_perusahaan' => $legalitas['dok_akta_pendirian'] ?? null,
+                    'nib_iui' => $legalitas['dok_nib'] ?? null,
+                    'npwp_perusahaan' => $legalitas['dok_npwp'] ?? null,
+                    'sertifikat_merek' => $legalitas['dok_merek'] ?? null,
+                ];
+
+                foreach ($docMappings as $docId => $filePath) {
+                    if ($filePath) {
+                        $dokumenMap[$docId] = [
+                            'id' => $docId,
+                            'fileName' => basename($filePath),
+                            'fileUrl' => $this->getFileUrl($filePath),
+                            'fileSize' => '1.5 MB',
+                        ];
+                    }
+                }
+
+                if (!empty($form?->dokumen_persyaratan) && is_array($form->dokumen_persyaratan)) {
+                    foreach ($form->dokumen_persyaratan as $dp) {
+                        if (!empty($dp['id']) && (!empty($dp['fileUrl']) || !empty($dp['fileName']))) {
+                            $dokumenMap[$dp['id']] = $dp;
+                        }
+                    }
+                }
 
                 return [
                     'id' => $p->id,
                     'no_permohonan' => $p->no_permohonan,
-                    'nomor_sertifikat' => $form?->sertifikat_lama_nomor ?? ('SRT/' . substr($p->id, 0, 8)),
+                    'nomor_sertifikat' => $nomorSertifikat,
                     'lingkup_id' => $lingkup?->id,
-                    'skema_sertifikasi' => $lingkup?->lingkup ?? 'Sertifikasi Sistem / Produk',
-                    'tanggal_terbit' => $p->tgl_order ? $p->tgl_order->format('d-m-Y') : '-',
+                    'skema_sertifikasi' => $lingkup?->lingkup ?? 'Sertifikasi Produk & Sistem',
+                    'komoditi' => $firstKomoditi,
+                    'items' => $items,
+                    'dokumen_list' => $dokumenMap,
+                    'tanggal_terbit' => $tglTerbit,
                     'status' => 'Aktif'
                 ];
             });
@@ -245,7 +332,46 @@ class SertifikasiController extends Controller
                         'lingkup_id' => null,
                         'skema_sertifikasi' => 'Sistem Manajemen Mutu (SNI ISO 9001)',
                         'tanggal_terbit' => '10/01/2023',
-                        'status' => 'Aktif'
+                        'status' => 'Aktif',
+                        'items' => [
+                            [
+                                'id' => 101,
+                                'nama_produk' => 'Sepatu Pengaman (Safety Shoes)',
+                                'merk_dagang' => 'Safetex Pro',
+                                'tipe_jenis' => 'Low Cut Steel Toe',
+                                'ukuran' => '39 - 44',
+                                'standar_sni_iso' => 'SNI 0111:2009',
+                                'kapasitas_produksi' => '25000',
+                                'satuan_produksi' => 'Pasang',
+                                'keterangan' => 'Sertifikat Aktif SNI',
+                            ]
+                        ],
+                        'dokumen_list' => [
+                            'legalitas_perusahaan' => [
+                                'id' => 'legalitas_perusahaan',
+                                'fileName' => 'Akta_Pendirian_PT.pdf',
+                                'fileUrl' => '/files/dummy/Akta_Pendirian_PT.pdf',
+                                'fileSize' => '2.1 MB',
+                            ],
+                            'nib_iui' => [
+                                'id' => 'nib_iui',
+                                'fileName' => 'NIB_Perusahaan.pdf',
+                                'fileUrl' => '/files/dummy/NIB_Perusahaan.pdf',
+                                'fileSize' => '1.2 MB',
+                            ],
+                            'sistem_mutu' => [
+                                'id' => 'sistem_mutu',
+                                'fileName' => 'Manual_Mutu_ISO9001.pdf',
+                                'fileUrl' => '/files/dummy/Manual_Mutu_ISO9001.pdf',
+                                'fileSize' => '3.4 MB',
+                            ],
+                            'alur_produksi' => [
+                                'id' => 'alur_produksi',
+                                'fileName' => 'Diagram_Alir_Produksi.pdf',
+                                'fileUrl' => '/files/dummy/Diagram_Alir_Produksi.pdf',
+                                'fileSize' => '1.8 MB',
+                            ],
+                        ],
                     ],
                     [
                         'id' => 'sert-default-2',
@@ -254,7 +380,34 @@ class SertifikasiController extends Controller
                         'lingkup_id' => null,
                         'skema_sertifikasi' => 'Sistem Manajemen Lingkungan (SNI ISO 14001)',
                         'tanggal_terbit' => '10/01/2025',
-                        'status' => 'Aktif'
+                        'status' => 'Aktif',
+                        'items' => [
+                            [
+                                'id' => 102,
+                                'nama_produk' => 'Helm Pengaman Industri',
+                                'merk_dagang' => 'SafeGuard',
+                                'tipe_jenis' => 'Type 1 Hard Hat',
+                                'ukuran' => 'All Size Adjustable',
+                                'standar_sni_iso' => 'SNI ISO 3873:2012',
+                                'kapasitas_produksi' => '50000',
+                                'satuan_produksi' => 'Unit',
+                                'keterangan' => 'Sertifikat Aktif SNI ISO',
+                            ]
+                        ],
+                        'dokumen_list' => [
+                            'legalitas_perusahaan' => [
+                                'id' => 'legalitas_perusahaan',
+                                'fileName' => 'Akta_Pendirian_PT.pdf',
+                                'fileUrl' => '/files/dummy/Akta_Pendirian_PT.pdf',
+                                'fileSize' => '2.1 MB',
+                            ],
+                            'nib_iui' => [
+                                'id' => 'nib_iui',
+                                'fileName' => 'NIB_Perusahaan.pdf',
+                                'fileUrl' => '/files/dummy/NIB_Perusahaan.pdf',
+                                'fileSize' => '1.2 MB',
+                            ],
+                        ],
                     ]
                 ]);
             }

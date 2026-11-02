@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button"
 import { Award, ArrowLeft, CheckCircle2, Sparkles, AlertCircle, Loader2 } from "lucide-react"
 import FormLSPWizard from "../../components/input-service-requests/multiLSP/FormLSPWizard"
 import { useLspSkemaQuery } from "../../hooks/queries/useMasterQuery"
+import { selectClass, FieldLabel } from "../../components/input-service-requests/common"
 
 const LSPPage: React.FC = () => {
   const navigate = useNavigate()
@@ -42,7 +43,7 @@ const LSPPage: React.FC = () => {
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="shrink-0"
         >
-          Kembali ke Katalog
+          Kembali
         </Button>
       </div>
 
@@ -65,13 +66,14 @@ const LSPPage: React.FC = () => {
 
         <CardContent className="pt-4 space-y-4">
           <div className="max-w-2xl">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Skema Sertifikasi <span className="text-rose-500">*</span>
-            </label>
+            <FieldLabel required htmlFor="skema_sertifikasi">
+              Skema Sertifikasi
+            </FieldLabel>
             <select
+              id="skema_sertifikasi"
               value={selectedSkema}
               onChange={(e) => setSelectedSkema(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              className={selectClass}
             >
               <option value="">-- Pilih Skema Sertifikasi Kompetensi --</option>
               {skemaList.map((item) => (

@@ -36,7 +36,7 @@ const PengujianPage: React.FC = () => {
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="shrink-0 font-medium"
         >
-          Kembali ke Katalog Layanan
+          Kembali
         </Button>
       </div>
 

@@ -48,7 +48,7 @@ const KalibrasiPage: React.FC = () => {
           leftIcon={<ArrowLeft className="w-4 h-4" />}
           className="shrink-0"
         >
-          Kembali ke Katalog
+          Kembali
         </Button>
       </div>
 

@@ -613,7 +613,7 @@ class PermohonanController extends Controller
                 'sumber' => 'POLIMER',
                 'milestone_code' => 'PERMOHONAN_ACCEPTED',
                 'judul' => 'Kajian Disetujui & Draf Invoice Diterbitkan',
-                'deskripsi' => 'Marketing telah menyetujui permohonan dan menerbitkan draf Invoice sebesar Rp ' . number_format($total, 0, ',', '.') . '. Menunggu tanda tangan elektronik (TTE BSrE) oleh Bendahara.',
+                'deskripsi' => 'Marketing telah menyetujui permohonan dan menerbitkan draf Invoice sebesar Rp ' . number_format($total, 0, ',', '.') . '. Menunggu tanda tangan dan persetujuan oleh Bendahara.',
                 'metadata' => [
                     'actor_name' => auth()->user()?->name ?? 'Tim Marketing',
                 ],
@@ -629,8 +629,8 @@ class PermohonanController extends Controller
             foreach ($bendaharaUsers as $bu) {
                 SysUserNotif::create([
                     'user_id' => $bu->id,
-                    'title'   => 'Draf Invoice Menunggu TTE BSrE',
-                    'content' => 'Permohonan #' . $permohonan->no_permohonan . ' telah disetujui Marketing. Silakan lakukan approval & TTE Invoice.',
+                    'title'   => 'Draf Invoice Menunggu Tanda Tangan',
+                    'content' => 'Permohonan #' . $permohonan->no_permohonan . ' telah disetujui Marketing. Silakan lakukan approval dan tanda tangan invoice.',
                     'link'    => '/permohonan/layanan/' . $permohonan->id . '/detail',
                     'is_read' => 'no',
                 ]);

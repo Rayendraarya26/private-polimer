@@ -310,11 +310,11 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
                 <span className="font-bold text-slate-900 text-sm">Dokumen Invoice</span>
                 {permohonan?.pdf_tte ? (
                   <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
-                    TTE BSrE Sah
+                    Ditandatangani Resmi
                   </span>
                 ) : permohonan?.tte_invoice_requested ? (
                   <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
-                    Menunggu TTE Bendahara
+                    Menunggu Tanda Tangan
                   </span>
                 ) : (
                   <span className="px-2 py-0.5 text-[10px] bg-slate-200/70 text-slate-600 font-semibold rounded-lg">
@@ -333,7 +333,7 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
                     leftIcon={<FileText className="w-3.5 h-3.5" />}
                     onClick={() => openInvoice({ id, no_permohonan: noOrder, pdf_tte: permohonan?.pdf_tte })}
                     className="flex-1 justify-center"
-                    title="Buka Invoice Resmi BSrE"
+                    title="Buka Invoice Resmi"
                   >
                     Buka Invoice
                   </Button>
@@ -341,7 +341,7 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
               ) : (
                 <div className="pt-1">
                   <span className="inline-block text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1">
-                    Invoice belum terbit (Menunggu TTE Bendahara)
+                    Invoice belum terbit (Menunggu tanda tangan Bendahara)
                   </span>
                 </div>
               )}
@@ -354,11 +354,11 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
                 {permohonan?.status_bayar === "LUNAS" ? (
                   permohonan?.kuitansi_pdf_tte ? (
                     <span className="px-2 py-0.5 text-[10px] bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-lg">
-                      TTE BSrE Sah
+                      Disahkan Resmi
                     </span>
                   ) : permohonan?.tte_kuitansi_requested ? (
                     <span className="px-2 py-0.5 text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200 rounded-lg">
-                      Menunggu TTE Bendahara
+                      Menunggu Tanda Tangan
                     </span>
                   ) : (
                     <span className="px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-800 font-semibold rounded-lg">
@@ -395,9 +395,9 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
                       onClick={handleRequestTteKuitansi}
                       isLoading={requestingTte === "kuitansi"}
                       className="text-xs"
-                      title="Minta TTE BSrE Resmi Bendahara"
+                      title="Minta tanda tangan resmi Bendahara"
                     >
-                      Minta TTE
+                      Minta Tanda Tangan
                     </Button>
                   )}
               </div>

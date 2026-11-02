@@ -295,8 +295,8 @@ class InvoiceController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'sumber' => 'POLIMER',
                 'milestone_code' => 'INVOICE_APPROVED_TTE',
-                'judul' => 'Invoice Disetujui & Diberikan TTE BSrE',
-                'deskripsi' => 'Bendahara telah menyetujui dan menandatangani Invoice #' . $invoiceNumber . ' secara elektronik (TTE BSrE). Tagihan resmi diterbitkan.',
+                'judul' => 'Invoice Disetujui & Diterbitkan',
+                'deskripsi' => 'Bendahara telah menyetujui dan menandatangani Invoice #' . $invoiceNumber . '. Tagihan resmi diterbitkan.',
                 'metadata' => [
                     'actor_name' => auth()->user()?->name ?? 'Bendahara',
                     'esign_id'   => $esignId,
@@ -305,8 +305,8 @@ class InvoiceController extends Controller
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Invoice Berhasil Diberikan TTE BSrE',
-                'content' => 'Invoice tagihan ' . $invoiceNumber . ' telah ditandatangani secara elektronik (TTE BSrE) oleh Bendahara.',
+                'title'   => 'Invoice Resmi Telah Diterbitkan',
+                'content' => 'Invoice tagihan ' . $invoiceNumber . ' telah ditandatangani dan resmi diterbitkan oleh Bendahara.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);
@@ -643,8 +643,8 @@ class InvoiceController extends Controller
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Kuitansi Berhasil Diberikan TTE BSrE',
-                'content' => 'Kuitansi pembayaran ' . $kuitansiNumber . ' telah ditandatangani secara elektronik (TTE BSrE) oleh Bendahara.',
+                'title'   => 'Kuitansi Pembayaran Telah Diterbitkan',
+                'content' => 'Kuitansi pembayaran ' . $kuitansiNumber . ' telah ditandatangani dan disahkan oleh Bendahara.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);

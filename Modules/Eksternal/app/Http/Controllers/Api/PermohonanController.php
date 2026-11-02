@@ -769,8 +769,8 @@ class PermohonanController extends Controller
         foreach ($bendaharaUserIds as $bendaharaId) {
             \App\Models\Db1\SysUserNotif::create([
                 'user_id' => $bendaharaId,
-                'title' => 'Permintaan TTE Invoice BSrE',
-                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Invoice ' . ($permohonan->invoice_number ?: $permohonan->no_permohonan),
+                'title' => 'Permintaan Tanda Tangan Invoice',
+                'content' => 'Pemohon mengajukan permohonan tanda tangan resmi untuk Invoice ' . ($permohonan->invoice_number ?: $permohonan->no_permohonan),
                 'link' => route('permohonan.layanan.detail', $permohonan->id),
                 'is_read' => 'no',
             ]);
@@ -778,7 +778,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Invoice berhasil dikirim.',
+            'message' => 'Permintaan tanda tangan invoice berhasil dikirim.',
             'data' => [
                 'tte_invoice_requested' => true,
                 'tte_invoice_requested_at' => $permohonan->tte_invoice_requested_at,
@@ -805,7 +805,7 @@ class PermohonanController extends Controller
         if ($permohonan->status_bayar !== 'LUNAS') {
             return response()->json([
                 'success' => false,
-                'message' => 'Pembayaran belum lunas. TTE Kuitansi hanya dapat diajukan setelah pembayaran terverifikasi.'
+                'message' => 'Pembayaran belum lunas. Kuitansi resmi hanya dapat diajukan setelah pembayaran terverifikasi.'
             ], 422);
         }
 
@@ -821,8 +821,8 @@ class PermohonanController extends Controller
         foreach ($bendaharaUserIds as $bendaharaId) {
             \App\Models\Db1\SysUserNotif::create([
                 'user_id' => $bendaharaId,
-                'title' => 'Permintaan TTE Kuitansi BSrE',
-                'content' => 'Pemohon mengajukan permohonan tanda tangan elektronik (TTE BSrE) untuk Kuitansi Pembayaran ' . ($permohonan->kuitansi_number ?: $permohonan->no_permohonan),
+                'title' => 'Permintaan Tanda Tangan Kuitansi',
+                'content' => 'Pemohon mengajukan permohonan pengesahan tanda tangan untuk Kuitansi Pembayaran ' . ($permohonan->kuitansi_number ?: $permohonan->no_permohonan),
                 'link' => route('permohonan.layanan.detail', $permohonan->id),
                 'is_read' => 'no',
             ]);
@@ -830,7 +830,7 @@ class PermohonanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Permintaan TTE Kuitansi berhasil dikirim.',
+            'message' => 'Permintaan tanda tangan kuitansi berhasil dikirim.',
             'data' => [
                 'tte_kuitansi_requested' => true,
                 'tte_kuitansi_requested_at' => $permohonan->tte_kuitansi_requested_at,

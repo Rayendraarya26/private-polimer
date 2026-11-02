@@ -59,11 +59,11 @@ const PembayaranPage: React.FC = () => {
 
   const handleRequestTteInvoice = async (row: PembayaranItem) => {
     const result = await Swal.fire({
-      title: "Minta TTE BSrE Invoice?",
-      text: `Ajukan permohonan tanda tangan elektronik (TTE BSrE) resmi Bendahara untuk Invoice ${row.invoice_number || row.no_permohonan}?`,
+      title: "Minta Tanda Tangan Invoice?",
+      text: `Ajukan permohonan tanda tangan resmi Bendahara untuk Invoice ${row.invoice_number || row.no_permohonan}?`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Ya, Ajukan TTE",
+      confirmButtonText: "Ya, Ajukan",
       cancelButtonText: "Batal",
       confirmButtonColor: "#0270c7",
     })
@@ -76,12 +76,12 @@ const PembayaranPage: React.FC = () => {
       Swal.fire({
         icon: "success",
         title: "Permintaan Terkirim",
-        text: res?.data?.message || "Permintaan TTE BSrE Invoice telah diteruskan ke Bendahara.",
+        text: res?.data?.message || "Permintaan tanda tangan invoice telah diteruskan ke Bendahara.",
         confirmButtonColor: "#0270c7",
       })
       fetchData()
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Invoice")
+      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan tanda tangan invoice")
     } finally {
       setRequestingTteId(null)
     }
@@ -89,11 +89,11 @@ const PembayaranPage: React.FC = () => {
 
   const handleRequestTteKuitansi = async (row: PembayaranItem) => {
     const result = await Swal.fire({
-      title: "Minta TTE BSrE Kuitansi?",
-      text: `Ajukan permohonan tanda tangan elektronik (TTE BSrE) resmi Bendahara untuk Kuitansi ${row.kuitansi_number || row.no_permohonan}?`,
+      title: "Minta Tanda Tangan Kuitansi?",
+      text: `Ajukan permohonan tanda tangan resmi Bendahara untuk Kuitansi ${row.kuitansi_number || row.no_permohonan}?`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Ya, Ajukan TTE",
+      confirmButtonText: "Ya, Ajukan",
       cancelButtonText: "Batal",
       confirmButtonColor: "#10b981",
     })
@@ -106,12 +106,12 @@ const PembayaranPage: React.FC = () => {
       Swal.fire({
         icon: "success",
         title: "Permintaan Terkirim",
-        text: res?.data?.message || "Permintaan TTE BSrE Kuitansi telah diteruskan ke Bendahara.",
+        text: res?.data?.message || "Permintaan tanda tangan kuitansi telah diteruskan ke Bendahara.",
         confirmButtonColor: "#10b981",
       })
       fetchData()
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan TTE Kuitansi")
+      toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan tanda tangan kuitansi")
     } finally {
       setRequestingTteId(null)
     }

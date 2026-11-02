@@ -141,7 +141,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
         passphrase: passphraseInvoice || undefined,
         totp: totpInvoice || undefined,
       })
-      toast.success(res?.data?.message || "Invoice berhasil ditandatangani secara elektronik (TTE BSrE)")
+      toast.success(res?.data?.message || "Invoice berhasil ditandatangani secara elektronik")
       setPassphraseInvoice("")
       setTotpInvoice("")
       fetchDetail()
@@ -164,7 +164,7 @@ export const AdminPermohonanDetailPage: React.FC = () => {
         passphrase: passphraseKuitansi || undefined,
         totp: totpKuitansi || undefined,
       })
-      toast.success(res?.data?.message || "Kuitansi berhasil ditandatangani secara elektronik (TTE BSrE)")
+      toast.success(res?.data?.message || "Kuitansi berhasil ditandatangani secara elektronik")
       setPassphraseKuitansi("")
       setTotpKuitansi("")
       fetchDetail()

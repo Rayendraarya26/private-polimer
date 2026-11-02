@@ -153,8 +153,11 @@ export const FieldHint: React.FC<{ children: React.ReactNode; className?: string
 /* ------------------------------------------------------------------ */
 /* Pilihan Radio & Kartu (RadioDot, OptionIcon, OptionCard, OptionGroup)*/
 /* ------------------------------------------------------------------ */
-export const RadioDot: React.FC<{ selected: boolean }> = ({ selected }) => (
-  <span className="shrink-0">
+export const RadioDot: React.FC<{ selected: boolean; className?: string }> = ({
+  selected,
+  className = "",
+}) => (
+  <span className={cx("shrink-0", className)}>
     {selected ? (
       <span className="w-[18px] h-[18px] rounded-full border border-brand-600 flex items-center justify-center text-brand-600 bg-white">
         <Check className="w-3 h-3" strokeWidth={2.5} />
@@ -195,6 +198,7 @@ export interface OptionCardProps {
   compact?: boolean
   children?: React.ReactNode
   className?: string
+  radioPosition?: "left" | "right"
 }
 
 export const OptionCard: React.FC<OptionCardProps> = ({
@@ -209,61 +213,71 @@ export const OptionCard: React.FC<OptionCardProps> = ({
   compact = false,
   children,
   className = "",
-}) => (
-  <div
-    id={id}
-    role="radio"
-    aria-checked={selected}
-    tabIndex={0}
-    onClick={onSelect}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        onSelect()
-      }
-    }}
-    style={{ outline: "none", WebkitTapHighlightColor: "transparent" }}
-    className={cx(
-      "group relative flex items-center gap-3 rounded-lg border text-left cursor-pointer select-none transition-all duration-150 shadow-none outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0",
-      compact ? "px-3.5 py-2.5 min-h-[48px]" : "p-4 min-h-[54px]",
-      selected
-        ? "border-2 border-brand-600 bg-white"
-        : "border border-slate-200 bg-white hover:border-slate-300",
-      className
-    )}
-  >
-    {leading}
-    <div className="flex-1 min-w-0">
-      {category && (
-        <p className="text-[11px] font-medium text-slate-400 mb-0.5 tracking-wide">
-          {category}
-        </p>
+  radioPosition = "right",
+}) => {
+  const isItemsStart = className.includes("items-start")
+  return (
+    <div
+      id={id}
+      role="radio"
+      aria-checked={selected}
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
+      style={{ outline: "none", WebkitTapHighlightColor: "transparent" }}
+      className={cx(
+        "group relative flex gap-3 rounded-lg border text-left cursor-pointer select-none transition-all duration-150 shadow-none outline-none focus:outline-none focus-visible:outline-none",
+        isItemsStart ? "items-start" : "items-center",
+        compact ? "px-3.5 py-2.5 min-h-[48px]" : "p-4 min-h-[54px]",
+        selected
+          ? "border-brand-600 ring-1 ring-brand-600 bg-white"
+          : "border-slate-200 bg-white hover:border-slate-300",
+        className
       )}
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-[14px] font-bold text-slate-900 leading-snug">
-          {title}
-        </div>
-        {badge && (
-          <span
-            className={cx(
-              "text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 transition-colors",
-              selected
-                ? "bg-brand-100/80 text-brand-700 border-brand-200"
-                : "bg-slate-100 text-slate-600 border-slate-200"
-            )}
-          >
-            {badge}
-          </span>
+    >
+      {radioPosition === "left" && (
+        <RadioDot selected={selected} className={isItemsStart ? "mt-0.5" : ""} />
+      )}
+      {leading}
+      <div className="flex-1 min-w-0">
+        {category && (
+          <p className="text-[11px] font-medium text-slate-400 mb-0.5 tracking-wide">
+            {category}
+          </p>
         )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[14px] font-bold text-slate-900 leading-snug">
+            {title}
+          </div>
+          {badge && (
+            <span
+              className={cx(
+                "text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 transition-colors",
+                selected
+                  ? "bg-brand-100/80 text-brand-700 border-brand-200"
+                  : "bg-slate-100 text-slate-600 border-slate-200"
+              )}
+            >
+              {badge}
+            </span>
+          )}
+        </div>
+        {description && (
+          <p className="mt-0.5 text-[12px] leading-relaxed text-slate-500">{description}</p>
+        )}
+        {children}
       </div>
-      {description && (
-        <p className="mt-0.5 text-[12px] leading-relaxed text-slate-500">{description}</p>
+      {radioPosition === "right" && (
+        <RadioDot selected={selected} className={isItemsStart ? "mt-0.5" : ""} />
       )}
-      {children}
     </div>
-    <RadioDot selected={selected} />
-  </div>
-)
+  )
+}
 
 const GRID_COLS: Record<number, string> = {
   1: "grid-cols-1",

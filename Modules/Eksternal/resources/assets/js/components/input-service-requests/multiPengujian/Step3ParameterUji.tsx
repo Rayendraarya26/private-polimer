@@ -2,13 +2,13 @@ import React from "react"
 import { FlaskConical, Plus, Building2, GraduationCap, Info } from "lucide-react"
 import { toast } from "react-hot-toast"
 import {
+  calculateGrandTotal,
   emptyPengujianSample,
   KategoriTarif,
   PengujianSampleItem,
 } from "../../../types/pengujian"
 import { useMasterKomoditiQuery } from "../../../hooks/queries/usePengujianQuery"
 import { SampleCardItem } from "./components/SampleCardItem"
-import { CostEstimationSummary } from "./components/CostEstimationSummary"
 import { Button } from "../../ui/Button"
 import {
   StepPanel,
@@ -103,6 +103,11 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
   }
 
   const isMahasiswa = kategoriTarif === "mahasiswa_pp54"
+  const grandTotal = calculateGrandTotal(samples, kategoriTarif)
+  const totalParameters = samples.reduce(
+    (sum, s) => sum + (s.selected_parameters ? s.selected_parameters.length : 0),
+    0
+  )
 
   return (
     <div className="space-y-6">
@@ -173,14 +178,28 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
             Tambah Sampel
           </Button>
         </div>
-      </StepPanel>
 
-      {/* Ringkasan biaya real-time (setengah lebar di sisi kanan) */}
-      <div className="flex justify-end">
-        <div className="w-full md:w-1/2">
-          <CostEstimationSummary samples={samples} kategoriTarif={kategoriTarif} />
+        {/* Grand Total Footer di dalam 1 Card StepPanel yang sama */}
+        <div className="px-5 sm:px-7 py-4 bg-slate-50/80 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span className="block text-xs font-semibold text-slate-500">
+              Total Estimasi Biaya Pengujian
+            </span>
+            <div className="flex flex-wrap items-baseline gap-2 mt-0.5">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Rp {grandTotal.toLocaleString("id-ID")}
+              </span>
+              <span className="text-xs text-slate-500">
+                · {samples.length} sampel · {totalParameters} parameter
+                {isMahasiswa && " · tarif mahasiswa"}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              * Belum termasuk PPN jika ada.
+            </p>
+          </div>
         </div>
-      </div>
+      </StepPanel>
 
       <WizardNav onBack={onBack} onNext={handleValidateAndNext} />
     </div>

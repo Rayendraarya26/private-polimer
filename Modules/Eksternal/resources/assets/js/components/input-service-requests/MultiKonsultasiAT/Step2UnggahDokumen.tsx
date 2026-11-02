@@ -15,8 +15,8 @@ import { Button } from "../../ui/Button"
 import {
     StepPanel,
     SectionHeading,
+    textareaClass,
 } from "./WizardUI"
-import { TextareaInput } from "../../forms"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB
 
@@ -308,11 +308,12 @@ export const Step2UnggahDokumen: React.FC<Step2UnggahDokumenProps> = ({
                         description="Jika berkas Anda terdiri dari banyak dokumen atau folder, Anda dapat mengompresnya menjadi satu arsip ZIP / RAR atau dokumen PDF."
                         optional
                     />
-                    <TextareaInput
+                    <textarea
                         value={catatanDokumen}
                         onChange={(e) => setCatatanDokumen(e.target.value)}
                         rows={3}
                         placeholder="Tuliskan keterangan berkas atau informasi pendukung lainnya jika ada..."
+                        className={textareaClass}
                     />
                 </div>
             </div>

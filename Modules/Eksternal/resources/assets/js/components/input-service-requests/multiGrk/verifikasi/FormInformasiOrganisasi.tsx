@@ -2,8 +2,8 @@ import React, { useEffect } from "react"
 import useProfile from "../../../../hooks/useProfile"
 import { Building } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
-import { FormField, TextInput, TextareaInput } from "../../../forms"
-import { StepPanel } from "../../common"
+import { FormField } from "../../../forms"
+import { StepPanel, inputClass, textareaClass } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -37,23 +37,27 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Input Nama Pemilik */}
                     <FormField label="Nama Pemilik" required>
-                        <TextInput
+                        <input
+                            type="text"
                             placeholder="Masukkan nama pemilik organisasi/perusahaan"
                             value={formData.namaPemilik || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPemilik: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
                     {/* Input Nama Pimpinan */}
                     <FormField label="Nama Pimpinan" required>
-                        <TextInput
+                        <input
+                            type="text"
                             placeholder="Masukkan nama direktur / pimpinan utama"
                             value={formData.namaPimpinan || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPimpinan: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
@@ -63,12 +67,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                         required
                         helper="Personel PIC verifikasi GRK"
                     >
-                        <TextInput
+                        <input
+                            type="text"
                             placeholder="Masukkan nama penanggung jawab program"
                             value={formData.namaPj || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPj: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
@@ -78,7 +84,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                         required
                         helper="Jumlah pabrik, cabang, atau unit fisik yang diverifikasi"
                     >
-                        <TextInput
+                        <input
                             type="number"
                             min={1}
                             placeholder="Contoh: 1"
@@ -86,6 +92,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, jumlahFasilitas: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
@@ -95,7 +102,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             Kriteria Verifikasi <span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap items-center gap-3">
-                            <label className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border cursor-pointer transition-all shadow-xs ${formData?.kriteriaVerifikasi === "14064-1" ? "border-brand-500 bg-brand-50/40 text-brand-900 font-semibold" : "border-slate-200 bg-white hover:border-brand-300 text-slate-700"}`}>
+                            <label className={`flex items-center gap-2.5 h-10 px-3.5 rounded-lg border cursor-pointer select-none transition-all text-sm ${formData?.kriteriaVerifikasi === "14064-1" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     id="14064-1"
@@ -110,10 +117,10 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-xs">ISO 14064-1</span>
+                                <span>ISO 14064-1</span>
                             </label>
 
-                            <label className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border cursor-pointer transition-all shadow-xs ${formData?.kriteriaVerifikasi === "lainnya" ? "border-brand-500 bg-brand-50/40 text-brand-900 font-semibold" : "border-slate-200 bg-white hover:border-brand-300 text-slate-700"}`}>
+                            <label className={`flex items-center gap-2.5 h-10 px-3.5 rounded-lg border cursor-pointer select-none transition-all text-sm ${formData?.kriteriaVerifikasi === "lainnya" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     id="lainnya"
@@ -128,13 +135,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-xs">Lainnya</span>
+                                <span>Lainnya</span>
                             </label>
                         </div>
 
                         {formData?.kriteriaVerifikasi === "lainnya" && (
                             <div className="pt-2 max-w-md animate-in fade-in-50 duration-200">
-                                <TextInput
+                                <input
+                                    type="text"
                                     placeholder="Sebutkan kriteria acuan lainnya..."
                                     value={formData?.kriteriaLainnyaText || ""}
                                     onChange={(e) =>
@@ -143,6 +151,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                             kriteriaLainnyaText: e.target.value,
                                         }))
                                     }
+                                    className={inputClass}
                                 />
                             </div>
                         )}
@@ -155,13 +164,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Awal rentang inventarisasi emisi"
                         >
-                            <TextInput
+                            <input
                                 type="date"
                                 placeholder="Tgl Mulai"
                                 value={formData.periodeMulai || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeMulai: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
 
@@ -170,7 +180,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Akhir rentang inventarisasi emisi"
                         >
-                            <TextInput
+                            <input
                                 type="date"
                                 placeholder="Tgl Selesai"
                                 min={formData.periodeMulai}
@@ -178,6 +188,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeSelesai: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
                     </div>
@@ -189,7 +200,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Total tenaga kerja di seluruh fasilitas terdaftar dalam lingkup verifikasi"
                         >
-                            <TextInput
+                            <input
                                 type="number"
                                 min={1}
                                 placeholder="Contoh: 150"
@@ -197,6 +208,7 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, jumlahKaryawan: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
                     </div>
@@ -208,13 +220,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Ringkasan proses industri, jenis operasional, dan kegiatan utama entitas"
                         >
-                            <TextareaInput
+                            <textarea
                                 rows={3}
                                 placeholder="Jelaskan ringkasan aktivitas operasional atau kegiatan industri perusahaan..."
                                 value={formData.deskripsiAktivitas || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, deskripsiAktivitas: e.target.value }))
                                 }
+                                className={textareaClass}
                             />
                         </FormField>
                     </div>

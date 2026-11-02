@@ -2,8 +2,8 @@ import React, { useEffect } from "react"
 import useProfile from "../../../../hooks/useProfile"
 import { Building } from "lucide-react"
 import { GrkValidasiFormData } from "../../../../types/grk"
-import { FormField, TextInput, TextareaInput } from "../../../forms"
-import { StepPanel } from "../../common"
+import { FormField } from "../../../forms"
+import { StepPanel, inputClass, textareaClass } from "../../common"
 
 interface Props {
     formData: GrkValidasiFormData
@@ -37,23 +37,27 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Input Nama Pemilik */}
                     <FormField label="Nama Pemilik" required>
-                        <TextInput
+                        <input
+                            type="text"
                             placeholder="Masukkan nama pemilik organisasi/perusahaan"
                             value={formData.namaPemilik || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPemilik: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
                     {/* Input Nama Pimpinan */}
                     <FormField label="Nama Pimpinan" required>
-                        <TextInput
+                        <input
+                            type="text"
                             placeholder="Masukkan nama direktur / pimpinan utama"
                             value={formData.namaPimpinan || ""}
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, namaPimpinan: e.target.value }))
                             }
+                            className={inputClass}
                         />
                     </FormField>
 
@@ -64,12 +68,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Personel PIC yang bertanggung jawab atas program validasi GRK"
                         >
-                            <TextInput
+                            <input
+                                type="text"
                                 placeholder="Masukkan nama penanggung jawab program"
                                 value={formData.namaPj || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, namaPj: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
                     </div>
@@ -81,13 +87,14 @@ export const FormInformasiOrganisasi: React.FC<Props> = ({
                             required
                             helper="Ringkasan proses industri, jenis output produk, dan kegiatan utama entitas"
                         >
-                            <TextareaInput
+                            <textarea
                                 rows={3}
                                 placeholder="Jelaskan ringkasan aktivitas operasional atau kegiatan industri perusahaan..."
                                 value={formData.deskripsiAktivitas || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, deskripsiAktivitas: e.target.value }))
                                 }
+                                className={textareaClass}
                             />
                         </FormField>
                     </div>

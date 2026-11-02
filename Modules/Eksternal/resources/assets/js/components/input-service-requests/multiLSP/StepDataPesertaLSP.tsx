@@ -3,7 +3,8 @@ import { toast } from "react-hot-toast"
 import { ParticipantLSP, emptyParticipantLSP } from "../../../types/lsp"
 import FormDataPesertaLSP from "./FormDataPesertaLSP"
 import { Button } from "../../ui/Button"
-import { UserPlus, UserCheck, Trash2, ArrowRight, Copy } from "lucide-react"
+import { UserPlus, UserCheck, Trash2, ArrowRight, Copy, Users } from "lucide-react"
+import { StepPanel } from "../common"
 
 interface Props {
   participants: ParticipantLSP[]
@@ -162,101 +163,107 @@ const StepDataPesertaLSP: React.FC<Props> = ({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Tab Navigasi Multi-Peserta */}
-      {isInstansi && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-thin">
-          {participants.map((p, index) => {
-            const isActive = activeId === p.id
-            return (
-              <div
-                key={p.id}
-                onClick={() => setActiveId(p.id)}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer select-none ${
-                  isActive
-                    ? "bg-brand-600 text-white shadow-xs ring-2 ring-brand-500/20"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>
-                  Peserta {index + 1}
-                  {p.nama_lengkap ? `: ${p.nama_lengkap.split(" ")[0]}` : ""}
-                </span>
-
-                <div className="flex items-center gap-0.5 ml-1">
-                  <span
-                    onClick={(e) => duplicateParticipant(p.id, e)}
-                    className={`p-1 rounded-md transition-colors ${
-                      isActive ? "hover:bg-white/20 text-white" : "hover:bg-slate-200 text-slate-500"
-                    }`}
-                    title="Duplikasi data peserta ini"
-                  >
-                    <Copy className="w-3 h-3" />
+    <StepPanel
+      icon={Users}
+      title="Data Peserta Uji Kompetensi"
+      description="Lengkapi biodata calon asesi dan unggah berkas persyaratan form APL."
+    >
+      <div className="space-y-6">
+        {/* Tab Navigasi Multi-Peserta */}
+        {isInstansi && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-100 scrollbar-none">
+            {participants.map((p, index) => {
+              const isActive = activeId === p.id
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setActiveId(p.id)}
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer select-none ${
+                    isActive
+                      ? "bg-brand-600 text-white shadow-xs"
+                      : "bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>
+                    Peserta {index + 1}
+                    {p.nama_lengkap ? `: ${p.nama_lengkap.split(" ")[0]}` : ""}
                   </span>
 
-                  {participants.length > 1 && (
+                  <div className="flex items-center gap-0.5 ml-1">
                     <span
-                      onClick={(e) => removeParticipant(p.id, e)}
+                      onClick={(e) => duplicateParticipant(p.id, e)}
                       className={`p-1 rounded-md transition-colors ${
-                        isActive ? "hover:bg-rose-500/30 text-white" : "hover:bg-rose-100 text-rose-500"
+                        isActive ? "hover:bg-white/20 text-white" : "hover:bg-slate-200 text-slate-500"
                       }`}
-                      title="Hapus peserta ini"
+                      title="Duplikasi data peserta ini"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Copy className="w-3 h-3" />
                     </span>
-                  )}
+
+                    {participants.length > 1 && (
+                      <span
+                        onClick={(e) => removeParticipant(p.id, e)}
+                        className={`p-1 rounded-md transition-colors ${
+                          isActive ? "hover:bg-rose-500/30 text-white" : "hover:bg-rose-100 text-rose-500"
+                        }`}
+                        title="Hapus peserta ini"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
 
-          <button
-            type="button"
-            onClick={addParticipant}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border-2 border-dashed border-slate-300 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Tambah Peserta</span>
-          </button>
-        </div>
-      )}
-
-      {/* Render Peserta Aktif */}
-      {participants.map((p) => {
-        const profil = pilihanProfil[p.id] || "Manual"
-        const disabled = !isInstansi || profil !== "Manual"
-        return (
-          <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
-            <FormDataPesertaLSP
-              formData={p}
-              onChange={(e) => updateParticipant(p.id, e)}
-              onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
-              jenisPelanggan={jenisPelanggan}
-              detail={detail}
-              pilihanProfil={profil}
-              onPilihanProfilChange={(e) => handlePilihanProfil(p.id, e)}
-              isFieldDisabled={disabled}
-              fieldNamePrefix={String(p.id)}
-            />
+            <button
+              type="button"
+              onClick={addParticipant}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-dashed border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0 cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Tambah Peserta</span>
+            </button>
           </div>
-        )
-      })}
+        )}
 
-      {/* Action Footer */}
-      <div className="flex justify-end pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="primary"
-          size="lg"
-          onClick={onNext}
-          rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="shadow-sm font-bold text-xs px-6"
-        >
-          Lanjut ke Data Instansi & Persetujuan
-        </Button>
+        {/* Render Peserta Aktif */}
+        {participants.map((p) => {
+          const profil = pilihanProfil[p.id] || "Manual"
+          const disabled = !isInstansi || profil !== "Manual"
+          return (
+            <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
+              <FormDataPesertaLSP
+                formData={p}
+                onChange={(e) => updateParticipant(p.id, e)}
+                onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
+                jenisPelanggan={jenisPelanggan}
+                detail={detail}
+                pilihanProfil={profil}
+                onPilihanProfilChange={(e) => handlePilihanProfil(p.id, e)}
+                isFieldDisabled={disabled}
+                fieldNamePrefix={String(p.id)}
+              />
+            </div>
+          )
+        })}
+
+        {/* Action Footer */}
+        <div className="flex justify-end pt-4 border-t border-slate-200">
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={onNext}
+            rightIcon={<ArrowRight className="w-4 h-4" />}
+            className="font-bold text-xs px-6 rounded-xl"
+          >
+            Lanjut ke Data Instansi & Persetujuan
+          </Button>
+        </div>
       </div>
-    </div>
+    </StepPanel>
   )
 }
 

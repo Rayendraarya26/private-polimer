@@ -1,8 +1,8 @@
 import React from "react"
 import { Globe } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
-import { FormField, TextInput, TextareaInput } from "../../../forms"
-import { StepPanel } from "../../common"
+import { FormField } from "../../../forms"
+import { StepPanel, inputClass, textareaClass } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -27,13 +27,15 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             required
                             helper="Contoh: Laporan Emisi Tahunan Fasilitas Manufaktur atau Merek Program GRK Organisasi"
                         >
-                            <TextInput
+                            <input
+                                type="text"
                                 placeholder="Masukkan merek contoh atau nama program verifikasi"
                                 id="merek_sample"
                                 value={formData.merekSample || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, merekSample: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
                     </div>
@@ -45,13 +47,15 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             required
                             helper="Contoh: ISO 14064-1:2018, GHG Protocol Corporate Standard, Permen LHK 21/2022"
                         >
-                            <TextInput
+                            <input
+                                type="text"
                                 placeholder="Masukkan standar acuan peraturan atau metodologi"
                                 id="acuan"
                                 value={formData.acuan || ""}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, acuan: e.target.value }))
                                 }
+                                className={inputClass}
                             />
                         </FormField>
                     </div>
@@ -63,7 +67,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             required
                             helper="Cakupan batas organisasi, fasilitas fisik operasional, dan kategori emisi lingkup 1, 2, atau 3"
                         >
-                            <TextareaInput
+                            <textarea
                                 rows={3}
                                 name="keterangan"
                                 id="keterangan"
@@ -72,6 +76,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, keterangan: e.target.value }))
                                 }
+                                className={textareaClass}
                             />
                         </FormField>
                     </div>
@@ -83,7 +88,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                             required
                             helper="Jelaskan kebutuhan sertifikasi/verifikasi khusus, jadwal audit lapangan yang diharapkan, dll."
                         >
-                            <TextareaInput
+                            <textarea
                                 rows={3}
                                 placeholder="Tuliskan rincian kebutuhan penawaran atau permintaan khusus..."
                                 id="uraianKebutuhan"
@@ -91,6 +96,7 @@ export const FormInformasiUmum: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, uraianKebutuhan: e.target.value }))
                                 }
+                                className={textareaClass}
                             />
                         </FormField>
                     </div>

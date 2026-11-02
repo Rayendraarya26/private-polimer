@@ -1,7 +1,7 @@
 import React from "react"
 import { Building } from "lucide-react"
 import { GrkValidasiFormData } from "../../../../types/grk"
-import { StepPanel } from "../../common"
+import { StepPanel, inputClass, textareaClass } from "../../common"
 
 interface Props {
     formData: GrkValidasiFormData
@@ -47,7 +47,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, batasanProyek: e.target.value }))
                             }
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors resize-y"
+                            className={textareaClass}
                         />
                     </div>
 
@@ -56,9 +56,9 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Jenis Proyek GRK <span className="text-red-500">*</span>
                         </label>
-                        <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex flex-wrap items-center gap-3">
                             <label
-                                className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                className="flex items-center gap-2.5 h-10 px-3.5 rounded-lg border border-slate-300 bg-white hover:border-slate-400 cursor-pointer transition-colors text-sm font-medium text-slate-700"
                             >
                                 <input
                                     type="checkbox"
@@ -69,11 +69,11 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     onChange={() => handleCheckboxArrayToggle("jenisProyekGrk", "Pengurangan Emisi GRK")}
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                 />
-                                <span className="text-xs font-medium text-slate-700">Pengurangan Emisi GRK</span>
+                                <span>Pengurangan Emisi GRK</span>
                             </label>
 
                             <label
-                                className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                className="flex items-center gap-2.5 h-10 px-3.5 rounded-lg border border-slate-300 bg-white hover:border-slate-400 cursor-pointer transition-colors text-sm font-medium text-slate-700"
                             >
                                 <input
                                     type="checkbox"
@@ -84,7 +84,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     onChange={() => handleCheckboxArrayToggle("jenisProyekGrk", "Peningkatan Serapan GRK")}
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                 />
-                                <span className="text-xs font-medium text-slate-700">Peningkatan Serapan GRK</span>
+                                <span>Peningkatan Serapan GRK</span>
                             </label>
                         </div>
                     </div>
@@ -97,31 +97,23 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         </label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input
-                                type={formData.periodeMulai ? "date" : "text"}
+                                type="date"
                                 placeholder="Tgl Mulai"
                                 value={formData.periodeMulai || ""}
-                                onFocus={(e) => (e.target.type = "date")}
-                                onBlur={(e) => {
-                                    if (!e.target.value) e.target.type = "text"
-                                }}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeMulai: e.target.value }))
                                 }
-                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className={inputClass}
                             />
                             <input
-                                type={formData.periodeSelesai ? "date" : "text"}
+                                type="date"
                                 placeholder="Tgl Selesai"
                                 min={formData.periodeMulai || undefined}
                                 value={formData.periodeSelesai || ""}
-                                onFocus={(e) => (e.target.type = "date")}
-                                onBlur={(e) => {
-                                    if (!e.target.value) e.target.type = "text"
-                                }}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, periodeSelesai: e.target.value }))
                                 }
-                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className={inputClass}
                             />
                         </div>
                     </div>
@@ -132,28 +124,26 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 Kriteria Verifikasi <span className="text-red-500">*</span>
                             </label>
                             <div className="space-y-3 pt-1">
-                                <div className="flex items-center">
-                                    <input
-                                        type="radio"
-                                        id="14064-2"
-                                        name="kriteria_verifikasi"
-                                        value="14064-2"
-                                        checked={formData?.kriteriaVerifikasi === "14064-2"}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                kriteriaVerifikasi: e.target.value,
-                                            }))
-                                        }
-                                        className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
-                                    />
-                                    <label htmlFor="14064-2" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
-                                        14064-2
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <label className={`flex items-center gap-2.5 h-10 px-3.5 rounded-lg border cursor-pointer select-none transition-all text-sm ${formData?.kriteriaVerifikasi === "14064-2" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
+                                        <input
+                                            type="radio"
+                                            id="14064-2"
+                                            name="kriteria_verifikasi"
+                                            value="14064-2"
+                                            checked={formData?.kriteriaVerifikasi === "14064-2"}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    kriteriaVerifikasi: e.target.value,
+                                                }))
+                                            }
+                                            className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                                        />
+                                        <span>ISO 14064-2</span>
                                     </label>
-                                </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex items-center">
+                                    <label className={`flex items-center gap-2.5 h-10 px-3.5 rounded-lg border cursor-pointer select-none transition-all text-sm ${formData?.kriteriaVerifikasi === "lainnya" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
                                         <input
                                             type="radio"
                                             id="lainnya"
@@ -168,27 +158,26 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                             }
                                             className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                         />
-                                        <label htmlFor="lainnya" className="ms-2.5 text-xs font-medium text-slate-700 cursor-pointer">
-                                            Lainnya
-                                        </label>
-                                    </div>
-                                    {formData?.kriteriaVerifikasi === "lainnya" && (
-                                        <div className="pl-6 pt-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Kriteria lainnya"
-                                                value={formData?.kriteriaLainnyaText || ""}
-                                                onChange={(e) =>
-                                                    setFormData((prev) => ({
-                                                        ...prev,
-                                                        kriteriaLainnyaText: e.target.value,
-                                                    }))
-                                                }
-                                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
-                                            />
-                                        </div>
-                                    )}
+                                        <span>Lainnya</span>
+                                    </label>
                                 </div>
+
+                                {formData?.kriteriaVerifikasi === "lainnya" && (
+                                    <div className="pt-1 max-w-md animate-in fade-in-50 duration-200">
+                                        <input
+                                            type="text"
+                                            placeholder="Kriteria lainnya"
+                                            value={formData?.kriteriaLainnyaText || ""}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    kriteriaLainnyaText: e.target.value,
+                                                }))
+                                            }
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -203,7 +192,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, jumlahKaryawan: e.target.value }))
                                 }
-                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className={inputClass}
                             />
                         </div>
                     </div>
@@ -222,7 +211,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             onChange={(e) =>
                                 setFormData((prev) => ({ ...prev, ssrKuantifikasi: e.target.value }))
                             }
-                            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                            className={textareaClass}
                         />
                     </div>
 
@@ -242,7 +231,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                             ].map((gas) => (
                                 <label
                                     key={gas.id}
-                                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 cursor-pointer transition-colors shadow-xs"
+                                    className="flex items-center gap-2 h-10 px-3.5 rounded-lg border border-slate-300 bg-white hover:border-slate-400 cursor-pointer transition-colors text-sm font-semibold text-slate-700"
                                 >
                                     <input
                                         type="checkbox"
@@ -253,7 +242,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         onChange={() => handleCheckboxArrayToggle("jenisGasEmisi", gas.id)}
                                         className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 rounded"
                                     />
-                                    <span className="text-xs font-semibold text-slate-700">
+                                    <span>
                                         {gas.label}
                                     </span>
                                 </label>
@@ -280,7 +269,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiProyek: e.target.value,
                                     }))
                                 }
-                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className={inputClass}
                             />
                         </div>
                     </div>
@@ -303,7 +292,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                         jumlahEmisiBaseline: e.target.value,
                                     }))
                                 }
-                                className="w-full h-[42px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                className={inputClass}
                             />
                         </div>
                     </div>
@@ -314,8 +303,8 @@ export const FormRuangLingkup: React.FC<Props> = ({
                         <label className="block text-xs font-bold text-slate-800 mb-1.5">
                             Materialitas (materiality) <span className="text-red-500">*</span>
                         </label>
-                        <div className="flex flex-wrap items-center gap-4">
-                            <label className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border cursor-pointer transition-all shadow-xs ${formData.materialitas === "default" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/20 text-slate-700"}`}>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <label className={`flex items-center gap-2.5 h-10 px-3.5 rounded-lg border cursor-pointer select-none transition-all text-sm ${formData.materialitas === "default" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -330,12 +319,12 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300"
                                 />
-                                <span className="text-xs font-medium">
+                                <span>
                                     ≤ 5% (jika tidak ditetapkan oleh program)
                                 </span>
                             </label>
 
-                            <div className={`flex flex-wrap items-center gap-2 px-4 py-1.5 rounded-xl border transition-all shadow-xs ${formData.materialitas === "program" ? "border-brand-500 bg-brand-50/30 text-brand-900" : "border-slate-200 bg-white hover:border-brand-300 text-slate-700"}`}>
+                            <div className={`flex flex-wrap items-center gap-2 h-10 px-3.5 rounded-lg border transition-all text-sm ${formData.materialitas === "program" ? "border-brand-600 bg-brand-50/40 text-brand-900 font-medium" : "border-slate-300 bg-white hover:border-slate-400 text-slate-700"}`}>
                                 <input
                                     type="radio"
                                     name="materialitas"
@@ -350,7 +339,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                     }
                                     className="w-4 h-4 text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
                                 />
-                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 text-xs font-medium cursor-pointer">
+                                <label htmlFor="materialitas_program" className="flex flex-wrap items-center gap-2 cursor-pointer">
                                     <span>≤</span>
                                     <input
                                         type="text"
@@ -369,7 +358,7 @@ export const FormRuangLingkup: React.FC<Props> = ({
                                                 materialitas: "program",
                                             }))
                                         }
-                                        className="w-24 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-0 transition-colors"
+                                        className="w-20 h-7 rounded border border-slate-300 bg-white px-2 text-xs text-slate-800 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors"
                                     />
                                     <span>% (jika ditetapkan oleh program)</span>
                                 </label>

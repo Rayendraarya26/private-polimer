@@ -1,18 +1,17 @@
 import React from "react"
-import { toast } from "react-hot-toast"
 import { ProfileClientType } from "../../../types/profile"
 import { ParticipantLSP } from "../../../types/lsp"
 import PhoneInputWithCountrySelect from "react-phone-number-input"
 import "react-phone-number-input/style.css"
-import { User, Briefcase, FileUp } from "lucide-react"
 import {
-  FormField,
-  TextInput,
-  TextareaInput,
-  SelectInput,
-  DateInput,
-  DropzoneUploader,
-} from "../../forms"
+  SectionHeading,
+  FieldLabel,
+  FieldHint,
+  inputClass,
+  selectClass,
+  textareaClass,
+} from "../common"
+import { DateInput, DropzoneUploader } from "../../forms"
 
 interface Props {
   formData: ParticipantLSP
@@ -35,6 +34,7 @@ const FormDataPesertaLSP: React.FC<Props> = ({
   pilihanProfil,
   onPilihanProfilChange,
   isFieldDisabled,
+  fieldNamePrefix,
 }) => {
   const setField = (field: keyof ParticipantLSP, value: any) => {
     if (onUpdateField) {
@@ -47,98 +47,109 @@ const FormDataPesertaLSP: React.FC<Props> = ({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-200">
-      {/* Profil Selector Card (for Instansi / Perusahaan) */}
+    <div className="space-y-6">
+      {/* Profil Selector Card (Khusus Akun Instansi / Badan Usaha) */}
       {jenisPelanggan !== ProfileClientType.PERORANGAN && (
-        <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 space-y-2">
-          <FormField
-            label="Pilih Sumber Data Peserta"
-            required
-            helperText="Pilih apakah peserta adalah pimpinan, penanggung jawab, atau staf lainnya."
+        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
+          <FieldLabel required htmlFor={`pilihan-profil-${fieldNamePrefix}`}>
+            Pilih Sumber Data Peserta
+          </FieldLabel>
+          <select
+            id={`pilihan-profil-${fieldNamePrefix}`}
+            value={pilihanProfil}
+            onChange={onPilihanProfilChange}
+            className={selectClass}
           >
-            <SelectInput
-              value={pilihanProfil}
-              onChange={(val) =>
-                onPilihanProfilChange({ target: { value: String(val) } } as any)
-              }
-              options={[
-                { value: "Manual", label: "Input Manual (Pegawai / Calon Asesi Delegasi)" },
-                { value: "saya", label: "Profil Saya (Akun Login)" },
-                { value: "pimpinan", label: `Pimpinan (${detail?.pimpinan || "Data Kosong"})` },
-                {
-                  value: "penanggung_jawab",
-                  label: `Penanggung Jawab / PIC (${detail?.pj_nama || "Data Kosong"})`,
-                },
-              ]}
-            />
-          </FormField>
+            <option value="Manual">Input Manual (Pegawai / Calon Asesi Delegasi)</option>
+            <option value="saya">Profil Saya (Akun Login)</option>
+            <option value="pimpinan">Pimpinan ({detail?.pimpinan || "Data Kosong"})</option>
+            <option value="penanggung_jawab">
+              Penanggung Jawab / PIC ({detail?.pj_nama || "Data Kosong"})
+            </option>
+          </select>
+          <FieldHint>
+            Pilih apakah data peserta diambil otomatis dari profil akun atau diisi manual.
+          </FieldHint>
         </div>
       )}
 
       {/* 1. Biodata Pribadi Peserta */}
-      <div className="bg-slate-50/70 p-6 rounded-2xl border border-slate-200/80 space-y-5">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-          <div className="p-2 rounded-lg bg-brand-50 text-brand-600">
-            <User className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              1. Biodata Calon Asesi / Peserta
-            </h3>
-            <p className="text-xs text-slate-500">
-              Identitas lengkap sesuai kartu tanda penduduk (KTP)
-            </p>
-          </div>
-        </div>
+      <div className="space-y-4">
+        <SectionHeading
+          title="1. Biodata Calon Asesi / Peserta"
+          description="Identitas lengkap sesuai kartu tanda penduduk (KTP)"
+          required
+        />
 
         <div className="space-y-4">
-          <FormField
-            label="Nama Lengkap"
-            required
-            helperText="Disarankan tanpa gelar sesuai data KTP"
-          >
-            <TextInput
+          <div>
+            <FieldLabel required htmlFor={`nama_lengkap_${fieldNamePrefix}`}>
+              Nama Lengkap
+            </FieldLabel>
+            <input
+              type="text"
+              id={`nama_lengkap_${fieldNamePrefix}`}
               name="nama_lengkap"
               value={formData.nama_lengkap}
               onChange={(e) => setField("nama_lengkap", e.target.value)}
               disabled={isFieldDisabled}
               placeholder="Masukkan nama lengkap peserta..."
+              className={inputClass}
             />
-          </FormField>
+            <FieldHint>Disarankan tanpa gelar sesuai data KTP</FieldHint>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Tempat Lahir" required>
-              <TextInput
+            <div>
+              <FieldLabel required htmlFor={`tempat_lahir_${fieldNamePrefix}`}>
+                Tempat Lahir
+              </FieldLabel>
+              <input
+                type="text"
+                id={`tempat_lahir_${fieldNamePrefix}`}
                 name="tempat_lahir"
                 value={formData.tempat_lahir}
                 onChange={(e) => setField("tempat_lahir", e.target.value)}
                 placeholder="Kota kelahiran..."
+                className={inputClass}
               />
-            </FormField>
+            </div>
 
-            <FormField label="Tanggal Lahir" required>
+            <div>
+              <FieldLabel required htmlFor={`tanggal_lahir_${fieldNamePrefix}`}>
+                Tanggal Lahir
+              </FieldLabel>
               <DateInput
                 name="tanggal_lahir"
                 value={formData.tanggal_lahir}
                 onChange={(e) => setField("tanggal_lahir", e.target.value)}
               />
-            </FormField>
+            </div>
 
-            <FormField label="Jenis Kelamin" required>
-              <SelectInput
+            <div>
+              <FieldLabel required htmlFor={`gender_${fieldNamePrefix}`}>
+                Jenis Kelamin
+              </FieldLabel>
+              <select
+                id={`gender_${fieldNamePrefix}`}
                 name="gender"
                 value={formData.gender}
-                onChange={(val) => setField("gender", String(val))}
-                placeholder="-- Pilih Gender --"
-                options={[
-                  { value: "Laki-laki", label: "Laki-laki" },
-                  { value: "Perempuan", label: "Perempuan" },
-                ]}
-              />
-            </FormField>
+                onChange={(e) => setField("gender", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">-- Pilih Gender --</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
 
-            <FormField label="Nomor Induk Kependudukan (NIK)" required>
-              <TextInput
+            <div>
+              <FieldLabel required htmlFor={`nik_${fieldNamePrefix}`}>
+                Nomor Induk Kependudukan (NIK)
+              </FieldLabel>
+              <input
+                type="text"
+                id={`nik_${fieldNamePrefix}`}
                 name="nik_peserta"
                 value={formData.nik_peserta || ""}
                 onChange={(e) => {
@@ -148,54 +159,73 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 inputMode="numeric"
                 maxLength={16}
                 placeholder="16 digit NIK..."
+                className={inputClass}
               />
-            </FormField>
+            </div>
 
-            <FormField label="Kewarganegaraan" required>
-              <SelectInput
+            <div>
+              <FieldLabel required htmlFor={`kewarganegaraan_${fieldNamePrefix}`}>
+                Kewarganegaraan
+              </FieldLabel>
+              <select
+                id={`kewarganegaraan_${fieldNamePrefix}`}
                 name="kewarganegaraan"
                 value={formData.kewarganegaraan}
-                onChange={(val) => setField("kewarganegaraan", String(val))}
-                placeholder="-- Pilih --"
-                options={[
-                  { value: "WNI", label: "WNI (Warga Negara Indonesia)" },
-                  { value: "WNA", label: "WNA (Warga Negara Asing)" },
-                ]}
-              />
-            </FormField>
+                onChange={(e) => setField("kewarganegaraan", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">-- Pilih Kewarganegaraan --</option>
+                <option value="WNI">WNI (Warga Negara Indonesia)</option>
+                <option value="WNA">WNA (Warga Negara Asing)</option>
+              </select>
+            </div>
 
-            <FormField label="Pendidikan Terakhir" required>
-              <SelectInput
+            <div>
+              <FieldLabel required htmlFor={`pendidikan_${fieldNamePrefix}`}>
+                Pendidikan Terakhir
+              </FieldLabel>
+              <select
+                id={`pendidikan_${fieldNamePrefix}`}
                 name="pendidikan"
                 value={formData.pendidikan}
-                onChange={(val) => setField("pendidikan", String(val))}
-                placeholder="-- Pilih Pendidikan --"
-                options={[
-                  { value: "S3", label: "S3 / Doktoral" },
-                  { value: "S2", label: "S2 / Magister" },
-                  { value: "S1", label: "S1 / Sarjana" },
-                  { value: "D4", label: "D4 / Sarjana Terapan" },
-                  { value: "D3", label: "D3 / Diploma 3" },
-                  { value: "D1 / SMA / SMK", label: "D1 / SMA / SMK Sederajat" },
-                  { value: "Lainnya", label: "Lainnya" },
-                ]}
-              />
-            </FormField>
+                onChange={(e) => setField("pendidikan", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">-- Pilih Pendidikan --</option>
+                <option value="S3">S3 / Doktoral</option>
+                <option value="S2">S2 / Magister</option>
+                <option value="S1">S1 / Sarjana</option>
+                <option value="D4">D4 / Sarjana Terapan</option>
+                <option value="D3">D3 / Diploma 3</option>
+                <option value="D1 / SMA / SMK">D1 / SMA / SMK Sederajat</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
           </div>
 
-          <FormField label="Alamat Lengkap Domisili" required>
-            <TextareaInput
+          <div>
+            <FieldLabel required htmlFor={`alamat_${fieldNamePrefix}`}>
+              Alamat Lengkap Domisili
+            </FieldLabel>
+            <textarea
               rows={2}
+              id={`alamat_${fieldNamePrefix}`}
               name="alamat_peserta"
               value={formData.alamat_peserta}
               onChange={(e) => setField("alamat_peserta", e.target.value)}
               placeholder="Nama jalan, RT/RW, kelurahan, kecamatan, kota..."
+              className={textareaClass}
             />
-          </FormField>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Kode Pos" required>
-              <TextInput
+            <div>
+              <FieldLabel required htmlFor={`kode_pos_${fieldNamePrefix}`}>
+                Kode Pos
+              </FieldLabel>
+              <input
+                type="text"
+                id={`kode_pos_${fieldNamePrefix}`}
                 name="kode_pos"
                 value={formData.kode_pos || ""}
                 onChange={(e) => {
@@ -205,31 +235,27 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 inputMode="numeric"
                 maxLength={5}
                 placeholder="5 digit kode pos..."
+                className={inputClass}
               />
-            </FormField>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 2. Kontak & Karir Pekerjaan */}
-      <div className="bg-slate-50/70 p-6 rounded-2xl border border-slate-200/80 space-y-5">
-        <div className="flex items-center gap-2.5 pb-2 border-b border-slate-200">
-          <div className="p-2 rounded-lg bg-teal-50 text-teal-600">
-            <Briefcase className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              2. Kontak & Jabatan Pekerjaan
-            </h3>
-            <p className="text-xs text-slate-500">
-              Informasi profesi dan saluran komunikasi untuk jadwal asesmen
-            </p>
-          </div>
-        </div>
+      <div className="space-y-4 pt-4 border-t border-slate-200">
+        <SectionHeading
+          title="2. Kontak & Jabatan Pekerjaan"
+          description="Informasi profesi dan saluran komunikasi untuk jadwal asesmen"
+          required
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Nomor WhatsApp Aktif" required>
-            <div className="min-h-[42px] px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white flex items-center">
+          <div>
+            <FieldLabel required htmlFor={`wa_${fieldNamePrefix}`}>
+              Nomor WhatsApp Aktif
+            </FieldLabel>
+            <div className="h-10 px-3 rounded-lg border border-slate-300 bg-white flex items-center focus-within:border-brand-600 transition">
               <PhoneInputWithCountrySelect
                 international
                 defaultCountry="ID"
@@ -237,64 +263,70 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 value={formData.whatsapp || ""}
                 onChange={(value) => setField("whatsapp", value || "")}
                 disabled={isFieldDisabled}
-                className="w-full text-xs"
+                className="w-full text-sm"
               />
             </div>
-          </FormField>
+          </div>
 
-          <FormField label="Alamat Email Aktif" required>
-            <TextInput
+          <div>
+            <FieldLabel required htmlFor={`email_${fieldNamePrefix}`}>
+              Alamat Email Aktif
+            </FieldLabel>
+            <input
               type="email"
+              id={`email_${fieldNamePrefix}`}
               name="email"
               value={formData.email}
               onChange={(e) => setField("email", e.target.value)}
               disabled={isFieldDisabled}
               placeholder="email@example.com"
+              className={inputClass}
             />
-          </FormField>
-        </div>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Jabatan / Posisi Pekerjaan" required>
-            <TextInput
+          <div>
+            <FieldLabel required htmlFor={`jabatan_${fieldNamePrefix}`}>
+              Jabatan / Posisi Pekerjaan
+            </FieldLabel>
+            <input
+              type="text"
+              id={`jabatan_${fieldNamePrefix}`}
               name="jabatan"
               value={formData.jabatan || ""}
               onChange={(e) => setField("jabatan", e.target.value)}
               placeholder="Contoh: Operator Mesin / Analis Mutu..."
+              className={inputClass}
             />
-          </FormField>
+          </div>
 
-          <FormField label="Pengalaman Kerja Relevan" required>
-            <TextInput
+          <div>
+            <FieldLabel required htmlFor={`pengalaman_${fieldNamePrefix}`}>
+              Pengalaman Kerja Relevan
+            </FieldLabel>
+            <input
+              type="text"
+              id={`pengalaman_${fieldNamePrefix}`}
               name="pengalaman_kerja"
               value={formData.pengalaman_kerja || ""}
               onChange={(e) => setField("pengalaman_kerja", e.target.value)}
               placeholder="Contoh: 3 Tahun di Industri Plastik..."
+              className={inputClass}
             />
-          </FormField>
+          </div>
         </div>
       </div>
 
       {/* 3. Unggah Dokumen Portofolio Asesmen */}
-      <div className="bg-slate-50/70 p-6 rounded-2xl border border-slate-200/80 space-y-5">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-200 flex-wrap gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
-              <FileUp className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                3. Unggah Berkas Persyaratan & Form APL
-              </h3>
-              <p className="text-xs text-slate-500">
-                Format: PDF, JPG, PNG • Maksimal 5 MB per dokumen
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-4 pt-4 border-t border-slate-200">
+        <SectionHeading
+          title="3. Unggah Berkas Persyaratan & Form APL"
+          description="Format: PDF, JPG, PNG • Maksimal 5 MB per berkas"
+          required
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Kartu Tanda Penduduk (KTP)" required>
+          <div>
+            <FieldLabel required>Kartu Tanda Penduduk (KTP)</FieldLabel>
             <DropzoneUploader
               label="Unggah Berkas KTP"
               value={formData.ktp_peserta}
@@ -302,9 +334,10 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               accept=".pdf,.jpg,.jpeg,.png"
               maxSizeMB={5}
             />
-          </FormField>
+          </div>
 
-          <FormField label="Ijazah Terakhir" required>
+          <div>
+            <FieldLabel required>Ijazah Terakhir</FieldLabel>
             <DropzoneUploader
               label="Unggah Ijazah"
               value={formData.ijazah}
@@ -312,9 +345,10 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               accept=".pdf,.jpg,.jpeg,.png"
               maxSizeMB={5}
             />
-          </FormField>
+          </div>
 
-          <FormField label="Formulir APL-01 (Permohonan)" required>
+          <div>
+            <FieldLabel required>Formulir APL-01 (Permohonan)</FieldLabel>
             <DropzoneUploader
               label="Unggah Form APL-01"
               value={formData.apl_01}
@@ -322,9 +356,10 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               accept=".pdf,.jpg,.jpeg,.png"
               maxSizeMB={5}
             />
-          </FormField>
+          </div>
 
-          <FormField label="Formulir APL-02 (Asesmen Mandiri)" required>
+          <div>
+            <FieldLabel required>Formulir APL-02 (Asesmen Mandiri)</FieldLabel>
             <DropzoneUploader
               label="Unggah Form APL-02"
               value={formData.apl_02}
@@ -332,18 +367,19 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               accept=".pdf,.jpg,.jpeg,.png"
               maxSizeMB={5}
             />
-          </FormField>
+          </div>
 
           <div className="sm:col-span-2">
-            <FormField label="Dokumen Portofolio Tambahan / Sertifikat Terkait (Opsional)">
-              <DropzoneUploader
-                label="Unggah Portofolio Tambahan"
-                value={formData.upload_lainya}
-                onChange={(file) => setField("upload_lainya", file)}
-                accept=".pdf,.jpg,.jpeg,.png"
-                maxSizeMB={5}
-              />
-            </FormField>
+            <FieldLabel optional>
+              Dokumen Portofolio Tambahan / Sertifikat Terkait
+            </FieldLabel>
+            <DropzoneUploader
+              label="Unggah Portofolio Tambahan"
+              value={formData.upload_lainya}
+              onChange={(file) => setField("upload_lainya", file)}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeMB={5}
+            />
           </div>
         </div>
       </div>

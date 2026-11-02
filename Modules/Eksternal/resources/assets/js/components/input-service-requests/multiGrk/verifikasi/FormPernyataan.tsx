@@ -1,7 +1,6 @@
 import React from "react"
-import { ShieldCheck, CheckCheck } from "lucide-react"
+import { ShieldCheck } from "lucide-react"
 import { GrkVerifikasiFormData } from "../../../../types/grk"
-import { LegalStatementBox } from "../../../forms"
 import { StepPanel } from "../../common"
 
 interface Props {
@@ -12,7 +11,6 @@ interface Props {
 export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
     const pernyataanPerubahan = Boolean(formData.pernyataanPerubahan)
     const pernyataanPemohon = Boolean(formData.pernyataanPemohon ?? (formData as any).pernyataanPermohonan)
-    const isAllChecked = pernyataanPerubahan && pernyataanPemohon
 
     const handleCheckboxChange = (field: "pernyataanPerubahan" | "pernyataanPemohon", checked: boolean) => {
         setFormData((prev) => ({
@@ -24,64 +22,57 @@ export const FormPernyataan: React.FC<Props> = ({ formData, setFormData }) => {
         }))
     }
 
-    const handleToggleAll = () => {
-        const nextState = !isAllChecked
-        setFormData((prev) => ({
-            ...prev,
-            pernyataanPerubahan: nextState,
-            pernyataanPemohon: nextState,
-            pernyataanPermohonan: nextState,
-        }))
-    }
-
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
             <StepPanel
                 icon={ShieldCheck}
                 title="Pernyataan Hukum & Persetujuan Pemohon"
                 description="Harap telaah dan setujui klausul pertanggungjawaban serta komitmen verifikasi GRK berikut"
-                action={
-                    <button
-                        type="button"
-                        onClick={handleToggleAll}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer self-start sm:self-auto shrink-0 ${
-                            isAllChecked
-                                ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                                : "bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200"
-                        }`}
-                    >
-                        <CheckCheck className="w-3.5 h-3.5 text-brand-600" />
-                        {isAllChecked ? "Batalkan Semua" : "Setujui Semua Klausul"}
-                    </button>
-                }
             >
-                <div className="space-y-4">
+                <div className="space-y-6 divide-y divide-slate-200">
                     {/* Klausul 1: Perubahan Laporan */}
-                    <LegalStatementBox
-                        title="Pernyataan Perubahan pada Laporan Verifikasi"
-                        badgeText="Klausul Laporan"
-                        subtitle="Komitmen bahwa setelah laporan verifikasi diterbitkan secara sah, pemohon tidak akan mengajukan perubahan pada tanda contoh maupun data identitas."
-                        checked={pernyataanPerubahan}
-                        onChange={(checked) => handleCheckboxChange("pernyataanPerubahan", checked)}
-                        keyPoints={[
-                            "Setelah Laporan diterbitkan, kami tidak akan meminta diadakannya perubahan pada laporan mengenai tanda-tanda contoh maupun alamat peminta Verifikasi/Sertifikasi."
-                        ]}
-                        legalTitle="Klausul Resmi Regulasi Laporan"
-                        legalFullText="Setelah Laporan Verifikasi diterbitkan secara sah oleh Lembaga Validasi & Verifikasi (LVV) BBSPJIKKP, data identitas pemohon dan penandaan inventarisasi bersifat final dan tidak dapat diubah tanpa prosedur penerbitan ulang resmi sesuai regulasi KAN dan ISO 14065."
-                    />
+                    <div className="pt-2 first:pt-0">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={pernyataanPerubahan}
+                                onChange={(e) => handleCheckboxChange("pernyataanPerubahan", e.target.checked)}
+                                className="mt-1 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0 cursor-pointer"
+                            />
+                            <div className="text-sm leading-relaxed text-slate-700">
+                                <span className="font-bold text-slate-900 block mb-1">
+                                    Pernyataan Perubahan pada Laporan Verifikasi <span className="text-rose-500">*</span>
+                                </span>
+                                <p className="text-slate-600 mb-1.5">
+                                    Setelah Laporan diterbitkan, kami tidak akan meminta diadakannya perubahan pada laporan mengenai tanda-tanda contoh maupun alamat peminta Verifikasi/Sertifikasi.
+                                </p>
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                    Setelah Laporan Verifikasi diterbitkan secara sah oleh Lembaga Validasi &amp; Verifikasi (LVV) BBSPJIKKP, data identitas pemohon dan penandaan inventarisasi bersifat final dan tidak dapat diubah tanpa prosedur penerbitan ulang resmi sesuai regulasi KAN dan ISO 14065.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
 
                     {/* Klausul 2: Integritas Pemohon */}
-                    <LegalStatementBox
-                        title="Pernyataan Kebenaran Data dan Integritas Pemohon"
-                        badgeText="Integritas Pemohon"
-                        subtitle="Pernyataan resmi bahwa seluruh data inventarisasi emisi GRK, bukti operasional fasilitas, dan dokumen legal adalah sah dan benar."
-                        checked={pernyataanPemohon}
-                        onChange={(checked) => handleCheckboxChange("pernyataanPemohon", checked)}
-                        keyPoints={[
-                            "Kami telah mengisi seluruh formulir dengan jujur, benar, dan sah secara hukum agar digunakan sebagaimana mestinya dalam proses verifikasi GRK."
-                        ]}
-                    />
+                    <div className="pt-6">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={pernyataanPemohon}
+                                onChange={(e) => handleCheckboxChange("pernyataanPemohon", e.target.checked)}
+                                className="mt-1 w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 shrink-0 cursor-pointer"
+                            />
+                            <div className="text-sm leading-relaxed text-slate-700">
+                                <span className="font-bold text-slate-900 block mb-1">
+                                    Pernyataan Kebenaran Data dan Integritas Pemohon <span className="text-rose-500">*</span>
+                                </span>
+                                <p className="text-slate-600">
+                                    Kami telah mengisi seluruh formulir dengan jujur, benar, dan sah secara hukum agar digunakan sebagaimana mestinya dalam proses verifikasi GRK.
+                                </p>
+                            </div>
+                        </label>
                     </div>
+                </div>
             </StepPanel>
         </div>
     )

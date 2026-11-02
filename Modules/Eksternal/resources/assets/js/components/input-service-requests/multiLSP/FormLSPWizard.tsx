@@ -301,9 +301,9 @@ const FormLSPWizard: React.FC<Props> = ({ skemaId }) => {
                     }
                   }}
                   style={{ outline: "none", boxShadow: "none" }}
-                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0 ${
+                  className={`w-full h-full flex items-center gap-3 p-3 sm:p-3.5 rounded-xl text-left transition-all duration-200 select-none shadow-none focus:outline-none focus-visible:outline-none ${
                     isActive
-                      ? "bg-white border-2 border-brand-600 shadow-none"
+                      ? "bg-white border border-brand-600 ring-1 ring-brand-600 shadow-none"
                       : isPassed
                       ? "bg-emerald-50 border border-emerald-200 hover:border-emerald-300 cursor-pointer shadow-none"
                       : canNavigate

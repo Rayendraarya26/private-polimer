@@ -1,8 +1,7 @@
 import React from "react"
 import { FileText, Info } from "lucide-react"
 import { GrkVerifikasiFormData, INITIAL_DOKUMEN_ITEMS } from "../../../../types/grk"
-import { TextareaInput } from "../../../forms"
-import { StepPanel } from "../../common"
+import { StepPanel, textareaClass } from "../../common"
 
 interface Props {
     formData: GrkVerifikasiFormData
@@ -74,13 +73,14 @@ export const FormDokumen: React.FC<Props> = ({ formData, setFormData }) => {
                                             <label className="block text-xs font-bold text-slate-800 mb-1.5">
                                                 Keterangan
                                             </label>
-                                            <TextareaInput
+                                            <textarea
                                                 rows={3}
                                                 id={item.id}
                                                 name={item.id}
                                                 value={item.keterangan}
                                                 onChange={(e) => handleDokumenChange(item.id, e.target.value)}
                                                 placeholder="Sebutkan nomor dokumen atau berikan keterangan tidak ada"
+                                                className={textareaClass}
                                             />
                                         </td>
                                     </tr>

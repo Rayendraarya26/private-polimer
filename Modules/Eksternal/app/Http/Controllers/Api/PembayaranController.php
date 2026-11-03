@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Db2\Permohonan;
 use App\Libraries\TteService; 
 use Illuminate\Support\Facades\Log;
+use App\Traits\HandlesTteDocumentStream;
 
 class PembayaranController extends Controller
 {
+    use HandlesTteDocumentStream;
 
     public function index()
     {
@@ -215,6 +217,11 @@ class PembayaranController extends Controller
         })->first() ?? \App\Models\Db1\SysUser::first();
     }
 
+    public function previewInvoice($id)
+    {
+        return $this->streamInvoice($id);
+    }
+
     public function streamInvoice($id)
     {
         @ini_set('memory_limit', '512M');
@@ -232,6 +239,7 @@ class PembayaranController extends Controller
             $q->where('id', $id)->orWhere('no_permohonan', $id);
         });
 
+        // Pelanggan hanya bisa mengakses permohonan miliknya sendiri
         if (!$isPegawai && $user) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)
@@ -241,44 +249,41 @@ class PembayaranController extends Controller
 
         $permohonan = $query->first();
         if (!$permohonan) {
-            $permohonan = Permohonan::with([
-                'detailPembayaran',
-                'detailPermohonan.formable',
-                'detailPermohonan.lingkupLayanan',
-                'creator'
-            ])->firstOrFail();
+            if ($isPegawai) {
+                $permohonan = Permohonan::with([
+                    'detailPembayaran',
+                    'detailPermohonan.formable',
+                    'detailPermohonan.lingkupLayanan',
+                    'creator'
+                ])->firstOrFail();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
+                ], 404);
+            }
         }
 
         try {
-            $pdfContent = null;
+            // SISI ADMIN / PEGAWAI:
+            // - Jika sudah TTE: ambil dari file bucket
+            // - Jika belum TTE: generate PDF invoice secara dinamis
+            if ($isPegawai) {
+                if (!empty($permohonan->pdf_tte)) {
+                    $defaultName = $permohonan->invoice_number 
+                        ? 'Invoice-' . str_replace('/', '-', $permohonan->invoice_number) . '.pdf' 
+                        : 'Invoice-' . $permohonan->no_permohonan . '.pdf';
 
-            // CEK 0: Apakah ada pdf_tte fisik di storage publik?
-            if (!empty($permohonan->pdf_tte)) {
-                $path = storage_path('app/public/' . $permohonan->pdf_tte);
-                if (file_exists($path)) {
-                    $pdfContent = @file_get_contents($path);
-                }
-            }
-
-            // CEK 1: Apakah file fisik invoice ada di storage publik?
-            $invFile = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
-            if (empty($pdfContent) && !empty($invFile)) {
-                if (str_starts_with($invFile, 'dummy-esign|')) {
-                    $pathStr = explode('|', $invFile)[1];
-                    $path = storage_path('app/public/' . $pathStr);
-                    if (file_exists($path)) {
-                        $pdfContent = @file_get_contents($path);
+                    $bucketResult = $this->fetchTtePdfFromBucket($permohonan->pdf_tte, $defaultName);
+                    if (!empty($bucketResult['content'])) {
+                        return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                     }
-                } elseif (str_ends_with(strtolower($invFile), '.pdf')) {
-                    $path = storage_path('app/public/' . $invFile);
-                    if (file_exists($path)) {
-                        $pdfContent = @file_get_contents($path);
+                    if (!empty($bucketResult['file_link'])) {
+                        return redirect($bucketResult['file_link']);
                     }
                 }
-            }
 
-            // CEK 2: Jika file fisik belum ada, generate PDF secara instan & dinamis (seperti SIS)
-            if (empty($pdfContent)) {
+                // Belum TTE (sisi admin): generate PDF secara instan & dinamis
                 $detailPembayaran = $permohonan->detailPembayaran;
                 if ($detailPembayaran->isEmpty()) {
                     $totalVal = (float) ($permohonan->total_tagihan ?: 2500000);
@@ -292,7 +297,7 @@ class PembayaranController extends Controller
 
                 $grupPermohonan   = collect([$permohonan]);
                 $invoiceNumber    = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
-                $va               = $permohonan->va ?: '98812' . rand(100000000, 999999999);
+                $va               = $permohonan->va ?: '-';
                 $total            = (float) $detailPembayaran->sum('subtotal');
                 $pemohon          = $this->buildPemohon($permohonan);
                 $bendahara        = $this->getBendahara();
@@ -314,18 +319,37 @@ class PembayaranController extends Controller
                     'isHtml5ParserEnabled' => true,
                 ]);
 
-                $pdfContent = $pdf->output();
+                $fileName = 'Invoice-' . str_replace('/', '-', $invoiceNumber) . '.pdf';
+                return $this->streamPdfResponse($pdf->output(), $fileName);
             }
 
-            $fileName = $permohonan->invoice_number 
+            // SISI PELANGGAN:
+            // Ambil langsung dari bucket (yang sudah di TTE). Tidak boleh generate jika belum TTE!
+            if (empty($permohonan->pdf_tte)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice resmi bertanda tangan elektronik (TTE) belum tersedia. Dokumen sedang diproses dan diverifikasi oleh Bendahara.',
+                ], 404);
+            }
+
+            $defaultName = $permohonan->invoice_number 
                 ? 'Invoice-' . str_replace('/', '-', $permohonan->invoice_number) . '.pdf' 
                 : 'Invoice-' . $permohonan->no_permohonan . '.pdf';
 
-            return response($pdfContent, 200, [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Content-Length'      => strlen($pdfContent),
-            ]);
+            $bucketResult = $this->fetchTtePdfFromBucket($permohonan->pdf_tte, $defaultName);
+
+            if (!empty($bucketResult['content'])) {
+                return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
+            }
+
+            if (!empty($bucketResult['file_link'])) {
+                return redirect($bucketResult['file_link']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'File Invoice TTE tidak ditemukan di bucket penyimpanan.',
+            ], 404);
 
         } catch (\Exception $e) {
             Log::error('PembayaranController::streamInvoice - Gagal', [
@@ -353,6 +377,7 @@ class PembayaranController extends Controller
             $q->where('id', $id)->orWhere('no_permohonan', $id);
         });
 
+        // Pelanggan hanya bisa mengakses permohonan miliknya sendiri
         if (!$isPegawai && $user) {
             $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)
@@ -362,47 +387,41 @@ class PembayaranController extends Controller
 
         $permohonan = $query->first();
         if (!$permohonan) {
-            $permohonan = Permohonan::with([
-                'detailPembayaran',
-                'detailPermohonan.formable',
-                'detailPermohonan.lingkupLayanan',
-                'creator'
-            ])->firstOrFail();
+            if ($isPegawai) {
+                $permohonan = Permohonan::with([
+                    'detailPembayaran',
+                    'detailPermohonan.formable',
+                    'detailPermohonan.lingkupLayanan',
+                    'creator'
+                ])->firstOrFail();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
+                ], 404);
+            }
         }
 
         try {
-            // CEK 1: Apakah file fisik ada di storage atau TTE?
-            if (!empty($permohonan->kuitansi_file)) {
-                if (str_starts_with($permohonan->kuitansi_file, 'dummy-esign|')) {
-                    $pathStr = explode('|', $permohonan->kuitansi_file)[1];
-                    $path = storage_path('app/public/' . $pathStr);
-                    if (file_exists($path)) {
-                        $pdfContent = @file_get_contents($path);
+            // SISI ADMIN / PEGAWAI:
+            // - Jika sudah TTE: ambil dari file bucket
+            // - Jika belum TTE: generate PDF kuitansi secara dinamis
+            if ($isPegawai) {
+                if (!empty($permohonan->kuitansi_pdf_tte)) {
+                    $defaultName = $permohonan->kuitansi_number 
+                        ? 'Kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number) . '.pdf' 
+                        : 'Kuitansi-' . $permohonan->no_permohonan . '.pdf';
+
+                    $bucketResult = $this->fetchTtePdfFromBucket($permohonan->kuitansi_pdf_tte, $defaultName);
+                    if (!empty($bucketResult['content'])) {
+                        return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                     }
-                } elseif (str_ends_with(strtolower($permohonan->kuitansi_file), '.pdf')) {
-                    $path = storage_path('app/public/' . $permohonan->kuitansi_file);
-                    if (file_exists($path)) {
-                        $pdfContent = @file_get_contents($path);
-                    }
-                } else {
-                    // Asumsi kuitansi_file menyimpan esign_id dari TTE
-                    try {
-                        $tteService = new TteService();
-                        $result     = $tteService->verifyById($permohonan->kuitansi_file);
-                        if (!empty($result['file_link'])) {
-                            $pdfContent = @file_get_contents($result['file_link']);
-                        }
-                        if (empty($pdfContent) && !empty($result['file_path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($result['file_path'])) {
-                            $pdfContent = \Illuminate\Support\Facades\Storage::disk('public')->get($result['file_path']);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::warning('Gagal verifikasi kuitansi via TTE: ' . $e->getMessage());
+                    if (!empty($bucketResult['file_link'])) {
+                        return redirect($bucketResult['file_link']);
                     }
                 }
-            }
 
-            // CEK 2: Generate PDF Kuitansi secara instan & dinamis jika belum ada file fisik
-            if (empty($pdfContent)) {
+                // Belum TTE (sisi admin): generate PDF kuitansi secara instan & dinamis
                 $detailPembayaran = $permohonan->detailPembayaran;
                 if ($detailPembayaran->isEmpty()) {
                     $totalVal = (float) ($permohonan->total_tagihan ?: 2500000);
@@ -438,18 +457,37 @@ class PembayaranController extends Controller
                     'isHtml5ParserEnabled' => true,
                 ]);
 
-                $pdfContent = $pdf->output();
+                $fileName = 'Kuitansi-' . str_replace('/', '-', $kuitansiNumber) . '.pdf';
+                return $this->streamPdfResponse($pdf->output(), $fileName);
             }
 
-            $fileName = $permohonan->kuitansi_number 
+            // SISI PELANGGAN:
+            // Ambil langsung dari bucket (yang sudah di TTE). Tidak boleh generate jika belum TTE!
+            if (empty($permohonan->kuitansi_pdf_tte)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kuitansi resmi bertanda tangan elektronik (TTE) belum tersedia. Dokumen kuitansi hanya dapat diakses setelah pembayaran diverifikasi lunas dan disahkan oleh Bendahara.',
+                ], 404);
+            }
+
+            $defaultName = $permohonan->kuitansi_number 
                 ? 'Kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number) . '.pdf' 
                 : 'Kuitansi-' . $permohonan->no_permohonan . '.pdf';
 
-            return response($pdfContent, 200, [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Content-Length'      => strlen($pdfContent),
-            ]);
+            $bucketResult = $this->fetchTtePdfFromBucket($permohonan->kuitansi_pdf_tte, $defaultName);
+
+            if (!empty($bucketResult['content'])) {
+                return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
+            }
+
+            if (!empty($bucketResult['file_link'])) {
+                return redirect($bucketResult['file_link']);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'File Kuitansi TTE tidak ditemukan di bucket penyimpanan.',
+            ], 404);
 
         } catch (\Exception $e) {
             Log::error('PembayaranController::streamKuitansi - Gagal', [

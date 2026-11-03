@@ -240,9 +240,20 @@ export const DetailPermohonanPage: React.FC = () => {
           {isLunas && (
             <Button
               size="sm"
-              variant="success"
+              variant={permohonan?.kuitansi_pdf_tte ? "success" : "secondary"}
               leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-              onClick={() => openKuitansi({ id, no_permohonan: noOrder })}
+              onClick={() => {
+                if (!permohonan?.kuitansi_pdf_tte) {
+                  Swal.fire({
+                    icon: "info",
+                    title: "Kuitansi Menunggu TTE",
+                    text: "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara.",
+                    confirmButtonColor: "#0270c7",
+                  })
+                  return
+                }
+                openKuitansi({ id, no_permohonan: noOrder })
+              }}
             >
               Kuitansi
             </Button>

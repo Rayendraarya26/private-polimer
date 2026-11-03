@@ -143,24 +143,36 @@ export function usePembayaran() {
       } catch (error: any) {
         console.error(`Gagal memuat ${title}:`, error)
 
-        // Jika status 403 / 401 (Ditolak hak akses / belum feedback), jangan fallback ke iframe!
+        let errorMsg = `Dokumen ${title} belum dapat dimuat atau terjadi gangguan koneksi.`
+        if (error?.response?.data instanceof Blob) {
+          try {
+            const text = await error.response.data.text()
+            const parsed = JSON.parse(text)
+            if (parsed.message) errorMsg = parsed.message
+          } catch (_) {}
+        } else if (error?.response?.data?.message) {
+          errorMsg = error.response.data.message
+        }
+
+        // Jika status 403 / 401 (Ditolak hak akses / belum feedback)
         const status = error?.response?.status
         if (status === 403 || status === 401) {
           closePreview()
-          let errorMsg = "Anda belum memberikan feedback untuk permohonan ini atau belum memiliki hak akses. Silakan isi survey kepuasan terlebih dahulu."
-          if (error?.response?.data instanceof Blob) {
-            try {
-              const text = await error.response.data.text()
-              const parsed = JSON.parse(text)
-              if (parsed.message) errorMsg = parsed.message
-            } catch (_) {}
-          } else if (error?.response?.data?.message) {
-            errorMsg = error.response.data.message
-          }
-
           Swal.fire({
             icon: "warning",
             title: "Akses Dibatasi",
+            text: errorMsg,
+            confirmButtonColor: "#0270c7",
+          })
+          return
+        }
+
+        // Jika status 404 (Dokumen belum ber-TTE di bucket atau belum terbit)
+        if (status === 404) {
+          closePreview()
+          Swal.fire({
+            icon: "info",
+            title: "Dokumen Belum Tersedia",
             text: errorMsg,
             confirmButtonColor: "#0270c7",
           })
@@ -183,7 +195,7 @@ export function usePembayaran() {
         Swal.fire({
           icon: "error",
           title: "Gagal Membuka Dokumen",
-          text: `Dokumen ${title} belum dapat dimuat atau terjadi gangguan koneksi.`,
+          text: errorMsg,
           confirmButtonColor: "#0270c7",
         })
       }

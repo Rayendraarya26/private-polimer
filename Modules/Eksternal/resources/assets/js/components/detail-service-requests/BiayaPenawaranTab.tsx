@@ -1,4 +1,5 @@
 import React from "react"
+import Swal from "sweetalert2"
 import { CreditCard, Eye, CheckCircle, FileText, FileCheck2 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card"
 import { Badge } from "../ui/Badge"
@@ -377,11 +378,22 @@ export const BiayaPenawaranTab: React.FC<BiayaPenawaranTabProps> = ({
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <Button
-                  variant={permohonan?.status_bayar === "LUNAS" ? "success" : "outline"}
+                  variant={permohonan?.status_bayar === "LUNAS" && permohonan?.kuitansi_pdf_tte ? "success" : "outline"}
                   size="sm"
                   disabled={permohonan?.status_bayar !== "LUNAS"}
                   leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-                  onClick={() => openKuitansi({ id, no_permohonan: noOrder })}
+                  onClick={() => {
+                    if (!permohonan?.kuitansi_pdf_tte) {
+                      Swal.fire({
+                        icon: "info",
+                        title: "Kuitansi Menunggu TTE",
+                        text: "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara.",
+                        confirmButtonColor: "#0270c7",
+                      })
+                      return
+                    }
+                    openKuitansi({ id, no_permohonan: noOrder })
+                  }}
                   className="flex-1 justify-center"
                 >
                   Buka Kuitansi

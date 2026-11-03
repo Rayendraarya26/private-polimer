@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import Swal from "sweetalert2"
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card"
 import { Badge } from "../ui/Badge"
 import { Button } from "../ui/Button"
@@ -402,7 +403,18 @@ export const KonsultasiATDetailSection: React.FC<KonsultasiATDetailSectionProps>
                   size="sm"
                   variant="success"
                   leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
-                  onClick={() => openKuitansi(permohonan)}
+                  onClick={() => {
+                    if (!permohonan?.kuitansi_pdf_tte) {
+                      Swal.fire({
+                        icon: "info",
+                        title: "Kuitansi Menunggu TTE",
+                        text: "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara.",
+                        confirmButtonColor: "#0270c7",
+                      })
+                      return
+                    }
+                    openKuitansi(permohonan)
+                  }}
                 >
                   Kuitansi
                 </Button> 

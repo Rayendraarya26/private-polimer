@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import Swal from "sweetalert2"
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card"
 import { Badge } from "../ui/Badge"
 import { Button } from "../ui/Button"
@@ -581,7 +582,18 @@ export const BimtekDetailSection: React.FC<BimtekDetailSectionProps> = ({
                   variant="outline"
                   size="sm"
                   className="h-8 gap-1.5 text-xs font-semibold text-emerald-700 border-emerald-200 hover:bg-emerald-50"
-                  onClick={() => openKuitansi(permohonan)}
+                  onClick={() => {
+                    if (!permohonan?.kuitansi_pdf_tte) {
+                      Swal.fire({
+                        icon: "info",
+                        title: "Kuitansi Menunggu TTE",
+                        text: "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara.",
+                        confirmButtonColor: "#0270c7",
+                      })
+                      return
+                    }
+                    openKuitansi(permohonan)
+                  }}
                 >
                   <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" /> Kuitansi Lunas
                 </Button>

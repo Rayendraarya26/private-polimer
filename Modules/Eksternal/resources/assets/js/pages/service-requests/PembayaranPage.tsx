@@ -246,8 +246,17 @@ const PembayaranPage: React.FC = () => {
               size="sm"
               variant="outline"
               leftIcon={<Receipt className="w-3.5 h-3.5" />}
-              onClick={() => openInvoice(row)}
-              title="Buka Invoice"
+              onClick={() => {
+                if (!row.pdf_tte) {
+                  showInfo(
+                    "Invoice Belum Tersedia",
+                    "Invoice resmi bertanda tangan elektronik (TTE) sedang diproses oleh Bendahara."
+                  )
+                  return
+                }
+                openInvoice(row)
+              }}
+              title="Buka Invoice Resmi TTE"
             >
               Invoice
             </Button>
@@ -256,18 +265,26 @@ const PembayaranPage: React.FC = () => {
           {/* Kuitansi Button */}
           <Button
             size="sm"
-            variant={row.status_bayar === "LUNAS" ? "success" : "secondary"}
+            variant={row.status_bayar === "LUNAS" && row.kuitansi_pdf_tte ? "success" : "secondary"}
             leftIcon={<FileCheck className="w-3.5 h-3.5" />}
             onClick={() => {
-              if (row.status_bayar !== "LUNAS" && !row.kuitansi_file) {
+              if (row.status_bayar !== "LUNAS") {
                 showInfo(
                   "Kuitansi Belum Tersedia",
                   "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
                 )
                 return
               }
+              if (!row.kuitansi_pdf_tte) {
+                showInfo(
+                  "Kuitansi Menunggu TTE",
+                  "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara."
+                )
+                return
+              }
               openKuitansi(row)
             }}
+            title="Buka Kuitansi Resmi TTE"
           >
             Kuitansi
           </Button>

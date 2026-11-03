@@ -15,7 +15,7 @@ import {
   TextareaInput,
   RadioCardGroup,
   LegalStatementBox,
-  StickyFormActions,
+  FormWizardActions,
 } from "../../forms"
 
 interface Props {
@@ -259,7 +259,7 @@ const StepDataBersama: React.FC<Props> = ({
       />
 
       {/* Navigasi & Action Buttons */}
-      <StickyFormActions
+      <FormWizardActions
         canGoBack={true}
         onBack={onBack}
         backLabel="Kembali ke Data Peserta"

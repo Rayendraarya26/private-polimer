@@ -3,11 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { Button } from "../../ui/Button"
 import { Modal } from "../../ui/Modal"
+import { FormWizardActions } from "../../forms"
 import {
-  ArrowLeft,
-  ArrowRight,
-  Send,
-  Loader2,
   Check,
   Building2,
   Layers,
@@ -353,60 +350,23 @@ export const FormPupWizard: React.FC = () => {
       </div>
 
       {/* Navigasi Bawah */}
-      <div className="flex items-center justify-between pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          disabled={isSubmitting}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="px-5 py-2.5 font-semibold text-xs border-slate-300 hover:bg-slate-50 text-slate-700"
-        >
-          {currentStep === 0 ? "Kembali ke Permohonan" : "Sebelumnya"}
-        </Button>
-
-        <div className="flex items-center gap-2">
-          {currentStep < TOTAL_STEPS - 1 ? (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleNext}
-              disabled={currentStep === 0 && isLoadingStep1}
-              rightIcon={
-                currentStep === 0 && isLoadingStep1 ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="w-4 h-4" />
-                )
-              }
-              className="px-6 py-2.5 font-semibold text-xs shadow-xs"
-            >
-              {currentStep === 0 && isLoadingStep1 ? "Memuat Profil..." : "Langkah Berikutnya"}
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={
-                isSubmitting ||
-                !formData.pernyataan_en_score ||
-                !formData.pernyataan_proposal
-              }
-              leftIcon={
-                isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )
-              }
-              className="px-7 py-2.5 font-semibold text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              {isSubmitting ? "Mengirim Pendaftaran..." : "Kirim Permohonan"}
-            </Button>
-          )}
-        </div>
-      </div>
+      <FormWizardActions
+        isSticky={false}
+        canGoBack={true}
+        backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
+        onBack={handleBack}
+        onNext={handleNext}
+        isLastStep={currentStep === TOTAL_STEPS - 1}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        disabled={
+          (currentStep === 0 && isLoadingStep1) ||
+          (currentStep === TOTAL_STEPS - 1 &&
+            (!formData.pernyataan_en_score || !formData.pernyataan_proposal))
+        }
+        nextLabel="Selanjutnya"
+        submitLabel="Kirim"
+      />
 
       {/* Modal Konfirmasi Reset Draft */}
       <Modal

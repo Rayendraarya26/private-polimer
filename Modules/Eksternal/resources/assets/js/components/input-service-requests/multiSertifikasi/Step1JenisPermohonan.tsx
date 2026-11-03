@@ -4,6 +4,7 @@ import { Button } from "../../ui/Button"
 import { TwoRowSelect, TwoRowSelectOption } from "../../ui/TwoRowSelect"
 import { Plus, Trash2, Award, History, CheckCircle2, Layers } from "lucide-react"
 import api from "../../../utils/api"
+import { FormWizardActions } from "../../forms"
 import {
   StepPanel,
   FieldLabel,
@@ -12,7 +13,6 @@ import {
   OptionCard,
   OptionIcon,
   selectClass,
-  WizardNav,
 } from "../common/WizardUI"
 
 interface Props {
@@ -32,9 +32,26 @@ export interface SertifikatRiwayatOption {
   sni?: string
   tanggal_terbit?: string
   tgl_terbit?: string
+  tanggal_kadaluarsa?: string
+  tgl_kadaluarsa?: string
+  is_expired?: boolean
   status?: string
   items?: any[]
   dokumen_list?: any
+  luas_tanah?: string | number
+  luas_bangunan?: string | number
+  jumlah_shift?: number
+  jumlah_bagian?: number
+  jumlah_shift_1?: number
+  jumlah_shift_2?: number
+  jumlah_shift_3?: number
+  jumlah_manajemen?: number
+  jumlah_administrasi?: number
+  jumlah_operasional?: number
+  jumlah_part_time?: number
+  jumlah_non_permanen?: number
+  jumlah_karyawan_total?: number
+  pabrik?: any[]
 }
 
 export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, onNext, onBack }) => {
@@ -161,14 +178,42 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
           items: newItems,
           dokumen_list: updatedDocs,
         }
+
+        // Auto-seed data operasional & pabrik dari sertifikat lama
+        const hasExistingPabrik = prev.pabrik.length > 0 && prev.pabrik.some((p) => Boolean(p.nama_pabrik))
+        const incomingPabrik = selected.pabrik && Array.isArray(selected.pabrik) && selected.pabrik.length > 0
+          ? selected.pabrik
+          : null
+
+        return {
+          ...prev,
+          pengajuan: updated,
+          // Auto-seed luas tanah & luas bangunan
+          luas_tanah: prev.luas_tanah || (selected.luas_tanah ? String(selected.luas_tanah) : ""),
+          luas_bangunan: prev.luas_bangunan || (selected.luas_bangunan ? String(selected.luas_bangunan) : ""),
+          // Auto-seed data operasional
+          jumlah_shift: prev.jumlah_shift || selected.jumlah_shift || (selected.jumlah_shift_2 ? 2 : 1),
+          jumlah_bagian: prev.jumlah_bagian || selected.jumlah_bagian || 1,
+          jumlah_shift_1: prev.jumlah_shift_1 || selected.jumlah_shift_1 || 0,
+          jumlah_shift_2: prev.jumlah_shift_2 || selected.jumlah_shift_2 || 0,
+          jumlah_shift_3: prev.jumlah_shift_3 || selected.jumlah_shift_3 || 0,
+          jumlah_manajemen: prev.jumlah_manajemen || selected.jumlah_manajemen || 0,
+          jumlah_administrasi: prev.jumlah_administrasi || selected.jumlah_administrasi || 0,
+          jumlah_operasional: prev.jumlah_operasional || selected.jumlah_operasional || 0,
+          jumlah_part_time: prev.jumlah_part_time || selected.jumlah_part_time || 0,
+          jumlah_non_permanen: prev.jumlah_non_permanen || selected.jumlah_non_permanen || 0,
+          jumlah_karyawan_total: prev.jumlah_karyawan_total || selected.jumlah_karyawan_total || 0,
+          // Auto-seed data pabrik jika belum ada isian manual
+          pabrik: !hasExistingPabrik && incomingPabrik ? incomingPabrik : prev.pabrik,
+        }
       } else {
         updated[index] = {
           ...updated[index],
           sertifikat_lama_id: "",
           sertifikat_lama_text: "",
         }
+        return { ...prev, pengajuan: updated }
       }
-      return { ...prev, pengajuan: updated }
     })
   }
 
@@ -209,7 +254,12 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
     .map((cert) => {
       const skema = cert.skema_sertifikasi || cert.komoditi || "Sertifikasi Industri"
       const tgl = cert.tanggal_terbit || cert.tgl_terbit
-      const subLabel = tgl ? `${skema} (Terbit: ${tgl})` : skema
+      const tglExp = cert.tanggal_kadaluarsa || cert.tgl_kadaluarsa
+      const isExp = cert.is_expired || cert.status === "Kadaluarsa"
+      const statusBadge = isExp ? " [Habis Masa Berlaku]" : ""
+      const subLabel = tglExp
+        ? `${skema} (Berlaku s.d: ${tglExp})${statusBadge}`
+        : (tgl ? `${skema} (Terbit: ${tgl})` : skema)
 
       return {
         value: String(cert.id),
@@ -352,7 +402,13 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
       </StepPanel>
 
       {/* Navigation */}
-      <WizardNav onBack={onBack} onNext={onNext} backLabel="Kembali" nextLabel="Selanjutnya" />
+      <FormWizardActions
+        canGoBack={!!onBack}
+        onBack={onBack}
+        onNext={onNext}
+        backLabel="Kembali"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

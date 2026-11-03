@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "react-hot-toast"
-import { Button } from "../../../ui/Button"
+import { FormWizardActions } from "../../../forms"
 import {
-    ArrowLeft,
-    ArrowRight,
-    Send,
-    Save,
     Loader2,
     UserCog,
     Building,
@@ -535,64 +531,20 @@ export const FormGrkVerifikasiWizard: React.FC = () => {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleBack}
-                        disabled={isSubmitting}
-                        className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-slate-700"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        {currentStep === 0 ? "Batal" : "Sebelumnya"}
-                    </Button>
-
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        {currentStep < TOTAL_STEPS - 1 ? (
-                            <Button
-                                type="button"
-                                onClick={handleNext}
-                                className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-                            >
-                                Selanjutnya
-                                <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        ) : (
-                            <>
-                                {/* Tombol Simpan Draft hanya muncul pada step terakhir */}
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => handleSubmit("draft")}
-                                    disabled={isSubmitting}
-                                    className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 text-slate-700 shadow-2xs"
-                                >
-                                    <Save className="w-4 h-4 text-slate-600" />
-                                    <span>Simpan Draft</span>
-                                </Button>
-
-                                <Button
-                                    type="button"
-                                    onClick={() => handleSubmit("ajukan")}
-                                    disabled={isSubmitting || !formData.pernyataanPemohon || !formData.pernyataanPerubahan}
-                                    className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            Mengirim...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Kirim Permohonan
-                                            <Send className="w-4 h-4" />
-                                        </>
-                                    )}
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </div>
+                <FormWizardActions
+                    isSticky={false}
+                    canGoBack={true}
+                    backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
+                    onBack={handleBack}
+                    onNext={handleNext}
+                    onSaveDraft={currentStep === TOTAL_STEPS - 1 ? () => handleSubmit("draft") : undefined}
+                    isLastStep={currentStep === TOTAL_STEPS - 1}
+                    onSubmit={() => handleSubmit("ajukan")}
+                    isSubmitting={isSubmitting}
+                    disabled={isSubmitting || (currentStep === TOTAL_STEPS - 1 && (!formData.pernyataanPemohon || !formData.pernyataanPerubahan))}
+                    nextLabel="Selanjutnya"
+                    submitLabel="Kirim"
+                />
             </div>
         </>
     )

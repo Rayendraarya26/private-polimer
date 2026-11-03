@@ -24,7 +24,7 @@ import {
 } from "../../../types/pengujian"
 import { formatRupiah } from "./components/CostEstimationSummary"
 import { Button } from "../../ui/Button"
-import { DropzoneUploader, DateInput, StickyFormActions } from "../../forms"
+import { DropzoneUploader, DateInput, FormWizardActions } from "../../forms"
 import {
   StepPanel,
   SectionHeading,
@@ -649,8 +649,9 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
       </StepPanel>
 
       {/* Tombol Aksi Navigasi (Tidak Sticky Bottom) */}
-      <StickyFormActions
+      <FormWizardActions
         canGoBack={true}
+        backLabel="Sebelumnya"
         onBack={onBack}
         onSaveDraft={() => handleTriggerSubmit("draft")}
         onSubmit={() => handleTriggerSubmit("ajukan")}

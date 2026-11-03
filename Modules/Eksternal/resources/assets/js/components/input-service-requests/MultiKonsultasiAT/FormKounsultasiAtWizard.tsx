@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { Button } from "../../ui/Button"
 import { Modal } from "../../ui/Modal"
-import { StickyFormActions } from "../../forms"
+import { FormWizardActions } from "../../forms"
 import { Step1JenisLayanan } from "./Step1JenisLayanan"
 import { Step2UnggahDokumen } from "./Step2UnggahDokumen"
 import { submitKonsultasiAt } from "../../../services/konsultasiAt"
@@ -329,8 +329,8 @@ export const FormKonsultasiAtWizard: React.FC = () => {
                 )}
             </div>
 
-            {/* Navigation Buttons (Menggunakan StickyFormActions standar kalibrasi & pengujian) */}
-            <StickyFormActions
+            {/* Navigation Buttons (Menggunakan FormWizardActions standar kalibrasi & pengujian) */}
+            <FormWizardActions
                 isSticky={false}
                 canGoBack={true}
                 backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}

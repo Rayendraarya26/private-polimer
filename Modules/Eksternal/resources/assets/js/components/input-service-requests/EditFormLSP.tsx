@@ -22,7 +22,7 @@ import {
   DateInput,
   DropzoneUploader,
   LegalStatementBox,
-  StickyFormActions,
+  FormWizardActions,
 } from "../forms"
 
 const BASE_STORAGE = "http://localhost:4700/storage/"
@@ -506,7 +506,7 @@ const EditFormLSP: React.FC = () => {
         </Card>
 
         {/* Action Button */}
-        <StickyFormActions
+        <FormWizardActions
           canGoBack={true}
           onBack={() => navigate("/permohonan")}
           backLabel="Batal"

@@ -3,6 +3,7 @@ import { FileText, Truck, Building2, UserCheck, MapPin } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { PengujianSharedData } from "../../../types/pengujian"
 import useProfile from "../../../hooks/useProfile"
+import { FormWizardActions } from "../../forms"
 import {
   StepPanel,
   SectionHeading,
@@ -10,7 +11,6 @@ import {
   FieldHint,
   OptionCard,
   OptionGroup,
-  WizardNav,
   inputClass,
   textareaClass,
   cx,
@@ -310,7 +310,13 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
         </div>
       </StepPanel>
 
-      <WizardNav onBack={onBack} onNext={handleValidateAndNext} />
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={handleValidateAndNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

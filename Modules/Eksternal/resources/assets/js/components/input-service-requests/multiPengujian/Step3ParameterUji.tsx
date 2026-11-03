@@ -10,12 +10,12 @@ import {
 import { useMasterKomoditiQuery } from "../../../hooks/queries/usePengujianQuery"
 import { SampleCardItem } from "./components/SampleCardItem"
 import { Button } from "../../ui/Button"
+import { FormWizardActions } from "../../forms"
 import {
   StepPanel,
   FieldLabel,
   OptionCard,
   OptionGroup,
-  WizardNav,
   cx,
 } from "./components/WizardUI"
 
@@ -201,7 +201,13 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
         </div>
       </StepPanel>
 
-      <WizardNav onBack={onBack} onNext={handleValidateAndNext} />
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={handleValidateAndNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

@@ -22,6 +22,7 @@ import {
   useDistrictsQuery,
 } from "../../../hooks/queries/useMasterQuery"
 import api from "../../../utils/api"
+import { FormWizardActions } from "../../forms"
 import {
   StepPanel,
   FieldLabel,
@@ -30,7 +31,7 @@ import {
   selectClass,
   textareaClass,
   cx,
-  WizardNav,
+  Callout,
 } from "../common/WizardUI"
 
 interface Props {
@@ -406,34 +407,98 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
   const [selectedCompanyProvId, setSelectedCompanyProvId] = useState<string | number>("")
   const [selectedCompanyKabId, setSelectedCompanyKabId] = useState<string | number>("")
 
-  // Eager-matching ID jika formData sudah memiliki nama / id provinsi
+  // 1. Inisialisasi awal ID wilayah dari profil perusahaan atau formData yang sudah ada
   useEffect(() => {
-    if (!selectedCompanyProvId && formData.provinsi && provinces.length > 0) {
+    if (!selectedCompanyProvId) {
+      if (detail?.prov_id) {
+        setSelectedCompanyProvId(String(detail.prov_id))
+      } else if (formData.provinsi && provinces.length > 0) {
+        const found = provinces.find(
+          (p: any) =>
+            p.nama?.toLowerCase() === formData.provinsi?.toLowerCase() ||
+            String(p.id) === String(formData.provinsi)
+        )
+        if (found) setSelectedCompanyProvId(found.id)
+      }
+    }
+  }, [detail?.prov_id, formData.provinsi, provinces, selectedCompanyProvId])
+
+  // 2. Cascading Matching Provinsi (sinkronkan nama provinsi ke formData saat list provinsi ter-load)
+  useEffect(() => {
+    const provTarget = selectedCompanyProvId || detail?.prov_id || formData.provinsi
+    if (provTarget && provinces.length > 0) {
       const found = provinces.find(
         (p: any) =>
-          p.nama?.toLowerCase() === formData.provinsi?.toLowerCase() ||
-          String(p.id) === String(formData.provinsi)
+          String(p.id) === String(provTarget) ||
+          p.nama?.toLowerCase() === String(provTarget).toLowerCase()
       )
-      if (found) setSelectedCompanyProvId(found.id)
+      if (found) {
+        if (String(selectedCompanyProvId) !== String(found.id)) {
+          setSelectedCompanyProvId(found.id)
+        }
+        if (!formData.provinsi || formData.provinsi !== found.nama) {
+          setFormData((prev) => ({ ...prev, provinsi: found.nama }))
+        }
+      }
     }
-  }, [provinces, formData.provinsi, selectedCompanyProvId])
+  }, [provinces, detail?.prov_id, selectedCompanyProvId, formData.provinsi, setFormData])
 
   const { data: rawCompanyRegencies = [], isLoading: loadingCompanyRegencies } = useRegenciesQuery(selectedCompanyProvId)
   const companyRegencies = Array.isArray(rawCompanyRegencies) ? rawCompanyRegencies : []
 
+  // 3. Inisialisasi & Cascading Matching Kabupaten / Kota
   useEffect(() => {
-    if (!selectedCompanyKabId && formData.kabupaten && companyRegencies.length > 0) {
+    if (!selectedCompanyKabId) {
+      if (detail?.kab_id && (!selectedCompanyProvId || String(selectedCompanyProvId) === String(detail?.prov_id))) {
+        setSelectedCompanyKabId(String(detail.kab_id))
+      } else if (formData.kabupaten && companyRegencies.length > 0) {
+        const found = companyRegencies.find(
+          (k: any) =>
+            k.nama?.toLowerCase() === formData.kabupaten?.toLowerCase() ||
+            String(k.id) === String(formData.kabupaten)
+        )
+        if (found) setSelectedCompanyKabId(found.id)
+      }
+    }
+  }, [detail?.kab_id, detail?.prov_id, selectedCompanyProvId, formData.kabupaten, companyRegencies, selectedCompanyKabId])
+
+  useEffect(() => {
+    const kabTarget = selectedCompanyKabId || (String(selectedCompanyProvId) === String(detail?.prov_id) ? detail?.kab_id : undefined) || formData.kabupaten
+    if (kabTarget && companyRegencies.length > 0) {
       const found = companyRegencies.find(
         (k: any) =>
-          k.nama?.toLowerCase() === formData.kabupaten?.toLowerCase() ||
-          String(k.id) === String(formData.kabupaten)
+          String(k.id) === String(kabTarget) ||
+          k.nama?.toLowerCase() === String(kabTarget).toLowerCase()
       )
-      if (found) setSelectedCompanyKabId(found.id)
+      if (found) {
+        if (String(selectedCompanyKabId) !== String(found.id)) {
+          setSelectedCompanyKabId(found.id)
+        }
+        if (!formData.kabupaten || formData.kabupaten !== found.nama) {
+          setFormData((prev) => ({ ...prev, kabupaten: found.nama }))
+        }
+      }
     }
-  }, [companyRegencies, formData.kabupaten, selectedCompanyKabId])
+  }, [companyRegencies, detail?.kab_id, detail?.prov_id, selectedCompanyProvId, selectedCompanyKabId, formData.kabupaten, setFormData])
 
   const { data: rawCompanyDistricts = [], isLoading: loadingCompanyDistricts } = useDistrictsQuery(selectedCompanyKabId)
   const companyDistricts = Array.isArray(rawCompanyDistricts) ? rawCompanyDistricts : []
+
+  // 4. Cascading Matching Kecamatan (dari ID profil atau nama)
+  useEffect(() => {
+    const isMatchingProfileKab = !selectedCompanyKabId || String(selectedCompanyKabId) === String(detail?.kab_id)
+    const kecTarget = formData.kecamatan || (isMatchingProfileKab ? detail?.kec_id : undefined)
+    if (kecTarget && companyDistricts.length > 0) {
+      const found = companyDistricts.find(
+        (d: any) =>
+          String(d.id) === String(kecTarget) ||
+          d.nama?.toLowerCase() === String(kecTarget).toLowerCase()
+      )
+      if (found && (!formData.kecamatan || formData.kecamatan !== found.nama)) {
+        setFormData((prev) => ({ ...prev, kecamatan: found.nama }))
+      }
+    }
+  }, [companyDistricts, detail?.kec_id, detail?.kab_id, selectedCompanyKabId, formData.kecamatan, setFormData])
 
   const [jenisPerusahaanList, setJenisPerusahaanList] = useState<any[]>([])
   useEffect(() => {
@@ -460,6 +525,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
       jenis_perusahaan_id: prev.jenis_perusahaan_id || detail.jenis_perusahaan_id || 1,
       jenis_perusahaan: prev.jenis_perusahaan || detail.jenis_perusahaan || detail.jenis || "Produsen / Pabrikan",
       negara: prev.negara || "Indonesia",
+      kode_pos: prev.kode_pos || detail.kode_pos || "",
       alamat_kantor: prev.alamat_kantor || detail.alamat || "",
     }))
   }, [detail, profileData, setFormData])
@@ -494,6 +560,57 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
     formData.jumlah_non_permanen,
     setFormData,
   ])
+
+  // Auto-seed data operasional & pabrik dari sertifikat lama jika perpanjangan sertifikasi
+  useEffect(() => {
+    const certLamaPengajuan = formData.pengajuan.find(
+      (p) => p.jenis_pengajuan === "lama" && p.sertifikat_lama_id
+    )
+    if (!certLamaPengajuan) return
+
+    const needsLuas = !formData.luas_tanah || !formData.luas_bangunan
+    const needsPabrik = !formData.pabrik || formData.pabrik.length === 0 || (!formData.pabrik[0]?.nama_pabrik)
+    const needsOperasional = !formData.jumlah_manajemen && !formData.jumlah_shift_1 && !formData.jumlah_operasional
+
+    if (needsLuas || needsPabrik || needsOperasional) {
+      api.get("/eksternal/sertifikasi/riwayat-aktif")
+        .then((res) => {
+          const list = res.data?.results || res.data?.data || []
+          const selected = list.find(
+            (c: any) =>
+              String(c.id) === String(certLamaPengajuan.sertifikat_lama_id) ||
+              c.nomor_sertifikat === certLamaPengajuan.sertifikat_lama_text
+          )
+          if (selected) {
+            setFormData((prev) => {
+              const updatedPabrik =
+                needsPabrik && selected.pabrik && Array.isArray(selected.pabrik) && selected.pabrik.length > 0
+                  ? selected.pabrik
+                  : prev.pabrik
+
+              return {
+                ...prev,
+                luas_tanah: prev.luas_tanah || (selected.luas_tanah ? String(selected.luas_tanah) : ""),
+                luas_bangunan: prev.luas_bangunan || (selected.luas_bangunan ? String(selected.luas_bangunan) : ""),
+                jumlah_shift: prev.jumlah_shift || selected.jumlah_shift || (selected.jumlah_shift_2 ? 2 : 1),
+                jumlah_bagian: prev.jumlah_bagian || selected.jumlah_bagian || 1,
+                jumlah_shift_1: prev.jumlah_shift_1 || selected.jumlah_shift_1 || 0,
+                jumlah_shift_2: prev.jumlah_shift_2 || selected.jumlah_shift_2 || 0,
+                jumlah_shift_3: prev.jumlah_shift_3 || selected.jumlah_shift_3 || 0,
+                jumlah_manajemen: prev.jumlah_manajemen || selected.jumlah_manajemen || 0,
+                jumlah_administrasi: prev.jumlah_administrasi || selected.jumlah_administrasi || 0,
+                jumlah_operasional: prev.jumlah_operasional || selected.jumlah_operasional || 0,
+                jumlah_part_time: prev.jumlah_part_time || selected.jumlah_part_time || 0,
+                jumlah_non_permanen: prev.jumlah_non_permanen || selected.jumlah_non_permanen || 0,
+                jumlah_karyawan_total: prev.jumlah_karyawan_total || selected.jumlah_karyawan_total || 0,
+                pabrik: updatedPabrik,
+              }
+            })
+          }
+        })
+        .catch(() => { })
+    }
+  }, [formData.pengajuan, formData.luas_tanah, formData.luas_bangunan, setFormData])
 
   // Helper untuk input angka agar ketika diketik angka 0 tidak mengganjal
   const handleNumericChange = (field: keyof SertifikasiFormData, rawValue: string) => {
@@ -1169,7 +1286,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
                   leftIcon={<Plus className="w-4 h-4" />}
                   className="text-xs font-bold text-brand-600 border-dashed border-2 border-brand-300 hover:bg-brand-50 px-5 py-2.5 rounded-xl cursor-pointer"
                 >
-                  Tambah Lokasi Pabrik Baru
+                  Tambah Pabrik
                 </Button>
                 {formData.pabrik.length > 0 && (
                   <Button
@@ -1244,7 +1361,13 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
       </StepPanel>
 
       {/* Navigasi Lanjut & Kembali */}
-      <WizardNav onBack={onBack} onNext={onNext} nextLabel="Selanjutnya" backLabel="Sebelumnya" />
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={onNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

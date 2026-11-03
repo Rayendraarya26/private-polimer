@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Save, Send, AlertTriangle } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/Button';
 
-export interface StickyFormActionsProps {
+export interface FormWizardActionsProps {
   onBack?: () => void;
   onSaveDraft?: () => void;
   onNext?: () => void;
@@ -23,7 +23,10 @@ export interface StickyFormActionsProps {
   isSticky?: boolean;
 }
 
-export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
+// Alias for backward compatibility
+export type StickyFormActionsProps = FormWizardActionsProps;
+
+export const FormWizardActions: React.FC<FormWizardActionsProps> = ({
   onBack,
   onSaveDraft,
   onNext,
@@ -31,7 +34,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
   backLabel = 'Sebelumnya',
   saveDraftLabel = 'Simpan Draft',
   nextLabel = 'Selanjutnya',
-  submitLabel = 'Kirim Permohonan',
+  submitLabel = 'Kirim',
   isSubmitting = false,
   isSavingDraft = false,
   canGoBack = true,
@@ -47,7 +50,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
       className={cn(
         'w-full pt-4 transition-all',
         isSticky &&
-          'sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-3.5 px-4 sm:px-6 shadow-elevated rounded-t-2xl -mx-4 sm:-mx-6 mt-6',
+        'sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-3.5 px-4 sm:px-6 shadow-elevated rounded-t-2xl -mx-4 sm:-mx-6 mt-6',
         className
       )}
     >
@@ -134,4 +137,7 @@ export const StickyFormActions: React.FC<StickyFormActionsProps> = ({
   );
 };
 
-export default StickyFormActions;
+// Aliases for backward compatibility
+export const StickyFormActions = FormWizardActions;
+export default FormWizardActions;
+

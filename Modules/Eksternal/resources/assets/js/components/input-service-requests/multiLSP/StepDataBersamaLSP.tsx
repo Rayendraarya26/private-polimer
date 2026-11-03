@@ -11,7 +11,7 @@ import {
   inputClass,
   textareaClass,
 } from "../common"
-import { StickyFormActions } from "../../forms"
+import { FormWizardActions } from "../../forms"
 
 interface Props {
   sharedData: SharedDataLSP
@@ -187,7 +187,7 @@ const StepDataBersamaLSP: React.FC<Props> = ({
         </div>
 
         {/* Navigasi & Action Buttons */}
-        <StickyFormActions
+        <FormWizardActions
           canGoBack={true}
           onBack={onBack}
           backLabel="Kembali ke Data Peserta"

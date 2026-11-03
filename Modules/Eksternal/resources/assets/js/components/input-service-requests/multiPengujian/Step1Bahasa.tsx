@@ -1,7 +1,7 @@
 import React from "react"
 import { Languages, ShieldCheck, Check } from "lucide-react"
 import { BahasaLaporan, PengujianSharedData } from "../../../types/pengujian"
-import { WizardNav } from "./components/WizardUI"
+import { FormWizardActions } from "../../forms"
 
 // Komponen Bendera Indonesia (Merah Putih)
 const IndonesiaFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" }) => (
@@ -187,7 +187,11 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
       </section>
 
       {/* Navigasi Selanjutnya */}
-      <WizardNav onNext={onNext} />
+      <FormWizardActions
+        canGoBack={false}
+        onNext={onNext}
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

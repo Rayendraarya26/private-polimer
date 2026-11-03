@@ -14,7 +14,7 @@ import {
   initialInspeksiFormData,
 } from "../../../types/inspeksi"
 import { submitPermohonanInspeksi } from "../../../services/inspeksi"
-import { StickyFormActions } from "../../forms"
+import { FormWizardActions } from "../../forms"
 
 import Step1SpesifikasiInspeksi from "./Step1SpesifikasiInspeksi"
 import Step2PenerimaDanTujuan from "./Step2PenerimaDanTujuan"
@@ -348,8 +348,8 @@ export const FormInspeksiWizard: React.FC = () => {
         </div>
       </div>
 
-      {/* Form Navigation Actions (StickyFormActions flat non-sticky, identik Kalibrasi) */}
-      <StickyFormActions
+      {/* Form Navigation Actions (FormWizardActions flat non-sticky, identik Kalibrasi) */}
+      <FormWizardActions
         isSticky={false}
         canGoBack={true}
         onBack={handleBack}
@@ -357,7 +357,7 @@ export const FormInspeksiWizard: React.FC = () => {
         isLastStep={currentStep === TOTAL_STEPS - 1}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        backLabel={currentStep === 0 ? "Batal" : "Sebelumnya"}
+        backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
       />
     </div>
   )

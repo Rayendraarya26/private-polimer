@@ -8,7 +8,7 @@ export * from './RadioCardGroup';
 export * from './DropzoneUploader';
 export * from './RepeaterAccordion';
 export * from './DraftStatusIndicator';
-export * from './StickyFormActions';
+export * from './FormWizardActions';
 export * from './RevisionBannerCallout';
 export * from './PostSubmitRoadmap';
 export * from './CollapsibleGuideline';

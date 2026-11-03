@@ -18,6 +18,7 @@ import { useProfileQuery } from "../../../hooks/queries/useProfileQuery"
 import useProfile from "../../../hooks/useProfile"
 import api from "../../../utils/api"
 import toast from "react-hot-toast"
+import { FormWizardActions } from "../../forms"
 import {
   StepPanel,
   SectionHeading,
@@ -26,7 +27,6 @@ import {
   inputClass,
   selectClass,
   cx,
-  WizardNav,
 } from "../common/WizardUI"
 
 interface Props {
@@ -1017,7 +1017,13 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
       </StepPanel>
 
       {/* Navigasi Lanjut & Kembali */}
-      <WizardNav onBack={onBack} onNext={onNext} nextLabel="Selanjutnya" backLabel="Sebelumnya" />
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={onNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

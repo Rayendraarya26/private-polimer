@@ -23,7 +23,7 @@ import {
   initialFormHalalPayload,
 } from "../../../types/halal"
 import { submitPermohonanHalal } from "../../../services/halal"
-import { StickyFormActions } from "../../forms"
+import { FormWizardActions } from "../../forms"
 import useProfile from "../../../hooks/useProfile"
 import { useHalalDraft } from "../../../hooks/useHalalDraft"
 
@@ -494,18 +494,18 @@ export const FormHalalWizard: React.FC = () => {
       </div>
 
       {/* Form Navigation Actions (Non-sticky, sesuai form pengujian & kalibrasi) */}
-      <StickyFormActions
+      <FormWizardActions
         isSticky={false}
         canGoBack={true}
-        backLabel={currentStep === 0 ? "Batal" : "Sebelumnya"}
+        backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
         onBack={handleBack}
         onNext={handleNext}
         isLastStep={currentStep === TOTAL_STEPS - 1}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onSaveDraft={handleSaveDraft}
+        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? handleSaveDraft : undefined}
         nextLabel="Selanjutnya"
-        submitLabel="Kirim Permohonan"
+        submitLabel="Kirim"
       />
 
       {/* Modal Konfirmasi Reset Draf (Seragam dengan Kalibrasi, Pengujian, & Sertifikasi) */}

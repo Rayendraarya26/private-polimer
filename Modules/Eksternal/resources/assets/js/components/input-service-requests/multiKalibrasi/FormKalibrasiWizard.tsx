@@ -19,7 +19,7 @@ import FormInformasiAlat, { AlatKalibrasiItem } from "./FormInformasiAlat"
 import FormInformasiPelanggan, { PelangganData } from "./FormInformasiPelanggan"
 import FormPelaksanaanKalibrasi, { PelaksanaanKalibrasiData } from "./FormPelaksanaanKalibrasi"
 import FormPernyataan from "./FormPernyataan"
-import { StickyFormActions } from "../../forms"
+import { FormWizardActions } from "../../forms"
 
 const TOTAL_STEPS = 4
 
@@ -541,8 +541,7 @@ export const FormKalibrasiWizard: React.FC = () => {
         </div>
       </div>
 
-      {/* Form Navigation Actions (Non-sticky, sesuai form pengujian) */}
-      <StickyFormActions
+      <FormWizardActions
         isSticky={false}
         canGoBack={currentStep > 0}
         onBack={handleBack}

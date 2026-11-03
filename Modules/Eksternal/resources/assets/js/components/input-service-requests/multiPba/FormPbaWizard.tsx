@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { Button } from '../../ui/Button'
+import { FormWizardActions } from '../../forms'
 import {
   Building2,
   Boxes,
   ShieldCheck,
-  ArrowLeft,
-  ArrowRight,
-  Send,
-  Loader2,
   Check,
 } from 'lucide-react'
 import { useProfileQuery } from '../../../hooks/queries/useProfileQuery'
@@ -387,46 +383,20 @@ export const FormPbaWizard: React.FC = () => {
         />
       </div>
 
-      {/* ── TOMBOL NAVIGASI BAWAH (SERAGAM DENGAN FORMINSPEKSI / FORMPUP / FORMKALIBRASI) ── */}
-      <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          disabled={isSubmitting}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="rounded-xl px-5 py-2.5 text-xs font-semibold border-slate-300 hover:bg-slate-50 text-slate-700"
-        >
-          {currentStep === 0 ? 'Batal' : 'Sebelumnya'}
-        </Button>
-
-        {currentStep < TOTAL_STEPS - 1 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="rounded-xl px-6 py-2.5 text-xs font-semibold shadow-sm"
-          >
-            Selanjutnya
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !pernyataanKonfirmasi}
-            leftIcon={
-              isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )
-            }
-            className="rounded-xl px-7 py-2.5 text-xs font-semibold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            {isSubmitting ? 'Mengirim Permohonan...' : 'Kirim Permohonan'}
-          </Button>
-        )}
-      </div>
+      {/* ── TOMBOL NAVIGASI BAWAH (FormWizardActions) ── */}
+      <FormWizardActions
+        isSticky={false}
+        canGoBack={true}
+        backLabel={currentStep === 0 ? 'Kembali' : 'Sebelumnya'}
+        onBack={handleBack}
+        onNext={handleNext}
+        isLastStep={currentStep === TOTAL_STEPS - 1}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        disabled={isSubmitting || (currentStep === TOTAL_STEPS - 1 && !pernyataanKonfirmasi)}
+        nextLabel="Selanjutnya"
+        submitLabel="Kirim"
+      />
     </div>
   )
 }

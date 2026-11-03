@@ -1,6 +1,6 @@
 import React from "react"
 import { SertifikasiFormData } from "../../../types/sertifikasi"
-import { LegalStatementBox, StickyFormActions } from "../../forms"
+import { LegalStatementBox, FormWizardActions } from "../../forms"
 import {
   CheckSquare,
   Building2,
@@ -185,15 +185,14 @@ export const Step4PernyataanKonfirmasi: React.FC<Props> = ({
         </div>
       </StepPanel>
 
-      {/* 3. NAVIGATION & SUBMIT BUTTONS (Standar StickyFormActions) */}
-      <StickyFormActions
+      {/* 3. NAVIGATION & SUBMIT BUTTONS (Standar FormWizardActions) */}
+      <FormWizardActions
         isSticky={false}
         canGoBack={true}
         backLabel="Sebelumnya"
         onBack={onBack}
         onSaveDraft={() => onSubmit("draft")}
         isLastStep={true}
-        submitLabel={submitting ? "Memproses Permohonan..." : "Kirim Pengajuan Sekarang"}
         onSubmit={() => onSubmit("ajukan")}
         isSubmitting={submitting}
         disabled={!formData.setuju_syarat || submitting}

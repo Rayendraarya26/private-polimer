@@ -1,7 +1,5 @@
 import React from "react"
-import { Check, Info, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react"
-import { Button } from "../../ui/Button"
-import { StickyFormActions } from "../../forms"
+import { Check, Info, AlertTriangle } from "lucide-react"
 
 /**
  * Komponen UI terstandarisasi untuk seluruh formulir permohonan layanan eksternal.
@@ -403,58 +401,3 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   </div>
 )
 
-/* ------------------------------------------------------------------ */
-/* Navigasi Bawah Langkah (WizardNav)                                  */
-/* ------------------------------------------------------------------ */
-export interface WizardNavProps {
-  onBack?: () => void
-  onNext: () => void
-  nextLabel?: string
-  backLabel?: string
-  loading?: boolean
-  disabled?: boolean
-  className?: string
-}
-
-export const WizardNav: React.FC<WizardNavProps> = ({
-  onBack,
-  onNext,
-  nextLabel = "Selanjutnya",
-  backLabel = "Sebelumnya",
-  loading = false,
-  disabled = false,
-  className,
-}) => (
-  <div className={cx("flex items-center justify-between pt-4 border-t border-slate-200 mt-6", className)}>
-    <div>
-      {onBack ? (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={loading || disabled}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
-          className="px-5 py-2.5 font-semibold text-xs border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl"
-        >
-          {backLabel}
-        </Button>
-      ) : (
-        <div />
-      )}
-    </div>
-
-    <div className="flex items-center gap-3">
-      <Button
-        type="button"
-        variant="primary"
-        onClick={onNext}
-        disabled={loading || disabled}
-        isLoading={loading}
-        rightIcon={!loading ? <ArrowRight className="w-4 h-4" /> : undefined}
-        className="px-6 py-2.5 font-bold text-xs shadow-sm bg-brand-600 hover:bg-brand-700 text-white rounded-xl"
-      >
-        {nextLabel}
-      </Button>
-    </div>
-  </div>
-)

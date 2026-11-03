@@ -76,7 +76,7 @@
                             {{ $permohonan->invoice_number ?: ($permohonan->no_permohonan . ' (Draf)') }}
                         </div>
 
-                        @if($invoiceFile || !empty($permohonan->pdf_tte))
+                        @if($invoiceFile || !empty($permohonan->pdf_tte) || !empty($permohonan->invoice_number) || (isset($permohonan->detailPembayaran) && $permohonan->detailPembayaran->isNotEmpty()) || $permohonan->billing)
                             <div class="d-flex gap-2 flex-wrap align-items-center">
                                 {{-- PREVIEW --}}
                                 <button type="button" data-bs-toggle="modal" data-bs-target="#previewModal"
@@ -90,7 +90,7 @@
                                                                         box-shadow   : 0 3px 10px rgba(37,99,235,.18);
                                                                     ">
                                     <i class="fas fa-eye" style="font-size:11px;color:white !important"></i>
-                                    <span style="color:white">Preview</span>
+                                    <span style="color:white">{{ !empty($permohonan->pdf_tte) ? 'Preview Invoice TTE' : 'Preview Draf Invoice' }}</span>
                                 </button>
 
                                 {{-- DOWNLOAD --}}
@@ -207,56 +207,41 @@
                         @else
                             <div class="d-flex gap-2 flex-wrap align-items-center">
                                 {{-- PREVIEW KUITANSI --}}
-                                @if(!empty($permohonan->kuitansi_pdf_tte))
-                                    <button type="button" data-bs-toggle="modal" data-bs-target="#previewKuitansiModal"
-                                        class="btn text-decoration-none d-inline-flex align-items-center gap-2 px-3 py-2 border-0"
-                                        style="
-                                                                                                        background:linear-gradient(135deg,#3b82f6,#2563eb);
-                                                                                                        color:white;
-                                                                                                        border-radius:10px;
-                                                                                                        font-size:12px;
-                                                                                                        font-weight:600;
-                                                                                                        box-shadow:0 3px 10px rgba(37,99,235,.18);
-                                                                                                    ">
-                                        <i class="fas fa-eye" style="font-size:11px;color:white !important"></i>
-                                        <span style="color:white">Preview Kuitansi TTE</span>
-                                    </button>
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#previewKuitansiModal"
+                                    class="btn text-decoration-none d-inline-flex align-items-center gap-2 px-3 py-2 border-0"
+                                    style="
+                                                                        background:linear-gradient(135deg,#3b82f6,#2563eb);
+                                                                        color:white;
+                                                                        border-radius:10px;
+                                                                        font-size:12px;
+                                                                        font-weight:600;
+                                                                        box-shadow:0 3px 10px rgba(37,99,235,.18);
+                                                                    ">
+                                    <i class="fas fa-eye" style="font-size:11px;color:white !important"></i>
+                                    <span style="color:white">{{ !empty($permohonan->kuitansi_pdf_tte) ? 'Preview Kuitansi TTE' : 'Preview Draf Kuitansi' }}</span>
+                                </button>
 
-                                    {{-- MODAL PREVIEW KUITANSI TTE --}}
-                                    <div class="modal fade" id="previewKuitansiModal" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" style="font-size:16px; font-weight:600;">
-                                                        Preview Kuitansi (TTE)
-                                                    </h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                        aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body p-0">
-                                                    <iframe src="{{ route('permohonan.kuitansi.stream-tte', $permohonan->id) }}"
-                                                        width="100%" height="600px" style="border:none;">
-                                                        Browser Anda tidak mendukung iframe PDF. Silakan gunakan tombol
-                                                        Download.
-                                                    </iframe>
-                                                </div>
+                                {{-- MODAL PREVIEW KUITANSI --}}
+                                <div class="modal fade" id="previewKuitansiModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" style="font-size:16px; font-weight:600;">
+                                                    {{ !empty($permohonan->kuitansi_pdf_tte) ? 'Preview Kuitansi (TTE)' : 'Preview Kuitansi (Draf)' }}
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-0">
+                                                <iframe src="{{ route('permohonan.kuitansi.stream-tte', $permohonan->id) }}"
+                                                    width="100%" height="600px" style="border:none;">
+                                                    Browser Anda tidak mendukung iframe PDF. Silakan gunakan tombol
+                                                    Download.
+                                                </iframe>
                                             </div>
                                         </div>
                                     </div>
-                                @else
-                                    <a href="{{ route('permohonan.preview-kuitansi', $permohonan->id) }}" target="_blank"
-                                        class="text-decoration-none d-inline-flex align-items-center gap-2 px-3 py-2" style="
-                                                                                                    background:linear-gradient(135deg,#3b82f6,#2563eb);
-                                                                                                    color:white;
-                                                                                                    border-radius:10px;
-                                                                                                    font-size:12px;
-                                                                                                    font-weight:600;
-                                                                                                    box-shadow:0 3px 10px rgba(37,99,235,.18);
-                                                                                               ">
-                                        <i class="fas fa-eye" style="font-size:11px;color:white !important"></i>
-                                        <span style="color:white">Preview Draf</span>
-                                    </a>
-                                @endif
+                                </div>
 
                                 {{-- DOWNLOAD KUITANSI --}}
                                 <a href="{{ route('permohonan.kuitansi.download-tte', $permohonan->id) }}" target="_blank"

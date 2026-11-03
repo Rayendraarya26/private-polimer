@@ -16,10 +16,12 @@ use App\Enums\SysGroup;
 use App\Models\Db1\Pegawai;
 use App\Models\Db2\Permohonan;
 use Modules\Webhook\Jobs\DispatchPermohonanToSisJob;
+use App\Traits\HandlesTteDocumentStream;
 
 
 class InvoiceController extends Controller
 {
+    use HandlesTteDocumentStream;
 
     private function buildPemohon(Permohonan $permohonan): array
     {
@@ -382,25 +384,48 @@ class InvoiceController extends Controller
                 $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
                 return response()->download($filePath, $fileName);
             }
-            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
+
+            // Jika belum di-TTE, generate & unduh PDF invoice draf
+            $detailPembayaran = $this->buildDetailPembayaran($permohonan);
+            $grupPermohonan   = $this->buildGrupPermohonan($permohonan);
+            $invoiceNumber    = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
+            $va               = $permohonan->va ?: '-';
+            $total            = $detailPembayaran->sum('subtotal');
+            $pemohon          = $this->buildPemohon($permohonan);
+            $bendahara        = $this->getBendahara();
+
+            $pdf = $this->buildPdf(
+                $permohonan,
+                $detailPembayaran,
+                $grupPermohonan,
+                $invoiceNumber,
+                $va,
+                $total,
+                $pemohon,
+                $bendahara
+            );
+
+            $safeInvoiceName = 'Invoice-' . str_replace(['/', '\\'], '-', $invoiceNumber) . '.pdf';
+            return $pdf->download($safeInvoiceName);
         }
 
         try {
-            $tteService = new TteService();
-            $result     = $tteService->verifyById($permohonan->pdf_tte);
+            $fallbackName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+            $bucketResult = $this->fetchTtePdfFromBucket($permohonan->pdf_tte, $fallbackName);
 
-            if (empty($result['file_link'])) {
-                abort(404, 'File TTE tidak ditemukan di server');
+            if (!empty($bucketResult['content'])) {
+                return response($bucketResult['content'], 200, [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . $bucketResult['file_name'] . '"',
+                    'Content-Length'      => strlen($bucketResult['content']),
+                ]);
             }
 
-            Log::info('InvoiceController::downloadTte - Redirecting to fresh S3 URL', [
-                'permohonan_id' => $id,
-                'esign_id'      => $permohonan->pdf_tte,
-            ]);
+            if (!empty($bucketResult['file_link'])) {
+                return redirect($bucketResult['file_link']);
+            }
 
-            // Redirect ke fresh presigned S3 URL (browser akan download)
-            return redirect($result['file_link']);
-
+            abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
         } catch (\Exception $e) {
             Log::error('InvoiceController::downloadTte - Gagal', [
                 'permohonan_id' => $id,
@@ -412,77 +437,49 @@ class InvoiceController extends Controller
 
     /**
      * Stream konten PDF TTE / Invoice langsung ke browser (untuk iframe preview).
+     * Sisi Admin:
+     * - Jika belum TTE: generate PDF invoice secara dinamis
+     * - Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
      *
      * Route: GET /permohonan/layanan/{id}/stream-tte
      * Name : permohonan.invoice.stream-tte
      */
     public function streamTte($id)
     {
-        $permohonan = Permohonan::with('billing')->findOrFail($id);
+        $permohonan = Permohonan::with([
+            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'creator'
+        ])->findOrFail($id);
 
-        if (empty($permohonan->pdf_tte)) {
-            $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
-            if (!empty($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
-                $pdfContent = Storage::disk('public')->get($invoicePath);
-                $fileName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
-                return response($pdfContent, 200, [
-                    'Content-Type'        => 'application/pdf',
-                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                    'Content-Length'      => strlen($pdfContent),
-                ]);
-            }
-            abort(404, 'Invoice / TTE belum tersedia untuk permohonan ini');
-        }
+        // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
+        if (!empty($permohonan->pdf_tte)) {
+            try {
+                $fallbackName = 'invoice-' . ($permohonan->invoice_number ? str_replace('/', '-', $permohonan->invoice_number) : $permohonan->no_permohonan) . '.pdf';
+                $bucketResult = $this->fetchTtePdfFromBucket($permohonan->pdf_tte, $fallbackName);
 
-        try {
-            $tteService = new TteService();
-            $result     = $tteService->verifyById($permohonan->pdf_tte);
-
-            if (empty($result['file_link'])) {
-                abort(404, 'File TTE tidak ditemukan di server');
-            }
-
-            // Download konten PDF dari S3 presigned URL atau local storage
-            $pdfContent = @file_get_contents($result['file_link']);
-            if ($pdfContent === false || empty($pdfContent)) {
-                $cached = cache()->get('tte_dummy_' . $permohonan->pdf_tte);
-                if ($cached && !empty($cached['file_path']) && Storage::disk('public')->exists($cached['file_path'])) {
-                    $pdfContent = Storage::disk('public')->get($cached['file_path']);
+                if (!empty($bucketResult['content'])) {
+                    return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                 }
+
+                if (!empty($bucketResult['file_link'])) {
+                    return redirect($bucketResult['file_link']);
+                }
+
+                abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
+            } catch (\Exception $e) {
+                Log::error('InvoiceController::streamTte - Gagal mengambil dari bucket', [
+                    'permohonan_id' => $id,
+                    'error'         => $e->getMessage(),
+                ]);
+                abort(500, 'Gagal streaming file TTE Invoice: ' . $e->getMessage());
             }
-
-            if (empty($pdfContent)) {
-                abort(404, 'Gagal memuat konten dokumen TTE');
-            }
-            
-            $fileName = $result['file_name']
-                ?? ('invoice-' . $permohonan->no_permohonan . '.pdf');
-
-            Log::info('InvoiceController::streamTte - Streaming PDF', [
-                'permohonan_id' => $id,
-                'esign_id'      => $permohonan->pdf_tte,
-                'file_size'     => strlen($pdfContent),
-            ]);
-
-            // Stream langsung ke browser (inline = tampil di iframe)
-            return response($pdfContent, 200, [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Content-Length'      => strlen($pdfContent),
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('InvoiceController::streamTte - Gagal', [
-                'permohonan_id' => $id,
-                'error'         => $e->getMessage(),
-            ]);
-            abort(500, 'Gagal streaming file TTE');
         }
+
+        // Jika belum TTE: generate invoice secara dinamis & instan (seperti yang sekarang sudah ada)
+        return $this->generate($id);
     }
 
-     public function generate($id)
+    public function generate($id)
     {
-
         $permohonan = Permohonan::with([
             'detailPembayaran',
             'formPelatihan',
@@ -490,69 +487,41 @@ class InvoiceController extends Controller
             'formSertifikasi',
             'formInspeksi',
             'formHalal',
+            'billing',
+            'creator',
         ])->findOrFail($id);
 
+        // Jika sudah TTE: ambil langsung dari file dari bucket
+        if (!empty($permohonan->pdf_tte)) {
+            return $this->streamTte($id);
+        }
 
-        $detailPembayaran = $permohonan->detailPembayaran;
+        // Belum TTE: generate invoice secara dinamis
+        $detailPembayaran = $this->buildDetailPembayaran($permohonan);
         $grupPermohonan   = $this->buildGrupPermohonan($permohonan);
 
-
-        /**
-         * Nomor invoice
-         */
         $invoiceNumber = $permohonan->invoice_number
             ?: 'INV/' . now()->format('Ymd') . '/' . strtoupper(Str::random(5));
 
-
-        /**
-         * Virtual Account
-         */
-        $va = $permohonan->va ?: '-';
-
-
-        /**
-         * Total
-         */
+        $va    = $permohonan->va ?: '-';
         $total = $detailPembayaran->sum('subtotal');
 
-
-        /**
-         * Data pemohon
-         */
-        $pemohon = $this->buildPemohon($permohonan);
-
-
-        /**
-         * Ambil data bendahara
-         */
+        $pemohon   = $this->buildPemohon($permohonan);
         $bendahara = $this->getBendahara();
 
+        $pdf = $this->buildPdf(
+            $permohonan,
+            $detailPembayaran,
+            $grupPermohonan,
+            $invoiceNumber,
+            $va,
+            $total,
+            $pemohon,
+            $bendahara
+        );
 
-        /**
-         * Generate PDF
-         */
-        $pdf = Pdf::loadView(
-            'permohonan::layanan.invoice',
-            [
-                'permohonan'       => $permohonan,
-                'detailPembayaran' => $detailPembayaran,
-                'grupPermohonan'   => $grupPermohonan,
-                'invoiceNumber'    => $invoiceNumber,
-                'va'               => $va,
-                'total'            => $total,
-                'pemohon'          => $pemohon,
-                'bendahara'        => $bendahara,
-            ]
-        )
-        ->setPaper('a4', 'portrait')
-        ->setOptions([
-            'defaultFont'          => 'sans-serif',
-            'isRemoteEnabled'      => true,
-            'isHtml5ParserEnabled' => true,
-        ]);
-
-
-        return $pdf->stream($invoiceNumber . '.pdf');
+        $safeInvoiceName = 'Invoice-' . str_replace(['/', '\\'], '-', $invoiceNumber) . '.pdf';
+        return $pdf->stream($safeInvoiceName);
     }
 
 
@@ -676,44 +645,51 @@ class InvoiceController extends Controller
                 return response()->download($filePath, $fileName);
             }
 
-            // Jika file draf belum pernah disimpan fisik, generate dulu
-            $this->previewKuitansi($id);
-            $permohonan->refresh();
+            // Generate draf kuitansi
+            $detailPembayaran = $this->buildDetailPembayaran($permohonan);
+            $grupPermohonan   = $this->buildGrupPermohonan($permohonan);
+            $kuitansiNumber   = $permohonan->kuitansi_number ?: ($permohonan->no_permohonan . '/KWT');
+            $total            = $detailPembayaran->sum('subtotal');
+            $pemohon          = $this->buildPemohon($permohonan);
+            $bendahara        = $this->getBendahara();
 
-            if ($permohonan->kuitansi_file && Storage::disk('public')->exists($permohonan->kuitansi_file)) {
-                $filePath = storage_path('app/public/' . $permohonan->kuitansi_file);
-                $fileName = 'kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number ?: $permohonan->no_permohonan) . '.pdf';
-                return response()->download($filePath, $fileName);
-            }
+            $pdf = Pdf::loadView('permohonan::layanan.kuitansi', [
+                'permohonan'       => $permohonan,
+                'detailPembayaran' => $detailPembayaran,
+                'grupPermohonan'   => $grupPermohonan,
+                'kuitansiNumber'   => $kuitansiNumber,
+                'total'            => $total,
+                'pemohon'          => $pemohon,
+                'bendahara'        => $bendahara,
+            ])
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont'          => 'sans-serif',
+                'isRemoteEnabled'      => true,
+                'isHtml5ParserEnabled' => true,
+            ]);
 
-            abort(404, 'File kuitansi belum tersedia');
+            $fileName = 'kuitansi-' . str_replace('/', '-', $kuitansiNumber) . '.pdf';
+            return $pdf->download($fileName);
         }
 
         try {
-            if (str_starts_with($permohonan->kuitansi_pdf_tte, 'dummy-esign|')) {
-                $pathStr = explode('|', $permohonan->kuitansi_pdf_tte)[1];
-                $path = storage_path('app/public/' . $pathStr);
-                if (!file_exists($path)) {
-                    abort(404, 'File TTE Kuitansi Dummy tidak ditemukan');
-                }
-                $fileName = 'kuitansi-' . str_replace('/', '-', $permohonan->no_permohonan) . '.pdf';
-                return response()->download($path, $fileName);
+            $fallbackName = 'kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number ?: $permohonan->no_permohonan) . '.pdf';
+            $bucketResult = $this->fetchTtePdfFromBucket($permohonan->kuitansi_pdf_tte, $fallbackName);
+
+            if (!empty($bucketResult['content'])) {
+                return response($bucketResult['content'], 200, [
+                    'Content-Type'        => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="' . $bucketResult['file_name'] . '"',
+                    'Content-Length'      => strlen($bucketResult['content']),
+                ]);
             }
 
-            $tteService = new TteService();
-            $result     = $tteService->verifyById($permohonan->kuitansi_pdf_tte);
-
-            if (empty($result['file_link'])) {
-                abort(404, 'File TTE Kuitansi tidak ditemukan di server');
+            if (!empty($bucketResult['file_link'])) {
+                return redirect($bucketResult['file_link']);
             }
 
-            if (!empty($result['file_path']) && Storage::disk('public')->exists($result['file_path'])) {
-                $filePath = storage_path('app/public/' . $result['file_path']);
-                $fileName = $result['file_name'] ?? ('kuitansi-' . $permohonan->no_permohonan . '.pdf');
-                return response()->download($filePath, $fileName);
-            }
-
-            return redirect($result['file_link']);
+            abort(404, 'File TTE Kuitansi tidak ditemukan di server');
 
         } catch (\Exception $e) {
             Log::error('InvoiceController::downloadKuitansiTte - Gagal', [
@@ -724,54 +700,41 @@ class InvoiceController extends Controller
         }
     }
 
+    /**
+     * Stream konten PDF Kuitansi langsung ke browser (untuk iframe preview modal).
+     * Sisi Admin:
+     * - Jika sudah TTE: preview diambil langsung dari file dari bucket (sudah TTE)
+     * - Jika belum TTE: generate PDF kuitansi secara dinamis (draf)
+     */
     public function streamKuitansiTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with([
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'creator'
+        ])->findOrFail($id);
 
-        if (empty($permohonan->kuitansi_pdf_tte)) {
-            return $this->previewKuitansi($id);
-        }
+        // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
+        if (!empty($permohonan->kuitansi_pdf_tte)) {
+            try {
+                $fallbackName = 'kuitansi-' . str_replace('/', '-', $permohonan->kuitansi_number ?: $permohonan->no_permohonan) . '.pdf';
+                $bucketResult = $this->fetchTtePdfFromBucket($permohonan->kuitansi_pdf_tte, $fallbackName);
 
-        try {
-            if (str_starts_with($permohonan->kuitansi_pdf_tte, 'dummy-esign|')) {
-                $pathStr = explode('|', $permohonan->kuitansi_pdf_tte)[1];
-                $path = storage_path('app/public/' . $pathStr);
-                if (!file_exists($path)) {
-                    abort(404, 'File TTE Kuitansi Dummy tidak ditemukan');
-                }
-                $pdfContent = file_get_contents($path);
-                $fileName = 'kuitansi-' . $permohonan->no_permohonan . '.pdf';
-            } else {
-                $tteService = new TteService();
-                $result     = $tteService->verifyById($permohonan->kuitansi_pdf_tte);
-
-                if (empty($result['file_link'])) {
-                    abort(404, 'File TTE Kuitansi tidak ditemukan di server');
+                if (!empty($bucketResult['content'])) {
+                    return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                 }
 
-                $pdfContent = @file_get_contents($result['file_link']);
-                if ($pdfContent === false || empty($pdfContent)) {
-                    if (!empty($result['file_path']) && Storage::disk('public')->exists($result['file_path'])) {
-                        $pdfContent = Storage::disk('public')->get($result['file_path']);
-                    }
+                if (!empty($bucketResult['file_link'])) {
+                    return redirect($bucketResult['file_link']);
                 }
 
-                if ($pdfContent === false || empty($pdfContent)) {
-                    return redirect($result['file_link']);
-                }
-                $fileName = $result['file_name'] ?? ('kuitansi-' . $permohonan->no_permohonan . '.pdf');
+                abort(404, 'File Kuitansi TTE tidak ditemukan di bucket penyimpanan');
+            } catch (\Exception $e) {
+                Log::error('InvoiceController::streamKuitansiTte - Gagal: ' . $e->getMessage());
+                abort(500, 'Gagal streaming file TTE Kuitansi: ' . $e->getMessage());
             }
-
-            return response($pdfContent, 200, [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                'Content-Length'      => strlen($pdfContent),
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('InvoiceController::streamKuitansiTte - Gagal: ' . $e->getMessage());
-            abort(500, 'Gagal streaming file TTE Kuitansi');
         }
+
+        // Jika belum TTE: generate preview kuitansi secara dinamis
+        return $this->previewKuitansi($id);
     }
 
     public function previewKuitansi($id)
@@ -785,6 +748,11 @@ class InvoiceController extends Controller
             'formHalal',
             'creator',
         ])->findOrFail($id);
+
+        // Jika sudah TTE, langsung ambil dari bucket via streamKuitansiTte
+        if (!empty($permohonan->kuitansi_pdf_tte)) {
+            return $this->streamKuitansiTte($id);
+        }
 
         if ($permohonan->status_bayar !== 'LUNAS') {
             abort(403, 'Pembayaran belum lunas, kuitansi belum tersedia.');
@@ -803,12 +771,7 @@ class InvoiceController extends Controller
             DispatchPermohonanToSisJob::dispatch($permohonan->id)->afterCommit();
         }
 
-        // Jika sudah ada file kuitansi fisik lokal
-        if ($permohonan->kuitansi_file && Storage::disk('public')->exists($permohonan->kuitansi_file)) {
-            return response()->file(storage_path('app/public/' . $permohonan->kuitansi_file));
-        }
-
-        // Kalau belum ada -> generate + simpan
+        // Generate PDF kuitansi on-the-fly untuk preview admin jika belum TTE
         $pdf = Pdf::loadView('permohonan::layanan.kuitansi', [
             'permohonan'       => $permohonan,
             'detailPembayaran' => $detailPembayaran,
@@ -825,20 +788,7 @@ class InvoiceController extends Controller
             'isHtml5ParserEnabled' => true,
         ]);
 
-        $fileName = 'kuitansi-' . $permohonan->no_permohonan . '.pdf';
-        $filePath = 'kuitansi/' . $fileName;
-
-        if (!Storage::disk('public')->exists('kuitansi')) {
-            Storage::disk('public')->makeDirectory('kuitansi');
-        }
-
-        Storage::disk('public')->put($filePath, $pdf->output());
-
-        $permohonan->update([
-            'kuitansi_number'       => $kuitansiNumber,
-            'kuitansi_file'         => $filePath,
-            'kuitansi_generated_at' => now(),
-        ]);
+        $fileName = 'kuitansi-' . str_replace(['/', '\\'], '-', $permohonan->no_permohonan) . '.pdf';
 
         return $pdf->stream($fileName);
     }

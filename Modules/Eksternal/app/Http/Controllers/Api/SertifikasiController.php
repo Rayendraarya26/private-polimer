@@ -308,6 +308,15 @@ class SertifikasiController extends Controller
                     }
                 }
 
+                $tglKadaluarsa = $p->tanggal_sertifikat_kadaluarsa
+                    ? $p->tanggal_sertifikat_kadaluarsa->format('d-m-Y')
+                    : null;
+                $isExpired = $p->tanggal_sertifikat_kadaluarsa ? $p->tanggal_sertifikat_kadaluarsa->isPast() : false;
+
+                $pabrikData = is_array($form?->pabrik_json)
+                    ? $form->pabrik_json
+                    : (is_string($form?->pabrik_json) ? json_decode($form->pabrik_json, true) : []);
+
                 return [
                     'id' => $p->id,
                     'no_permohonan' => $p->no_permohonan,
@@ -318,7 +327,23 @@ class SertifikasiController extends Controller
                     'items' => $items,
                     'dokumen_list' => $dokumenMap,
                     'tanggal_terbit' => $tglTerbit,
-                    'status' => 'Aktif'
+                    'tanggal_kadaluarsa' => $tglKadaluarsa,
+                    'is_expired' => $isExpired,
+                    'status' => $isExpired ? 'Kadaluarsa' : 'Aktif',
+                    'luas_tanah' => $form?->luas_tanah ? (string) $form->luas_tanah : '',
+                    'luas_bangunan' => $form?->luas_bangunan ? (string) $form->luas_bangunan : '',
+                    'jumlah_shift' => ($form?->jumlah_shift_2 > 0 ? 2 : 1),
+                    'jumlah_bagian' => 1,
+                    'jumlah_shift_1' => $form?->jumlah_shift_1 ?? 0,
+                    'jumlah_shift_2' => $form?->jumlah_shift_2 ?? 0,
+                    'jumlah_shift_3' => $form?->jumlah_shift_3 ?? 0,
+                    'jumlah_manajemen' => $form?->jumlah_manajemen ?? 0,
+                    'jumlah_administrasi' => $form?->jumlah_administrasi ?? 0,
+                    'jumlah_operasional' => $form?->jumlah_operasional ?? 0,
+                    'jumlah_part_time' => $form?->jumlah_part_time ?? 0,
+                    'jumlah_non_permanen' => $form?->jumlah_non_permanen ?? 0,
+                    'jumlah_karyawan_total' => $form?->jumlah_karyawan_total ?? 0,
+                    'pabrik' => $pabrikData ?: [],
                 ];
             });
 

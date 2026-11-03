@@ -248,17 +248,34 @@ class ManageHomepageController
     {
         $input = $request->validate([
             'order'           => 'required|integer',
-            'title'           => 'required|string',
-            'description'     => 'required|string',
+            'title'           => 'nullable|string',
+            'title_id'        => 'nullable|string',
+            'title_en'        => 'nullable|string',
+            'description'     => 'nullable|string',
+            'description_id'  => 'nullable|string',
+            'description_en'  => 'nullable|string',
             'is_default_open' => 'nullable|boolean',
         ]);
+
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title', ''));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description', ''));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
+
         $accordion = SiteManajemen::where('key', '=', HomepageKey::ACCORDION->value)->firstOrNew();
         $data_json = $accordion->data ?? [];
         $data_json[] = [
             'id'              => Str::uuid()->toString(),
             'order'           => (int) $input['order'],
-            'title'           => $input['title'],
-            'description'     => $input['description'],
+            'title'           => [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ],
+            'description'     => [
+                'id' => $descId,
+                'en' => $descEn,
+            ],
             'is_default_open' => $request->boolean('is_default_open'),
         ];
         $accordion->key = HomepageKey::ACCORDION->value;
@@ -521,17 +538,34 @@ class ManageHomepageController
         $input = $request->validate([
             'id'              => 'required',
             'order'           => 'required|integer',
-            'title'           => 'required|string',
-            'description'     => 'required|string',
+            'title'           => 'nullable|string',
+            'title_id'        => 'nullable|string',
+            'title_en'        => 'nullable|string',
+            'description'     => 'nullable|string',
+            'description_id'  => 'nullable|string',
+            'description_en'  => 'nullable|string',
             'is_default_open' => 'nullable|boolean',
         ]);
+
+        $titleId = $request->input('title_id', is_array($request->input('title')) ? ($request->input('title.id') ?? '') : $request->input('title', ''));
+        $titleEn = $request->input('title_en', is_array($request->input('title')) ? ($request->input('title.en') ?? '') : '');
+
+        $descId = $request->input('description_id', is_array($request->input('description')) ? ($request->input('description.id') ?? '') : $request->input('description', ''));
+        $descEn = $request->input('description_en', is_array($request->input('description')) ? ($request->input('description.en') ?? '') : '');
+
         $accordion = SiteManajemen::where('key', '=', HomepageKey::ACCORDION->value)->firstOrFail();
         $updated_data = $accordion->data ?? [];
         $key = $this->searchForId($request->id, $updated_data);
         if (!is_null($key)) {
             Arr::set($updated_data, "$key.order", (int) $input['order']);
-            Arr::set($updated_data, "$key.title", $input['title']);
-            Arr::set($updated_data, "$key.description", $input['description']);
+            Arr::set($updated_data, "$key.title", [
+                'id' => $titleId,
+                'en' => $titleEn,
+            ]);
+            Arr::set($updated_data, "$key.description", [
+                'id' => $descId,
+                'en' => $descEn,
+            ]);
             Arr::set($updated_data, "$key.is_default_open", $request->boolean('is_default_open'));
         }
         $accordion->data = $updated_data;

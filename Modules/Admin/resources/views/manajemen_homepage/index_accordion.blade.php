@@ -158,8 +158,8 @@
                         <thead>
                         <tr>
                             <th>Urut</th>
-                            <th>Judul Accordion</th>
-                            <th>Deskripsi / Konten</th>
+                            <th>Title</th>
+                            <th>Deskripsi</th>
                             <th>Default Buka</th>
                             <th>Aksi</th>
                         </tr>
@@ -173,10 +173,7 @@
                             </td>
                             <td style="max-width:380px; white-space:normal;">
                                 <div v-html="typeof accordion.description === 'object' && accordion.description !== null ? (accordion.description.id || '-') : (accordion.description || '-')"></div>
-                                <div v-if="typeof accordion.description === 'object' && accordion.description && accordion.description.en" class="text-muted fs-8 mt-2 p-2 bg-light rounded">
-                                    <span class="badge badge-light-primary fs-9 mb-1">🇬🇧 English:</span>
-                                    <div v-html="accordion.description.en"></div>
-                                </div>
+                                <div v-if="typeof accordion.description === 'object' && accordion.description && accordion.description.en" class="text-muted fs-8 mt-2" v-html="accordion.description.en"></div>
                             </td>
                             <td>
                                 <span v-if="accordion.is_default_open" class="badge badge-light-success">

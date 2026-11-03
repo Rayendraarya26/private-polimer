@@ -112,9 +112,9 @@
         .banner-va {
             width: 100%;
             margin: 6px 0 10px 0;
-            border: 1.5px solid #000;
+            border: none;
             text-align: center;
-            padding: 5px;
+            padding: 3px 0;
         }
 
         .banner-va-title {
@@ -122,14 +122,16 @@
             font-size: 11pt;
             font-weight: bold;
             letter-spacing: 1px;
+            color: #000;
         }
 
         .banner-va-number {
             font-family: "Arial Narrow", Arial, sans-serif;
-            font-size: 15pt;
+            font-size: 16pt;
             font-weight: bold;
             letter-spacing: 2px;
-            margin-top: 3px;
+            margin-top: 2px;
+            color: #000;
         }
 
         .banner-manual {
@@ -174,15 +176,25 @@
             font-size: 10pt;
             font-weight: bold;
             vertical-align: middle;
-            background-color: #f1f5f9;
+            background-color: #fff;
         }
 
-        .invoice-table td {
+        .invoice-table tbody td {
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
+            border-top: none;
+            border-bottom: none;
+            padding: 3px 6px;
+            font-family: "Arial Narrow", Arial, sans-serif;
+            font-size: 9.5pt;
+            vertical-align: top;
+        }
+
+        .invoice-table tfoot td {
             border: 1px solid #000;
             padding: 4px 6px;
             font-family: "Arial Narrow", Arial, sans-serif;
             font-size: 9.5pt;
-            vertical-align: top;
         }
 
         .text-center {
@@ -468,14 +480,105 @@
                 $grandTotal = 0;
                 $jenisPelanggan = \App\Models\Db1\Pelanggan::where('user_id', $permohonan->created_by)->value('jenis_pelanggan');
                 $isPerorangan = ($jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value);
+                $introUraian = null;
+
+                // Helper resolusi rincian item jika permohonan memiliki breakdown spesifik (seperti Kalibrasi per alat)
+                $resolveRincianItem = function($p, $defaultItems) use (&$introUraian) {
+                    // 1. Cek Kalibrasi (rincian per alat seperti standar invoice kalibrasi)
+                    if (str_contains($p->no_permohonan, 'LABKAL') || (method_exists($p, 'formKalibrasi') && $p->formKalibrasi()->exists())) {
+                        $fk = $p->formKalibrasi()->with('alatList.kalibrasiItems')->first();
+                        if ($fk && $fk->alatList && $fk->alatList->isNotEmpty()) {
+                            $lokasi = '';
+                            if (!empty($fk->lokasi_pelaksanaan)) {
+                                $lokLower = strtolower($fk->lokasi_pelaksanaan);
+                                if (str_contains($lokLower, 'client') || str_contains($lokLower, 'insitu')) {
+                                    $lokasi = ' (insitu)';
+                                } elseif (str_contains($lokLower, 'lab') || str_contains($lokLower, 'bbkkp')) {
+                                    $lokasi = ' (di laboratorium)';
+                                } else {
+                                    $lokasi = ' (' . e($fk->lokasi_pelaksanaan) . ')';
+                                }
+                            }
+                            $introUraian = 'Biaya Kalibrasi alat' . $lokasi . ', dengan rincian:';
+
+                            $rincian = collect();
+                            foreach ($fk->alatList as $alat) {
+                                $namaAlat = $alat->nama_alat;
+                                $spek = array_filter([$alat->merk, $alat->tipe_model]);
+                                $labelSpek = !empty($spek) ? ' - ' . implode(' ', $spek) : '';
+
+                                $qty = (int) ($alat->jumlah ?: 1);
+                                $subtotal = (float) ($alat->subtotal_biaya ?: 0);
+                                $tarif = $qty > 0 ? ($subtotal / $qty) : $subtotal;
+
+                                $rincian->push((object) [
+                                    'item_bayar'   => $namaAlat . $labelSpek,
+                                    'kuantitas'    => $qty . ' alat',
+                                    'raw_qty'      => $qty,
+                                    'unit'         => ' alat',
+                                    'harga_satuan' => $tarif,
+                                    'subtotal'     => $subtotal,
+                                ]);
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    // 2. Cek Pengujian Laboratorium (rincian per sampel dan parameter)
+                    if (str_starts_with($p->no_permohonan, 'UJI') || (method_exists($p, 'formPengujian') && $p->formPengujian()->exists())) {
+                        $fp = $p->formPengujian()->with('samples.parameters')->first();
+                        if ($fp && $fp->samples && $fp->samples->isNotEmpty()) {
+                            $rincian = collect();
+                            foreach ($fp->samples as $sample) {
+                                $namaSample = $sample->nama_sampel ?: 'Sampel Uji';
+                                if ($sample->parameters && $sample->parameters->isNotEmpty()) {
+                                    foreach ($sample->parameters as $param) {
+                                        $uraian = 'Pengujian ' . $namaSample . ' - ' . ($param->nama_parameter_snapshot ?: $param->nama_parameter);
+                                        $qty = (int) ($param->jumlah ?: 1);
+                                        $subtotal = (float) ($param->subtotal ?: 0);
+                                        $tarif = $qty > 0 ? (float) ($param->tarif_satuan_snapshot ?: ($subtotal / $qty)) : $subtotal;
+
+                                        $rincian->push((object) [
+                                            'item_bayar'   => $uraian,
+                                            'kuantitas'    => $qty,
+                                            'raw_qty'      => $qty,
+                                            'unit'         => '',
+                                            'harga_satuan' => $tarif,
+                                            'subtotal'     => $subtotal,
+                                        ]);
+                                    }
+                                }
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    return $defaultItems;
+                };
+
+                $resolvedDetailPembayaran = $resolveRincianItem($permohonan, $detailPembayaran);
             @endphp
 
+            @if(!empty($introUraian))
+                <tr>
+                    <td class="text-center"></td>
+                    <td>{{ $introUraian }}</td>
+                    <td class="text-center"></td>
+                    <td class="text-right"></td>
+                    <td class="text-right"></td>
+                </tr>
+            @endif
+
             @if($permohonan->is_split_bill || $isPerorangan)
-                @foreach($detailPembayaran as $index => $item)
+                @foreach($resolvedDetailPembayaran as $index => $item)
                     @php $grandTotal += $item->subtotal; @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
-                        <td>{{ $item->item_bayar }}</td>
+                        <td>{!! $item->item_bayar !!}</td>
                         <td class="text-center">{{ $item->kuantitas }}</td>
                         <td class="text-right">{{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
@@ -485,19 +588,22 @@
                 @php
                     $groupedItems = collect();
                     foreach ($grupPermohonan as $gp) {
-                        foreach ($gp->detailPembayaran as $item) {
+                        $itemsForGp = $resolveRincianItem($gp, $gp->detailPembayaran);
+                        foreach ($itemsForGp as $item) {
                             if (!$item->item_bayar) continue;
                             $key = md5($item->item_bayar . '|' . $item->harga_satuan);
                             if (!$groupedItems->has($key)) {
+                                $unit = isset($item->unit) ? $item->unit : (isset($item->kuantitas) && str_contains((string)$item->kuantitas, 'alat') ? ' alat' : '');
                                 $groupedItems->put($key, [
                                     'item_bayar'   => $item->item_bayar,
                                     'harga_satuan' => $item->harga_satuan,
                                     'qty'          => 0,
+                                    'unit'         => $unit,
                                     'subtotal'     => 0,
                                 ]);
                             }
                             $row = $groupedItems[$key];
-                            $row['qty'] += $item->kuantitas;
+                            $row['qty'] += isset($item->raw_qty) ? $item->raw_qty : (int)$item->kuantitas;
                             $row['subtotal'] += $item->subtotal;
                             $groupedItems[$key] = $row;
                         }
@@ -508,8 +614,8 @@
                     @php $grandTotal += $item['subtotal']; @endphp
                     <tr>
                         <td class="text-center">{{ $no++ }}</td>
-                        <td>{{ $item['item_bayar'] }}</td>
-                        <td class="text-center">{{ $item['qty'] }}</td>
+                        <td>{!! $item['item_bayar'] !!}</td>
+                        <td class="text-center">{{ $item['qty'] }}{{ $item['unit'] ?? '' }}</td>
                         <td class="text-right">{{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($item['subtotal'], 0, ',', '.') }}</td>
                     </tr>

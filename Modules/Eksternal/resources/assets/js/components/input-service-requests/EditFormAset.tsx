@@ -22,7 +22,7 @@ import { Step1JenisDanPeriode } from './multiAset/Step1JenisDanPeriode'
 import { Step2DataPemohon } from './multiAset/Step2DataPemohon'
 import { Step3UnggahBerkasDanPernyataan } from './multiAset/Step3UnggahBerkasDanPernyataan'
 import { useAset } from '../../hooks/service-requests/useAset'
-import { RevisionBannerCallout, StickyFormActions } from '../forms'
+import { RevisionBannerCallout, FormWizardActions } from '../forms'
 
 export const EditFormAset: React.FC = () => {
   const { id } = useParams()
@@ -267,8 +267,8 @@ export const EditFormAset: React.FC = () => {
           />
         )}
 
-        {/* Sticky Form Actions */}
-        <StickyFormActions
+        {/* Form Wizard Actions */}
+        <FormWizardActions
           onBack={() => navigate(`/permohonan/detail/${id}`)}
           onSaveDraft={() => handleSave(false)}
           onSubmit={() => handleSave(true)}

@@ -18,7 +18,7 @@ import { Step1JenisDanPeriode } from './Step1JenisDanPeriode'
 import { Step2DataPemohon } from './Step2DataPemohon'
 import { Step3UnggahBerkasDanPernyataan } from './Step3UnggahBerkasDanPernyataan'
 import { StepPanel } from '../common'
-import { StickyFormActions } from '../../forms'
+import { FormWizardActions } from '../../forms'
 
 const STEPS = [
   {
@@ -509,7 +509,7 @@ export const FormAsetWizard: React.FC = () => {
       </div>
 
       {/* Form Navigation Actions */}
-      <StickyFormActions
+      <FormWizardActions
         isSticky={false}
         canGoBack={true}
         backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
@@ -521,7 +521,7 @@ export const FormAsetWizard: React.FC = () => {
         isSubmitting={isSubmitting}
         isSavingDraft={isSavingDraft}
         nextLabel="Selanjutnya"
-        submitLabel="Kirim Permohonan Sewa Aset"
+        submitLabel="Kirim"
       />
 
       {/* Modal Konfirmasi Reset Draf */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import {
   Receipt,
   FileCheck,
@@ -6,29 +6,49 @@ import {
   CreditCard,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  Download,
-  ExternalLink,
+  Copy,
+  Check,
   Search,
+  Calendar,
+  Inbox,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Building2,
 } from "lucide-react"
 import Head from "../../components/common/Head"
 import api from "../../utils/api"
 import Swal from "sweetalert2"
 import usePembayaran from "../../hooks/usePembayaran"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card"
-import { DataTable, Column } from "../../components/ui/DataTable"
 import { Badge } from "../../components/ui/Badge"
 import { Button } from "../../components/ui/Button"
 import { StatsCard } from "../../components/ui/StatsCard"
 import toast from "react-hot-toast"
 import { usePembayaranQuery, PembayaranItem } from "../../hooks/queries/usePermohonanQuery"
+import { cn } from "../../utils/cn"
 
 export type { PembayaranItem }
 
+type StatusFilter = "ALL" | "BELUM" | "LUNAS"
+
+const PAGE_SIZE = 8
+
 const PembayaranPage: React.FC = () => {
   const [requestingTteId, setRequestingTteId] = useState<string | null>(null)
+  const [copiedVa, setCopiedVa] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
+  const [currentPage, setCurrentPage] = useState(1)
+
   const { data: rawData = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
   const { openInvoice, openKuitansi, openSuratPenawaran, PdfPreviewModal } = usePembayaran()
+
+  const handleCopyVa = (va: string) => {
+    navigator.clipboard.writeText(va)
+    setCopiedVa(va)
+    toast.success("Nomor Virtual Account disalin")
+    setTimeout(() => setCopiedVa(null), 2000)
+  }
 
   const data = useMemo(() => {
     return rawData.filter((item) => {
@@ -56,6 +76,38 @@ const PembayaranPage: React.FC = () => {
     })
   }, [rawData])
 
+  // Summary Metrics
+  const summary = useMemo(() => {
+    const totalTagihan = data.reduce((acc, curr) => acc + curr.total_tagihan, 0)
+    const belumBayar = data.filter((d) => d.status_bayar === "BELUM").length
+    const lunas = data.filter((d) => d.status_bayar === "LUNAS").length
+
+    return { totalTagihan, belumBayar, lunas, totalCount: data.length }
+  }, [data])
+
+  // Filtered Data (Search + Status Tab)
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      if (statusFilter !== "ALL" && item.status_bayar !== statusFilter) {
+        return false
+      }
+
+      if (!search.trim()) return true
+      const term = search.toLowerCase()
+      return (
+        (item.no_permohonan || "").toLowerCase().includes(term) ||
+        (item.nama_permohonan || "").toLowerCase().includes(term) ||
+        (item.va || "").toLowerCase().includes(term) ||
+        (item.invoice_number || "").toLowerCase().includes(term)
+      )
+    })
+  }, [data, statusFilter, search])
+
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE) || 1
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return filteredData.slice(start, start + PAGE_SIZE)
+  }, [filteredData, currentPage])
 
   const handleRequestTteInvoice = async (row: PembayaranItem) => {
     const result = await Swal.fire({
@@ -143,155 +195,40 @@ const PembayaranPage: React.FC = () => {
     })
   }
 
-  // Summary Metrics
-  const summary = useMemo(() => {
-    const totalTagihan = data.reduce((acc, curr) => acc + curr.total_tagihan, 0)
-    const belumBayar = data.filter((d) => d.status_bayar === "BELUM").length
-    const lunas = data.filter((d) => d.status_bayar === "LUNAS").length
-
-    return { totalTagihan, belumBayar, lunas, totalCount: data.length }
-  }, [data])
-
-  const columns: Column<PembayaranItem>[] = [
-    {
-      key: "tgl_order",
-      header: "Tanggal Order",
-      sortable: true,
-      render: (row) => (
-        <span className="text-slate-600 font-medium">{formatDate(row.tgl_order)}</span>
-      ),
-    },
-    {
-      key: "no_permohonan",
-      header: "No. Permohonan & BNI VA",
-      sortable: true,
-      render: (row) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="font-semibold text-slate-900">{row.no_permohonan}</span>
-          {row.va ? (
-            <div className="inline-flex items-center gap-1 text-xs text-primary-700 font-mono font-medium">
-              <span>VA: {row.va}</span>
-            </div>
-          ) : (
-            <span className="text-xs text-slate-400">VA: Belum terbit</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "nama_permohonan",
-      header: "Layanan / Komoditas",
-      sortable: true,
-      render: (row) => (
-        <div className="font-medium text-slate-800 line-clamp-1 max-w-xs">
-          {row.nama_permohonan}
-        </div>
-      ),
-    },
-    {
-      key: "total_tagihan",
-      header: "Total Tagihan PNBP",
-      sortable: true,
-      render: (row) => (
-        <span className="font-bold text-slate-900">
-          {formatCurrency(row.total_tagihan)}
-        </span>
-      ),
-    },
-    {
-      key: "status_bayar",
-      header: "Status Pembayaran",
-      sortable: true,
-      className: "text-center",
-      headerClassName: "text-center",
-      render: (row) => {
-        switch (row.status_bayar) {
-          case "LUNAS":
-            return <Badge variant="success" dot>Lunas</Badge>
-          case "BELUM":
-            return <Badge variant="warning" dot>Menunggu Pembayaran</Badge>
-          case "EXPIRED":
-            return <Badge variant="danger" dot>Kadaluarsa</Badge>
-          case "BATAL":
-            return <Badge variant="danger" dot>Batal</Badge>
-          default:
-            return <Badge variant="neutral">{row.status_bayar}</Badge>
-        }
-      },
-    },
-    {
-      key: "actions",
-      header: "Aksi & Dokumen Finansial",
-      className: "text-right",
-      headerClassName: "text-right",
-      render: (row) => (
-        <div className="flex items-center justify-end gap-2 flex-wrap whitespace-nowrap">
-          {/* Surat Penawaran Button */}
-          {row.file_surat_penawaran && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300"
-              leftIcon={<FileText className="w-3.5 h-3.5 text-indigo-600" />}
-              onClick={() => openSuratPenawaran(row)}
-              title="Lihat Surat Penawaran Biaya Resmi"
-            >
-              Surat Penawaran
-            </Button>
-          )}
-
-          {/* Invoice Button */}
-          {(row.invoice_number || row.invoice_file || row.pdf_tte || row.total_tagihan > 0) && (
-            <Button
-              size="sm"
-              variant="outline"
-              leftIcon={<Receipt className="w-3.5 h-3.5" />}
-              onClick={() => {
-                if (!row.pdf_tte) {
-                  showInfo(
-                    "Invoice Belum Tersedia",
-                    "Invoice resmi bertanda tangan elektronik (TTE) sedang diproses oleh Bendahara."
-                  )
-                  return
-                }
-                openInvoice(row)
-              }}
-              title="Buka Invoice Resmi TTE"
-            >
-              Invoice
-            </Button>
-          )}
-
-          {/* Kuitansi Button */}
-          <Button
-            size="sm"
-            variant={row.status_bayar === "LUNAS" && row.kuitansi_pdf_tte ? "success" : "secondary"}
-            leftIcon={<FileCheck className="w-3.5 h-3.5" />}
-            onClick={() => {
-              if (row.status_bayar !== "LUNAS") {
-                showInfo(
-                  "Kuitansi Belum Tersedia",
-                  "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
-                )
-                return
-              }
-              if (!row.kuitansi_pdf_tte) {
-                showInfo(
-                  "Kuitansi Menunggu TTE",
-                  "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara."
-                )
-                return
-              }
-              openKuitansi(row)
-            }}
-            title="Buka Kuitansi Resmi TTE"
-          >
-            Kuitansi
-          </Button>
-        </div>
-      ),
-    },
-  ]
+  const renderStatusBadge = (statusBayar: string) => {
+    switch (statusBayar) {
+      case "LUNAS":
+        return (
+          <Badge variant="success" size="sm" dot className="whitespace-nowrap">
+            Lunas
+          </Badge>
+        )
+      case "BELUM":
+        return (
+          <Badge variant="warning" size="sm" dot className="whitespace-nowrap">
+            Menunggu Pembayaran
+          </Badge>
+        )
+      case "EXPIRED":
+        return (
+          <Badge variant="danger" size="sm" dot className="whitespace-nowrap">
+            Kadaluarsa
+          </Badge>
+        )
+      case "BATAL":
+        return (
+          <Badge variant="danger" size="sm" dot className="whitespace-nowrap">
+            Batal
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="neutral" size="sm" className="whitespace-nowrap">
+            {statusBayar}
+          </Badge>
+        )
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -303,7 +240,7 @@ const PembayaranPage: React.FC = () => {
           Riwayat Pembayaran & Invoice
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Pantau status tagihan PNBP, akses instruksi Virtual Account BNI, dan pratinjau kuitansi resmi ber-TTE.
+          Pantau status tagihan PNBP, akses instruksi Virtual Account BNI, dan pratinjau dokumen pembayaran resmi ber-TTE.
         </p>
       </div>
 
@@ -324,7 +261,7 @@ const PembayaranPage: React.FC = () => {
           variant="success"
         />
         <StatsCard
-          title="Total Tagihan PNBP"
+          title="Total Tagihan"
           value={formatCurrency(summary.totalTagihan)}
           subtitle={`Dari ${summary.totalCount} transaksi`}
           icon={<CreditCard className="w-5 h-5" />}
@@ -332,28 +269,290 @@ const PembayaranPage: React.FC = () => {
         />
       </div>
 
-      {/* DataTable Card */}
-      <Card>
-        <CardHeader>
-          <div>
-            <CardTitle>Daftar Tagihan & Invoice</CardTitle>
-            <CardDescription>
-              Klik tombol invoice untuk melihat rincian pembayaran atau kuitansi untuk bukti pembayaran sah.
-            </CardDescription>
-          </div>
-        </CardHeader>
+      {/* Filter & Search Toolbar */}
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Status Filter Tabs */}
+        <div className="inline-flex items-center p-1 bg-slate-100/80 rounded-lg border border-slate-200/60 w-fit">
+          {[
+            { id: "ALL" as StatusFilter, label: "Semua", count: summary.totalCount },
+            { id: "BELUM" as StatusFilter, label: "Menunggu Pembayaran", count: summary.belumBayar },
+            { id: "LUNAS" as StatusFilter, label: "Lunas", count: summary.lunas },
+          ].map((tab) => {
+            const active = statusFilter === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setStatusFilter(tab.id)
+                  setCurrentPage(1)
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap",
+                  active
+                    ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                    : "text-slate-600 hover:text-slate-900"
+                )}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.2 rounded-full text-[10px]",
+                    active
+                      ? "bg-brand-50 text-brand-700 font-semibold"
+                      : "bg-slate-200/70 text-slate-600"
+                  )}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
 
-        <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            isLoading={loading}
-            searchable
-            searchPlaceholder="Cari nomor permohonan / layanan..."
-            emptyMessage="Belum ada catatan tagihan pembayaran."
+        {/* Search Input */}
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setCurrentPage(1)
+            }}
+            placeholder="Cari no. permohonan, layanan, VA..."
+            className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Transaction Cards List */}
+      {loading ? (
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-card py-16 flex flex-col items-center justify-center gap-2.5 text-slate-400">
+          <Loader2 className="w-7 h-7 animate-spin text-brand-600" />
+          <span className="text-xs font-medium text-slate-500">Memuat daftar transaksi pembayaran...</span>
+        </div>
+      ) : paginatedData.length === 0 ? (
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-card py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
+          <Inbox className="w-10 h-10 stroke-1 text-slate-300" />
+          <p className="text-sm font-semibold text-slate-600">Tidak ada transaksi ditemukan</p>
+          <p className="text-xs text-slate-400">
+            {search || statusFilter !== "ALL"
+              ? "Coba ubah kata kunci pencarian atau filter status pembayaran."
+              : "Belum ada catatan tagihan pembayaran pada akun Anda."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3.5">
+          {paginatedData.map((row) => {
+            const hasPenawaran = Boolean(row.file_surat_penawaran)
+            const hasInvoiceRow = Boolean(
+              row.invoice_number || row.invoice_file || row.pdf_tte || row.total_tagihan > 0
+            )
+            const isInvoiceReady = Boolean(row.pdf_tte)
+            const isPaid = row.status_bayar === "LUNAS"
+            const isKuitansiReady = isPaid && Boolean(row.kuitansi_pdf_tte)
+
+            return (
+              <div
+                key={row.id}
+                className="bg-white rounded-xl border border-slate-200/80 shadow-card hover:border-slate-300 transition-all overflow-hidden"
+              >
+                {/* Card Top Bar: Metadata & Status */}
+                <div className="px-4 sm:px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+                    <span className="inline-flex items-center gap-1.5 text-slate-500 font-medium">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      {formatDate(row.tgl_order)}
+                    </span>
+                    {row.invoice_number && (
+                      <>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-[11px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/70">
+                          {row.invoice_number}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  <div>{renderStatusBadge(row.status_bayar)}</div>
+                </div>
+
+                {/* Card Body: Nomor Permohonan, Layanan & Total Tagihan */}
+                <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left: Nomor Permohonan & Layanan */}
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <p className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+                      {row.no_permohonan}
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600">
+                      {row.nama_permohonan}
+                    </p>
+                  </div>
+
+                  {/* Right: Total Tagihan */}
+                  <div className="sm:text-right shrink-0">
+                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                      Total Tagihan PNBP
+                    </p>
+                    <p className="text-base sm:text-lg font-bold text-slate-900 tabular-nums mt-0.5">
+                      {formatCurrency(row.total_tagihan)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card Footer: Document Action Buttons */}
+                <div className="px-4 sm:px-5 py-3 bg-slate-50/40 border-t border-slate-100 flex items-center justify-end">
+                  <div className="flex items-center flex-wrap justify-end gap-2 ml-auto">
+                    {/* Surat Penawaran */}
+                    {hasPenawaran && (
+                      <button
+                        type="button"
+                        onClick={() => openSuratPenawaran(row)}
+                        title="Lihat Surat Penawaran Biaya Resmi"
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border border-slate-200/90 bg-white text-slate-700 hover:bg-indigo-50/50 hover:border-indigo-300 hover:text-indigo-700 transition-all shadow-2xs active:scale-[0.98]"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        <span>Surat Penawaran</span>
+                      </button>
+                    )}
+
+                    {/* Invoice */}
+                    {hasInvoiceRow && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isInvoiceReady) {
+                            showInfo(
+                              "Invoice Belum Tersedia",
+                              "Invoice resmi bertanda tangan elektronik (TTE) sedang diproses oleh Bendahara."
+                            )
+                            return
+                          }
+                          openInvoice(row)
+                        }}
+                        title={
+                          isInvoiceReady
+                            ? "Buka Invoice Resmi TTE"
+                            : "Invoice sedang dalam proses TTE Bendahara"
+                        }
+                        className={cn(
+                          "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border transition-all active:scale-[0.98]",
+                          isInvoiceReady
+                            ? "border-slate-200/90 bg-white text-slate-700 hover:bg-brand-50/50 hover:border-brand-300 hover:text-brand-700 shadow-2xs"
+                            : "border-slate-200/60 bg-slate-100/70 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        )}
+                      >
+                        <Receipt
+                          className={cn(
+                            "w-3.5 h-3.5 shrink-0",
+                            isInvoiceReady ? "text-brand-600" : "text-slate-400"
+                          )}
+                        />
+                        <span>Invoice</span>
+                      </button>
+                    )}
+
+                    {/* Kuitansi */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isPaid) {
+                          showInfo(
+                            "Kuitansi Belum Tersedia",
+                            "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
+                          )
+                          return
+                        }
+                        if (!isKuitansiReady) {
+                          showInfo(
+                            "Kuitansi Menunggu TTE",
+                            "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara."
+                          )
+                          return
+                        }
+                        openKuitansi(row)
+                      }}
+                      title={
+                        isKuitansiReady
+                          ? "Buka Kuitansi Resmi TTE"
+                          : isPaid
+                            ? "Kuitansi sedang dalam proses TTE Bendahara"
+                            : "Tersedia setelah pembayaran lunas"
+                      }
+                      className={cn(
+                        "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border transition-all active:scale-[0.98]",
+                        isKuitansiReady
+                          ? "border-emerald-200 bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100/80 hover:border-emerald-300 shadow-2xs"
+                          : isPaid
+                            ? "border-amber-200/80 bg-amber-50/50 text-amber-700 hover:bg-amber-50"
+                            : "border-slate-200/60 bg-slate-100/70 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
+                      )}
+                    >
+                      <FileCheck
+                        className={cn(
+                          "w-3.5 h-3.5 shrink-0",
+                          isKuitansiReady
+                            ? "text-emerald-600"
+                            : isPaid
+                              ? "text-amber-600"
+                              : "text-slate-400"
+                        )}
+                      />
+                      <span>Kuitansi</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+
+          {/* Pagination Footer */}
+          {filteredData.length > PAGE_SIZE && (
+            <div className="px-4 py-3 bg-white rounded-xl border border-slate-200/80 shadow-card flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+              <div>
+                Menampilkan{" "}
+                <span className="font-semibold text-slate-700">
+                  {(currentPage - 1) * PAGE_SIZE + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-semibold text-slate-700">
+                  {Math.min(currentPage * PAGE_SIZE, filteredData.length)}
+                </span>{" "}
+                dari{" "}
+                <span className="font-semibold text-slate-700">
+                  {filteredData.length}
+                </span>{" "}
+                transaksi
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="h-7 w-7"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+                <span className="px-2 font-medium text-slate-700">
+                  Halaman {currentPage} dari {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="h-7 w-7"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* PDF Preview Modal */}
       {PdfPreviewModal}

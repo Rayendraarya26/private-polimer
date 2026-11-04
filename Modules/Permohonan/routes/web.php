@@ -86,12 +86,15 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::get(
         'layanan/{id}/approval-invoice',
         [InvoiceController::class, 'generate']
-    )->name('permohonan.invoice.generate');
+    )->withoutMiddleware([Restriction::class])
+        ->name('permohonan.invoice.generate');
 
     Route::get('{id}/download-tte', [InvoiceController::class, 'downloadTte'])
+        ->withoutMiddleware([Restriction::class])
         ->name('permohonan.invoice.download-tte');
 
     Route::get('{id}/stream-tte', [InvoiceController::class, 'streamTte'])
+        ->withoutMiddleware([Restriction::class])
         ->name('permohonan.invoice.stream-tte');
 
     Route::get('layanan/{id}/inquiry-bni', [InvoiceController::class, 'inquiryBniVa'])
@@ -104,9 +107,11 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         ->name('permohonan.kuitansi.approval-tte');
 
     Route::get('{id}/kuitansi/download-tte', [InvoiceController::class, 'downloadKuitansiTte'])
+        ->withoutMiddleware([Restriction::class])
         ->name('permohonan.kuitansi.download-tte');
 
     Route::get('{id}/kuitansi/stream-tte', [InvoiceController::class, 'streamKuitansiTte'])
+        ->withoutMiddleware([Restriction::class])
         ->name('permohonan.kuitansi.stream-tte');
 
     Route::get(

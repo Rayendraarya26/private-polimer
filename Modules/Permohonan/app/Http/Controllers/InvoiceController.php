@@ -414,15 +414,16 @@ class InvoiceController extends Controller
             $bucketResult = $this->fetchTtePdfFromBucket($permohonan->pdf_tte, $fallbackName);
 
             if (!empty($bucketResult['content'])) {
+                $safeName = str_replace(['"', '/', '\\', "\r", "\n"], '-', $bucketResult['file_name']);
                 return response($bucketResult['content'], 200, [
                     'Content-Type'        => 'application/pdf',
-                    'Content-Disposition' => 'attachment; filename="' . $bucketResult['file_name'] . '"',
+                    'Content-Disposition' => 'attachment; filename="' . $safeName . '"',
                     'Content-Length'      => strlen($bucketResult['content']),
                 ]);
             }
 
             if (!empty($bucketResult['file_link'])) {
-                return redirect($bucketResult['file_link']);
+                return redirect()->away($bucketResult['file_link']);
             }
 
             abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
@@ -461,7 +462,7 @@ class InvoiceController extends Controller
                 }
 
                 if (!empty($bucketResult['file_link'])) {
-                    return redirect($bucketResult['file_link']);
+                    return redirect()->away($bucketResult['file_link']);
                 }
 
                 abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
@@ -678,15 +679,16 @@ class InvoiceController extends Controller
             $bucketResult = $this->fetchTtePdfFromBucket($permohonan->kuitansi_pdf_tte, $fallbackName);
 
             if (!empty($bucketResult['content'])) {
+                $safeName = str_replace(['"', '/', '\\', "\r", "\n"], '-', $bucketResult['file_name']);
                 return response($bucketResult['content'], 200, [
                     'Content-Type'        => 'application/pdf',
-                    'Content-Disposition' => 'attachment; filename="' . $bucketResult['file_name'] . '"',
+                    'Content-Disposition' => 'attachment; filename="' . $safeName . '"',
                     'Content-Length'      => strlen($bucketResult['content']),
                 ]);
             }
 
             if (!empty($bucketResult['file_link'])) {
-                return redirect($bucketResult['file_link']);
+                return redirect()->away($bucketResult['file_link']);
             }
 
             abort(404, 'File TTE Kuitansi tidak ditemukan di server');
@@ -723,7 +725,7 @@ class InvoiceController extends Controller
                 }
 
                 if (!empty($bucketResult['file_link'])) {
-                    return redirect($bucketResult['file_link']);
+                    return redirect()->away($bucketResult['file_link']);
                 }
 
                 abort(404, 'File Kuitansi TTE tidak ditemukan di bucket penyimpanan');

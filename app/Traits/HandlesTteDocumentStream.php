@@ -56,9 +56,16 @@ trait HandlesTteDocumentStream
             $tteService = new TteService();
             $result = $tteService->verifyById($esignId);
 
-            $fileLink = $result['file_link'] ?? null;
-            if (!empty($result['file_name'])) {
-                $fileName = $result['file_name'];
+            $fileLink = is_array($result)
+                ? ($result['file_link'] ?? null)
+                : ($result->file_link ?? (method_exists($result, 'getFileLink') ? $result->getFileLink() : null));
+
+            $resolvedName = is_array($result)
+                ? ($result['file_name'] ?? null)
+                : ($result->file_name ?? (method_exists($result, 'getFileName') ? $result->getFileName() : null));
+
+            if (!empty($resolvedName)) {
+                $fileName = $resolvedName;
             }
 
             // Unduh konten dari file_link (Presigned S3/MinIO bucket URL)
@@ -77,9 +84,13 @@ trait HandlesTteDocumentStream
                 }
             }
 
+            $filePath = is_array($result)
+                ? ($result['file_path'] ?? null)
+                : ($result->file_path ?? null);
+
             // Fallback: dummy file di Storage::disk('public')
-            if (empty($pdfContent) && !empty($result['file_path']) && Storage::disk('public')->exists($result['file_path'])) {
-                $pdfContent = Storage::disk('public')->get($result['file_path']);
+            if (empty($pdfContent) && !empty($filePath) && Storage::disk('public')->exists($filePath)) {
+                $pdfContent = Storage::disk('public')->get($filePath);
             }
 
             // Fallback: cache dummy
@@ -113,10 +124,15 @@ trait HandlesTteDocumentStream
      */
     protected function streamPdfResponse(string $pdfContent, string $fileName): Response
     {
+        $safeFileName = str_replace(['"', '/', '\\', "\r", "\n"], '-', $fileName);
+
         return response($pdfContent, 200, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Disposition' => 'inline; filename="' . $safeFileName . '"',
             'Content-Length'      => strlen($pdfContent),
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
         ]);
     }
 }

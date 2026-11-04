@@ -272,4 +272,108 @@ class InvoiceKuitansiPreviewTteTest extends TestCase
         $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
         $this->assertEquals($dummyContent, $response->getContent());
     }
+
+    public function test_customer_cannot_access_other_customer_invoice()
+    {
+        $esignId = 'dummy-tte-inv-' . uniqid();
+        $this->prepareDummyBucketFile($esignId, 'inv.pdf', '%PDF-1.4 TEST');
+
+        $permohonan = $this->createSamplePermohonan([
+            'created_by' => $this->clientUser->id,
+            'pdf_tte'    => $esignId,
+        ]);
+
+        // Customer lain mencoba mengakses
+        $response = $this->actingAs($this->otherClientUser)
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson("/api/eksternal/pembayaran/{$permohonan->id}/stream-invoice");
+
+        $response->assertStatus(404);
+        $this->assertFalse($response->json('success'));
+    }
+
+    public function test_customer_cannot_access_other_customer_kuitansi()
+    {
+        $esignId = 'dummy-tte-kwt-' . uniqid();
+        $this->prepareDummyBucketFile($esignId, 'kwt.pdf', '%PDF-1.4 TEST');
+
+        $permohonan = $this->createSamplePermohonan([
+            'created_by'       => $this->clientUser->id,
+            'status_bayar'     => 'LUNAS',
+            'kuitansi_pdf_tte' => $esignId,
+        ]);
+
+        // Customer lain mencoba mengakses
+        $response = $this->actingAs($this->otherClientUser)
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson("/api/eksternal/pembayaran/{$permohonan->id}/stream-kuitansi");
+
+        $response->assertStatus(404);
+        $this->assertFalse($response->json('success'));
+    }
+
+    public function test_non_existent_permohonan_returns_404_for_both_admin_and_customer()
+    {
+        $nonExistentId = '00000000-0000-0000-0000-000000000000';
+
+        // Pelanggan
+        $responseClient = $this->actingAs($this->clientUser)
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson("/api/eksternal/pembayaran/{$nonExistentId}/stream-invoice");
+        $responseClient->assertStatus(404);
+
+        // Admin di route eksternal tidak mengambil random permohonan
+        $responseAdmin = $this->actingAs($this->adminUser)
+            ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->getJson("/api/eksternal/pembayaran/{$nonExistentId}/stream-invoice");
+        $responseAdmin->assertStatus(404);
+    }
+
+    public function test_admin_download_invoice_draft_and_tte()
+    {
+        // 1. Download draft jika belum TTE
+        $draftPermohonan = $this->createSamplePermohonan(['pdf_tte' => null]);
+        $responseDraft = $this->actingAs($this->adminUser)
+            ->get(route('permohonan.invoice.download-tte', $draftPermohonan->id));
+        $responseDraft->assertStatus(200);
+        $this->assertStringContainsString('attachment', $responseDraft->headers->get('Content-Disposition'));
+
+        // 2. Download TTE dari bucket jika sudah TTE
+        $esignId = 'dummy-tte-inv-' . uniqid();
+        $this->prepareDummyBucketFile($esignId, 'inv-download.pdf', '%PDF-1.4 ATTACHMENT-CONTENT');
+        $ttePermohonan = $this->createSamplePermohonan(['pdf_tte' => $esignId]);
+
+        $responseTte = $this->actingAs($this->adminUser)
+            ->get(route('permohonan.invoice.download-tte', $ttePermohonan->id));
+        $responseTte->assertStatus(200);
+        $this->assertEquals('%PDF-1.4 ATTACHMENT-CONTENT', $responseTte->getContent());
+        $this->assertStringContainsString('attachment', $responseTte->headers->get('Content-Disposition'));
+    }
+
+    public function test_admin_download_kuitansi_draft_and_tte()
+    {
+        // 1. Download draft kuitansi jika belum TTE
+        $draftPermohonan = $this->createSamplePermohonan([
+            'status_bayar'     => 'LUNAS',
+            'kuitansi_pdf_tte' => null,
+        ]);
+        $responseDraft = $this->actingAs($this->adminUser)
+            ->get(route('permohonan.kuitansi.download-tte', $draftPermohonan->id));
+        $responseDraft->assertStatus(200);
+        $this->assertStringContainsString('attachment', $responseDraft->headers->get('Content-Disposition'));
+
+        // 2. Download TTE kuitansi dari bucket jika sudah TTE
+        $esignId = 'dummy-tte-kwt-' . uniqid();
+        $this->prepareDummyBucketFile($esignId, 'kwt-download.pdf', '%PDF-1.4 KWT-ATTACHMENT-CONTENT');
+        $ttePermohonan = $this->createSamplePermohonan([
+            'status_bayar'     => 'LUNAS',
+            'kuitansi_pdf_tte' => $esignId,
+        ]);
+
+        $responseTte = $this->actingAs($this->adminUser)
+            ->get(route('permohonan.kuitansi.download-tte', $ttePermohonan->id));
+        $responseTte->assertStatus(200);
+        $this->assertEquals('%PDF-1.4 KWT-ATTACHMENT-CONTENT', $responseTte->getContent());
+        $this->assertStringContainsString('attachment', $responseTte->headers->get('Content-Disposition'));
+    }
 }

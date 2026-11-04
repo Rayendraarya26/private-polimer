@@ -241,27 +241,15 @@ class PembayaranController extends Controller
 
         // Pelanggan hanya bisa mengakses permohonan miliknya sendiri
         if (!$isPegawai && $user) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_by', $user->id)
-                  ->orWhereNull('created_by');
-            });
+            $query->where('created_by', $user->id);
         }
 
         $permohonan = $query->first();
         if (!$permohonan) {
-            if ($isPegawai) {
-                $permohonan = Permohonan::with([
-                    'detailPembayaran',
-                    'detailPermohonan.formable',
-                    'detailPermohonan.lingkupLayanan',
-                    'creator'
-                ])->firstOrFail();
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
-                ], 404);
-            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
+            ], 404);
         }
 
         try {
@@ -279,7 +267,7 @@ class PembayaranController extends Controller
                         return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                     }
                     if (!empty($bucketResult['file_link'])) {
-                        return redirect($bucketResult['file_link']);
+                        return redirect()->away($bucketResult['file_link']);
                     }
                 }
 
@@ -343,7 +331,7 @@ class PembayaranController extends Controller
             }
 
             if (!empty($bucketResult['file_link'])) {
-                return redirect($bucketResult['file_link']);
+                return redirect()->away($bucketResult['file_link']);
             }
 
             return response()->json([
@@ -379,27 +367,15 @@ class PembayaranController extends Controller
 
         // Pelanggan hanya bisa mengakses permohonan miliknya sendiri
         if (!$isPegawai && $user) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_by', $user->id)
-                  ->orWhereNull('created_by');
-            });
+            $query->where('created_by', $user->id);
         }
 
         $permohonan = $query->first();
         if (!$permohonan) {
-            if ($isPegawai) {
-                $permohonan = Permohonan::with([
-                    'detailPembayaran',
-                    'detailPermohonan.formable',
-                    'detailPermohonan.lingkupLayanan',
-                    'creator'
-                ])->firstOrFail();
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
-                ], 404);
-            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Permohonan tidak ditemukan atau Anda tidak memiliki akses.',
+            ], 404);
         }
 
         try {
@@ -417,7 +393,7 @@ class PembayaranController extends Controller
                         return $this->streamPdfResponse($bucketResult['content'], $bucketResult['file_name']);
                     }
                     if (!empty($bucketResult['file_link'])) {
-                        return redirect($bucketResult['file_link']);
+                        return redirect()->away($bucketResult['file_link']);
                     }
                 }
 
@@ -481,7 +457,7 @@ class PembayaranController extends Controller
             }
 
             if (!empty($bucketResult['file_link'])) {
-                return redirect($bucketResult['file_link']);
+                return redirect()->away($bucketResult['file_link']);
             }
 
             return response()->json([
@@ -509,10 +485,7 @@ class PembayaranController extends Controller
         });
 
         if (!$isPegawai && $user) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_by', $user->id)
-                  ->orWhereNull('created_by');
-            });
+            $query->where('created_by', $user->id);
         }
 
         $permohonan = $query->firstOrFail();

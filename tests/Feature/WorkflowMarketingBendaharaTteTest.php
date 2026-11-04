@@ -129,7 +129,7 @@ class WorkflowMarketingBendaharaTteTest extends TestCase
         $approveResponse->assertRedirect();
         $permohonan->refresh();
 
-        $this->assertEquals('IN_REVIEW', $permohonan->status_workflow);
+        $this->assertEquals('PEMBAYARAN', $permohonan->status_workflow);
         $this->assertTrue((bool) $permohonan->tte_invoice_requested);
         $this->assertNull($permohonan->va, 'BNI VA harus bernilai null karena BNI_VA_ENABLED=false');
         $this->assertNotNull($permohonan->invoice_file);

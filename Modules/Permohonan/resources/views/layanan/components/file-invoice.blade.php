@@ -79,7 +79,7 @@
                         @if($invoiceFile || !empty($permohonan->pdf_tte) || !empty($permohonan->invoice_number) || (isset($permohonan->detailPembayaran) && $permohonan->detailPembayaran->isNotEmpty()) || $permohonan->billing)
                             <div class="d-flex gap-2 flex-wrap align-items-center">
                                 {{-- PREVIEW --}}
-                                <button type="button" data-bs-toggle="modal" data-bs-target="#previewModal"
+                                <button type="button" data-bs-toggle="modal" data-bs-target="#previewInvoiceModal"
                                     class="btn text-decoration-none d-inline-flex align-items-center gap-2 px-3 py-2 border-0"
                                     style="
                                                                         background   : linear-gradient(135deg,#3b82f6,#2563eb);
@@ -129,7 +129,7 @@
                             </div>
 
                             {{-- MODAL PREVIEW INVOICE --}}
-                            <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade" id="previewInvoiceModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-xl modal-dialog-centered">
                                     <div class="modal-content">
                                         <div class="modal-header">

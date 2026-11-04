@@ -8,7 +8,7 @@
 
 
     $isKalibrasi = str_contains($kode, 'LABKAL') || $permohonan->formKalibrasi()->exists();
-    $isMiniplant = str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') || $permohonan->formMiniplant()->exists();
+    $isMiniplant = str_contains($kode, 'F') || str_contains($kode, 'RK') || str_contains($kode, 'RPK') || str_contains($kode, 'PA') || str_contains($kode, 'MKP') || $permohonan->formMiniplant()->exists();
     $isSertifikasi = str_starts_with($kode, 'CERT') || str_starts_with($kode, 'SRT') || $permohonan->formSertifikasi()->exists();
     $isInspeksi = str_contains($kode, 'INSP') || str_starts_with($kode, 'INS') || $permohonan->formInspeksi()->exists();
     $isHalal = str_contains($kode, 'HLL') || str_starts_with($kode, 'HAL') || $permohonan->formHalal()->exists();

@@ -1,11 +1,10 @@
 import React from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../ui/Card"
-import { ShieldCheck, Info, UserCheck, FileText, ListChecks } from "lucide-react"
+import { ShieldCheck, Info, UserCheck, FileText, ListChecks, CheckCircle2 } from "lucide-react"
 import { DetailPermohonanData } from "./FormDetailPermohonan"
 import { PelangganData } from "./FormInformasiPelanggan"
 import { SelectedPerlakuanItem } from "./FormPerlakuanMiniplant"
 import { useMasterMiniplantQuery } from "../../../hooks/queries/useMasterQuery"
-import { LegalStatementBox } from "../../forms"
 
 export interface FormPernyataanMiniplantProps {
     jenisLayananJudul?: string
@@ -180,20 +179,54 @@ export const FormPernyataanMiniplant: React.FC<FormPernyataanMiniplantProps> = (
                     </div>
                 </div>
 
-                {/* 4. Kotak Pernyataan Pemohon */}
-                <LegalStatementBox
-                    checked={setujuPernyataan}
-                    onChange={onChangePernyataan}
-                    title="Pernyataan Pemohon Layanan Miniplant"
-                    subtitle="Komitmen kebenaran data dan tata tertib pengambilan hasil pekerjaan"
-                    bulletPoints={[
-                        "Seluruh data yang diisikan dalam formulir permohonan ini adalah benar dan dapat dipertanggungjawabkan.",
-                        "Pemohon bersedia mematuhi seluruh ketentuan dan SOP layanan miniplant yang berlaku di BBSPJIKKP.",
-                        "Hasil pekerjaan yang tidak diambil lebih dari 2 (dua) bulan setelah tanggal pekerjaan selesai, apabila terjadi kerusakan bukan menjadi tanggung jawab balai.",
-                    ]}
-                    checkboxLabel="Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas dengan penuh tanggung jawab."
-                    disabled={loading}
-                />
+                {/* 4. Pernyataan Pemohon (Langsung, Tanpa Card/Border) */}
+                <div className="pt-2">
+                    <label
+                        htmlFor="checkbox-setuju-pernyataan"
+                        className="flex items-start gap-3 cursor-pointer select-none"
+                    >
+                        <input
+                            id="checkbox-setuju-pernyataan"
+                            type="checkbox"
+                            checked={setujuPernyataan}
+                            disabled={loading}
+                            onChange={(e) => onChangePernyataan(e.target.checked)}
+                            className="mt-1 w-5 h-5 rounded-md text-brand-600 focus:ring-brand-500 border-slate-300 shrink-0 cursor-pointer disabled:opacity-50"
+                        />
+                        <div className="space-y-2 min-w-0 flex-1">
+                            <div>
+                                <span className="text-sm font-bold text-slate-900 tracking-tight block">
+                                    Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas dengan penuh tanggung jawab.
+                                    <span className="text-rose-500 ml-1">*</span>
+                                </span>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Komitmen kebenaran data dan tata tertib pengambilan hasil pekerjaan
+                                </p>
+                            </div>
+
+                            <div className="pt-1 space-y-1.5">
+                                <div className="flex items-start gap-2 text-xs text-slate-700">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                    <span className="leading-relaxed">
+                                        Seluruh data yang diisikan dalam formulir permohonan ini adalah benar dan dapat dipertanggungjawabkan.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-slate-700">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                    <span className="leading-relaxed">
+                                        Pemohon bersedia mematuhi seluruh ketentuan dan SOP layanan miniplant yang berlaku di BBSPJIKKP.
+                                    </span>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-slate-700">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                    <span className="leading-relaxed">
+                                        Hasil pekerjaan yang tidak diambil lebih dari 2 (dua) bulan setelah tanggal pekerjaan selesai, apabila terjadi kerusakan bukan menjadi tanggung jawab balai.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
             </CardContent>
         </Card>
     )

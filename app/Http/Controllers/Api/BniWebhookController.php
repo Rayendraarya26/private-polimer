@@ -163,7 +163,7 @@ class BniWebhookController extends Controller
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
                 'title'   => 'Pembayaran Berhasil Diterima',
-                'content' => 'Pembayaran Virtual Account BNI untuk no. permohonan ' . $permohonan->no_permohonan . ' telah lunas. Kuitansi resmi sedang diproses dan diterbitkan.',
+                'content' => 'Pembayaran untuk permohonan #' . $permohonan->no_permohonan . ' telah kami terima. Kuitansi pembayaran akan segera tersedia.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);

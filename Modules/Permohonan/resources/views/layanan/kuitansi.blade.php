@@ -606,6 +606,159 @@
                         }
                     }
 
+                    // 4. Cek GRK (Validasi / Verifikasi Gas Rumah Kaca)
+                    $isGrkVal = str_contains($p->no_permohonan, 'GRK-VAL') || str_contains($p->no_permohonan, 'VAL') || (method_exists($p, 'formGrkValidasi') && $p->formGrkValidasi()->exists());
+                    $isGrkVer = str_contains($p->no_permohonan, 'GRK-VER') || str_contains($p->no_permohonan, 'VER') || str_contains($p->no_permohonan, 'GRK') || (method_exists($p, 'formGrkVerifikasi') && $p->formGrkVerifikasi()->exists());
+
+                    if ($isGrkVal) {
+                        $fv = method_exists($p, 'formGrkValidasi') ? $p->formGrkValidasi()->first() : null;
+                        if (!$fv && $p->relationLoaded('detailPermohonan')) {
+                            $formable = $p->detailPermohonan->first()?->formable;
+                            if ($formable instanceof \App\Models\Db2\FormGrkValidasi) {
+                                $fv = $formable;
+                            }
+                        }
+
+                        $lines = [];
+                        if ($fv && !empty($fv->merek_sample)) {
+                            $lines[] = '<strong>Nama Proyek:</strong> ' . e($fv->merek_sample);
+                        }
+                        if ($fv && !empty($fv->ruang_lingkup_diajukan)) {
+                            $lines[] = '<strong>Ruang Lingkup:</strong> ' . e($fv->ruang_lingkup_diajukan);
+                        }
+                        $standar = ($fv && !empty($fv->acuan_peraturan)) ? $fv->acuan_peraturan : (($fv && !empty($fv->kriteria_verifikasi)) ? ($fv->kriteria_verifikasi === '14064-2' ? 'ISO 14064-2' : $fv->kriteria_verifikasi) : 'ISO 14064-2');
+                        if (!empty($standar)) {
+                            $lines[] = '<strong>Standar Acuan:</strong> ' . e($standar);
+                        }
+                        if ($fv && (!empty($fv->periode_mulai) || !empty($fv->periode_selesai))) {
+                            $mulai = $fv->periode_mulai ? \Carbon\Carbon::parse($fv->periode_mulai)->locale('id')->isoFormat('D MMMM Y') : null;
+                            $selesai = $fv->periode_selesai ? \Carbon\Carbon::parse($fv->periode_selesai)->locale('id')->isoFormat('D MMMM Y') : null;
+                            if ($mulai && $selesai) {
+                                $lines[] = '<strong>Periode Proyek:</strong> ' . $mulai . ' s/d ' . $selesai;
+                            } elseif ($mulai) {
+                                $lines[] = '<strong>Periode Proyek:</strong> Mulai ' . $mulai;
+                            } elseif ($selesai) {
+                                $lines[] = '<strong>Periode Proyek:</strong> s/d ' . $selesai;
+                            }
+                        }
+
+                        $itemUraian = '<div style="font-weight: bold; margin-bottom: 3px;">Jasa Validasi Proyek Gas Rumah Kaca (GRK)</div>';
+                        if (!empty($lines)) {
+                            $itemUraian .= '<div style="font-size: 8.5pt; color: #222; line-height: 1.4; padding-left: 2px;">';
+                            foreach ($lines as $line) {
+                                $itemUraian .= '<div>&bull; ' . $line . '</div>';
+                            }
+                            $itemUraian .= '</div>';
+                        }
+
+                        $subtotal = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? (float) $defaultItems->sum('subtotal') 
+                            : (float) ($p->detailPembayaran ? $p->detailPembayaran->sum('subtotal') : 0);
+
+                        $firstItem = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? $defaultItems->first() 
+                            : ($p->detailPembayaran ? $p->detailPembayaran->first() : null);
+
+                        $kuantitas = ($firstItem && !empty($firstItem->kuantitas)) ? $firstItem->kuantitas : 1;
+                        $rawQty = ($firstItem && isset($firstItem->raw_qty)) 
+                            ? (int) $firstItem->raw_qty 
+                            : (($firstItem && is_numeric($firstItem->kuantitas)) ? (int) $firstItem->kuantitas : 1);
+                        if ($rawQty <= 0) $rawQty = 1;
+
+                        $hargaSatuan = ($firstItem && isset($firstItem->harga_satuan) && (float) $firstItem->harga_satuan > 0)
+                            ? (float) $firstItem->harga_satuan
+                            : ($rawQty > 0 ? ($subtotal / $rawQty) : $subtotal);
+
+                        return collect([
+                            (object) [
+                                'item_bayar'   => $itemUraian,
+                                'kuantitas'    => $kuantitas,
+                                'raw_qty'      => $rawQty,
+                                'unit'         => '',
+                                'harga_satuan' => $hargaSatuan,
+                                'subtotal'     => $subtotal,
+                            ]
+                        ]);
+                    }
+
+                    if ($isGrkVer) {
+                        $fver = method_exists($p, 'formGrkVerifikasi') ? $p->formGrkVerifikasi()->first() : null;
+                        if (!$fver && $p->relationLoaded('detailPermohonan')) {
+                            $formable = $p->detailPermohonan->first()?->formable;
+                            if ($formable instanceof \App\Models\Db2\FormGrkVerifikasi) {
+                                $fver = $formable;
+                            }
+                        }
+
+                        $lines = [];
+                        if ($fver && !empty($fver->merek_sample)) {
+                            $lines[] = '<strong>Nama Kegiatan / Fasilitas:</strong> ' . e($fver->merek_sample);
+                        }
+                        if ($fver && !empty($fver->ruang_lingkup_diajukan)) {
+                            $lines[] = '<strong>Ruang Lingkup:</strong> ' . e($fver->ruang_lingkup_diajukan);
+                        }
+                        $standar = ($fver && !empty($fver->acuan_peraturan)) ? $fver->acuan_peraturan : (($fver && !empty($fver->kriteria_verifikasi)) ? ($fver->kriteria_verifikasi === '14064-1' ? 'ISO 14064-1' : $fver->kriteria_verifikasi) : 'ISO 14064-1');
+                        if (!empty($standar)) {
+                            $lines[] = '<strong>Standar Acuan:</strong> ' . e($standar);
+                        }
+                        if ($fver && !empty($fver->tingkat_jaminan)) {
+                            $tjLower = strtolower(trim($fver->tingkat_jaminan));
+                            $jaminan = (str_contains($tjLower, 'limit') || str_contains($tjLower, 'terbatas'))
+                                ? 'Terbatas (Limited Assurance)'
+                                : 'Wajar (Reasonable Assurance)';
+                            $lines[] = '<strong>Tingkat Jaminan:</strong> ' . $jaminan;
+                        }
+                        if ($fver && (!empty($fver->periode_mulai) || !empty($fver->periode_selesai))) {
+                            $mulai = $fver->periode_mulai ? \Carbon\Carbon::parse($fver->periode_mulai)->locale('id')->isoFormat('D MMMM Y') : null;
+                            $selesai = $fver->periode_selesai ? \Carbon\Carbon::parse($fver->periode_selesai)->locale('id')->isoFormat('D MMMM Y') : null;
+                            if ($mulai && $selesai) {
+                                $lines[] = '<strong>Periode Pemantauan:</strong> ' . $mulai . ' s/d ' . $selesai;
+                            } elseif ($mulai) {
+                                $lines[] = '<strong>Periode Pemantauan:</strong> Mulai ' . $mulai;
+                            } elseif ($selesai) {
+                                $lines[] = '<strong>Periode Pemantauan:</strong> s/d ' . $selesai;
+                            }
+                        }
+
+                        $itemUraian = '<div style="font-weight: bold; margin-bottom: 3px;">Jasa Verifikasi Emisi Gas Rumah Kaca (GRK)</div>';
+                        if (!empty($lines)) {
+                            $itemUraian .= '<div style="font-size: 8.5pt; color: #222; line-height: 1.4; padding-left: 2px;">';
+                            foreach ($lines as $line) {
+                                $itemUraian .= '<div>&bull; ' . $line . '</div>';
+                            }
+                            $itemUraian .= '</div>';
+                        }
+
+                        $subtotal = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? (float) $defaultItems->sum('subtotal') 
+                            : (float) ($p->detailPembayaran ? $p->detailPembayaran->sum('subtotal') : 0);
+
+                        $firstItem = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? $defaultItems->first() 
+                            : ($p->detailPembayaran ? $p->detailPembayaran->first() : null);
+
+                        $kuantitas = ($firstItem && !empty($firstItem->kuantitas)) ? $firstItem->kuantitas : 1;
+                        $rawQty = ($firstItem && isset($firstItem->raw_qty)) 
+                            ? (int) $firstItem->raw_qty 
+                            : (($firstItem && is_numeric($firstItem->kuantitas)) ? (int) $firstItem->kuantitas : 1);
+                        if ($rawQty <= 0) $rawQty = 1;
+
+                        $hargaSatuan = ($firstItem && isset($firstItem->harga_satuan) && (float) $firstItem->harga_satuan > 0)
+                            ? (float) $firstItem->harga_satuan
+                            : ($rawQty > 0 ? ($subtotal / $rawQty) : $subtotal);
+
+                        return collect([
+                            (object) [
+                                'item_bayar'   => $itemUraian,
+                                'kuantitas'    => $kuantitas,
+                                'raw_qty'      => $rawQty,
+                                'unit'         => '',
+                                'harga_satuan' => $hargaSatuan,
+                                'subtotal'     => $subtotal,
+                            ]
+                        ]);
+                    }
+
                     return $defaultItems;
                 };
 

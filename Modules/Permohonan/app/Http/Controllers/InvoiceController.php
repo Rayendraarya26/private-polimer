@@ -309,8 +309,8 @@ class InvoiceController extends Controller
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Invoice Resmi Telah Diterbitkan',
-                'content' => 'Invoice tagihan ' . $invoiceNumber . ' telah ditandatangani dan resmi diterbitkan oleh Bendahara.',
+                'title'   => 'Tagihan Pembayaran Siap',
+                'content' => 'Tagihan ' . $invoiceNumber . ' untuk permohonan #' . $permohonan->no_permohonan . ' sudah siap dibayar. Silakan cek rincian biaya dan lakukan pembayaran.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);
@@ -428,7 +428,7 @@ class InvoiceController extends Controller
                 return redirect()->away($bucketResult['file_link']);
             }
 
-            abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
+            abort(404, 'Dokumen invoice sedang diproses.');
         } catch (\Exception $e) {
             Log::error('InvoiceController::downloadTte - Gagal', [
                 'permohonan_id' => $id,
@@ -467,7 +467,7 @@ class InvoiceController extends Controller
                     return redirect()->away($bucketResult['file_link']);
                 }
 
-                abort(404, 'File Invoice TTE tidak ditemukan di bucket penyimpanan');
+                abort(404, 'Dokumen invoice sedang diproses.');
             } catch (\Exception $e) {
                 Log::error('InvoiceController::streamTte - Gagal mengambil dari bucket', [
                     'permohonan_id' => $id,
@@ -616,8 +616,8 @@ class InvoiceController extends Controller
 
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Kuitansi Pembayaran Telah Diterbitkan',
-                'content' => 'Kuitansi pembayaran ' . $kuitansiNumber . ' telah ditandatangani dan disahkan oleh Bendahara.',
+                'title'   => 'Kuitansi Pembayaran Tersedia',
+                'content' => 'Kuitansi pembayaran ' . $kuitansiNumber . ' untuk permohonan #' . $permohonan->no_permohonan . ' sudah dapat diunduh. Terima kasih telah menyelesaikan pembayaran.',
                 'link'    => '/app/#/pembayaran',
                 'is_read' => 'no',
             ]);
@@ -732,7 +732,7 @@ class InvoiceController extends Controller
                     return redirect()->away($bucketResult['file_link']);
                 }
 
-                abort(404, 'File Kuitansi TTE tidak ditemukan di bucket penyimpanan');
+                abort(404, 'Dokumen kuitansi sedang diproses.');
             } catch (\Exception $e) {
                 Log::error('InvoiceController::streamKuitansiTte - Gagal: ' . $e->getMessage());
                 abort(500, 'Gagal streaming file TTE Kuitansi: ' . $e->getMessage());

@@ -185,8 +185,8 @@ class TagihanBiayaController extends Controller
 
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title' => 'Surat Penawaran Biaya Diterbitkan',
-            'content' => 'Permohonan Sertifikasi #' . $permohonan->no_permohonan . ' telah diterbitkan surat penawaran biaya. Silakan lakukan pembayaran.',
+            'title' => 'Surat Penawaran Biaya Siap',
+            'content' => 'Surat penawaran biaya untuk permohonan #' . $permohonan->no_permohonan . ' sudah siap ditinjau. Silakan periksa rincian pada menu pembayaran.',
             'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);

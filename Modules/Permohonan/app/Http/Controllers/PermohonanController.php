@@ -443,7 +443,8 @@ class PermohonanController extends Controller
             str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
             str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
             str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
-            str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
+            str_contains($permohonan->no_permohonan, 'GRK-VAL') || (method_exists($permohonan, 'formGrkValidasi') && $permohonan->formGrkValidasi()->exists()) => 'Biaya Validasi Proyek Gas Rumah Kaca (GRK)',
+            str_contains($permohonan->no_permohonan, 'GRK-VER') || str_contains($permohonan->no_permohonan, 'GRK') || (method_exists($permohonan, 'formGrkVerifikasi') && $permohonan->formGrkVerifikasi()->exists()) => 'Biaya Verifikasi Emisi Gas Rumah Kaca (GRK)',
             str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
             str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
             str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
@@ -660,8 +661,8 @@ class PermohonanController extends Controller
 
         SysUserNotif::create([
             'user_id' => $permohonan->created_by,
-            'title' => 'Permohonan Disetujui',
-            'content' => 'Permohonan Anda telah disetujui.',
+            'title' => 'Permohonan Telah Disetujui',
+            'content' => 'Permohonan #' . $permohonan->no_permohonan . ' telah disetujui. Tagihan biaya akan segera disiapkan.',
             'link' => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
             'is_read' => 'no',
         ]);
@@ -840,7 +841,8 @@ class PermohonanController extends Controller
                     str_starts_with($permohonan->no_permohonan, 'UMK') => 'Biaya Pelatihan UMK',
                     str_contains($permohonan->no_permohonan, 'INSP') || str_starts_with($permohonan->no_permohonan, 'INS') => 'Biaya Jasa Inspeksi (' . $permohonan->no_permohonan . ')',
                     str_contains($permohonan->no_permohonan, 'HLL') || str_starts_with($permohonan->no_permohonan, 'HAL') => 'Biaya Sertifikasi Halal (' . $permohonan->no_permohonan . ')',
-                    str_starts_with($permohonan->no_permohonan, 'GRK') => 'Biaya Verifikasi Validasi GRK',
+                    str_contains($permohonan->no_permohonan, 'GRK-VAL') || (method_exists($permohonan, 'formGrkValidasi') && $permohonan->formGrkValidasi()->exists()) => 'Biaya Validasi Proyek Gas Rumah Kaca (GRK)',
+                    str_contains($permohonan->no_permohonan, 'GRK-VER') || str_contains($permohonan->no_permohonan, 'GRK') || (method_exists($permohonan, 'formGrkVerifikasi') && $permohonan->formGrkVerifikasi()->exists()) => 'Biaya Verifikasi Emisi Gas Rumah Kaca (GRK)',
                     str_contains($permohonan->no_permohonan, 'LABKAL') => 'Biaya Kalibrasi',
                     str_contains($permohonan->no_permohonan, 'PA') => 'Biaya Miniplant Produk Kulit dan Alas Kaki',
                     str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
@@ -877,9 +879,9 @@ class PermohonanController extends Controller
 
                 SysUserNotif::create([
                     'user_id' => $permohonan->created_by,
-                    'title' => 'Permohonan Disetujui',
-                    'content' => 'Permohonan Anda (' . $permohonan->no_permohonan . ') telah disetujui dan masuk tahap pembayaran.',
-                    'link' => '/app/#/permohonan',
+                    'title' => 'Permohonan Telah Disetujui',
+                    'content' => 'Permohonan #' . $permohonan->no_permohonan . ' telah disetujui. Silakan cek menu pembayaran untuk melihat tagihan.',
+                    'link' => '/app/#/pembayaran',
                     'is_read' => 'no',
                 ]);
             }
@@ -1228,8 +1230,8 @@ class PermohonanController extends Controller
             // 5. Notifikasi ke Pemohon
             SysUserNotif::create([
                 'user_id' => $permohonan->created_by,
-                'title'   => 'Pembayaran Dikonfirmasi Lunas',
-                'content' => 'Pembayaran Anda untuk permohonan #' . $permohonan->no_permohonan . ' telah diverifikasi dan dinyatakan LUNAS oleh Bendahara.',
+                'title'   => 'Pembayaran Berhasil Diverifikasi',
+                'content' => 'Pembayaran Anda untuk permohonan #' . $permohonan->no_permohonan . ' telah diverifikasi. Layanan kini masuk ke tahap pengerjaan.',
                 'link'    => NotifHelper::customerPermohonanDetailUrl($permohonan->id),
                 'is_read' => 'no',
             ]);

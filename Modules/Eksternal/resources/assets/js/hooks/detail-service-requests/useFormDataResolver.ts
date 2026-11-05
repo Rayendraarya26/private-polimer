@@ -4,6 +4,7 @@ interface PermohonanTypes {
   isAset?: boolean
   isPba?: boolean
   isTkdn?: boolean
+  isLsp?: boolean
   isPup: boolean
   isKalibrasi: boolean
   isInspeksi: boolean
@@ -51,6 +52,16 @@ export function useFormDataResolver(
         : (Array.isArray(permohonan?.formTkdn) && permohonan.formTkdn.length > 0
           ? permohonan.formTkdn[0]
           : (permohonan?.form_tkdn || permohonan?.formTkdn || formData))))
+    : null
+
+  const formLspData = types.isLsp
+    ? (formData?.nik_peserta || formData?.jenis_produk
+      ? formData
+      : (Array.isArray(permohonan?.form_lsp) && permohonan.form_lsp.length > 0
+        ? permohonan.form_lsp[0]
+        : (Array.isArray(permohonan?.formLsp) && permohonan.formLsp.length > 0
+          ? permohonan.formLsp[0]
+          : (permohonan?.form_lsp || permohonan?.formLsp || formData))))
     : null
 
   const formPupData = types.isPup
@@ -294,6 +305,7 @@ export function useFormDataResolver(
     formAsetData,
     formPbaData,
     formTkdnData,
+    formLspData,
     formPupData,
     formKalibrasiData,
     formInspeksiData,

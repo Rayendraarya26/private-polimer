@@ -54,6 +54,7 @@ import {
   InspeksiDetailPelangganTab,
 } from "../../components/detail-service-requests/InspeksiDetailSection"
 import {
+  HalalDetailSection,
   HalalDetailPermohonanTab,
 } from "../../components/detail-service-requests/HalalDetailSection"
 import {
@@ -80,6 +81,12 @@ import {
 import {
   BimtekDetailSection,
 } from "../../components/detail-service-requests/BimtekDetailSection"
+import {
+  LspDetailSection,
+} from "../../components/detail-service-requests/LspDetailSection"
+import {
+  TkdnDetailSection,
+} from "../../components/detail-service-requests/TkdnDetailSection"
 import { formatIndoDate } from "../../utils/formatIndoDate"
 import { getFileUrl, getDocLabel } from "../../utils/fileHelpers"
 import { getStatusBadge, getStepIndex } from "../../utils/statusHelpers"
@@ -132,6 +139,7 @@ export const DetailPermohonanPage: React.FC = () => {
     layananName,
     isAset,
     isPba,
+    isTkdn,
     isPup, isLsp, isPelatihan,
     isGrk, isGrkValidasi,
     isKalibrasi, isInspeksi, isPengujian,
@@ -146,6 +154,8 @@ export const DetailPermohonanPage: React.FC = () => {
   const {
     formAsetData,
     formPbaData,
+    formTkdnData,
+    formLspData,
     formPupData, formKalibrasiData, formInspeksiData,
     formPengujianData, formHalalData, formMiniplantData, formGrkData,
     formKonsultasiData, formPelatihanData,
@@ -154,7 +164,7 @@ export const DetailPermohonanPage: React.FC = () => {
   } = useFormDataResolver(
     permohonan,
     formData,
-    { isAset, isPba, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi, isPelatihan },
+    { isAset, isPba, isTkdn, isLsp, isPup, isKalibrasi, isInspeksi, isPengujian, isHalal, isMiniplant, isGrk, isGrkValidasi, isKonsultasi, isPelatihan },
     listPabrik,
   )
 
@@ -399,7 +409,39 @@ export const DetailPermohonanPage: React.FC = () => {
         </div>
       )}
 
-      {isKonsultasi ? (
+      {isTkdn ? (
+        <div className="w-full space-y-6">
+          <TkdnDetailSection
+            permohonan={permohonan}
+            formTkdn={formTkdnData || formData}
+            formatIndoDate={formatIndoDate}
+          />
+        </div>
+      ) : isLsp ? (
+        <div className="w-full space-y-6">
+          <LspDetailSection
+            permohonan={permohonan}
+            formLsp={formLspData || formData}
+            formatIndoDate={formatIndoDate}
+            openInvoice={openInvoice}
+            openKuitansi={openKuitansi}
+            openSuratPenawaran={openSuratPenawaran}
+            openPdfDoc={openPdfDoc}
+          />
+        </div>
+      ) : isHalal ? (
+        <div className="w-full space-y-6">
+          <HalalDetailSection
+            permohonan={permohonan}
+            formHalal={formHalalData || formData}
+            formatIndoDate={formatIndoDate}
+            openInvoice={openInvoice}
+            openKuitansi={openKuitansi}
+            openSuratPenawaran={openSuratPenawaran}
+            openPdfDoc={openPdfDoc}
+          />
+        </div>
+      ) : isKonsultasi ? (
         <div className="w-full space-y-6">
           <KonsultasiATDetailSection
             permohonan={permohonan}
@@ -496,7 +538,9 @@ export const DetailPermohonanPage: React.FC = () => {
                           ? "Data Pelatihan & Peserta"
                           : isLsp
                             ? "Skema & Calon Asesi"
-                            : isGrk
+                            : isTkdn
+                              ? "Verifikasi & PNBP TKDN"
+                              : isGrk
                               ? "Data Proyek GRK"
                               : isInspeksi
                                 ? "Spesifikasi Inspeksi"
@@ -629,10 +673,14 @@ export const DetailPermohonanPage: React.FC = () => {
                   formatIndoDate={formatIndoDate}
                 />
               ) : isHalal ? (
-                <HalalDetailPermohonanTab
+                <HalalDetailSection
                   permohonan={permohonan}
-                  formHalal={formHalalData}
+                  formHalal={formHalalData || formData}
                   formatIndoDate={formatIndoDate}
+                  openInvoice={openInvoice}
+                  openKuitansi={openKuitansi}
+                  openSuratPenawaran={openSuratPenawaran}
+                  openPdfDoc={openPdfDoc}
                 />
               ) : isPelatihan ? (
                 <BimtekDetailSection
@@ -645,83 +693,21 @@ export const DetailPermohonanPage: React.FC = () => {
                   openPdfDoc={openPdfDoc}
                 />
               ) : isLsp ? (
-                <div className="space-y-6 animate-in fade-in-50 duration-200">
-                  <Card className="rounded-2xl border-slate-200 shadow-soft">
-                    <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                        <Award className="w-4 h-4 text-brand-600" />
-                        Skema Sertifikasi Profesi (LSP BBSPJIKKP)
-                      </CardTitle>
-                      <Badge variant="outline">BNSP</Badge>
-                    </CardHeader>
-                    <CardContent className="p-5 pt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-slate-400 block font-medium">Nomor Permohonan:</span>
-                          <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">{noOrder}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Tanggal Pengajuan:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formatIndoDate(permohonan?.created_at || permohonan?.tgl_order, true)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Skema / Bidang Sertifikasi:</span>
-                          <span className="font-bold text-slate-900 mt-0.5 block">
-                            {formData?.jenis_produk || "Sertifikasi Kompetensi Profesi"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Jabatan Pekerjaan:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formData?.jabatan || "-"}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Data Calon Asesi */}
-                  <Card className="rounded-2xl border-slate-200 shadow-soft">
-                    <CardHeader className="border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-slate-800">
-                        <UserCheck className="w-4 h-4 text-brand-600" />
-                        Data Calon Asesi BNSP
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-5 pt-4 text-xs">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <div>
-                          <span className="text-slate-400 block font-medium">Nama Lengkap Asesi:</span>
-                          <span className="font-bold text-slate-900 mt-0.5 block text-sm">{formData?.nama_lengkap || namaPemohon}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">NIK:</span>
-                          <span className="font-mono font-semibold text-slate-800 mt-0.5 block">{formData?.nik_peserta || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Kewarganegaraan:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.kewarganegaraan || "Indonesia"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Tempat / Tgl Lahir:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">
-                            {formData?.tempat_lahir || "-"}, {formData?.tanggal_lahir ? formatIndoDate(formData.tanggal_lahir) : "-"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Pendidikan Terakhir:</span>
-                          <span className="font-semibold text-slate-800 mt-0.5 block">{formData?.pendidikan || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block font-medium">Kontak WhatsApp:</span>
-                          <span className="font-semibold text-brand-700 mt-0.5 block">{formData?.whatsapp || phone}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <LspDetailSection
+                  permohonan={permohonan}
+                  formLsp={formLspData || formData}
+                  formatIndoDate={formatIndoDate}
+                  openInvoice={openInvoice}
+                  openKuitansi={openKuitansi}
+                  openSuratPenawaran={openSuratPenawaran}
+                  openPdfDoc={openPdfDoc}
+                />
+              ) : isTkdn ? (
+                <TkdnDetailSection
+                  permohonan={permohonan}
+                  formTkdn={formTkdnData || formData}
+                  formatIndoDate={formatIndoDate}
+                />
               ) : (
                 <div className="space-y-6 animate-in fade-in-50 duration-200">
                   {/* Ringkasan Parameter Pengajuan */}

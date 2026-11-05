@@ -1,5 +1,4 @@
 import React from "react"
-import { ProfileClientType } from "../../../types/profile"
 import { ParticipantLSP } from "../../../types/lsp"
 import PhoneInputWithCountrySelect from "react-phone-number-input"
 import "react-phone-number-input/style.css"
@@ -19,9 +18,6 @@ interface Props {
   onUpdateField?: (field: keyof ParticipantLSP, value: any) => void
   jenisPelanggan: string | undefined
   detail: any
-  pilihanProfil: string
-  onPilihanProfilChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  isFieldDisabled: boolean
   fieldNamePrefix: string
 }
 
@@ -31,9 +27,6 @@ const FormDataPesertaLSP: React.FC<Props> = ({
   onUpdateField,
   jenisPelanggan,
   detail,
-  pilihanProfil,
-  onPilihanProfilChange,
-  isFieldDisabled,
   fieldNamePrefix,
 }) => {
   const setField = (field: keyof ParticipantLSP, value: any) => {
@@ -48,31 +41,6 @@ const FormDataPesertaLSP: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      {/* Profil Selector Card (Khusus Akun Instansi / Badan Usaha) */}
-      {jenisPelanggan !== ProfileClientType.PERORANGAN && (
-        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
-          <FieldLabel required htmlFor={`pilihan-profil-${fieldNamePrefix}`}>
-            Pilih Sumber Data Peserta
-          </FieldLabel>
-          <select
-            id={`pilihan-profil-${fieldNamePrefix}`}
-            value={pilihanProfil}
-            onChange={onPilihanProfilChange}
-            className={selectClass}
-          >
-            <option value="Manual">Input Manual (Pegawai / Calon Asesi Delegasi)</option>
-            <option value="saya">Profil Saya (Akun Login)</option>
-            <option value="pimpinan">Pimpinan ({detail?.pimpinan || "Data Kosong"})</option>
-            <option value="penanggung_jawab">
-              Penanggung Jawab / PIC ({detail?.pj_nama || "Data Kosong"})
-            </option>
-          </select>
-          <FieldHint>
-            Pilih apakah data peserta diambil otomatis dari profil akun atau diisi manual.
-          </FieldHint>
-        </div>
-      )}
-
       {/* 1. Biodata Pribadi Peserta */}
       <div className="space-y-4">
         <SectionHeading
@@ -92,7 +60,6 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               name="nama_lengkap"
               value={formData.nama_lengkap}
               onChange={(e) => setField("nama_lengkap", e.target.value)}
-              disabled={isFieldDisabled}
               placeholder="Masukkan nama lengkap peserta..."
               className={inputClass}
             />
@@ -262,7 +229,6 @@ const FormDataPesertaLSP: React.FC<Props> = ({
                 placeholder="Contoh: +62 812-3456-7890"
                 value={formData.whatsapp || ""}
                 onChange={(value) => setField("whatsapp", value || "")}
-                disabled={isFieldDisabled}
                 className="w-full text-sm"
               />
             </div>
@@ -278,7 +244,6 @@ const FormDataPesertaLSP: React.FC<Props> = ({
               name="email"
               value={formData.email}
               onChange={(e) => setField("email", e.target.value)}
-              disabled={isFieldDisabled}
               placeholder="email@example.com"
               className={inputClass}
             />

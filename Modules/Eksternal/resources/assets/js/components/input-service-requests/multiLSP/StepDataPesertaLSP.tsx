@@ -2,8 +2,8 @@ import React, { useState } from "react"
 import { toast } from "react-hot-toast"
 import { ParticipantLSP, emptyParticipantLSP } from "../../../types/lsp"
 import FormDataPesertaLSP from "./FormDataPesertaLSP"
-import { Button } from "../../ui/Button"
-import { UserPlus, UserCheck, Trash2, ArrowRight, Copy, Users } from "lucide-react"
+import { FormWizardActions } from "../../forms"
+import { UserPlus, UserCheck, Trash2, Copy, Users } from "lucide-react"
 import { StepPanel } from "../common"
 
 interface Props {
@@ -17,7 +17,9 @@ interface Props {
   activeId: number
   setActiveId: React.Dispatch<React.SetStateAction<number>>
   onNext: () => void
+  onBack?: () => void
   profile?: any
+  skemaName?: string
 }
 
 const StepDataPesertaLSP: React.FC<Props> = ({
@@ -31,10 +33,10 @@ const StepDataPesertaLSP: React.FC<Props> = ({
   activeId,
   setActiveId,
   onNext,
+  onBack,
   profile,
+  skemaName,
 }) => {
-  const [pilihanProfil, setPilihanProfil] = useState<Record<number, string>>({ 0: "saya" })
-
   const addParticipant = () => {
     const newP = emptyParticipantLSP(nextId)
     setParticipants((prev) => [...prev, newP])
@@ -98,72 +100,9 @@ const StepDataPesertaLSP: React.FC<Props> = ({
     )
   }
 
-  const handlePilihanProfil = (id: number, e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
-    setPilihanProfil((prev) => ({ ...prev, [id]: val }))
-
-    if (val === "pimpinan") {
-      const { pimpinan, surel, whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: pimpinan || "",
-                email: surel || "",
-                whatsapp: whatsapp || "",
-              }
-        )
-      )
-      if (!pimpinan) toast.error("Nama Pimpinan kosong di profil.")
-    } else if (val === "penanggung_jawab") {
-      const { pj_nama, pj_surel, pj_whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: pj_nama || "",
-                email: pj_surel || "",
-                whatsapp: pj_whatsapp || "",
-              }
-        )
-      )
-      if (!pj_nama) toast.error("Nama Penanggung Jawab kosong di profil.")
-    } else if (val === "saya") {
-      const { whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: profile?.name || detail?.nama || "",
-                email: profile?.email || detail?.surel || "",
-                whatsapp: whatsapp || "",
-              }
-        )
-      )
-    } else {
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: "",
-                email: "",
-                whatsapp: "",
-              }
-        )
-      )
-    }
-  }
-
   return (
-    <StepPanel
+    <div className="space-y-4">
+      <StepPanel
       icon={Users}
       title="Data Peserta Uji Kompetensi"
       description="Lengkapi biodata calon asesi dan unggah berkas persyaratan form APL."
@@ -229,41 +168,31 @@ const StepDataPesertaLSP: React.FC<Props> = ({
         )}
 
         {/* Render Peserta Aktif */}
-        {participants.map((p) => {
-          const profil = pilihanProfil[p.id] || "Manual"
-          const disabled = !isInstansi || profil !== "Manual"
-          return (
-            <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
-              <FormDataPesertaLSP
-                formData={p}
-                onChange={(e) => updateParticipant(p.id, e)}
-                onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
-                jenisPelanggan={jenisPelanggan}
-                detail={detail}
-                pilihanProfil={profil}
-                onPilihanProfilChange={(e) => handlePilihanProfil(p.id, e)}
-                isFieldDisabled={disabled}
-                fieldNamePrefix={String(p.id)}
-              />
-            </div>
-          )
-        })}
+        {participants.map((p) => (
+          <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
+            <FormDataPesertaLSP
+              formData={p}
+              onChange={(e) => updateParticipant(p.id, e)}
+              onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
+              jenisPelanggan={jenisPelanggan}
+              detail={detail}
+              fieldNamePrefix={String(p.id)}
+            />
+          </div>
+        ))}
 
-        {/* Action Footer */}
-        <div className="flex justify-end pt-4 border-t border-slate-200">
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            onClick={onNext}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-            className="font-bold text-xs px-6 rounded-xl"
-          >
-            Lanjut ke Data Instansi & Persetujuan
-          </Button>
         </div>
-      </div>
-    </StepPanel>
+      </StepPanel>
+
+      {/* Action Footer (di luar card) */}
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={onNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
+    </div>
   )
 }
 

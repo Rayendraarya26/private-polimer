@@ -40,7 +40,8 @@ const StepDataBersamaLSP: React.FC<Props> = ({
       : "Badan Usaha / Perusahaan"
 
   return (
-    <StepPanel
+    <div className="space-y-4">
+      <StepPanel
       icon={Building2}
       title="Data Instansi & Persetujuan"
       description="Identitas unit usaha, metode penagihan, dan persetujuan syarat asesmen uji kompetensi."
@@ -186,19 +187,23 @@ const StepDataBersamaLSP: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Navigasi & Action Buttons */}
-        <FormWizardActions
-          canGoBack={true}
-          onBack={onBack}
-          backLabel="Kembali ke Data Peserta"
-          onSaveDraft={() => onSubmit("draft")}
-          saveDraftLabel="Simpan Draft"
-          onSubmit={() => onSubmit("ajukan")}
-          submitLabel="Kirim Permohonan Sertifikasi"
-          isSubmitting={submitting}
-        />
-      </div>
-    </StepPanel>
+        </div>
+      </StepPanel>
+
+      {/* Navigasi & Action Buttons (di luar card) */}
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        backLabel="Sebelumnya"
+        isLastStep={true}
+        onSaveDraft={() => onSubmit("draft")}
+        saveDraftLabel="Simpan Draft"
+        onSubmit={() => onSubmit("ajukan")}
+        submitLabel="Kirim"
+        isSubmitting={submitting}
+        disabled={!sharedData.setuju_syarat || submitting}
+      />
+    </div>
   )
 }
 

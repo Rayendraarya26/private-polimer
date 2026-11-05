@@ -1,9 +1,10 @@
-import React, { useState } from "react"
+import React from "react"
 import { toast } from "react-hot-toast"
 import { ParticipantData, emptyParticipant } from "../../../types/pelatihan"
 import FormDataPeserta from "./FormDataPeserta"
-import { Button } from "../../ui/Button"
-import { UserPlus, UserCheck, Trash2, ArrowRight } from "lucide-react"
+import { FormWizardActions } from "../../forms"
+import { UserPlus, UserCheck, Trash2, Copy, Users } from "lucide-react"
+import { StepPanel } from "../common"
 
 interface Props {
   participants: ParticipantData[]
@@ -16,7 +17,9 @@ interface Props {
   activeId: number
   setActiveId: React.Dispatch<React.SetStateAction<number>>
   onNext: () => void
+  onBack?: () => void
   profile?: any
+  skemaName?: string
 }
 
 const StepDataPeserta: React.FC<Props> = ({
@@ -30,15 +33,32 @@ const StepDataPeserta: React.FC<Props> = ({
   activeId,
   setActiveId,
   onNext,
+  onBack,
   profile,
+  skemaName,
 }) => {
-  const [pilihanProfil, setPilihanProfil] = useState<Record<number, string>>({ 0: "saya" })
-
   const addParticipant = () => {
     const newP = emptyParticipant(nextId)
     setParticipants((prev) => [...prev, newP])
     setActiveId(nextId)
     setNextId((prev) => prev + 1)
+  }
+
+  const duplicateParticipant = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const target = participants.find((p) => p.id === id)
+    if (!target) return
+    const duplicated: ParticipantData = {
+      ...target,
+      id: nextId,
+      nama_lengkap: `${target.nama_lengkap} (Salinan)`,
+      ktp_peserta: null,
+      foto_peserta: null,
+    }
+    setParticipants((prev) => [...prev, duplicated])
+    setActiveId(nextId)
+    setNextId((prev) => prev + 1)
+    toast.success("Data peserta berhasil diduplikasi. Silakan periksa & unggah berkas peserta.")
   }
 
   const removeParticipant = (id: number, e: React.MouseEvent) => {
@@ -69,156 +89,106 @@ const StepDataPeserta: React.FC<Props> = ({
     )
   }
 
-  const updateParticipantField = (id: number, name: string, value: string) => {
+  const updateParticipantField = (id: number, field: keyof ParticipantData, value: any) => {
     setParticipants((prev) =>
-      prev.map((p) => (p.id !== id ? p : { ...p, [name]: value }))
+      prev.map((p) => {
+        if (p.id !== id) return p
+        return { ...p, [field]: value }
+      })
     )
   }
 
-  const handlePilihanProfil = (id: number, e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
-    setPilihanProfil((prev) => ({ ...prev, [id]: val }))
-    if (val === "pimpinan") {
-      const { pimpinan, surel, whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: pimpinan || "",
-                email: surel || "",
-                whatsapp: whatsapp || "",
-              }
-        )
-      )
-      if (!pimpinan) toast.error("Nama Pimpinan kosong di profil.")
-    } else if (val === "penanggung_jawab") {
-      const { pj_nama, pj_surel, pj_whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: pj_nama || "",
-                email: pj_surel || "",
-                whatsapp: pj_whatsapp || "",
-              }
-        )
-      )
-      if (!pj_nama) toast.error("Nama Penanggung Jawab kosong di profil.")
-    } else if (val === "saya") {
-      const { whatsapp } = detail || {}
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: profile?.name || detail?.nama || "",
-                email: profile?.email || detail?.surel || "",
-                whatsapp: whatsapp || "",
-              }
-        )
-      )
-    } else {
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id !== id
-            ? p
-            : {
-                ...p,
-                nama_lengkap: "",
-                email: "",
-                whatsapp: "",
-              }
-        )
-      )
-    }
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Tab Navigasi Multi-Peserta */}
-      {isInstansi && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
-          {participants.map((p, index) => {
-            const isActive = activeId === p.id
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setActiveId(p.id)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 select-none ${
-                  isActive
-                    ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/20"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>
-                  Peserta {index + 1}
-                  {p.nama_lengkap ? `: ${p.nama_lengkap.split(" ")[0]}` : ""}
-                </span>
-                {participants.length > 1 && (
-                  <span
-                    onClick={(e) => removeParticipant(p.id, e)}
-                    className="p-1 rounded-md hover:bg-rose-500/30 text-white/80 hover:text-white transition-colors"
-                    title="Hapus peserta ini"
+    <div className="space-y-4">
+      <StepPanel
+        icon={Users}
+        title="Data Peserta Pelatihan"
+        description="Lengkapi biodata peserta dan unggah berkas persyaratan pelatihan."
+      >
+        <div className="space-y-6">
+          {/* Tab Navigasi Multi-Peserta */}
+          {isInstansi && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-100 scrollbar-none">
+              {participants.map((p, index) => {
+                const isActive = activeId === p.id
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setActiveId(p.id)}
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer select-none ${
+                      isActive
+                        ? "bg-brand-600 text-white shadow-xs"
+                        : "bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
                   >
-                    <Trash2 className="w-3 h-3" />
-                  </span>
-                )}
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>
+                      Peserta {index + 1}
+                      {p.nama_lengkap ? `: ${p.nama_lengkap.split(" ")[0]}` : ""}
+                    </span>
+
+                    <div className="flex items-center gap-0.5 ml-1">
+                      <span
+                        onClick={(e) => duplicateParticipant(p.id, e)}
+                        className={`p-1 rounded-md transition-colors ${
+                          isActive ? "hover:bg-white/20 text-white" : "hover:bg-slate-200 text-slate-500"
+                        }`}
+                        title="Duplikasi data peserta ini"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </span>
+
+                      {participants.length > 1 && (
+                        <span
+                          onClick={(e) => removeParticipant(p.id, e)}
+                          className={`p-1 rounded-md transition-colors ${
+                            isActive ? "hover:bg-rose-500/30 text-white" : "hover:bg-rose-100 text-rose-500"
+                          }`}
+                          title="Hapus peserta ini"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              <button
+                type="button"
+                onClick={addParticipant}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold border-2 border-dashed border-slate-200 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0 cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Tambah Peserta</span>
               </button>
-            )
-          })}
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={addParticipant}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border-2 border-dashed border-slate-300 text-slate-600 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/50 transition-all shrink-0"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Tambah Peserta</span>
-          </button>
+          {/* Render Peserta Aktif */}
+          {participants.map((p) => (
+            <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
+              <FormDataPeserta
+                formData={p}
+                onChange={(e) => updateParticipant(p.id, e)}
+                onUpdateField={(field, val) => updateParticipantField(p.id, field, val)}
+                jenisPelanggan={jenisPelanggan}
+                detail={detail}
+                fieldNamePrefix={String(p.id)}
+              />
+            </div>
+          ))}
         </div>
-      )}
+      </StepPanel>
 
-      {/* Render Peserta Aktif */}
-      {participants.map((p) => {
-        const profil = pilihanProfil[p.id] || "Manual"
-        const disabled = !isInstansi || profil !== "Manual"
-        return (
-          <div key={p.id} style={{ display: p.id === activeId ? "block" : "none" }}>
-            <FormDataPeserta
-              formData={p}
-              onChange={(e) => updateParticipant(p.id, e)}
-              onFieldChange={(name, value) => updateParticipantField(p.id, name, value)}
-              jenisPelanggan={jenisPelanggan}
-              detail={detail}
-              pilihanProfil={profil}
-              onPilihanProfilChange={(e) => handlePilihanProfil(p.id, e)}
-              isFieldDisabled={disabled}
-              fieldNamePrefix={String(p.id)}
-            />
-          </div>
-        )
-      })}
-
-      {/* Action Footer */}
-      <div className="flex justify-end pt-4 border-t border-slate-200">
-        <Button
-          type="button"
-          variant="primary"
-          size="lg"
-          onClick={onNext}
-          rightIcon={<ArrowRight className="w-4 h-4" />}
-          className="shadow-sm"
-        >
-          Lanjut ke Informasi Program & Persetujuan
-        </Button>
-      </div>
+      {/* Action Footer (di luar card) */}
+      <FormWizardActions
+        canGoBack={true}
+        onBack={onBack}
+        onNext={onNext}
+        backLabel="Sebelumnya"
+        nextLabel="Selanjutnya"
+      />
     </div>
   )
 }

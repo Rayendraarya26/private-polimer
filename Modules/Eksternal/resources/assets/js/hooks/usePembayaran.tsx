@@ -154,8 +154,21 @@ export function usePembayaran() {
           errorMsg = error.response.data.message
         }
 
-        // Jika status 403 / 401 (Ditolak hak akses / belum feedback)
+        // Status HTTP error
         const status = error?.response?.status
+
+        // Normalisasi keterangan agar ringkas dan natural
+        const lowerMsg = (errorMsg || "").toLowerCase()
+        if (
+          lowerMsg.includes("bucket") ||
+          lowerMsg.includes("tidak ditemukan") ||
+          lowerMsg.includes("tte") ||
+          status === 404
+        ) {
+          errorMsg = `Dokumen ${title.toLowerCase()} sedang diproses.`
+        }
+
+        // Jika status 403 / 401 (Ditolak hak akses / belum feedback)
         if (status === 403 || status === 401) {
           closePreview()
           Swal.fire({
@@ -167,13 +180,13 @@ export function usePembayaran() {
           return
         }
 
-        // Jika status 404 (Dokumen belum ber-TTE di bucket atau belum terbit)
+        // Jika status 404 (Dokumen belum siap atau belum terbit)
         if (status === 404) {
           closePreview()
           Swal.fire({
             icon: "info",
             title: "Dokumen Belum Tersedia",
-            text: errorMsg,
+            text: `Dokumen ${title.toLowerCase()} sedang diproses.`,
             confirmButtonColor: "#0270c7",
           })
           return
@@ -194,7 +207,7 @@ export function usePembayaran() {
         closePreview()
         Swal.fire({
           icon: "error",
-          title: "Gagal Membuka Dokumen",
+          title: "Dokumen Belum Dapat Dimuat",
           text: errorMsg,
           confirmButtonColor: "#0270c7",
         })

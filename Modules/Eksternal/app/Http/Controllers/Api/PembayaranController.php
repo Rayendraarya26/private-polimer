@@ -81,6 +81,7 @@ class PembayaranController extends Controller
                     'nama_permohonan' => $namaPermohonan,
                     'no_permohonan' => $item->no_permohonan,
                     'tgl_order' => $item->tgl_order,
+                    'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
                     'total_tagihan' => (float) $totalTagihan,
                     'status_bayar'   => $item->status_bayar,
                     'status_workflow'=> $item->status_workflow,
@@ -316,7 +317,7 @@ class PembayaranController extends Controller
             if (empty($permohonan->pdf_tte)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invoice resmi bertanda tangan elektronik (TTE) belum tersedia. Dokumen sedang diproses dan diverifikasi oleh Bendahara.',
+                    'message' => 'Dokumen invoice sedang diproses.',
                 ], 404);
             }
 
@@ -336,7 +337,7 @@ class PembayaranController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'File Invoice TTE tidak ditemukan di bucket penyimpanan.',
+                'message' => 'Dokumen invoice sedang diproses.',
             ], 404);
 
         } catch (\Exception $e) {
@@ -442,7 +443,7 @@ class PembayaranController extends Controller
             if (empty($permohonan->kuitansi_pdf_tte)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Kuitansi resmi bertanda tangan elektronik (TTE) belum tersedia. Dokumen kuitansi hanya dapat diakses setelah pembayaran diverifikasi lunas dan disahkan oleh Bendahara.',
+                    'message' => 'Dokumen kuitansi sedang diproses.',
                 ], 404);
             }
 
@@ -462,7 +463,7 @@ class PembayaranController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'File Kuitansi TTE tidak ditemukan di bucket penyimpanan.',
+                'message' => 'Dokumen kuitansi sedang diproses.',
             ], 404);
 
         } catch (\Exception $e) {

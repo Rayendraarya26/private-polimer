@@ -26,6 +26,7 @@ import { StatsCard } from "../../components/ui/StatsCard"
 import toast from "react-hot-toast"
 import { usePembayaranQuery, PembayaranItem } from "../../hooks/queries/usePermohonanQuery"
 import { cn } from "../../utils/cn"
+import { TextInput } from "../../components/forms"
 
 export type { PembayaranItem }
 
@@ -256,7 +257,7 @@ const PembayaranPage: React.FC = () => {
         <StatsCard
           title="Pembayaran Lunas"
           value={summary.lunas}
-          subtitle="Kuitansi resmi tersedia"
+          subtitle="Kuitansi tersedia"
           icon={<CheckCircle2 className="w-5 h-5" />}
           variant="success"
         />
@@ -270,9 +271,9 @@ const PembayaranPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Status Filter Tabs */}
-        <div className="inline-flex items-center p-1 bg-slate-100/80 rounded-lg border border-slate-200/60 w-fit">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Status Filter Buttons */}
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
           {[
             { id: "ALL" as StatusFilter, label: "Semua", count: summary.totalCount },
             { id: "BELUM" as StatusFilter, label: "Menunggu Pembayaran", count: summary.belumBayar },
@@ -288,19 +289,19 @@ const PembayaranPage: React.FC = () => {
                   setCurrentPage(1)
                 }}
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap",
+                  "h-[42px] px-3.5 sm:px-4 rounded-xl text-xs transition-all inline-flex items-center gap-2 whitespace-nowrap border border-slate-200 select-none",
                   active
-                    ? "bg-white text-slate-900 shadow-2xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white text-slate-900 border-slate-300 shadow-2xs font-semibold"
+                    : "bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 font-medium"
                 )}
               >
-                <span>{tab.label}</span>
+                <span>{tab.label}</span>  
                 <span
                   className={cn(
-                    "px-1.5 py-0.2 rounded-full text-[10px]",
+                    "px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums",
                     active
-                      ? "bg-brand-50 text-brand-700 font-semibold"
-                      : "bg-slate-200/70 text-slate-600"
+                      ? "bg-brand-50 text-brand-700"
+                      : "bg-slate-100 text-slate-600"
                   )}
                 >
                   {tab.count}
@@ -311,17 +312,20 @@ const PembayaranPage: React.FC = () => {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
+        <div className="w-full sm:w-80">
+          <TextInput
+            leftIcon={<Search className="w-4 h-4 text-slate-400" />}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
               setCurrentPage(1)
             }}
             placeholder="Cari no. permohonan, layanan, VA..."
-            className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors"
+            isClearable
+            onClear={() => {
+              setSearch("")
+              setCurrentPage(1)
+            }}
           />
         </div>
       </div>
@@ -346,12 +350,10 @@ const PembayaranPage: React.FC = () => {
         <div className="space-y-3.5">
           {paginatedData.map((row) => {
             const hasPenawaran = Boolean(row.file_surat_penawaran)
-            const hasInvoiceRow = Boolean(
-              row.invoice_number || row.invoice_file || row.pdf_tte || row.total_tagihan > 0
-            )
-            const isInvoiceReady = Boolean(row.pdf_tte)
+            const isInvoiceReady = Boolean(row.pdf_tte || row.invoice_file)
             const isPaid = row.status_bayar === "LUNAS"
-            const isKuitansiReady = isPaid && Boolean(row.kuitansi_pdf_tte)
+            const isKuitansiReady = isPaid && Boolean(row.kuitansi_pdf_tte || row.kuitansi_file)
+            const hasAnyDocument = hasPenawaran || isInvoiceReady || isKuitansiReady
 
             return (
               <div
@@ -393,7 +395,7 @@ const PembayaranPage: React.FC = () => {
                   {/* Right: Total Tagihan */}
                   <div className="sm:text-right shrink-0">
                     <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                      Total Tagihan PNBP
+                      Total Tagihan
                     </p>
                     <p className="text-base sm:text-lg font-bold text-slate-900 tabular-nums mt-0.5">
                       {formatCurrency(row.total_tagihan)}
@@ -404,7 +406,7 @@ const PembayaranPage: React.FC = () => {
                 {/* Card Footer: Document Action Buttons */}
                 <div className="px-4 sm:px-5 py-3 bg-slate-50/40 border-t border-slate-100 flex items-center justify-end">
                   <div className="flex items-center flex-wrap justify-end gap-2 ml-auto">
-                    {/* Surat Penawaran */}
+                    {/* Surat Penawaran - hanya muncul jika file surat penawaran sudah ada */}
                     {hasPenawaran && (
                       <button
                         type="button"
@@ -417,90 +419,38 @@ const PembayaranPage: React.FC = () => {
                       </button>
                     )}
 
-                    {/* Invoice */}
-                    {hasInvoiceRow && (
+                    {/* Invoice - hanya muncul jika invoice sudah ada / siap */}
+                    {isInvoiceReady && (
                       <button
                         type="button"
-                        onClick={() => {
-                          if (!isInvoiceReady) {
-                            showInfo(
-                              "Invoice Belum Tersedia",
-                              "Invoice resmi bertanda tangan elektronik (TTE) sedang diproses oleh Bendahara."
-                            )
-                            return
-                          }
-                          openInvoice(row)
-                        }}
-                        title={
-                          isInvoiceReady
-                            ? "Buka Invoice Resmi TTE"
-                            : "Invoice sedang dalam proses TTE Bendahara"
-                        }
-                        className={cn(
-                          "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border transition-all active:scale-[0.98]",
-                          isInvoiceReady
-                            ? "border-slate-200/90 bg-white text-slate-700 hover:bg-brand-50/50 hover:border-brand-300 hover:text-brand-700 shadow-2xs"
-                            : "border-slate-200/60 bg-slate-100/70 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                        )}
+                        onClick={() => openInvoice(row)}
+                        title="Buka Invoice Resmi TTE"
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border border-slate-200/90 bg-white text-slate-700 hover:bg-brand-50/50 hover:border-brand-300 hover:text-brand-700 shadow-2xs transition-all active:scale-[0.98]"
                       >
-                        <Receipt
-                          className={cn(
-                            "w-3.5 h-3.5 shrink-0",
-                            isInvoiceReady ? "text-brand-600" : "text-slate-400"
-                          )}
-                        />
+                        <Receipt className="w-3.5 h-3.5 text-brand-600 shrink-0" />
                         <span>Invoice</span>
                       </button>
                     )}
 
-                    {/* Kuitansi */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!isPaid) {
-                          showInfo(
-                            "Kuitansi Belum Tersedia",
-                            "Kuitansi resmi akan diterbitkan otomatis setelah pembayaran lunas terverifikasi."
-                          )
-                          return
-                        }
-                        if (!isKuitansiReady) {
-                          showInfo(
-                            "Kuitansi Menunggu TTE",
-                            "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara."
-                          )
-                          return
-                        }
-                        openKuitansi(row)
-                      }}
-                      title={
-                        isKuitansiReady
-                          ? "Buka Kuitansi Resmi TTE"
-                          : isPaid
-                            ? "Kuitansi sedang dalam proses TTE Bendahara"
-                            : "Tersedia setelah pembayaran lunas"
-                      }
-                      className={cn(
-                        "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border transition-all active:scale-[0.98]",
-                        isKuitansiReady
-                          ? "border-emerald-200 bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100/80 hover:border-emerald-300 shadow-2xs"
-                          : isPaid
-                            ? "border-amber-200/80 bg-amber-50/50 text-amber-700 hover:bg-amber-50"
-                            : "border-slate-200/60 bg-slate-100/70 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
-                      )}
-                    >
-                      <FileCheck
-                        className={cn(
-                          "w-3.5 h-3.5 shrink-0",
-                          isKuitansiReady
-                            ? "text-emerald-600"
-                            : isPaid
-                              ? "text-amber-600"
-                              : "text-slate-400"
-                        )}
-                      />
-                      <span>Kuitansi</span>
-                    </button>
+                    {/* Kuitansi - hanya muncul jika sudah lunas dan kuitansi sudah ada / siap */}
+                    {isKuitansiReady && (
+                      <button
+                        type="button"
+                        onClick={() => openKuitansi(row)}
+                        title="Buka Kuitansi Resmi TTE"
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium border border-emerald-200 bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100/80 hover:border-emerald-300 shadow-2xs transition-all active:scale-[0.98]"
+                      >
+                        <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Kuitansi</span>
+                      </button>
+                    )}
+
+                    {/* Indikator jika belum ada dokumen yang diterbitkan */}
+                    {!hasAnyDocument && (
+                      <span className="text-[11px] text-slate-400 italic">
+                        Dokumen belum tersedia
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -7,7 +7,7 @@
 
     <style type="text/css">
         @page {
-            margin: 15px 30px 15px 30px;
+            margin: 15px 30px 35px 30px;
         }
 
         body {
@@ -219,11 +219,12 @@
         }
 
         .signature-box {
-            width: 42%;
+            width: 155px;
             margin-left: auto;
+            margin-right: 0;
             text-align: center;
             font-family: "Arial Narrow", Arial, sans-serif;
-            font-size: 10.5pt;
+            font-size: 10pt;
         }
 
         .signature-space {
@@ -267,12 +268,15 @@
         }
 
         .bsre-footer {
+            position: fixed;
+            bottom: -22px;
+            left: 0;
+            right: 0;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-style: italic;
             color: #333;
-            margin-top: 4px;
-            line-height: 1.2;
+            line-height: 1.25;
         }
     </style>
 </head>
@@ -302,19 +306,30 @@
 
         $namaPemohon = $pemohon['nama'] ?? '-';
         $alamatPemohon = $pemohon['alamat'] ?? '-';
-        $noSuratPenawaran = (isset($permohonan->penawaranBiaya->nomor_surat_penawaran) && !empty($permohonan->penawaranBiaya->nomor_surat_penawaran)) 
-            ? $permohonan->penawaranBiaya->nomor_surat_penawaran 
+        $noSuratPenawaran = (isset($permohonan->penawaranBiaya->nomor_surat_penawaran) && !empty($permohonan->penawaranBiaya->nomor_surat_penawaran))
+            ? $permohonan->penawaranBiaya->nomor_surat_penawaran
             : '-';
 
         $bulanIndo = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',
-            7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
         ];
 
         $formatTglIndo = function ($dt) use ($bulanIndo) {
-            if (!$dt) return '-';
+            if (!$dt)
+                return '-';
             $carbon = \Carbon\Carbon::parse($dt);
-            return $carbon->format('d') . ' ' . ($bulanIndo[(int)$carbon->format('m')] ?? $carbon->format('F')) . ' ' . $carbon->format('Y');
+            return $carbon->format('d') . ' ' . ($bulanIndo[(int) $carbon->format('m')] ?? $carbon->format('F')) . ' ' . $carbon->format('Y');
         };
 
         $tglTerbit = !empty($permohonan->invoice_generated_at)
@@ -327,31 +342,126 @@
                 ? $formatTglIndo(\Carbon\Carbon::parse($permohonan->invoice_generated_at)->addDays(14))
                 : $formatTglIndo(now()->addDays(14)));
 
+        // ===============================================
+        // GENERATE QR CODE TTE DENGAN LOGO JIS DI TENGAH
+        // HANYA JIKA DOKUMEN SUDAH / SEDANG DI-TTE
+        // ===============================================
+        $isSigned = !empty($isTte) || !empty($permohonan->pdf_tte);
+        $qrCodeBase64 = '';
+
+        if ($isSigned) {
+            try {
+                $logoJisPath = public_path('assets/media/logos/jis-logo-icon-only.png');
+                $verifyCode = !empty($permohonan->pdf_tte)
+                    ? $permohonan->pdf_tte
+                    : ($invoiceNumber ?: ($permohonan->no_permohonan ?: $permohonan->id));
+
+                $verifyUrl = url('/tte/verify?code=' . urlencode($verifyCode));
+
+                if (class_exists(\SimpleSoftwareIO\QrCode\Facades\QrCode::class)) {
+                    $qrBuilder = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                        ->size(180)
+                        ->errorCorrection('H');
+
+                    if (file_exists($logoJisPath)) {
+                        // Buat logo berlatar belakang bulat putih dan ber-border
+                        $mergedLogoData = null;
+                        if (function_exists('imagecreatefrompng')) {
+                            $src = @imagecreatefrompng($logoJisPath);
+                            if ($src) {
+                                $badgeSize = 256;
+                                $canvas = imagecreatetruecolor($badgeSize, $badgeSize);
+                                imagealphablending($canvas, false);
+                                imagesavealpha($canvas, true);
+
+                                $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+                                imagefilledrectangle($canvas, 0, 0, $badgeSize, $badgeSize, $transparent);
+
+                                imagealphablending($canvas, true);
+
+                                $cx = $badgeSize / 2;
+                                $cy = $badgeSize / 2;
+
+                                $white = imagecolorallocate($canvas, 255, 255, 255);
+
+                                // Background bulat putih solid bersih tanpa border hitam
+                                imagefilledellipse($canvas, $cx, $cy, $badgeSize - 2, $badgeSize - 2, $white);
+
+                                // Logo JIS di tengah lingkaran
+                                $srcW = imagesx($src);
+                                $srcH = imagesy($src);
+                                $pad = (int) ($badgeSize * 0.18);
+                                $destW = $badgeSize - ($pad * 2);
+                                $destH = $badgeSize - ($pad * 2);
+
+                                imagecopyresampled($canvas, $src, $pad, $pad, 0, 0, $destW, $destH, $srcW, $srcH);
+
+                                ob_start();
+                                imagesavealpha($canvas, true);
+                                imagepng($canvas);
+                                $mergedLogoData = ob_get_clean();
+
+                                unset($canvas, $src);
+                            }
+                        }
+
+                        if ($mergedLogoData) {
+                            $qrBuilder->mergeString($mergedLogoData, 0.30);
+                        } else {
+                            $qrBuilder->merge($logoJisPath, 0.28, true);
+                        }
+                    }
+
+                    $qrPng = $qrBuilder->generate($verifyUrl);
+                    $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrPng);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Invoice QR Code generation failed: ' . $e->getMessage());
+            }
+        }
+
         if (!function_exists('penyebut')) {
             function penyebut($nilai)
             {
                 $nilai = abs($nilai);
                 $huruf = [
-                    '', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima',
-                    'Enam', 'Tujuh', 'Delapan', 'Sembilan',
-                    'Sepuluh', 'Sebelas'
+                    '',
+                    'Satu',
+                    'Dua',
+                    'Tiga',
+                    'Empat',
+                    'Lima',
+                    'Enam',
+                    'Tujuh',
+                    'Delapan',
+                    'Sembilan',
+                    'Sepuluh',
+                    'Sebelas'
                 ];
 
-                if ($nilai < 12) return ' ' . $huruf[$nilai];
-                if ($nilai < 20) return penyebut($nilai - 10) . ' Belas';
-                if ($nilai < 100) return penyebut(floor($nilai / 10)) . ' Puluh' . penyebut($nilai % 10);
-                if ($nilai < 200) return ' Seratus' . penyebut($nilai - 100);
-                if ($nilai < 1000) return penyebut(floor($nilai / 100)) . ' Ratus' . penyebut($nilai % 100);
-                if ($nilai < 2000) return ' Seribu' . penyebut($nilai - 1000);
-                if ($nilai < 1000000) return penyebut(floor($nilai / 1000)) . ' Ribu' . penyebut($nilai % 1000);
-                if ($nilai < 1000000000) return penyebut(floor($nilai / 1000000)) . ' Juta' . penyebut($nilai % 1000000);
+                if ($nilai < 12)
+                    return ' ' . $huruf[$nilai];
+                if ($nilai < 20)
+                    return penyebut($nilai - 10) . ' Belas';
+                if ($nilai < 100)
+                    return penyebut(floor($nilai / 10)) . ' Puluh' . penyebut($nilai % 10);
+                if ($nilai < 200)
+                    return ' Seratus' . penyebut($nilai - 100);
+                if ($nilai < 1000)
+                    return penyebut(floor($nilai / 100)) . ' Ratus' . penyebut($nilai % 100);
+                if ($nilai < 2000)
+                    return ' Seribu' . penyebut($nilai - 1000);
+                if ($nilai < 1000000)
+                    return penyebut(floor($nilai / 1000)) . ' Ribu' . penyebut($nilai % 1000);
+                if ($nilai < 1000000000)
+                    return penyebut(floor($nilai / 1000000)) . ' Juta' . penyebut($nilai % 1000000);
                 return '';
             }
         }
     @endphp
 
     {{-- ========================= --}}
-    {{-- KOP SURAT POLIMER BBKKP   --}}
+    {{-- KOP SURAT POLIMER BBKKP --}}
     {{-- ========================= --}}
     <table class="kop-table">
         <tr>
@@ -371,13 +481,14 @@
     </table>
 
     @if($separatorBase64)
-        <img src="{{ $separatorBase64 }}" style="width: 100%; height: 5px; margin: 3px 0 8px 0; display: block;" alt="separator">
+        <img src="{{ $separatorBase64 }}" style="width: 100%; height: 5px; margin: 3px 0 8px 0; display: block;"
+            alt="separator">
     @else
         <div class="kop-separator"></div>
     @endif
 
     {{-- ========================= --}}
-    {{-- HEADER META INVOICE       --}}
+    {{-- HEADER META INVOICE --}}
     {{-- ========================= --}}
     <table style="width: 100%; margin-bottom: 4px;">
         <tr>
@@ -430,9 +541,18 @@
     </table>
 
     {{-- ========================= --}}
-    {{-- INFORMASI PEMBAYARAN      --}}
+    {{-- INFORMASI PEMBAYARAN --}}
     {{-- ========================= --}}
-    @if(!empty($va) && $va !== '-')
+    <table class="banner-va">
+        <tr>
+            <td>
+                <div class="banner-va-title">VIRTUAL ACCOUNT BANK BNI</div>
+                <div class="banner-va-number">{{ $va }}</div>
+            </td>
+        </tr>
+    </table>
+    
+    <!-- @if(!empty($va) && $va !== '-')
         <table class="banner-va">
             <tr>
                 <td>
@@ -447,7 +567,7 @@
                 <td>
                     <div class="banner-manual-title">TRANSFER BANK RESMI BBSPJIKKP (PNBP)</div>
                     <div class="banner-manual-detail">
-                        Bank: <b>Bank Negara Indonesia (BNI)</b> &nbsp;|&nbsp; 
+                        Bank: <b>Bank Negara Indonesia (BNI)</b> &nbsp;|&nbsp;
                         No. Rekening: <b style="font-size: 12pt; letter-spacing: 1px;">0038472918</b>
                     </div>
                     <div style="font-size: 9pt; color: #475569; margin-top: 1px;">
@@ -456,10 +576,10 @@
                 </td>
             </tr>
         </table>
-    @endif
+    @endif -->
 
     {{-- ========================= --}}
-    {{-- TABLE PEMBAYARAN          --}}
+    {{-- TABLE PEMBAYARAN --}}
     {{-- ========================= --}}
     <table class="invoice-table">
         <thead>
@@ -483,7 +603,7 @@
                 $introUraian = null;
 
                 // Helper resolusi rincian item jika permohonan memiliki breakdown spesifik (seperti Kalibrasi per alat)
-                $resolveRincianItem = function($p, $defaultItems) use (&$introUraian) {
+                $resolveRincianItem = function ($p, $defaultItems) use (&$introUraian) {
                     // 1. Cek Kalibrasi (rincian per alat seperti standar invoice kalibrasi)
                     if (str_contains($p->no_permohonan, 'LABKAL') || (method_exists($p, 'formKalibrasi') && $p->formKalibrasi()->exists())) {
                         $fk = $p->formKalibrasi()->with('alatList.kalibrasiItems')->first();
@@ -512,12 +632,12 @@
                                 $tarif = $qty > 0 ? ($subtotal / $qty) : $subtotal;
 
                                 $rincian->push((object) [
-                                    'item_bayar'   => $namaAlat . $labelSpek,
-                                    'kuantitas'    => $qty . ' alat',
-                                    'raw_qty'      => $qty,
-                                    'unit'         => ' alat',
+                                    'item_bayar' => $namaAlat . $labelSpek,
+                                    'kuantitas' => $qty . ' alat',
+                                    'raw_qty' => $qty,
+                                    'unit' => ' alat',
                                     'harga_satuan' => $tarif,
-                                    'subtotal'     => $subtotal,
+                                    'subtotal' => $subtotal,
                                 ]);
                             }
                             if ($rincian->isNotEmpty()) {
@@ -541,15 +661,53 @@
                                         $tarif = $qty > 0 ? (float) ($param->tarif_satuan_snapshot ?: ($subtotal / $qty)) : $subtotal;
 
                                         $rincian->push((object) [
-                                            'item_bayar'   => $uraian,
-                                            'kuantitas'    => $qty,
-                                            'raw_qty'      => $qty,
-                                            'unit'         => '',
+                                            'item_bayar' => $uraian,
+                                            'kuantitas' => $qty,
+                                            'raw_qty' => $qty,
+                                            'unit' => '',
                                             'harga_satuan' => $tarif,
-                                            'subtotal'     => $subtotal,
+                                            'subtotal' => $subtotal,
                                         ]);
                                     }
                                 }
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    // 3. Cek Miniplant (rincian per item perlakuan / jasa)
+                    $isMiniplantNo = str_contains($p->no_permohonan, 'F') ||
+                                     str_contains($p->no_permohonan, 'RK') ||
+                                     str_contains($p->no_permohonan, 'RPK') ||
+                                     str_contains($p->no_permohonan, 'PA') ||
+                                     str_contains($p->no_permohonan, 'MKP');
+                    if ($isMiniplantNo || (method_exists($p, 'formMiniplant') && $p->formMiniplant()->exists())) {
+                        $fm = method_exists($p, 'formMiniplant') ? $p->formMiniplant()->with('items.masterMiniplant')->first() : null;
+                        if ($fm && $fm->items && $fm->items->isNotEmpty()) {
+                            $namaLayanan = $fm->jenis_layanan_nama ? ' ' . $fm->jenis_layanan_nama : '';
+                            $labelBarang = !empty($fm->jenis_barang) ? ' ' . $fm->jenis_barang . '' : '';
+                            $introUraian = 'Biaya Layanan Miniplant' . $namaLayanan . $labelBarang . ', dengan rincian:';
+                            
+                            $rincian = collect();
+                            foreach ($fm->items as $item) {
+                                $namaPerlakuan = $item->nama_perlakuan_snapshot ?: ($item->masterMiniplant?->nama ?: 'Perlakuan Miniplant');
+                                $prefixBarang = !empty($fm->jenis_barang) ? $fm->jenis_barang . ' - ' : '';
+                                $satuan = trim($item->satuan_snapshot ?: ($item->masterMiniplant?->satuan ?: ''));
+                                $unitLabel = !empty($satuan) ? ' ' . $satuan : '';
+                                $qty = (int) ($item->jumlah ?: 1);
+                                $subtotal = (float) ($item->subtotal ?: 0);
+                                $tarif = (float) ($item->tarif_satuan_snapshot ?: ($qty > 0 ? ($subtotal / $qty) : $subtotal));
+
+                                $rincian->push((object) [
+                                    'item_bayar'   => $prefixBarang . $namaPerlakuan,
+                                    'kuantitas'    => $qty . $unitLabel,
+                                    'raw_qty'      => $qty,
+                                    'unit'         => $unitLabel,
+                                    'harga_satuan' => $tarif,
+                                    'subtotal'     => $subtotal,
+                                ]);
                             }
                             if ($rincian->isNotEmpty()) {
                                 return $rincian;
@@ -590,20 +748,21 @@
                     foreach ($grupPermohonan as $gp) {
                         $itemsForGp = $resolveRincianItem($gp, $gp->detailPembayaran);
                         foreach ($itemsForGp as $item) {
-                            if (!$item->item_bayar) continue;
+                            if (!$item->item_bayar)
+                                continue;
                             $key = md5($item->item_bayar . '|' . $item->harga_satuan);
                             if (!$groupedItems->has($key)) {
-                                $unit = isset($item->unit) ? $item->unit : (isset($item->kuantitas) && str_contains((string)$item->kuantitas, 'alat') ? ' alat' : '');
+                                $unit = isset($item->unit) ? $item->unit : (isset($item->kuantitas) && str_contains((string) $item->kuantitas, 'alat') ? ' alat' : '');
                                 $groupedItems->put($key, [
-                                    'item_bayar'   => $item->item_bayar,
+                                    'item_bayar' => $item->item_bayar,
                                     'harga_satuan' => $item->harga_satuan,
-                                    'qty'          => 0,
-                                    'unit'         => $unit,
-                                    'subtotal'     => 0,
+                                    'qty' => 0,
+                                    'unit' => $unit,
+                                    'subtotal' => 0,
                                 ]);
                             }
                             $row = $groupedItems[$key];
-                            $row['qty'] += isset($item->raw_qty) ? $item->raw_qty : (int)$item->kuantitas;
+                            $row['qty'] += isset($item->raw_qty) ? $item->raw_qty : (int) $item->kuantitas;
                             $row['subtotal'] += $item->subtotal;
                             $groupedItems[$key] = $row;
                         }
@@ -633,66 +792,82 @@
             </tr>
             <tr>
                 <td colspan="5" style="padding: 5px 6px; font-weight: normal;">
-                    Terbilang : <span style="font-weight: bold; font-style: italic;">{{ trim(penyebut($grandTotal)) }} Rupiah</span>
+                    Terbilang : <span style="font-weight: bold; font-style: italic;">{{ trim(penyebut($grandTotal)) }}
+                        Rupiah</span>
                 </td>
             </tr>
         </tfoot>
     </table>
 
     {{-- ========================= --}}
-    {{-- TANDA TANGAN BENDAHARA    --}}
+    {{-- TANDA TANGAN BENDAHARA --}}
     {{-- ========================= --}}
     <table class="signature-table">
         <tr>
-            <td style="width: 58%;"></td>
-            <td style="width: 42%; text-align: center; vertical-align: top;">
+            <td style="width: 65%;"></td>
+            <td style="width: 35%; text-align: right; vertical-align: top; padding: 0;">
                 <div class="signature-box">
-                    <div>Bendahara Penerimaan</div>
-                    <div class="signature-space"></div>
-                    <div class="signature-name">
+                    <div style="font-size: 10.5pt; margin-bottom: 3px; white-space: nowrap;">Bendahara Penerimaan</div>
+                    @if(!empty($qrCodeBase64))
+                        <div style="margin: 3px 0 4px 0;">
+                            <img src="{{ $qrCodeBase64 }}" style="width: 65px; height: 65px; display: block; margin: 0 auto;" alt="QR Code TTE">
+                        </div>
+                    @else
+                        <div class="signature-space"></div>
+                    @endif
+                    <div class="signature-name" style="white-space: nowrap;">
                         {{ $bendahara->name ?? 'Anugrah Noviana D' }}
                     </div>
-                    <div style="font-size: 9.5pt; margin-top: 2px;">
+                    <div style="font-size: 9pt; margin-top: 2px; white-space: nowrap;">
                         NIP. {{ $bendahara->nip ?? '198811252010122003' }}
                     </div>
-                </div>
+                </div>  
             </td>
         </tr>
     </table>
 
     {{-- ========================= --}}
-    {{-- PERHATIAN & CATATAN       --}}
+    {{-- PERHATIAN & CATATAN --}}
     {{-- ========================= --}}
     <div class="perhatian-title">PERHATIAN :</div>
     <ol class="perhatian-list">
         @if(!empty($va) && $va !== '-')
-            <li>Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan muncul otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA sebesar Rp. 1.000,- pada nominal transfer.</li>
+            <li>Pembayaran VA BNI terdapat biaya Rp. 1.000,- jika pembayaran menggunakan BNI biaya Rp. 1.000,- akan muncul
+                otomatis, tetapi jika pembayaran selain dari BNI harap ditambahkan sendiri untuk biaya VA sebesar Rp.
+                1.000,- pada nominal transfer.</li>
             <li>Layanan BI Fast belum bisa dipergunakan, karena tidak mendukung skema Virtual Account (VA)</li>
             <li>Dimohon untuk segera melakukan pembayaran</li>
             <li>Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran</li>
             <li>Biaya admin transfer ditanggung oleh customer</li>
             <li>Order akan kami proses jika pembayaran telah kami terima</li>
-            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice diatas/nama perusahaan.</li>
+            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 dan sertakan nomor invoice
+                diatas/nama perusahaan.</li>
         @else
-            <li>Pembayaran dilakukan melalui transfer ke Rekening Resmi BBSPJIKKP (Bank BNI No. Rek. 0038472918 a.n. RPL 032 BBSPJIKKP YOGYAKARTA UTK PNBP).</li>
+            <li>Pembayaran dilakukan melalui transfer ke Rekening Resmi BBSPJIKKP (Bank BNI No. Rek. 0038472918 a.n. RPL 032
+                BBSPJIKKP YOGYAKARTA UTK PNBP).</li>
             <li>Dimohon untuk segera melakukan pembayaran.</li>
             <li>Dimohon untuk melakukan pengecekan nomor invoice dan nominal tagihan sebelum melakukan pembayaran.</li>
             <li>Biaya admin transfer ditanggung oleh customer.</li>
             <li>Order akan kami proses jika pembayaran telah kami terima dan diverifikasi oleh Bendahara.</li>
-            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 atau diunggah via sistem dan sertakan nomor invoice diatas/nama perusahaan.</li>
+            <li>Untuk kelancaran proses laporan, mohon bukti transfer di WA 08112827821 atau diunggah via sistem dan
+                sertakan nomor invoice diatas/nama perusahaan.</li>
         @endif
     </ol>
 
     {{-- ========================= --}}
-    {{-- KLAUSUL HUKUM & BSRE      --}}
+    {{-- KLAUSUL HUKUM & BSRE --}}
     {{-- ========================= --}}
     <p class="tax-note">
-        Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek Pajak Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.
+        Balai Besar Standardisasi dan Pelayanan Jasa Industri Kulit, Karet, dan Plastik adalah Instansi Pemerintah
+        dibawah Kementerian Perindustrian, dimana penghasilan yang diterima atau diperoleh bukan merupakan Obyek Pajak
+        Penghasilan (PPh), berdasarkan UU No. 36 Tahun 2008.
     </p>
 
     <div class="bsre-footer">
-        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan oleh Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara
+        Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang telah diterbitkan oleh
+        Balai Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara
     </div>
 
 </body>
+
 </html>

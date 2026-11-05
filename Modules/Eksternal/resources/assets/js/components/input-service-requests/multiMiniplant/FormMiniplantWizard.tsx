@@ -185,18 +185,12 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
       userProfile?.address ||
       ""
 
-    setDataPelanggan((prev) => {
-      const isDummyName = prev.namaPemohon === "Budi Santoso"
-      const isDummyTelp = prev.no_telp === "081234567890"
-      const isDummyAlamat = prev.alamat?.includes("Sokonandi")
-
-      return {
-        ...prev,
-        namaPemohon: (!prev.namaPemohon || isDummyName ? nama : prev.namaPemohon) || nama || "",
-        no_telp: (!prev.no_telp || isDummyTelp ? telp : prev.no_telp) || telp || "",
-        alamat: (!prev.alamat || isDummyAlamat ? alamat : prev.alamat) || alamat || "",
-      }
-    })
+    setDataPelanggan((prev) => ({
+      ...prev,
+      namaPemohon: prev.namaPemohon?.trim() ? prev.namaPemohon : (nama || ""),
+      no_telp: prev.no_telp?.trim() ? prev.no_telp : (telp || ""),
+      alamat: prev.alamat?.trim() ? prev.alamat : (alamat || ""),
+    }))
   }, [profile])
 
   // Auto-save ke localStorage setiap kali ada perubahan pada form data

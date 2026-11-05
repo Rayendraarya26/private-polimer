@@ -72,41 +72,18 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
         return { namaPemohon, no_telp, alamat }
     }
 
-    // Auto-fill data pemohon jika profil user login sudah siap
+    // Auto-seed data pemohon jika profil user login sudah siap
     useEffect(() => {
         const extracted = extractProfileData(profile)
         if (!extracted || !setFormData) return
 
-        setFormData((prev) => {
-            const isDummyName = prev?.namaPemohon === "Budi Santoso"
-            const isDummyTelp = prev?.no_telp === "081234567890"
-            const isDummyAlamat = prev?.alamat?.includes("Sokonandi")
-
-            return {
-                ...prev,
-                namaPemohon: (!prev?.namaPemohon || isDummyName ? extracted.namaPemohon : prev.namaPemohon) || extracted.namaPemohon || "",
-                no_telp: (!prev?.no_telp || isDummyTelp ? extracted.no_telp : prev.no_telp) || extracted.no_telp || "",
-                alamat: (!prev?.alamat || isDummyAlamat ? extracted.alamat : prev.alamat) || extracted.alamat || "",
-            }
-        })
-    }, [profile, setFormData])
-
-    // Handler tombol isi ulang / sinkronisasi manual dari data profil
-    const handleApplyProfileData = () => {
-        const extracted = extractProfileData(profile)
-        if (!extracted) {
-            toast.error("Data profil akun belum berhasil dimuat.")
-            return
-        }
-
-        setFormData?.((prev) => ({
+        setFormData((prev) => ({
             ...prev,
-            namaPemohon: extracted.namaPemohon,
-            no_telp: extracted.no_telp,
-            alamat: extracted.alamat,
+            namaPemohon: prev?.namaPemohon?.trim() ? prev.namaPemohon : (extracted.namaPemohon || ""),
+            no_telp: prev?.no_telp?.trim() ? prev.no_telp : (extracted.no_telp || ""),
+            alamat: prev?.alamat?.trim() ? prev.alamat : (extracted.alamat || ""),
         }))
-        toast.success("Data pemohon berhasil disinkronkan dari profil akun Anda!")
-    }
+    }, [profile, setFormData])
 
     const handleChange = (field: keyof PelangganData, value: string) => {
         setFormData?.((prev) => ({
@@ -120,26 +97,14 @@ export const FormInformasiPelanggan: React.FC<FormInformasiPelangganProps> = ({
     return (
         <Card className="border-brand-100 shadow-sm">
             <CardHeader className="bg-gradient-to-r from-brand-50/60 via-sky-50/40 to-white pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                        <CardTitle className="text-base flex items-center gap-2 text-slate-800">
-                            <UserCheck className="w-4 h-4 text-brand-600" />
-                            Informasi Pelanggan
-                        </CardTitle>
-                        <CardDescription>
-                            Data identitas dan kontak pemohon layanan miniplant
-                        </CardDescription>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleApplyProfileData}
-                        disabled={isFieldDisabled}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-brand-700 bg-white border border-brand-200 hover:bg-brand-50 hover:border-brand-300 transition-all shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
-                    >
-                        <UserCheck className="w-3.5 h-3.5 text-brand-600" />
-                        <span>Gunakan Profil Akun</span>
-                    </button>
+                <div>
+                    <CardTitle className="text-base flex items-center gap-2 text-slate-800">
+                        <UserCheck className="w-4 h-4 text-brand-600" />
+                        Informasi Pelanggan
+                    </CardTitle>
+                    <CardDescription>
+                        Data identitas dan kontak pemohon layanan miniplant
+                    </CardDescription>
                 </div>
             </CardHeader>
 

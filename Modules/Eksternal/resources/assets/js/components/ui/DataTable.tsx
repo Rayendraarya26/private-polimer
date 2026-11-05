@@ -161,7 +161,13 @@ export function DataTable<T extends Record<string, any>>({
                   )}
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div
+                    className={cn(
+                      'flex items-center gap-1.5',
+                      col.headerClassName?.includes('text-right') && 'justify-end',
+                      col.headerClassName?.includes('text-center') && 'justify-center'
+                    )}
+                  >
                     <span>{col.header}</span>
                     {col.sortable && (
                       <ArrowUpDown className="w-3 h-3 text-slate-400 shrink-0" />

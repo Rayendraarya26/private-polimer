@@ -7,7 +7,7 @@
 
     <style type="text/css">
         @page {
-            margin: 15px 30px 15px 30px;
+            margin: 15px 30px 35px 30px;
         }
 
         body {
@@ -170,11 +170,12 @@
         }
 
         .signature-box {
-            width: 42%;
+            width: 155px;
             margin-left: auto;
+            margin-right: 0;
             text-align: center;
             font-family: "Arial Narrow", Arial, sans-serif;
-            font-size: 10.5pt;
+            font-size: 10pt;
         }
 
         .signature-date {
@@ -223,12 +224,15 @@
         }
 
         .bsre-footer {
+            position: fixed;
+            bottom: -22px;
+            left: 0;
+            right: 0;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-style: italic;
             color: #333;
-            margin-top: 4px;
-            line-height: 1.2;
+            line-height: 1.25;
         }
     </style>
 </head>
@@ -278,6 +282,88 @@
         $tglKuitansiRaw = $permohonan->kuitansi_generated_at 
             ?: ($permohonan->detailPembayaran?->first()?->tgl_bayar ?: now());
         $tglKuitansi = $formatTglIndo($tglKuitansiRaw);
+
+        // ===============================================
+        // GENERATE QR CODE TTE DENGAN LOGO JIS DI TENGAH
+        // HANYA JIKA DOKUMEN SUDAH / SEDANG DI-TTE
+        // ===============================================
+        $isSigned = !empty($isTte) || !empty($permohonan->kuitansi_pdf_tte) || !empty($permohonan->pdf_tte_kuitansi);
+        $qrCodeBase64 = '';
+
+        if ($isSigned) {
+            try {
+                $logoJisPath = public_path('assets/media/logos/jis-logo-icon-only.png');
+                $verifyCode = !empty($permohonan->pdf_tte_kuitansi)
+                    ? $permohonan->pdf_tte_kuitansi
+                    : (!empty($permohonan->kuitansi_pdf_tte)
+                        ? $permohonan->kuitansi_pdf_tte
+                        : (!empty($permohonan->pdf_tte)
+                            ? $permohonan->pdf_tte
+                            : ($kuitansiNumber ?? ($permohonan->no_permohonan . '/KWT'))));
+
+                $verifyUrl = url('/tte/verify?code=' . urlencode($verifyCode));
+
+                if (class_exists(\SimpleSoftwareIO\QrCode\Facades\QrCode::class)) {
+                    $qrBuilder = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
+                        ->size(180)
+                        ->errorCorrection('H');
+
+                    if (file_exists($logoJisPath)) {
+                        // Buat logo berlatar belakang bulat putih dan ber-border
+                        $mergedLogoData = null;
+                        if (function_exists('imagecreatefrompng')) {
+                            $src = @imagecreatefrompng($logoJisPath);
+                            if ($src) {
+                                $badgeSize = 256;
+                                $canvas = imagecreatetruecolor($badgeSize, $badgeSize);
+                                imagealphablending($canvas, false);
+                                imagesavealpha($canvas, true);
+
+                                $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+                                imagefilledrectangle($canvas, 0, 0, $badgeSize, $badgeSize, $transparent);
+
+                                imagealphablending($canvas, true);
+
+                                $cx = $badgeSize / 2;
+                                $cy = $badgeSize / 2;
+
+                                $white = imagecolorallocate($canvas, 255, 255, 255);
+
+                                // Background bulat putih solid bersih tanpa border hitam
+                                imagefilledellipse($canvas, $cx, $cy, $badgeSize - 2, $badgeSize - 2, $white);
+
+                                // Logo JIS di tengah lingkaran
+                                $srcW = imagesx($src);
+                                $srcH = imagesy($src);
+                                $pad = (int) ($badgeSize * 0.18);
+                                $destW = $badgeSize - ($pad * 2);
+                                $destH = $badgeSize - ($pad * 2);
+
+                                imagecopyresampled($canvas, $src, $pad, $pad, 0, 0, $destW, $destH, $srcW, $srcH);
+
+                                ob_start();
+                                imagesavealpha($canvas, true);
+                                imagepng($canvas);
+                                $mergedLogoData = ob_get_clean();
+
+                                unset($canvas, $src);
+                            }
+                        }
+
+                        if ($mergedLogoData) {
+                            $qrBuilder->mergeString($mergedLogoData, 0.30);
+                        } else {
+                            $qrBuilder->merge($logoJisPath, 0.28, true);
+                        }
+                    }
+
+                    $qrPng = $qrBuilder->generate($verifyUrl);
+                    $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrPng);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Kuitansi QR Code generation failed: ' . $e->getMessage());
+            }
+        }
 
         if (!function_exists('penyebut')) {
             function penyebut($nilai)
@@ -406,14 +492,142 @@
                 $grandTotal = 0;
                 $jenisPelanggan = \App\Models\Db1\Pelanggan::where('user_id', $permohonan->created_by)->value('jenis_pelanggan');
                 $isPerorangan = ($jenisPelanggan === \App\Enums\PelangganJenisPelanggan::PERORANGAN->value);
+                $introUraian = null;
+
+                $resolveRincianItem = function ($p, $defaultItems) use (&$introUraian) {
+                    // 1. Cek Kalibrasi
+                    if (str_contains($p->no_permohonan, 'LABKAL') || (method_exists($p, 'formKalibrasi') && $p->formKalibrasi()->exists())) {
+                        $fk = $p->formKalibrasi()->with('alatList.kalibrasiItems')->first();
+                        if ($fk && $fk->alatList && $fk->alatList->isNotEmpty()) {
+                            $lokasi = '';
+                            if (!empty($fk->lokasi_pelaksanaan)) {
+                                $lokLower = strtolower($fk->lokasi_pelaksanaan);
+                                if (str_contains($lokLower, 'client') || str_contains($lokLower, 'insitu')) {
+                                    $lokasi = ' (insitu)';
+                                } elseif (str_contains($lokLower, 'lab') || str_contains($lokLower, 'bbkkp')) {
+                                    $lokasi = ' (di laboratorium)';
+                                } else {
+                                    $lokasi = ' (' . e($fk->lokasi_pelaksanaan) . ')';
+                                }
+                            }
+                            $introUraian = 'Biaya Kalibrasi alat' . $lokasi . ', dengan rincian:';
+
+                            $rincian = collect();
+                            foreach ($fk->alatList as $alat) {
+                                $namaAlat = $alat->nama_alat;
+                                $spek = array_filter([$alat->merk, $alat->tipe_model]);
+                                $labelSpek = !empty($spek) ? ' - ' . implode(' ', $spek) : '';
+
+                                $qty = (int) ($alat->jumlah ?: 1);
+                                $subtotal = (float) ($alat->subtotal_biaya ?: 0);
+                                $tarif = $qty > 0 ? ($subtotal / $qty) : $subtotal;
+
+                                $rincian->push((object) [
+                                    'item_bayar' => $namaAlat . $labelSpek,
+                                    'kuantitas' => $qty . ' alat',
+                                    'raw_qty' => $qty,
+                                    'unit' => ' alat',
+                                    'harga_satuan' => $tarif,
+                                    'subtotal' => $subtotal,
+                                ]);
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    // 2. Cek Pengujian Laboratorium
+                    if (str_starts_with($p->no_permohonan, 'UJI') || (method_exists($p, 'formPengujian') && $p->formPengujian()->exists())) {
+                        $fp = $p->formPengujian()->with('samples.parameters')->first();
+                        if ($fp && $fp->samples && $fp->samples->isNotEmpty()) {
+                            $rincian = collect();
+                            foreach ($fp->samples as $sample) {
+                                $namaSample = $sample->nama_sampel ?: 'Sampel Uji';
+                                if ($sample->parameters && $sample->parameters->isNotEmpty()) {
+                                    foreach ($sample->parameters as $param) {
+                                        $uraian = 'Pengujian ' . $namaSample . ' - ' . ($param->nama_parameter_snapshot ?: $param->nama_parameter);
+                                        $qty = (int) ($param->jumlah ?: 1);
+                                        $subtotal = (float) ($param->subtotal ?: 0);
+                                        $tarif = $qty > 0 ? (float) ($param->tarif_satuan_snapshot ?: ($subtotal / $qty)) : $subtotal;
+
+                                        $rincian->push((object) [
+                                            'item_bayar' => $uraian,
+                                            'kuantitas' => $qty,
+                                            'raw_qty' => $qty,
+                                            'unit' => '',
+                                            'harga_satuan' => $tarif,
+                                            'subtotal' => $subtotal,
+                                        ]);
+                                    }
+                                }
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    // 3. Cek Miniplant
+                    $isMiniplantNo = str_contains($p->no_permohonan, 'F') ||
+                                     str_contains($p->no_permohonan, 'RK') ||
+                                     str_contains($p->no_permohonan, 'RPK') ||
+                                     str_contains($p->no_permohonan, 'PA') ||
+                                     str_contains($p->no_permohonan, 'MKP');
+                    if ($isMiniplantNo || (method_exists($p, 'formMiniplant') && $p->formMiniplant()->exists())) {
+                        $fm = method_exists($p, 'formMiniplant') ? $p->formMiniplant()->with('items.masterMiniplant')->first() : null;
+                        if ($fm && $fm->items && $fm->items->isNotEmpty()) {
+                            $namaLayanan = $fm->jenis_layanan_nama ? ' ' . $fm->jenis_layanan_nama : '';
+                            $labelBarang = !empty($fm->jenis_barang) ? ' (Jenis Barang: ' . e($fm->jenis_barang) . ')' : '';
+                            $introUraian = 'Biaya Layanan Miniplant' . $namaLayanan . $labelBarang . ', dengan rincian:';
+
+                            $rincian = collect();
+                            foreach ($fm->items as $item) {
+                                $namaPerlakuan = $item->nama_perlakuan_snapshot ?: ($item->masterMiniplant?->nama ?: 'Perlakuan Miniplant');
+                                $prefixBarang = !empty($fm->jenis_barang) ? $fm->jenis_barang . ' - ' : '';
+                                $satuan = trim($item->satuan_snapshot ?: ($item->masterMiniplant?->satuan ?: ''));
+                                $unitLabel = !empty($satuan) ? ' ' . $satuan : '';
+                                $qty = (int) ($item->jumlah ?: 1);
+                                $subtotal = (float) ($item->subtotal ?: 0);
+                                $tarif = (float) ($item->tarif_satuan_snapshot ?: ($qty > 0 ? ($subtotal / $qty) : $subtotal));
+
+                                $rincian->push((object) [
+                                    'item_bayar'   => $prefixBarang . $namaPerlakuan,
+                                    'kuantitas'    => $qty . $unitLabel,
+                                    'raw_qty'      => $qty,
+                                    'unit'         => $unitLabel,
+                                    'harga_satuan' => $tarif,
+                                    'subtotal'     => $subtotal,
+                                ]);
+                            }
+                            if ($rincian->isNotEmpty()) {
+                                return $rincian;
+                            }
+                        }
+                    }
+
+                    return $defaultItems;
+                };
+
+                $resolvedDetailPembayaran = $resolveRincianItem($permohonan, $detailPembayaran);
             @endphp
 
+            @if(!empty($introUraian))
+                <tr>
+                    <td class="text-center"></td>
+                    <td>{{ $introUraian }}</td>
+                    <td class="text-center"></td>
+                    <td class="text-right"></td>
+                    <td class="text-right"></td>
+                </tr>
+            @endif
+
             @if($permohonan->is_split_bill || $isPerorangan)
-                @foreach($detailPembayaran as $index => $item)
+                @foreach($resolvedDetailPembayaran as $index => $item)
                     @php $grandTotal += $item->subtotal; @endphp
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
-                        <td>{{ $item->item_bayar }}</td>
+                        <td>{!! $item->item_bayar !!}</td>
                         <td class="text-center">{{ $item->kuantitas }}</td>
                         <td class="text-right">{{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
@@ -424,19 +638,22 @@
                     $groupedItems = collect();
                     $grupPermohonanItems = $grupPermohonan ?? collect([$permohonan]);
                     foreach ($grupPermohonanItems as $gp) {
-                        foreach ($gp->detailPembayaran as $item) {
+                        $itemsForGp = $resolveRincianItem($gp, $gp->detailPembayaran);
+                        foreach ($itemsForGp as $item) {
                             if (!$item->item_bayar) continue;
                             $key = md5($item->item_bayar . '|' . $item->harga_satuan);
                             if (!$groupedItems->has($key)) {
+                                $unit = isset($item->unit) ? $item->unit : (isset($item->kuantitas) && str_contains((string) $item->kuantitas, 'alat') ? ' alat' : '');
                                 $groupedItems->put($key, [
                                     'item_bayar'   => $item->item_bayar,
                                     'harga_satuan' => $item->harga_satuan,
                                     'qty'          => 0,
+                                    'unit'         => $unit,
                                     'subtotal'     => 0,
                                 ]);
                             }
                             $row = $groupedItems[$key];
-                            $row['qty'] += $item->kuantitas;
+                            $row['qty'] += isset($item->raw_qty) ? $item->raw_qty : (int) $item->kuantitas;
                             $row['subtotal'] += $item->subtotal;
                             $groupedItems[$key] = $row;
                         }
@@ -447,8 +664,8 @@
                     @php $grandTotal += $item['subtotal']; @endphp
                     <tr>
                         <td class="text-center">{{ $no++ }}</td>
-                        <td>{{ $item['item_bayar'] }}</td>
-                        <td class="text-center">{{ $item['qty'] }}</td>
+                        <td>{!! $item['item_bayar'] !!}</td>
+                        <td class="text-center">{{ $item['qty'] }}{{ $item['unit'] }}</td>
                         <td class="text-right">{{ number_format($item['harga_satuan'], 0, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($item['subtotal'], 0, ',', '.') }}</td>
                     </tr>
@@ -477,18 +694,24 @@
     {{-- ========================= --}}
     <table class="signature-table">
         <tr>
-            <td style="width: 58%;"></td>
-            <td style="width: 42%; text-align: center; vertical-align: top;">
+            <td style="width: 65%;"></td>
+            <td style="width: 35%; text-align: right; vertical-align: top; padding: 0;">
                 <div class="signature-box">
-                    <div class="signature-date">
+                    <div class="signature-date" style="white-space: nowrap;">
                         Yogyakarta, {{ $tglKuitansi }}
                     </div>
-                    <div>Bendahara Penerimaan</div>
-                    <div class="signature-space"></div>
-                    <div class="signature-name">
+                    <div style="font-size: 10.5pt; margin-bottom: 15px; white-space: nowrap;">Bendahara Penerimaan</div>
+                    @if(!empty($qrCodeBase64))
+                        <div style="margin: 3px 0 4px 0;">
+                            <img src="{{ $qrCodeBase64 }}" style="width: 65px; height: 65px; display: block; margin: 0 auto;" alt="QR Code TTE">
+                        </div>
+                    @else
+                        <div class="signature-space"></div>
+                    @endif
+                    <div class="signature-name" style="white-space: nowrap;">
                         {{ $bendahara->name ?? 'Anugrah Noviana D' }}
                     </div>
-                    <div style="font-size: 9.5pt; margin-top: 2px;">
+                    <div style="font-size: 9pt; margin-top: 2px; white-space: nowrap;">
                         NIP. {{ $bendahara->nip ?? '198811252010122003' }}
                     </div>
                 </div>

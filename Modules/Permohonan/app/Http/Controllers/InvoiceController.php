@@ -148,7 +148,8 @@ class InvoiceController extends Controller
         string $va,
         float  $total,
         array  $pemohon,
-        ?SysUser $bendahara
+        ?SysUser $bendahara,
+        bool   $isTte = false
     ): \Barryvdh\DomPDF\PDF {
         return Pdf::loadView('permohonan::layanan.invoice', [
             'permohonan'       => $permohonan,
@@ -159,6 +160,7 @@ class InvoiceController extends Controller
             'total'            => $total,
             'pemohon'          => $pemohon,
             'bendahara'        => $bendahara,
+            'isTte'            => $isTte,
         ])
         ->setPaper('a4', 'portrait')
         ->setOptions([
@@ -247,7 +249,7 @@ class InvoiceController extends Controller
                 $va = $va ?: '-';
             }
 
-            $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va ?: '-', $total, $pemohon, $bendahara);
+            $pdf        = $this->buildPdf($permohonan, $detailPembayaran, $grupPermohonan, $invoiceNumber, $va ?: '-', $total, $pemohon, $bendahara, true);
             $pdfContent = $pdf->output();
             $fileName   = 'invoice-' . $permohonan->no_permohonan . '.pdf';
 
@@ -575,6 +577,7 @@ class InvoiceController extends Controller
             'total'            => $total,
             'pemohon'          => $pemohon,
             'bendahara'        => $bendahara,
+            'isTte'            => true,
         ])
         ->setPaper('a4', 'portrait')
         ->setOptions([
@@ -662,6 +665,7 @@ class InvoiceController extends Controller
                 'total'            => $total,
                 'pemohon'          => $pemohon,
                 'bendahara'        => $bendahara,
+                'isTte'            => false,
             ])
             ->setPaper('a4', 'portrait')
             ->setOptions([
@@ -782,6 +786,7 @@ class InvoiceController extends Controller
             'total'            => $total,
             'pemohon'          => $pemohon,
             'bendahara'        => $bendahara,
+            'isTte'            => false,
         ])
         ->setPaper('a4', 'portrait')
         ->setOptions([

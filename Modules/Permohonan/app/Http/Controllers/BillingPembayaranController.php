@@ -31,22 +31,22 @@ class BillingPembayaranController extends Controller
      */
     public function index()
     {
-        $billings = Billing::with([
-            'items',
-            'permohonan.formSertifikasi',
-            'permohonan.creator',
-            'pelanggan.detail',
-            'pelanggan.user',
-        ])
-            ->latest()
-            ->paginate(15);
+        $permohonans = Permohonan::query()
+            ->with([
+                'creator',
+                'detailPermohonan.lingkupLayanan.jenisLayanan',
+                'detailPermohonan.formable',
+            ])
+            ->whereNotNull('tgl_order')
+            ->orderBy('tgl_order', 'desc')
+            ->get();
 
         return view("$this->view.index", [
             'breadcrumbs' => [
                 new Breadcrumbs('Admin'),
-                new Breadcrumbs('Manajemen Billing & Pembayaran', url($this->url)),
+                new Breadcrumbs('Pencatatan Pembayaran Manual', url($this->url)),
             ],
-            'billings' => $billings,
+            'permohonans' => $permohonans,
         ]);
     }
 

@@ -29,6 +29,8 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="TTE_BASE_URL" value=""/>
         <env name="TTE_API_KEY" value=""/>
+        <env name="BNI_VA_ENABLED" value="true"/>
+        <env name="BNI_VA_DUMMY" value="true"/>
         <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
     </php>

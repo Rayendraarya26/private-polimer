@@ -45,13 +45,15 @@ return [
     ],
 
     'bni' => [
-        'enabled'    => (bool) env('BNI_VA_ENABLED', true),
-        'client_id'  => env('BNI_VA_CLIENT_ID', ''),
-        'secret_key' => env('BNI_VA_SECRET_KEY', ''),
-        'prefix'     => env('BNI_VA_PREFIX', '98812'),
-        'base_url'   => env('BNI_VA_BASE_URL', 'https://apibeta.bni-ecollection.com'),
-        'timeout'    => env('BNI_VA_TIMEOUT_SECONDS', 30),
-        'dummy'      => (bool) env('BNI_VA_DUMMY', true),
+        'enabled'              => (bool) env('BNI_VA_ENABLED', true),
+        'internal_service_url' => env('INTERNAL_SERVICE_URL', env('TTE_BASE_URL', 'http://localhost:10020')),
+        'api_key'              => env('BNI_VA_API_KEY', env('TTE_API_KEY', '')),
+        'client_id'            => env('BNI_VA_CLIENT_ID', ''),
+        'secret_key'           => env('BNI_VA_SECRET_KEY', ''),
+        'prefix'               => env('BNI_VA_PREFIX', '98812'),
+        'base_url'             => env('BNI_VA_BASE_URL', 'https://apibeta.bni-ecollection.com'),
+        'timeout'              => env('BNI_VA_TIMEOUT_SECONDS', 30),
+        'dummy'                => (bool) env('BNI_VA_DUMMY', true),
     ],
 
     'whatsapp' => [

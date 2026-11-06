@@ -220,8 +220,13 @@ class InvoiceController extends Controller
             $invoiceNumber = $permohonan->invoice_number ?: ($permohonan->no_permohonan . '/INV');
             $total         = $detailPembayaran->sum('subtotal');
 
-            $va          = $permohonan->va;
-            $vaExpiredAt = $permohonan->va_expired_at;
+            if ($request->filled('va')) {
+                $va = trim($request->input('va'));
+                $vaExpiredAt = $permohonan->va_expired_at ?: now()->addDays(14);
+            } else {
+                $va          = $permohonan->va;
+                $vaExpiredAt = $permohonan->va_expired_at;
+            }
             $vaTrxId     = $permohonan->va_trx_id ?: ('INV-' . $permohonan->id);
 
             if (config('services.bni.enabled', false) && (empty($va) || $va === '-')) {
@@ -366,6 +371,28 @@ class InvoiceController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Update nomor Virtual Account (VA) secara manual oleh Bendahara.
+     */
+    public function updateVa(Request $request, $id)
+    {
+        $request->validate([
+            'va' => 'required|string|max:50',
+        ]);
+
+        $permohonan = Permohonan::findOrFail($id);
+        $permohonan->update([
+            'va'            => trim($request->input('va')),
+            'va_expired_at' => $permohonan->va_expired_at ?: now()->addDays(14),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nomor Virtual Account (VA) berhasil disimpan.',
+            'va'      => $permohonan->va,
+        ]);
     }
 
     /**

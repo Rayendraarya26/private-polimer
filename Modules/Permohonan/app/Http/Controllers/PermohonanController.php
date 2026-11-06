@@ -208,15 +208,15 @@ class PermohonanController extends Controller
             return DataTables::eloquent(
                 Permohonan::query()
                     ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan'])
-                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte'])
+                    ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte', 'va', 'harga_permohonan'])
                     ->whereRaw('1=0')
             )->make(true);
         }
 
 
         $query = Permohonan::query()
-            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable'])
-            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte'])
+            ->with(['creator', 'detailPermohonan.lingkupLayanan.jenisLayanan', 'detailPermohonan.formable', 'detailPembayaran'])
+            ->select(['id', 'no_permohonan', 'tgl_order', 'status_workflow', 'created_by', 'id_pt_ins', 'invoice_file', 'status_bayar', 'pdf_tte', 'kuitansi_pdf_tte', 'va', 'harga_permohonan'])
             ->whereIn('id', $representativeIds);
 
 
@@ -311,6 +311,16 @@ class PermohonanController extends Controller
             ->addColumn('kuitansi_pdf_tte', fn($row) => $row->kuitansi_pdf_tte ?? '')
             ->addColumn('has_kuitansi_tte', fn($row) => !empty($row->kuitansi_pdf_tte))
             ->addColumn('status_bayar', fn($row) => $row->status_bayar ?? '')
+            ->addColumn('va_val', fn($row) => $row->va ?? '')
+            ->addColumn('nominal_val', function ($row) {
+                if ((float) ($row->harga_permohonan ?? 0) > 0) {
+                    return (float) $row->harga_permohonan;
+                }
+                if ($row->id_pt_ins) {
+                    return (float) DetailPembayaran::where('id_pt_ins', $row->id_pt_ins)->sum('subtotal');
+                }
+                return (float) ($row->detailPembayaran?->sum('subtotal') ?? 0);
+            })
             ->addColumn('aksi', function ($row) {
                 $url = route('permohonan.layanan.detail', $row->id);
                 return '<a href="' . $url . '" class="btn btn-sm btn-primary">Detail</a>';

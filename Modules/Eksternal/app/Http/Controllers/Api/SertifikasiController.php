@@ -120,19 +120,22 @@ class SertifikasiController extends Controller
             ->orWhere('jenis_layanan', 'Sertifikasi Industri')
             ->orWhere('slug', 'sertifikasi-produk-sistem')
             ->orWhere('jenis_layanan', 'Sertifikasi Produk & Sistem')
+            ->orWhere('slug', 'sertifikasi')
             ->first();
 
         if (!$jenis) {
             return response()->json([
                 'success' => false,
-                'message' => 'Jenis layanan sertifikasi tidak ditemukan'
+                'message' => 'Jenis layanan sertifikasi industri tidak ditemukan'
             ], 404);
         }
 
         $jenisSertifikasi = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
             ->where('is_active', true)
             ->select('id', 'lingkup', 'slug', 'kapabilitas')
-            ->get();
+            ->get()
+            ->unique(fn($item) => strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $item->lingkup)))
+            ->values();
 
         return response()->json([
             'success' => true,
@@ -151,16 +154,19 @@ class SertifikasiController extends Controller
             ->orWhere('jenis_layanan', 'Sertifikasi Industri')
             ->orWhere('slug', 'sertifikasi-produk-sistem')
             ->orWhere('jenis_layanan', 'Sertifikasi Produk & Sistem')
+            ->orWhere('slug', 'sertifikasi')
             ->first();
 
         if (!$jenis) {
-            return response()->json(['success' => false, 'message' => 'Jenis layanan sertifikasi produk & sistem tidak ditemukan'], 404);
+            return response()->json(['success' => false, 'message' => 'Jenis layanan sertifikasi industri tidak ditemukan'], 404);
         }
 
         $skema = MasterLingkupLayanan::where('jenis_layanan_id', $jenis->id)
             ->where('is_active', true)
             ->select('id', 'lingkup', 'slug', 'kapabilitas')
-            ->get();
+            ->get()
+            ->unique(fn($item) => strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $item->lingkup)))
+            ->values();
 
         return response()->json([
             'success' => true,

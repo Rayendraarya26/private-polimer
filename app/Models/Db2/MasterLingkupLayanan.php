@@ -33,4 +33,9 @@ class MasterLingkupLayanan extends Model
     {
         return $this->hasMany(DetailPermohonan::class, 'lingkup_layanan_id');
     }
+
+    public function komoditi()
+    {
+        return $this->hasMany(MasterKomoditi::class, 'lingkup_layanan_id');
+    }
 }

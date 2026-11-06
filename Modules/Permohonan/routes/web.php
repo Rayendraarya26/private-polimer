@@ -21,6 +21,8 @@ use Modules\Permohonan\Http\Controllers\PbaController;
 use Modules\Permohonan\Http\Controllers\TkdnController;
 use Modules\Permohonan\Http\Controllers\MasterKalibrasiController;
 use Modules\Permohonan\Http\Controllers\MasterPengujianController;
+use Modules\Permohonan\Http\Controllers\MasterSertifikasiController;
+use Modules\Permohonan\Http\Controllers\MasterLspController;
 use App\Http\Middleware\Restriction;
 
 /*
@@ -193,6 +195,16 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         Route::post('/komoditas', [MasterPengujianController::class, 'storeKomoditas'])->name('komoditas.store');
         Route::put('/komoditas/{id}', [MasterPengujianController::class, 'updateKomoditas'])->name('komoditas.update');
         Route::delete('/komoditas/{id}', [MasterPengujianController::class, 'destroyKomoditas'])->name('komoditas.destroy');
+    });
+
+    Route::prefix('master-sertifikasi')->name('permohonan.master-sertifikasi.')->group(function () {
+        Route::get('/', [MasterSertifikasiController::class, 'index'])->name('index');
+        Route::any('/ajax', [MasterSertifikasiController::class, 'ajax'])->name('ajax');
+    });
+
+    Route::prefix('master-lsp')->name('permohonan.master-lsp.')->group(function () {
+        Route::get('/', [MasterLspController::class, 'index'])->name('index');
+        Route::any('/ajax', [MasterLspController::class, 'ajax'])->name('ajax');
     });
 
 

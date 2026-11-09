@@ -450,6 +450,7 @@ class PermohonanController extends Controller
             str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
             str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
             str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
+            str_starts_with($permohonan->no_permohonan, 'UJI') || str_contains($permohonan->no_permohonan, 'LABUJI') || (method_exists($permohonan, 'formPengujian') && $permohonan->formPengujian()->exists()) => 'Jasa Pengujian Laboratorium',
             str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
             str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
             default => 'Biaya Layanan',
@@ -465,15 +466,26 @@ class PermohonanController extends Controller
         $lsp = $permohonan->formLsp?->first();
         $inspeksi = $permohonan->formInspeksi?->first();
         $halal = $permohonan->formHalal?->first();
+        $pengujian = $permohonan->formPengujian?->first();
         $formAset = $permohonan->formAset?->first();
         $formJasa = $permohonan->formJasaLainnya?->first();
         $creator = $permohonan->creator;
+
+        $pelanggan = \App\Models\Db1\Pelanggan::with(['detail'])
+            ->where('user_id', $permohonan->created_by)
+            ->first();
+        $detailPelanggan = $pelanggan?->detail;
+        $alamatDetail    = $detailPelanggan?->alamat;
+        $namaDetail      = $detailPelanggan?->nama;
+        $waDetail        = $detailPelanggan?->whatsapp ?? $detailPelanggan?->telepon;
+        $surelDetail     = $detailPelanggan?->surel;
 
         $namaPemohon = ($pelatihan?->nama_instansi ?: $pelatihan?->nama_lengkap)
             ?: ($lsp?->nama_instansi ?: $lsp?->nama_lengkap)
             ?: ($sertifikasi?->nama_perusahaan ?: $sertifikasi?->kontak_person)
             ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
             ?: ($halal?->nama_usaha ?: $halal?->pj_nama)
+            ?: ($pengujian?->biaya_ditanggung_oleh ?: ($namaDetail ?: $pengujian?->diajukan_oleh))
             ?: ($formAset?->pemohon_nama)
             ?: ($formJasa?->pelanggan_nama)
             ?: ($creator?->name ?: 'Pelanggan BBKKP');
@@ -483,12 +495,13 @@ class PermohonanController extends Controller
             ?: ($sertifikasi?->alamat_kantor)
             ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
             ?: ($halal?->pj_alamat)
+            ?: ($pengujian ? ($alamatDetail ?: $creator?->address) : null)
             ?: ($formAset?->pemohon_alamat)
             ?: ($formJasa?->provinsi_nama)
-            ?: '-';
+            ?: ($alamatDetail ?: ($creator?->address ?: '-'));
 
-        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon) ?: '081234567890';
-        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $formAset?->pemohon_email) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
+        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $pengujian?->diajukan_oleh ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon ?: $waDetail) ?: '081234567890';
+        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $formAset?->pemohon_email ?: $surelDetail) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
         if (config('services.bni.enabled', false)) {
             try {
@@ -848,7 +861,7 @@ class PermohonanController extends Controller
                     str_contains($permohonan->no_permohonan, 'F') => 'Biaya Miniplant Finishing Kulit',
                     str_contains($permohonan->no_permohonan, 'MKP') => 'Biaya Miniplant Karet dan Plastik',
                     str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
-                    str_starts_with($permohonan->no_permohonan, 'UJI') => 'Biaya Pengujian Laboratorium',
+                    str_starts_with($permohonan->no_permohonan, 'UJI') || str_contains($permohonan->no_permohonan, 'LABUJI') || (method_exists($permohonan, 'formPengujian') && $permohonan->formPengujian()->exists()) => 'Jasa Pengujian Laboratorium',
                     str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
                     str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
                     default => 'Biaya Layanan (' . $permohonan->no_permohonan . ')',

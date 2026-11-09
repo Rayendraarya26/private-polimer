@@ -186,20 +186,35 @@ class PembayaranController extends Controller
         $detail = $permohonan->detailPermohonan?->first();
         $form   = $detail?->formable;
 
-        $namaPemohon = $form?->nama_perusahaan 
+        $pelanggan = \App\Models\Db1\Pelanggan::with(['detail'])
+            ->where('user_id', $permohonan->created_by)
+            ->first();
+        $detailPelanggan = $pelanggan?->detail;
+        $alamatDetail    = $detailPelanggan?->alamat;
+        $namaDetail      = $detailPelanggan?->nama;
+        $surelDetail     = $detailPelanggan?->surel;
+        $waDetail        = $detailPelanggan?->whatsapp ?? $detailPelanggan?->telepon;
+
+        $namaPemohon = $form?->biaya_ditanggung_oleh
+            ?? $namaDetail
+            ?? $form?->diajukan_oleh
+            ?? $form?->nama_perusahaan 
             ?? $form?->nama_lengkap 
             ?? $form?->nama_peserta 
             ?? $permohonan->creator?->name 
             ?? 'Pelanggan BBKKP';
 
-        $alamat = $form?->alamat_kantor 
+        $alamat = $alamatDetail
+            ?? $form?->alamat_kantor 
             ?? $form?->alamat_peserta 
             ?? $form?->alamat_instansi 
             ?? $form?->alamat 
+            ?? $permohonan->creator?->address
+            ?? $form?->laporan_dialamatkan_kepada
             ?? '-';
 
-        $telepon = $form?->no_whatsapp ?? $form?->whatsapp ?? $form?->no_telp ?? '-';
-        $surel   = $form?->email ?? $permohonan->creator?->email ?? '-';
+        $telepon = $waDetail ?? $form?->no_whatsapp ?? $form?->whatsapp ?? $form?->no_telp ?? $permohonan->creator?->no_hp ?? '-';
+        $surel   = $surelDetail ?? $form?->email ?? $permohonan->creator?->email ?? '-';
 
         return [
             'nama'     => $namaPemohon,

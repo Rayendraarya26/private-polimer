@@ -30,6 +30,7 @@ class InvoiceController extends Controller
         $lsp         = $permohonan->formLsp?->first();
         $inspeksi    = $permohonan->formInspeksi?->first();
         $halal       = $permohonan->formHalal?->first();
+        $pengujian   = $permohonan->formPengujian?->first();
         $creator     = $permohonan->creator;
 
         // Ambil data pelanggan & detail relasi polimorfik
@@ -62,6 +63,11 @@ class InvoiceController extends Controller
             $invoiceTargetAddress = $halal->pj_alamat ?: '-';
             $telepon              = $halal->pj_kontak ?: ($creator?->no_hp ?: '-');
             $surel                = $halal->pj_email ?: ($creator?->email ?: '-');
+        } elseif ($pengujian) {
+            $invoiceTargetName    = $pengujian->biaya_ditanggung_oleh ?: ($namaDetail ?: ($pengujian->diajukan_oleh ?: ($creator?->name ?: 'Pelanggan BBKKP')));
+            $invoiceTargetAddress = $alamatDetail ?: ($creator?->address ?: ($pengujian->laporan_dialamatkan_kepada ?: '-'));
+            $telepon              = $waDetail ?: ($creator?->no_hp ?: '-');
+            $surel                = $surelDetail ?: ($creator?->email ?: '-');
         } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
             $invoiceTargetName    = $pelatihan?->nama_lengkap
@@ -450,7 +456,7 @@ class InvoiceController extends Controller
     public function streamTte($id)
     {
         $permohonan = Permohonan::with([
-            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'creator'
+            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
         ])->findOrFail($id);
 
         // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
@@ -490,6 +496,7 @@ class InvoiceController extends Controller
             'formSertifikasi',
             'formInspeksi',
             'formHalal',
+            'formPengujian',
             'billing',
             'creator',
         ])->findOrFail($id);
@@ -554,7 +561,7 @@ class InvoiceController extends Controller
         $nik = $pegawai->nik;
 
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
         ])->findOrFail($id);
 
         if ($permohonan->status_bayar !== 'LUNAS') {
@@ -715,7 +722,7 @@ class InvoiceController extends Controller
     public function streamKuitansiTte($id)
     {
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
         ])->findOrFail($id);
 
         // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
@@ -752,6 +759,7 @@ class InvoiceController extends Controller
             'formLsp',
             'formInspeksi',
             'formHalal',
+            'formPengujian',
             'creator',
         ])->findOrFail($id);
 

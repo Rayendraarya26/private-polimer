@@ -306,7 +306,9 @@
                 if (class_exists(\SimpleSoftwareIO\QrCode\Facades\QrCode::class)) {
                     $qrBuilder = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
                         ->size(180)
-                        ->errorCorrection('H');
+                        ->errorCorrection('H')
+                        ->style('dot', 0.85)
+                        ->eye('circle');
 
                     if (file_exists($logoJisPath)) {
                         // Buat logo berlatar belakang bulat putih dan ber-border
@@ -537,35 +539,242 @@
                         }
                     }
 
-                    // 2. Cek Pengujian Laboratorium
-                    if (str_starts_with($p->no_permohonan, 'UJI') || (method_exists($p, 'formPengujian') && $p->formPengujian()->exists())) {
-                        $fp = $p->formPengujian()->with('samples.parameters')->first();
-                        if ($fp && $fp->samples && $fp->samples->isNotEmpty()) {
-                            $rincian = collect();
-                            foreach ($fp->samples as $sample) {
-                                $namaSample = $sample->nama_sampel ?: 'Sampel Uji';
-                                if ($sample->parameters && $sample->parameters->isNotEmpty()) {
-                                    foreach ($sample->parameters as $param) {
-                                        $uraian = 'Pengujian ' . $namaSample . ' - ' . ($param->nama_parameter_snapshot ?: $param->nama_parameter);
-                                        $qty = (int) ($param->jumlah ?: 1);
-                                        $subtotal = (float) ($param->subtotal ?: 0);
-                                        $tarif = $qty > 0 ? (float) ($param->tarif_satuan_snapshot ?: ($subtotal / $qty)) : $subtotal;
+                    // 2. Cek Pengujian Laboratorium (dengan detail permohonan lengkap di uraian)
+                    $isPengujian = str_starts_with($p->no_permohonan, 'UJI') ||
+                                   str_contains($p->no_permohonan, 'LABUJI') ||
+                                   (method_exists($p, 'formPengujian') && $p->formPengujian()->exists());
 
-                                        $rincian->push((object) [
-                                            'item_bayar' => $uraian,
-                                            'kuantitas' => $qty,
-                                            'raw_qty' => $qty,
-                                            'unit' => '',
-                                            'harga_satuan' => $tarif,
-                                            'subtotal' => $subtotal,
-                                        ]);
+                    if (!$isPengujian && $p->relationLoaded('detailPermohonan')) {
+                        $dp = $p->detailPermohonan->first();
+                        if ($dp && ($dp->formable instanceof \App\Models\Db2\FormPengujian || str_contains(strtolower($dp->lingkupLayanan?->lingkup ?? ''), 'pengujian'))) {
+                            $isPengujian = true;
+                        }
+                    }
+
+                    if ($isPengujian) {
+                        $fp = method_exists($p, 'formPengujian') ? $p->formPengujian()->with('samples.parameters')->first() : null;
+                        if (!$fp && $p->relationLoaded('detailPermohonan')) {
+                            $formable = $p->detailPermohonan->first()?->formable;
+                            if ($formable instanceof \App\Models\Db2\FormPengujian) {
+                                $fp = $formable;
+                                if (!$fp->relationLoaded('samples')) {
+                                    $fp->load('samples.parameters');
+                                }
+                            }
+                        }
+                        if (!$fp) {
+                            $fp = \App\Models\Db2\FormPengujian::with('samples.parameters')->where('permohonan_id', $p->id)->first();
+                        }
+
+                        // Fallback parsing catatan_penawaran jika data form_pengujian tersimpan di JSON
+                        $cp = null;
+                        if (!empty($p->catatan_penawaran)) {
+                            $decoded = is_string($p->catatan_penawaran) ? json_decode($p->catatan_penawaran, true) : (array) $p->catatan_penawaran;
+                            if (is_array($decoded)) {
+                                $cp = $decoded;
+                            }
+                        }
+
+                        $rows = [];
+
+                        // 1. Data Surat Pengantar Pelanggan
+                        $noSp = $fp?->no_surat_pengantar ?: ($cp['no_surat_pengantar'] ?? null);
+                        $tglSpRaw = $fp?->tgl_surat_pengantar ?: ($cp['tgl_surat_pengantar'] ?? null);
+                        $tglSp = !empty($tglSpRaw) ? \Carbon\Carbon::parse($tglSpRaw)->locale('id')->isoFormat('D MMMM Y') : null;
+
+                        if (!empty($noSp)) {
+                            $rows[] = [
+                                'label' => 'Surat Pengantar',
+                                'value' => e($noSp) . ($tglSp ? ' <span style="color:#555;">(Tgl. ' . $tglSp . ')</span>' : '')
+                            ];
+                        } elseif ($tglSp) {
+                            $rows[] = [
+                                'label' => 'Tgl. Pengantar',
+                                'value' => $tglSp
+                            ];
+                        }
+
+                        // 2. Data BAPC (Berita Acara Penerimaan Contoh)
+                        $noBapc = $fp?->no_bapc ?: ($cp['no_bapc'] ?? null);
+                        $tglBapcRaw = $fp?->tanggal_bapc ?: ($cp['tanggal_bapc'] ?? null);
+                        $tglBapc = !empty($tglBapcRaw) ? \Carbon\Carbon::parse($tglBapcRaw)->locale('id')->isoFormat('D MMMM Y') : null;
+
+                        if (!empty($noBapc)) {
+                            $rows[] = [
+                                'label' => 'No. BAPC',
+                                'value' => e($noBapc) . ($tglBapc ? ' <span style="color:#555;">(Tgl. ' . $tglBapc . ')</span>' : '')
+                            ];
+                        } elseif ($tglBapc) {
+                            $rows[] = [
+                                'label' => 'Tgl. BAPC',
+                                'value' => $tglBapc
+                            ];
+                        }
+
+                        // 3. Merek / Kode Sampel Pemohon
+                        $merekKode = $fp?->merek_kode ?: ($cp['merek_kode'] ?? ($fp?->no_sample ?: ($cp['no_sample'] ?? null)));
+                        if (!empty($merekKode)) {
+                            $rows[] = [
+                                'label' => 'Merek / Kode',
+                                'value' => e($merekKode)
+                            ];
+                        }
+
+                        // 4. Rincian Sampel Uji
+                        $samplesList = ($fp && $fp->samples && $fp->samples->isNotEmpty()) 
+                            ? $fp->samples 
+                            : (!empty($cp['samples']) ? collect($cp['samples']) : collect());
+
+                        if ($samplesList->isNotEmpty()) {
+                            if ($samplesList->count() === 1) {
+                                $s = $samplesList->first();
+                                $sName = is_array($s) ? ($s['nama_sampel'] ?? 'Sampel Uji') : ($s->nama_sampel ?: 'Sampel Uji');
+                                $sBentuk = is_array($s) ? ($s['bentuk_sampel'] ?? null) : $s->bentuk_sampel;
+                                $sQty = is_array($s) ? ($s['jumlah_sampel'] ?? 1) : ($s->jumlah_sampel ?: 1);
+                                $sSatuan = is_array($s) ? ($s['satuan_sampel'] ?? 'Pcs') : ($s->satuan_sampel ?: 'Pcs');
+                                $sLot = is_array($s) ? ($s['no_lot_bets'] ?? null) : $s->no_lot_bets;
+                                $sKondisi = is_array($s) ? ($s['kondisi_sampel'] ?? null) : $s->kondisi_sampel;
+
+                                $rows[] = [
+                                    'label' => 'Sampel Uji',
+                                    'value' => '<strong>' . e($sName) . '</strong> <span style="color:#333;">(' . (int) $sQty . ' ' . e($sSatuan) . ')</span>'
+                                ];
+
+                                $detailParts = [];
+                                if (!empty($sBentuk)) $detailParts[] = 'Bentuk: ' . e($sBentuk);
+                                if (!empty($sLot)) $detailParts[] = 'No. Lot/Bets: ' . e($sLot);
+                                if (!empty($sKondisi) && strtolower($sKondisi) !== 'baik') $detailParts[] = 'Kondisi: ' . e($sKondisi);
+
+                                if (!empty($detailParts)) {
+                                    $rows[] = [
+                                        'label' => 'Bentuk & Lot',
+                                        'value' => implode(' &nbsp;&bull;&nbsp; ', $detailParts)
+                                    ];
+                                }
+                            } else {
+                                $sampleItemsHtml = [];
+                                foreach ($samplesList as $idx => $s) {
+                                    $sName = is_array($s) ? ($s['nama_sampel'] ?? ('Sampel #' . ($idx + 1))) : ($s->nama_sampel ?: ('Sampel #' . ($idx + 1)));
+                                    $sBentuk = is_array($s) ? ($s['bentuk_sampel'] ?? null) : $s->bentuk_sampel;
+                                    $sQty = is_array($s) ? ($s['jumlah_sampel'] ?? 1) : ($s->jumlah_sampel ?: 1);
+                                    $sSatuan = is_array($s) ? ($s['satuan_sampel'] ?? 'Pcs') : ($s->satuan_sampel ?: 'Pcs');
+                                    $sLot = is_array($s) ? ($s['no_lot_bets'] ?? null) : $s->no_lot_bets;
+
+                                    $extra = [];
+                                    if (!empty($sBentuk)) $extra[] = e($sBentuk);
+                                    if (!empty($sLot)) $extra[] = 'Lot: ' . e($sLot);
+                                    $extraText = !empty($extra) ? ' (' . implode(', ', $extra) . ')' : '';
+
+                                    $sampleItemsHtml[] = ($idx + 1) . '. <strong>' . e($sName) . '</strong> &ndash; ' . (int) $sQty . ' ' . e($sSatuan) . $extraText;
+                                }
+
+                                $rows[] = [
+                                    'label' => 'Daftar Sampel',
+                                    'value' => implode('<br>', $sampleItemsHtml)
+                                ];
+                            }
+                        }
+
+                        // 5. Parameter Pengujian & Standar Metode Uji
+                        $paramNames = [];
+                        $methods = [];
+                        if ($samplesList->isNotEmpty()) {
+                            foreach ($samplesList as $s) {
+                                $params = is_array($s) 
+                                    ? ($s['parameters'] ?? []) 
+                                    : ($s->parameters ?? collect());
+
+                                foreach ($params as $prm) {
+                                    $pName = is_array($prm) ? ($prm['nama'] ?? ($prm['nama_parameter'] ?? 'Parameter Uji')) : ($prm->nama_parameter ?? 'Parameter Uji');
+                                    $pMetode = is_array($prm) ? ($prm['metode_uji'] ?? null) : ($prm->metode_uji ?? null);
+                                    
+                                    if (!empty($pName)) {
+                                        $paramNames[trim($pName)] = true;
+                                    }
+                                    if (!empty($pMetode)) {
+                                        $methods[trim($pMetode)] = true;
                                     }
                                 }
                             }
-                            if ($rincian->isNotEmpty()) {
-                                return $rincian;
-                            }
                         }
+
+                        if (!empty($paramNames)) {
+                            $rows[] = [
+                                'label' => 'Parameter Uji',
+                                'value' => implode(', ', array_keys($paramNames))
+                            ];
+                        }
+
+                        if (!empty($methods)) {
+                            $rows[] = [
+                                'label' => 'Standar Metode',
+                                'value' => implode(', ', array_keys($methods))
+                            ];
+                        }
+
+                        // 6. Jenis Pengujian / Kategori Tarif
+                        $jenisUji = $fp?->jenis_uji ?: ($cp['jenis_uji'] ?? null);
+                        if (!empty($jenisUji)) {
+                            $rows[] = [
+                                'label' => 'Jenis Pengujian',
+                                'value' => e($jenisUji)
+                            ];
+                        }
+
+                        $kategoriTarif = $fp?->kategori_tarif ?: ($cp['kategori_tarif'] ?? null);
+                        if ($kategoriTarif === 'mahasiswa_pp54' || $kategoriTarif === 'mahasiswa') {
+                            $rows[] = [
+                                'label' => 'Kategori Tarif',
+                                'value' => 'Mahasiswa (PP No. 54/2021)'
+                            ];
+                        }
+
+                        // Format Judul & Blok Uraian Rapi
+                        $itemUraian = '<div style="font-weight: bold; font-size: 9.5pt; margin-bottom: 2px;">Jasa Pengujian Laboratorium</div>';
+                        if (!empty($rows)) {
+                            $itemUraian .= '<table style="width: 100%; border-collapse: collapse; border: none; margin: 0; line-height: 1.35;">';
+                            foreach ($rows as $r) {
+                                $itemUraian .= '<tr>';
+                                $itemUraian .= '<td style="border: none !important; width: 88px; padding: 1px 0; font-size: 8pt; color: #444; vertical-align: top; white-space: nowrap;">&bull; ' . $r['label'] . '</td>';
+                                $itemUraian .= '<td style="border: none !important; width: 8px; padding: 1px 0; font-size: 8pt; color: #444; vertical-align: top; text-align: center;">:</td>';
+                                $itemUraian .= '<td style="border: none !important; padding: 1px 0 1px 4px; font-size: 8pt; color: #111; vertical-align: top;">' . $r['value'] . '</td>';
+                                $itemUraian .= '</tr>';
+                            }
+                            $itemUraian .= '</table>';
+                        }
+
+                        $subtotal = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? (float) $defaultItems->sum('subtotal') 
+                            : (float) ($p->detailPembayaran ? $p->detailPembayaran->sum('subtotal') : 0);
+
+                        if ($subtotal <= 0 && $p->harga_permohonan > 0) {
+                            $subtotal = (float) $p->harga_permohonan;
+                        }
+
+                        $firstItem = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? $defaultItems->first() 
+                            : ($p->detailPembayaran ? $p->detailPembayaran->first() : null);
+
+                        $kuantitas = ($firstItem && !empty($firstItem->kuantitas)) ? $firstItem->kuantitas : 1;
+                        $rawQty = ($firstItem && isset($firstItem->raw_qty)) 
+                            ? (int) $firstItem->raw_qty 
+                            : (($firstItem && is_numeric($firstItem->kuantitas)) ? (int) $firstItem->kuantitas : 1);
+                        if ($rawQty <= 0) $rawQty = 1;
+
+                        $hargaSatuan = ($firstItem && isset($firstItem->harga_satuan) && (float) $firstItem->harga_satuan > 0)
+                            ? (float) $firstItem->harga_satuan
+                            : ($rawQty > 0 ? ($subtotal / $rawQty) : $subtotal);
+
+                        return collect([
+                            (object) [
+                                'item_bayar'   => $itemUraian,
+                                'kuantitas'    => $kuantitas,
+                                'raw_qty'      => $rawQty,
+                                'unit'         => '',
+                                'harga_satuan' => $hargaSatuan,
+                                'subtotal'     => $subtotal,
+                            ]
+                        ]);
                     }
 
                     // 3. Cek Miniplant

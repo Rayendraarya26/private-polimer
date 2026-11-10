@@ -40,6 +40,7 @@ const PembayaranPage: React.FC = () => {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [currentPage, setCurrentPage] = useState(1)
+  const [simulasiLoadingId, setSimulasiLoadingId] = useState<string | null>(null)
 
   const { data: rawData = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
   const { openInvoice, openKuitansi, openSuratPenawaran, PdfPreviewModal } = usePembayaran()
@@ -167,6 +168,32 @@ const PembayaranPage: React.FC = () => {
       toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan tanda tangan kuitansi")
     } finally {
       setRequestingTteId(null)
+    }
+  }
+
+  const handleSimulasiBayar = async (row: PembayaranItem) => {
+    if (!row.id) return
+    const result = await Swal.fire({
+      title: "Konfirmasi Simulasi Bayar?",
+      text: `Status pembayaran untuk permohonan #${row.no_permohonan} akan diubah menjadi LUNAS.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Simulasikan",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#059669",
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      setSimulasiLoadingId(row.id)
+      const res = await api.post(`/eksternal/sertifikasi/${row.id}/simulasi-bayar`)
+      toast.success(res?.data?.message || "Pembayaran berhasil diverifikasi.")
+      fetchData()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal melakukan simulasi pembayaran")
+    } finally {
+      setSimulasiLoadingId(null)
     }
   }
 
@@ -355,6 +382,14 @@ const PembayaranPage: React.FC = () => {
             const isKuitansiReady = isPaid && Boolean(row.kuitansi_pdf_tte || row.kuitansi_file)
             const hasAnyDocument = hasPenawaran || isInvoiceReady || isKuitansiReady
 
+            const pendingDocs: string[] = []
+            if (!isInvoiceReady) {
+              pendingDocs.push("Invoice")
+            }
+            if (isPaid && !isKuitansiReady) {
+              pendingDocs.push("Kuitansi")
+            }
+
             return (
               <div
                 key={row.id}
@@ -404,7 +439,29 @@ const PembayaranPage: React.FC = () => {
                 </div>
 
                 {/* Card Footer: Document Action Buttons */}
-                <div className="px-4 sm:px-5 py-3 bg-slate-50/40 border-t border-slate-100 flex items-center justify-end">
+                <div className="px-4 sm:px-5 py-3 bg-slate-50/40 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center flex-wrap gap-2.5">
+                    {!isPaid && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        leftIcon={<CreditCard className="w-3.5 h-3.5" />}
+                        onClick={() => handleSimulasiBayar(row)}
+                        isLoading={simulasiLoadingId === row.id}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-semibold h-8 text-xs cursor-pointer"
+                      >
+                        Simulasi Bayar (Testing)
+                      </Button>
+                    )}
+
+                    {pendingDocs.length > 0 && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>Dokumen {pendingDocs.join(" dan ")} sedang dalam proses penerbitan</span>
+                      </span>
+                    )}
+                  </div>
+
                   <div className="flex items-center flex-wrap justify-end gap-2 ml-auto">
                     {/* Surat Penawaran - hanya muncul jika file surat penawaran sudah ada */}
                     {hasPenawaran && (
@@ -443,13 +500,6 @@ const PembayaranPage: React.FC = () => {
                         <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         <span>Kuitansi</span>
                       </button>
-                    )}
-
-                    {/* Indikator jika belum ada dokumen yang diterbitkan */}
-                    {!hasAnyDocument && (
-                      <span className="text-[11px] text-slate-400 italic">
-                        Dokumen belum tersedia
-                      </span>
                     )}
                   </div>
                 </div>

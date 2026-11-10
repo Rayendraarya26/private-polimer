@@ -363,7 +363,7 @@ PHP vars dipakai di konten DAN di script section
                                                     style="width:7px;height:7px"></span>
                                                 <i class="fa-solid fa-check tte-check text-success d-none fs-8"></i>
                                             </div>
-                                            <span class="text-gray-700 fs-7 fw-semibold">{{ $step['label'] }}</span>
+                                            <span class="tte-step-label text-gray-700 fs-7 fw-semibold">{{ $step['label'] }}</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -983,7 +983,7 @@ PHP vars dipakai di konten DAN di script section
                         currentIsRegenerate = currentMode === 'regenerate';
 
                         // Update judul modal, teks tombol submit, dan step sesuai mode
-                        const step2El = document.querySelector('#tteStep2 span');
+                        const step2El = document.querySelector('#tteStep2 .tte-step-label') || document.querySelector('#tteStep2 > span:last-child');
                         if (currentMode === 'kuitansi') {
                             modalTitle.textContent = 'TTE Kuitansi (BSrE)';
                             btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Kuitansi';

@@ -226,6 +226,17 @@ class PembayaranController extends Controller
 
     private function getBendahara(): ?\App\Models\Db1\SysUser
     {
+        $currentUser = auth()->user();
+        if ($currentUser) {
+            $isAuthorized = false;
+            if (method_exists($currentUser, 'hasGroup')) {
+                $isAuthorized = $currentUser->hasGroup(\App\Enums\SysGroup::BENDAHARA) || $currentUser->hasGroup(\App\Enums\SysGroup::ROOT) || $currentUser->hasGroup(\App\Enums\SysGroup::ADMIN);
+            }
+            if ($isAuthorized) {
+                return $currentUser;
+            }
+        }
+
         return \App\Models\Db1\SysUser::whereIn('id', function ($query) {
             $query->select('user_id')
                 ->from('sys_user_group')

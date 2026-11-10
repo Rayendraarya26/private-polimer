@@ -284,11 +284,14 @@ class BillingPembayaranController extends Controller
                     'alamat' => $alamatPemohon,
                 ];
 
-                $bendahara = SysUser::whereIn('id', function ($query) {
-                    $query->select('user_id')
-                        ->from('sys_user_group')
-                        ->where('group_id', SysGroup::BENDAHARA->value);
-                })->first();
+                $currentUser = auth()->user();
+                $bendahara = ($currentUser && method_exists($currentUser, 'hasGroup') && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT) || $currentUser->hasGroup(SysGroup::ADMIN)))
+                    ? $currentUser
+                    : SysUser::whereIn('id', function ($query) {
+                        $query->select('user_id')
+                            ->from('sys_user_group')
+                            ->where('group_id', SysGroup::BENDAHARA->value);
+                    })->first();
 
                 $filename = 'invoice_' . Str::slug($request->bill_nomor_billing) . '_' . time() . '.pdf';
                 $storageDir = 'billing/invoices';

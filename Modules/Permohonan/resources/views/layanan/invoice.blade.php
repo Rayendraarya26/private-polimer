@@ -304,8 +304,50 @@
             $separatorBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($separatorPath));
         }
 
+        $formatAlamat = function ($alamat) {
+            if (empty($alamat) || $alamat === '-') return $alamat ?: '-';
+            $clean = preg_replace('/[\s,]+,/', ',', (string) $alamat);
+            $clean = preg_replace('/,\s*/', ', ', $clean);
+            $clean = trim(preg_replace('/\s+/', ' ', $clean), " ,\t\n\r\0\x0B");
+            $capitalKeep = [
+                'rt' => 'RT', 'rw' => 'RW', 'pt' => 'PT', 'cv' => 'CV', 'ud' => 'UD',
+                'dki' => 'DKI', 'di' => 'DI', 'po' => 'PO', 'box' => 'BOX',
+                'km' => 'KM', 'kav' => 'KAV', 'up' => 'UP', 'iup' => 'IUP',
+                'nib' => 'NIB', 'npwp' => 'NPWP', 'bbkkp' => 'BBKKP', 'bbspjikkp' => 'BBSPJIKKP',
+                'ii' => 'II', 'iii' => 'III', 'iv' => 'IV', 'vi' => 'VI',
+                'vii' => 'VII', 'viii' => 'VIII', 'ix' => 'IX', 'xi' => 'XI', 'xii' => 'XII',
+            ];
+            $words = explode(' ', $clean);
+            $formatted = [];
+            foreach ($words as $w) {
+                if (preg_match('/^([^a-zA-Z0-9]*)([a-zA-Z0-9\-\.\/]+)([^a-zA-Z0-9]*)$/', $w, $matches)) {
+                    $prefix = $matches[1];
+                    $core = $matches[2];
+                    $suffix = $matches[3];
+                    $coreLower = strtolower($core);
+                    if (isset($capitalKeep[$coreLower])) {
+                        $formatted[] = $prefix . $capitalKeep[$coreLower] . $suffix;
+                    } elseif (preg_match('/^[a-zA-Z]+-\d+$/', $core)) {
+                        $parts = explode('-', $core);
+                        $formatted[] = $prefix . strtoupper($parts[0]) . '-' . $parts[1] . $suffix;
+                    } elseif (str_contains($core, '/')) {
+                        $slashParts = array_map(function ($p) use ($capitalKeep) {
+                            $pLower = strtolower($p);
+                            return $capitalKeep[$pLower] ?? ucfirst($pLower);
+                        }, explode('/', $core));
+                        $formatted[] = $prefix . implode('/', $slashParts) . $suffix;
+                    } else {
+                        $formatted[] = $prefix . ucfirst($coreLower) . $suffix;
+                    }
+                } else {
+                    $formatted[] = ucfirst(strtolower($w));
+                }
+            }
+            return preg_replace('/\s*,\s*/', ', ', implode(' ', $formatted));
+        };
+
         $namaPemohon = $pemohon['nama'] ?? '-';
-        $alamatPemohon = $pemohon['alamat'] ?? '-';
+        $alamatPemohon = $formatAlamat($pemohon['alamat'] ?? '-');
         $noSuratPenawaran = (isset($permohonan->penawaranBiaya->nomor_surat_penawaran) && !empty($permohonan->penawaranBiaya->nomor_surat_penawaran))
             ? $permohonan->penawaranBiaya->nomor_surat_penawaran
             : '-';
@@ -1050,6 +1092,134 @@
                         $subtotal = ($defaultItems && $defaultItems->isNotEmpty()) 
                             ? (float) $defaultItems->sum('subtotal') 
                             : (float) ($p->detailPembayaran ? $p->detailPembayaran->sum('subtotal') : 0);
+
+                        $firstItem = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? $defaultItems->first() 
+                            : ($p->detailPembayaran ? $p->detailPembayaran->first() : null);
+
+                        $kuantitas = ($firstItem && !empty($firstItem->kuantitas)) ? $firstItem->kuantitas : 1;
+                        $rawQty = ($firstItem && isset($firstItem->raw_qty)) 
+                            ? (int) $firstItem->raw_qty 
+                            : (($firstItem && is_numeric($firstItem->kuantitas)) ? (int) $firstItem->kuantitas : 1);
+                        if ($rawQty <= 0) $rawQty = 1;
+
+                        $hargaSatuan = ($firstItem && isset($firstItem->harga_satuan) && (float) $firstItem->harga_satuan > 0)
+                            ? (float) $firstItem->harga_satuan
+                            : ($rawQty > 0 ? ($subtotal / $rawQty) : $subtotal);
+
+                        return collect([
+                            (object) [
+                                'item_bayar'   => $itemUraian,
+                                'kuantitas'    => $kuantitas,
+                                'raw_qty'      => $rawQty,
+                                'unit'         => '',
+                                'harga_satuan' => $hargaSatuan,
+                                'subtotal'     => $subtotal,
+                            ]
+                        ]);
+                    }
+
+                    // 5. Cek Konsultasi dan Audit Teknologi (KAT)
+                    $isKonsultasiAt = str_contains($p->no_permohonan, 'KAT') ||
+                                      (method_exists($p, 'formKonsultasiAt') && $p->formKonsultasiAt()->exists());
+
+                    if (!$isKonsultasiAt && $p->relationLoaded('detailPermohonan')) {
+                        $dp = $p->detailPermohonan->first();
+                        if ($dp && ($dp->formable instanceof \App\Models\Db2\FormKonsultasiAt || str_contains(strtolower($dp->lingkupLayanan?->lingkup ?? ''), 'konsultasi') || str_contains(strtolower($dp->lingkupLayanan?->lingkup ?? ''), 'audit teknologi'))) {
+                            $isKonsultasiAt = true;
+                        }
+                    }
+
+                    if ($isKonsultasiAt) {
+                        $fkat = method_exists($p, 'formKonsultasiAt') ? $p->formKonsultasiAt()->with(['master', 'dokumen'])->first() : null;
+                        if (!$fkat && $p->relationLoaded('detailPermohonan')) {
+                            $formable = $p->detailPermohonan->first()?->formable;
+                            if ($formable instanceof \App\Models\Db2\FormKonsultasiAt) {
+                                $fkat = $formable;
+                                if (!$fkat->relationLoaded('master') || !$fkat->relationLoaded('dokumen')) {
+                                    $fkat->load(['master', 'dokumen']);
+                                }
+                            }
+                        }
+                        if (!$fkat) {
+                            $fkat = \App\Models\Db2\FormKonsultasiAt::with(['master', 'dokumen'])->where('permohonan_id', $p->id)->first();
+                        }
+
+                        $rows = [];
+
+                        // 1. Kategori Layanan
+                        if (!empty($fkat?->master?->kategori)) {
+                            $rows[] = [
+                                'label' => 'Kategori Layanan',
+                                'value' => ucwords(str_replace('_', ' ', $fkat->master->kategori))
+                            ];
+                        }
+
+                        // 2. Layanan / Fokus yang dipilih
+                        $layananText = $fkat?->layanan_nama;
+                        if (!empty($fkat?->layanan_lainnya)) {
+                            $layananText .= ' <span style="color:#555;">(' . e($fkat->layanan_lainnya) . ')</span>';
+                        }
+                        if (!empty($layananText)) {
+                            $rows[] = [
+                                'label' => 'Fokus Layanan',
+                                'value' => '<strong>' . $layananText . '</strong>'
+                            ];
+                        }
+
+                        // 3. Deskripsi Layanan
+                        if (!empty($fkat?->master?->deskripsi) && $fkat->master->deskripsi !== $fkat->layanan_nama) {
+                            $rows[] = [
+                                'label' => 'Deskripsi',
+                                'value' => e($fkat->master->deskripsi)
+                            ];
+                        }
+
+                        // 4. Ruang Lingkup / Catatan Kebutuhan
+                        if (!empty($fkat?->catatan_dokumen)) {
+                            $rows[] = [
+                                'label' => 'Ruang Lingkup',
+                                'value' => nl2br(e($fkat->catatan_dokumen))
+                            ];
+                        }
+
+                        // 5. Dokumen Pendukung / Kerangka Acuan
+                        if ($fkat && $fkat->dokumen && $fkat->dokumen->isNotEmpty()) {
+                            $docNames = $fkat->dokumen->pluck('nama_file_asli')->filter()->values();
+                            if ($docNames->isNotEmpty()) {
+                                $rows[] = [
+                                    'label' => 'Dokumen Acuan',
+                                    'value' => e($docNames->implode(', '))
+                                ];
+                            }
+                        }
+
+                        $judul = match ($fkat?->master?->kategori) {
+                            'audit_teknologi' => 'Jasa Audit Teknologi',
+                            'konsultasi'      => 'Jasa Konsultasi',
+                            default           => 'Jasa Konsultasi dan Audit Teknologi',
+                        };
+
+                        $itemUraian = '<div style="font-weight: bold; font-size: 9.5pt; margin-bottom: 2px;">' . $judul . '</div>';
+                        if (!empty($rows)) {
+                            $itemUraian .= '<table style="width: 100%; border-collapse: collapse; border: none; margin: 0; line-height: 1.35;">';
+                            foreach ($rows as $r) {
+                                $itemUraian .= '<tr>';
+                                $itemUraian .= '<td style="border: none !important; width: 95px; padding: 1px 0; font-size: 8pt; color: #444; vertical-align: top; white-space: nowrap;">&bull; ' . $r['label'] . '</td>';
+                                $itemUraian .= '<td style="border: none !important; width: 8px; padding: 1px 0; font-size: 8pt; color: #444; vertical-align: top; text-align: center;">:</td>';
+                                $itemUraian .= '<td style="border: none !important; padding: 1px 0 1px 4px; font-size: 8pt; color: #111; vertical-align: top;">' . $r['value'] . '</td>';
+                                $itemUraian .= '</tr>';
+                            }
+                            $itemUraian .= '</table>';
+                        }
+
+                        $subtotal = ($defaultItems && $defaultItems->isNotEmpty()) 
+                            ? (float) $defaultItems->sum('subtotal') 
+                            : (float) ($p->detailPembayaran ? $p->detailPembayaran->sum('subtotal') : 0);
+
+                        if ($subtotal <= 0 && $p->harga_permohonan > 0) {
+                            $subtotal = (float) $p->harga_permohonan;
+                        }
 
                         $firstItem = ($defaultItems && $defaultItems->isNotEmpty()) 
                             ? $defaultItems->first() 

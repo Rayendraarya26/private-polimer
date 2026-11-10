@@ -452,6 +452,7 @@ class PermohonanController extends Controller
             str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
             str_starts_with($permohonan->no_permohonan, 'UJI') || str_contains($permohonan->no_permohonan, 'LABUJI') || (method_exists($permohonan, 'formPengujian') && $permohonan->formPengujian()->exists()) => 'Jasa Pengujian Laboratorium',
             str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
+            str_contains($permohonan->no_permohonan, 'KAT') || (method_exists($permohonan, 'formKonsultasiAt') && $permohonan->formKonsultasiAt()->exists()) => 'Jasa Konsultasi dan Audit Teknologi',
             str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
             default => 'Biaya Layanan',
         };
@@ -467,6 +468,7 @@ class PermohonanController extends Controller
         $inspeksi = $permohonan->formInspeksi?->first();
         $halal = $permohonan->formHalal?->first();
         $pengujian = $permohonan->formPengujian?->first();
+        $konsultasi = $permohonan->formKonsultasiAt?->first();
         $formAset = $permohonan->formAset?->first();
         $formJasa = $permohonan->formJasaLainnya?->first();
         $creator = $permohonan->creator;
@@ -486,6 +488,7 @@ class PermohonanController extends Controller
             ?: ($inspeksi?->biaya_nama ?: $inspeksi?->pemohon_pic_nama)
             ?: ($halal?->nama_usaha ?: $halal?->pj_nama)
             ?: ($pengujian?->biaya_ditanggung_oleh ?: ($namaDetail ?: $pengujian?->diajukan_oleh))
+            ?: ($konsultasi?->nama_pemohon)
             ?: ($formAset?->pemohon_nama)
             ?: ($formJasa?->pelanggan_nama)
             ?: ($creator?->name ?: 'Pelanggan BBKKP');
@@ -496,12 +499,13 @@ class PermohonanController extends Controller
             ?: ($inspeksi?->biaya_alamat ?: $inspeksi?->pemohon_pic_alamat)
             ?: ($halal?->pj_alamat)
             ?: ($pengujian ? ($alamatDetail ?: $creator?->address) : null)
+            ?: ($konsultasi?->alamat_pemohon)
             ?: ($formAset?->pemohon_alamat)
             ?: ($formJasa?->provinsi_nama)
             ?: ($alamatDetail ?: ($creator?->address ?: '-'));
 
-        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $pengujian?->diajukan_oleh ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon ?: $waDetail) ?: '081234567890';
-        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $formAset?->pemohon_email ?: $surelDetail) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
+        $teleponPemohon = ($pelatihan?->no_telp ?: $sertifikasi?->no_telp ?: $sertifikasi?->no_whatsapp ?: $pengujian?->diajukan_oleh ?: $konsultasi?->no_telp ?: $creator?->phone ?: $inspeksi?->pemohon_pic_kontak ?: $halal?->pj_kontak ?: $formAset?->pemohon_telepon ?: $waDetail) ?: '081234567890';
+        $emailPemohon = ($pelatihan?->email_instansi ?: $pelatihan?->email_peserta ?: $sertifikasi?->email ?: $inspeksi?->biaya_email ?: $halal?->pj_email ?: $konsultasi?->email_pemohon ?: $formAset?->pemohon_email ?: $surelDetail) ?: ($creator?->email ?: 'pelanggan@mailinator.com');
 
         if (config('services.bni.enabled', false)) {
             try {
@@ -543,11 +547,14 @@ class PermohonanController extends Controller
             ]);
 
             // Auto-generate invoice PDF
-            $bendahara = SysUser::whereIn('id', function ($query) {
-                $query->select('user_id')
-                    ->from('sys_user_group')
-                    ->where('group_id', SysGroup::BENDAHARA->value);
-            })->first();
+            $currentUser = auth()->user();
+            $bendahara = ($currentUser && method_exists($currentUser, 'hasGroup') && ($currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT) || $currentUser->hasGroup(SysGroup::ADMIN)))
+                ? $currentUser
+                : SysUser::whereIn('id', function ($query) {
+                    $query->select('user_id')
+                        ->from('sys_user_group')
+                        ->where('group_id', SysGroup::BENDAHARA->value);
+                })->first();
 
             $detailPembayaran = DetailPembayaran::where('permohonan_id', $id)->get();
             $grupPermohonan = $permohonan->id_pt_ins
@@ -863,6 +870,7 @@ class PermohonanController extends Controller
                     str_contains($permohonan->no_permohonan, 'RK') => 'Biaya Miniplant Riset Penyamakan Kulit',
                     str_starts_with($permohonan->no_permohonan, 'UJI') || str_contains($permohonan->no_permohonan, 'LABUJI') || (method_exists($permohonan, 'formPengujian') && $permohonan->formPengujian()->exists()) => 'Jasa Pengujian Laboratorium',
                     str_contains($permohonan->no_permohonan, 'ASET') => 'Biaya Sewa Aset (' . $permohonan->no_permohonan . ')',
+                    str_contains($permohonan->no_permohonan, 'KAT') || (method_exists($permohonan, 'formKonsultasiAt') && $permohonan->formKonsultasiAt()->exists()) => 'Jasa Konsultasi dan Audit Teknologi',
                     str_contains($permohonan->no_permohonan, 'JASA') => 'Jasa Lainnya (' . $permohonan->no_permohonan . ')',
                     default => 'Biaya Layanan (' . $permohonan->no_permohonan . ')',
                 };

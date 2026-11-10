@@ -31,6 +31,7 @@ class InvoiceController extends Controller
         $inspeksi    = $permohonan->formInspeksi?->first();
         $halal       = $permohonan->formHalal?->first();
         $pengujian   = $permohonan->formPengujian?->first();
+        $konsultasi  = $permohonan->formKonsultasiAt?->first();
         $creator     = $permohonan->creator;
 
         // Ambil data pelanggan & detail relasi polimorfik
@@ -68,6 +69,11 @@ class InvoiceController extends Controller
             $invoiceTargetAddress = $alamatDetail ?: ($creator?->address ?: ($pengujian->laporan_dialamatkan_kepada ?: '-'));
             $telepon              = $waDetail ?: ($creator?->no_hp ?: '-');
             $surel                = $surelDetail ?: ($creator?->email ?: '-');
+        } elseif ($konsultasi) {
+            $invoiceTargetName    = $namaDetail ?: ($konsultasi->nama_pemohon ?: ($creator?->name ?: 'Pelanggan BBKKP'));
+            $invoiceTargetAddress = $alamatDetail ?: ($konsultasi->alamat_pemohon ?: ($creator?->address ?: '-'));
+            $telepon              = $waDetail ?: ($konsultasi->no_telp ?: ($creator?->no_hp ?: '-'));
+            $surel                = $surelDetail ?: ($konsultasi->email_pemohon ?: ($creator?->email ?: '-'));
         } elseif ($permohonan->is_split_bill || $isPerorangan) {
             // Perorangan atau split bill → pakai nama & alamat pribadi
             $invoiceTargetName    = $pelatihan?->nama_lengkap
@@ -98,12 +104,65 @@ class InvoiceController extends Controller
 
         return [
             'nama'     => $invoiceTargetName,
-            'alamat'   => $invoiceTargetAddress,
+            'alamat'   => $this->formatAlamat($invoiceTargetAddress),
             'telepon'  => $telepon,
             'surel'    => $surel,
             'email'    => $surel,
             'whatsapp' => $telepon,
         ];
+    }
+
+    private function formatAlamat(?string $alamat): string
+    {
+        if (empty($alamat) || $alamat === '-') {
+            return $alamat ?: '-';
+        }
+
+        // Bersihkan koma berulang dan spasi berlebih
+        $clean = preg_replace('/[\s,]+,/', ',', (string) $alamat);
+        $clean = preg_replace('/,\s*/', ', ', $clean);
+        $clean = trim(preg_replace('/\s+/', ' ', $clean), " ,\t\n\r\0\x0B");
+
+        $capitalKeep = [
+            'rt' => 'RT', 'rw' => 'RW', 'pt' => 'PT', 'cv' => 'CV', 'ud' => 'UD',
+            'dki' => 'DKI', 'di' => 'DI', 'po' => 'PO', 'box' => 'BOX',
+            'km' => 'KM', 'kav' => 'KAV', 'up' => 'UP', 'iup' => 'IUP',
+            'nib' => 'NIB', 'npwp' => 'NPWP', 'bbkkp' => 'BBKKP', 'bbspjikkp' => 'BBSPJIKKP',
+            'ii' => 'II', 'iii' => 'III', 'iv' => 'IV', 'vi' => 'VI',
+            'vii' => 'VII', 'viii' => 'VIII', 'ix' => 'IX', 'xi' => 'XI', 'xii' => 'XII',
+        ];
+
+        $words = explode(' ', $clean);
+        $formatted = [];
+
+        foreach ($words as $w) {
+            if (preg_match('/^([^a-zA-Z0-9]*)([a-zA-Z0-9\-\.\/]+)([^a-zA-Z0-9]*)$/', $w, $matches)) {
+                $prefix = $matches[1];
+                $core = $matches[2];
+                $suffix = $matches[3];
+                $coreLower = strtolower($core);
+
+                if (isset($capitalKeep[$coreLower])) {
+                    $formatted[] = $prefix . $capitalKeep[$coreLower] . $suffix;
+                } elseif (preg_match('/^[a-zA-Z]+-\d+$/', $core)) {
+                    $parts = explode('-', $core);
+                    $formatted[] = $prefix . strtoupper($parts[0]) . '-' . $parts[1] . $suffix;
+                } elseif (str_contains($core, '/')) {
+                    $slashParts = array_map(function ($p) use ($capitalKeep) {
+                        $pLower = strtolower($p);
+                        return $capitalKeep[$pLower] ?? ucfirst($pLower);
+                    }, explode('/', $core));
+                    $formatted[] = $prefix . implode('/', $slashParts) . $suffix;
+                } else {
+                    $formatted[] = $prefix . ucfirst($coreLower) . $suffix;
+                }
+            } else {
+                $formatted[] = ucfirst(strtolower($w));
+            }
+        }
+
+        $result = implode(' ', $formatted);
+        return preg_replace('/\s*,\s*/', ', ', $result);
     }
 
     private function buildDetailPembayaran(Permohonan $permohonan)
@@ -127,7 +186,7 @@ class InvoiceController extends Controller
         }
 
         return Permohonan::where('id_pt_ins', $permohonan->id_pt_ins)
-            ->with(['detailPermohonan.formable', 'detailPembayaran'])
+            ->with(['detailPermohonan.formable', 'detailPembayaran', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen'])
             ->get();
     }
 
@@ -136,6 +195,17 @@ class InvoiceController extends Controller
      */
     private function getBendahara(): ?SysUser
     {
+        $currentUser = auth()->user();
+        if ($currentUser) {
+            $isAuthorized = false;
+            if (method_exists($currentUser, 'hasGroup')) {
+                $isAuthorized = $currentUser->hasGroup(SysGroup::BENDAHARA) || $currentUser->hasGroup(SysGroup::ROOT) || $currentUser->hasGroup(SysGroup::ADMIN);
+            }
+            if ($isAuthorized) {
+                return $currentUser;
+            }
+        }
+
         return SysUser::whereIn('id', function ($query) {
             $query->select('user_id')
                 ->from('sys_user_group')
@@ -215,7 +285,7 @@ class InvoiceController extends Controller
             ]);
 
             $permohonan = Permohonan::with([
-                'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi',
+                'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator',
             ])->findOrFail($id);
 
             $detailPembayaran = $this->buildDetailPembayaran($permohonan);
@@ -383,7 +453,9 @@ class InvoiceController extends Controller
  
     public function downloadTte($id)
     {
-        $permohonan = Permohonan::with('billing')->findOrFail($id);
+        $permohonan = Permohonan::with([
+            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator',
+        ])->findOrFail($id);
 
         if (empty($permohonan->pdf_tte)) {
             $invoicePath = $permohonan->invoice_file ?? $permohonan->billing?->file_invoice;
@@ -456,7 +528,7 @@ class InvoiceController extends Controller
     public function streamTte($id)
     {
         $permohonan = Permohonan::with([
-            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
+            'billing', 'detailPembayaran', 'formPelatihan', 'formLsp', 'formSertifikasi', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator'
         ])->findOrFail($id);
 
         // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
@@ -497,6 +569,8 @@ class InvoiceController extends Controller
             'formInspeksi',
             'formHalal',
             'formPengujian',
+            'formKonsultasiAt.master',
+            'formKonsultasiAt.dokumen',
             'billing',
             'creator',
         ])->findOrFail($id);
@@ -561,7 +635,7 @@ class InvoiceController extends Controller
         $nik = $pegawai->nik;
 
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator'
         ])->findOrFail($id);
 
         if ($permohonan->status_bayar !== 'LUNAS') {
@@ -643,7 +717,9 @@ class InvoiceController extends Controller
 
     public function downloadKuitansiTte($id)
     {
-        $permohonan = Permohonan::findOrFail($id);
+        $permohonan = Permohonan::with([
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator'
+        ])->findOrFail($id);
 
         if (empty($permohonan->kuitansi_pdf_tte)) {
             if ($permohonan->status_bayar !== 'LUNAS') {
@@ -722,7 +798,7 @@ class InvoiceController extends Controller
     public function streamKuitansiTte($id)
     {
         $permohonan = Permohonan::with([
-            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'creator'
+            'detailPembayaran', 'formSertifikasi', 'formPelatihan', 'formLsp', 'formInspeksi', 'formHalal', 'formPengujian', 'formKonsultasiAt.master', 'formKonsultasiAt.dokumen', 'creator'
         ])->findOrFail($id);
 
         // Jika sudah TTE: ambil langsung dari file dari bucket (sudah TTE)
@@ -760,6 +836,8 @@ class InvoiceController extends Controller
             'formInspeksi',
             'formHalal',
             'formPengujian',
+            'formKonsultasiAt.master',
+            'formKonsultasiAt.dokumen',
             'creator',
         ])->findOrFail($id);
 

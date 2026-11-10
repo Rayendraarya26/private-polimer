@@ -521,7 +521,7 @@ class PengujianController extends Controller
             return null;
         }
 
-        $disk = config('filesystems.default', 'public');
+        $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
         $targetFolder = 'pengujian/' . trim($subfolder, '/');
 
         return $file->store($targetFolder, $disk);

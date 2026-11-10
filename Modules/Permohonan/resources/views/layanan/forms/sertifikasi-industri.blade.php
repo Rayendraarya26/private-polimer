@@ -35,13 +35,11 @@
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
-        if (str_starts_with($path, '/storage/')) {
-            return $path;
+        $cleanPath = ltrim($path, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            $cleanPath = substr($cleanPath, 8);
         }
-        if (str_starts_with($path, 'storage/')) {
-            return '/' . $path;
-        }
-        return '/storage/' . ltrim($path, '/');
+        return url('/storage/' . $cleanPath);
     };
 
     $komoditasList = $form->komoditas_json ?? [];

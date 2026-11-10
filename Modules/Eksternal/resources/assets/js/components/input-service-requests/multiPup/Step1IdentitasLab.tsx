@@ -194,8 +194,8 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-300">
       {/* Kartu 1: Identitas Pengisi & Narahubung */}
-      <Card className="border-brand-100/80 shadow-xs overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-brand-50/50 via-sky-50/30 to-white pb-3">
+      <Card className="border-brand-100/80 shadow-xs relative z-30">
+        <CardHeader className="bg-gradient-to-r from-brand-50/50 via-sky-50/30 to-white pb-3 rounded-t-xl">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <User className="w-4 h-4 text-brand-600" />
             1. Informasi Pengisi & Narahubung Teknis
@@ -261,8 +261,8 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
       </Card>
 
       {/* Kartu 2: Data Laboratorium Kalibrasi */}
-      <Card className="border-slate-200 shadow-xs overflow-hidden">
-        <CardHeader className="bg-slate-50/70 pb-3">
+      <Card className="border-slate-200 shadow-xs relative z-20">
+        <CardHeader className="bg-slate-50/70 pb-3 rounded-t-xl">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <Building2 className="w-4 h-4 text-emerald-600" />
             2. Data Laboratorium Kalibrasi Peserta
@@ -352,8 +352,8 @@ export const Step1IdentitasLab: React.FC<Step1Props> = ({
       </Card>
 
       {/* Kartu 3: Personil Pengesah Formulir */}
-      <Card className="border-slate-200 shadow-xs overflow-hidden">
-        <CardHeader className="bg-slate-50/70 pb-3">
+      <Card className="border-slate-200 shadow-xs relative z-10">
+        <CardHeader className="bg-slate-50/70 pb-3 rounded-t-xl">
           <CardTitle className="text-base flex items-center gap-2 text-slate-800">
             <FileSignature className="w-4 h-4 text-indigo-600" />
             3. Personil Pengesah Pendaftaran

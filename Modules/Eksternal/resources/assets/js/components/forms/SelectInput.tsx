@@ -61,8 +61,8 @@ export const SelectInput: React.FC<SelectInputProps> = ({
     const lowerQuery = searchTerm.toLowerCase();
     return options.filter(
       (opt) =>
-        opt.label.toLowerCase().includes(lowerQuery) ||
-        (opt.description && opt.description.toLowerCase().includes(lowerQuery))
+        String(opt.label || '').toLowerCase().includes(lowerQuery) ||
+        (opt.description && String(opt.description).toLowerCase().includes(lowerQuery))
     );
   }, [options, searchTerm]);
 
@@ -89,19 +89,41 @@ export const SelectInput: React.FC<SelectInputProps> = ({
     }
   }, []);
 
-  // Handle open state change
+  const scrollIntoView = useCallback((index: number) => {
+    const list = optionsListRef.current;
+    if (!list) return;
+    const items = list.getElementsByTagName('button');
+    if (items[index]) {
+      items[index].scrollIntoView({ block: 'nearest' });
+    }
+  }, []);
+
+  // Handle open state change (hanya dijalankan saat dropdown dibuka atau ditutup)
   useEffect(() => {
     if (isOpen) {
       checkPlacement();
       setSearchTerm('');
-      setHighlightedIndex(
-        filteredOptions.findIndex((opt) => selectedOption && opt.value === selectedOption.value)
-      );
-      setTimeout(() => searchInputRef.current?.focus(), 40);
+      const initialIdx = options.findIndex((opt) => selectedOption && String(opt.value) === String(selectedOption.value));
+      const targetIdx = initialIdx >= 0 ? initialIdx : 0;
+      setHighlightedIndex(targetIdx);
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+        if (initialIdx >= 0) {
+          scrollIntoView(initialIdx);
+        }
+      }, 50);
     } else {
+      setSearchTerm('');
       setHighlightedIndex(-1);
     }
-  }, [isOpen, checkPlacement, filteredOptions, selectedOption]);
+  }, [isOpen, checkPlacement, scrollIntoView]);
+
+  // Sync highlight index saat kata kunci pencarian berubah
+  useEffect(() => {
+    if (isOpen && searchTerm.trim()) {
+      setHighlightedIndex(filteredOptions.length > 0 ? 0 : -1);
+    }
+  }, [searchTerm, isOpen, filteredOptions.length]);
 
   // Select item
   const handleSelectOption = useCallback(
@@ -168,15 +190,6 @@ export const SelectInput: React.FC<SelectInputProps> = ({
     }
   };
 
-  const scrollIntoView = (index: number) => {
-    const list = optionsListRef.current;
-    if (!list) return;
-    const items = list.getElementsByTagName('button');
-    if (items[index]) {
-      items[index].scrollIntoView({ block: 'nearest' });
-    }
-  };
-
   return (
     <div className="relative w-full" ref={containerRef}>
       {/* Trigger Button */}
@@ -230,6 +243,7 @@ export const SelectInput: React.FC<SelectInputProps> = ({
             'absolute z-50 w-full left-0 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 duration-150',
             openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
           )}
+          onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
         >
           {/* Search Header */}
@@ -242,7 +256,8 @@ export const SelectInput: React.FC<SelectInputProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full bg-transparent text-sm leading-normal text-slate-800 placeholder:text-slate-400 border-0 p-0 focus:ring-0 focus:outline-none"
+                style={{ height: '100%', lineHeight: '1.5' }}
+                className="w-full h-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 border-0 px-0 py-1.5 focus:ring-0 focus:outline-none shadow-none"
               />
               {searchTerm && (
                 <button

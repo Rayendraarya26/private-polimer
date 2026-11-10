@@ -25,6 +25,7 @@ import {
   Award,
   Lock,
   MessageSquare,
+  Clock,
 } from "lucide-react"
 import Swal from "sweetalert2"
 import Head from "../../components/common/Head"
@@ -247,27 +248,38 @@ export const DetailPermohonanPage: React.FC = () => {
             </Button>
           )}
 
-          {isLunas && (
+          {isLunas && Boolean(permohonan?.kuitansi_pdf_tte) && (
             <Button
               size="sm"
-              variant={permohonan?.kuitansi_pdf_tte ? "success" : "secondary"}
+              variant="success"
               leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
-              onClick={() => {
-                if (!permohonan?.kuitansi_pdf_tte) {
-                  Swal.fire({
-                    icon: "info",
-                    title: "Kuitansi Menunggu TTE",
-                    text: "Pembayaran telah lunas. Kuitansi resmi ber-TTE sedang dalam proses pengesahan oleh Bendahara.",
-                    confirmButtonColor: "#0270c7",
-                  })
-                  return
-                }
-                openKuitansi({ id, no_permohonan: noOrder })
-              }}
+              onClick={() => openKuitansi({ id, no_permohonan: noOrder, kuitansi_pdf_tte: permohonan?.kuitansi_pdf_tte })}
             >
               Kuitansi
             </Button>
           )}
+
+          {(() => {
+            const hasInvoice = Boolean(permohonan?.pdf_tte)
+            const hasKuitansi = isLunas && Boolean(permohonan?.kuitansi_pdf_tte)
+            const pending: string[] = []
+
+            if ((isWaitingPayment || isLunas || permohonan?.status_workflow === "PEMBAYARAN") && !hasInvoice) {
+              pending.push("Invoice")
+            }
+            if (isLunas && !hasKuitansi) {
+              pending.push("Kuitansi")
+            }
+
+            if (pending.length === 0) return null
+
+            return (
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>Dokumen {pending.join(" dan ")} sedang dalam proses penerbitan</span>
+              </span>
+            )
+          })()}
 
           {isDone && (
             <Button

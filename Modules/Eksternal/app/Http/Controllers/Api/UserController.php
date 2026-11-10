@@ -306,10 +306,11 @@ class UserController extends Controller
         $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
         $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
 
-       $rawAlamat = $input['alamat'];
+        $rawAlamat = $input['alamat'];
         if (str_contains($rawAlamat, ' KEC. ')) {
             $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
         }
+        $rawAlamat = rtrim(trim($rawAlamat), " ,\t\n\r\0\x0B");
 
         $alamatLengkap = sprintf(
             "%s, KEC. %s, %s, PROV. %s",
@@ -394,10 +395,11 @@ class UserController extends Controller
         $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
         $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
 
-       $rawAlamat = $input['alamat'];
+        $rawAlamat = $input['alamat'];
         if (str_contains($rawAlamat, ' KEC. ')) {
             $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
         }
+        $rawAlamat = rtrim(trim($rawAlamat), " ,\t\n\r\0\x0B");
 
         $alamatLengkap = sprintf(
             "%s, KEC. %s, %s, PROV. %s",
@@ -496,10 +498,11 @@ class UserController extends Controller
         $kabupaten = \DB::table('master_kabupaten')->where('kab_id',$input['kab_id'])->first();
         $kecamatan = \DB::table('master_kecamatan')->where('kec_id',$input['kec_id'])->first();
 
-       $rawAlamat = $input['alamat'];
+        $rawAlamat = $input['alamat'];
         if (str_contains($rawAlamat, ' KEC. ')) {
             $rawAlamat = explode(' KEC. ', $rawAlamat)[0];
         }
+        $rawAlamat = rtrim(trim($rawAlamat), " ,\t\n\r\0\x0B");
 
         $alamatLengkap = sprintf(
             "%s, KEC. %s, %s, PROV. %s",

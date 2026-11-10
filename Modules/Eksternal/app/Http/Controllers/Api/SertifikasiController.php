@@ -40,7 +40,7 @@ class SertifikasiController extends Controller
             return null;
         }
 
-        $disk = config('filesystems.default', 'public');
+        $disk = config('filesystems.default') === 's3' ? 's3' : 'public';
         $targetFolder = 'sertifikasi/' . trim($subfolder, '/');
 
         // Menyimpan file ke storage disk yang aktif (S3 / Public)
@@ -609,7 +609,14 @@ class SertifikasiController extends Controller
                 ]);
 
                 $komoditasList = $itemPengajuan['komoditas'] ?? $itemPengajuan['items'] ?? [];
-                $jenisPengajuan = strtolower($itemPengajuan['jenis_pengajuan'] ?? 'baru');
+                $rawJenis = $itemPengajuan['jenis_pengajuan'] ?? $itemPengajuan['tipe_pengajuan'] ?? 'baru';
+                $jenisPengajuan = strtolower($rawJenis);
+                $tipePengajuan = match ($jenisPengajuan) {
+                    'lama', 'perpanjang', 'perpanjangan' => 'PERPANJANG',
+                    'perubahan' => 'PERUBAHAN',
+                    'surveilans' => 'SURVEILANS',
+                    default => 'BARU',
+                };
 
                 // Ekstraksi berkas jika diunggah per-pengajuan dari dokumen_list wizard
                 $fileSuratMohonItem = $request->file("pengajuan.{$pIdx}.surat_permohonan")
@@ -659,7 +666,9 @@ class SertifikasiController extends Controller
                     'id' => (string) Str::uuid(),
                     'permohonan_id' => $permohonan->id,
                     'jenis_pengajuan' => $jenisPengajuan,
-                    'tipe_pengajuan' => strtoupper($jenisPengajuan),
+                    'tipe_pengajuan' => $tipePengajuan,
+                    'referensi_sertifikasi_id' => $itemPengajuan['sertifikat_lama_id'] ?? $itemPengajuan['referensi_sertifikasi_id'] ?? null,
+                    'sertifikat_lama_id' => $itemPengajuan['sertifikat_lama_id'] ?? null,
                     'sertifikat_lama_nomor' => $itemPengajuan['sertifikat_lama_nomor'] ?? $itemPengajuan['sertifikat_lama_text'] ?? null,
                     'nama_perusahaan' => $validated['nama_perusahaan'] ?? ($perusahaan->nama ?? ($user->name ?? 'Perusahaan Pemohon')),
                     'jenis_perusahaan_id' => $validated['jenis_perusahaan_id'] ?? ($perusahaan->jenis_perusahaan_id ?? 1),

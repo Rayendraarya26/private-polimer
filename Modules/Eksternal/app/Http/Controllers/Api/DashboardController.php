@@ -17,46 +17,26 @@ class DashboardController extends Controller
 {
     public function slider()
     {
-        $today = date('Y-m-d');
-        $cacheKey = "dashboard_slider_active_{$today}";
+        $slider = SettingBanner::query()->where('is_active', 1)
+            ->where(function ($query) {
+                $query->where('start_at', '<=', date('Y-m-d'))
+                    ->orWhereNull('start_at');
+            })
+            ->where(function ($query) {
+                $query->where('end_at', '>=', date('Y-m-d'))
+                    ->orWhereNull('end_at');
+            })
+            ->orderBy('order')
+            ->get();
 
-        $result = Cache::remember($cacheKey, 3600, function () use ($today) {
-            $slider = SettingBanner::query()->where('is_active', 1)
-                ->where(function ($query) use ($today) {
-                    $query->where('start_at', '<=', $today)
-                        ->orWhereNull('start_at');
-                })
-                ->where(function ($query) use ($today) {
-                    $query->where('end_at', '>=', $today)
-                        ->orWhereNull('end_at');
-                })
-                ->orderBy('order')
-                ->get();
-
-            return $slider->map(function ($item) {
-                $imageUrl = null;
-                if (!empty($item->image_path)) {
-                    if (str_starts_with($item->image_path, 'http://') || str_starts_with($item->image_path, 'https://')) {
-                        $imageUrl = $item->image_path;
-                    } else {
-                        try {
-                            $imageUrl = Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour());
-                        } catch (\Throwable $e) {
-                            $imageUrl = asset('storage/' . $item->image_path);
-                        }
-                    }
-                }
-
-                return [
-                    'description' => $item->description,
-                    'order'       => $item->order,
-                    'url'         => $item->link,
-                    'image'       => $imageUrl,
-                ];
-            })->toArray();
-        });
-
-        return responseJSON('Data Found', $result);
+        return responseJSON('Data Found', $slider->map(function ($item) {
+            return [
+                'description' => $item->description,
+                'order'       => $item->order,
+                'url'         => $item->link,
+                'image'       => Storage::disk('s3')->temporaryUrl($item->image_path, now()->addHour()),
+            ];
+        }));
     }
 
     public function ssoHub()

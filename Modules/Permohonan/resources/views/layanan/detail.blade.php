@@ -389,14 +389,6 @@
 
     </div>
 
-
-    {{-- ============================================================
-    KHUSUS TESTING: Simulasi Selesai Permohonan
-    (Hapus 1 baris @include di bawah ini jika testing selesai)
-    ============================================================ --}}
-    @include('permohonan::layanan.components.simulasi-selesai-testing')
-
-
     {{-- MODAL PREVIEW --}}
     <div class="modal fade" id="previewModal" tabindex="-1">
         <div class="modal-dialog modal-lg">

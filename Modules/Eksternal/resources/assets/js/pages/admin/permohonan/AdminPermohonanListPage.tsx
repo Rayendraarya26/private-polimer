@@ -34,69 +34,6 @@ interface PermohonanAdminItem {
   total_tagihan: number
 }
 
-const mockPermohonanList: PermohonanAdminItem[] = [
-  {
-    id: "1",
-    no_order: "REQ-2026-0819",
-    pelanggan: "PT Indorubber Global Tech",
-    tipe_pelanggan: "Perusahaan",
-    layanan: "Uji Tarik & Vulkanisasi Karet SNI 06-0001",
-    kategori: "Pengujian Lab",
-    tgl_order: "18 Agu 2026",
-    status: "MENUNGGU_VERIFIKASI",
-    jumlah_peserta_sampel: 4,
-    total_tagihan: 12500000,
-  },
-  {
-    id: "2",
-    no_order: "REQ-2026-0818",
-    pelanggan: "CV Polyplast Mandiri",
-    tipe_pelanggan: "Perusahaan",
-    layanan: "Sertifikasi Profesi Operator Ekstrusi Plastik",
-    kategori: "LSP BNSP",
-    tgl_order: "17 Agu 2026",
-    status: "MENUNGGU_VERIFIKASI",
-    jumlah_peserta_sampel: 3,
-    total_tagihan: 7500000,
-  },
-  {
-    id: "3",
-    no_order: "REQ-2026-0817",
-    pelanggan: "Dinas Perindustrian Provinsi Jawa Tengah",
-    tipe_pelanggan: "Instansi",
-    layanan: "Bimtek Formulasi Polimer Ramah Lingkungan",
-    kategori: "Pelatihan",
-    tgl_order: "16 Agu 2026",
-    status: "SEDANG_PROSES",
-    jumlah_peserta_sampel: 15,
-    total_tagihan: 35000000,
-  },
-  {
-    id: "4",
-    no_order: "REQ-2026-0815",
-    pelanggan: "Bambang Sudiro, S.T.",
-    tipe_pelanggan: "Perorangan",
-    layanan: "Sertifikasi Asesor Kompetensi Kulit",
-    kategori: "LSP BNSP",
-    tgl_order: "15 Agu 2026",
-    status: "MENUNGGU_PEMBAYARAN",
-    jumlah_peserta_sampel: 1,
-    total_tagihan: 2500000,
-  },
-  {
-    id: "5",
-    no_order: "REQ-2026-0810",
-    pelanggan: "PT Surya Kulit Nusantara",
-    tipe_pelanggan: "Perusahaan",
-    layanan: "Pengujian Ketahanan Gesek Kulit Sepatu",
-    kategori: "Pengujian Lab",
-    tgl_order: "10 Agu 2026",
-    status: "SELESAI",
-    jumlah_peserta_sampel: 2,
-    total_tagihan: 4800000,
-  },
-]
-
 import api from "../../../utils/api"
 import { Loader2 } from "lucide-react"
 

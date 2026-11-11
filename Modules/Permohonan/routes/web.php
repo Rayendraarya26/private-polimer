@@ -63,10 +63,12 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
     Route::get('{id}/download-sertifikat', [\Modules\Eksternal\Http\Controllers\Api\SertifikasiController::class, 'downloadSertifikat'])
         ->name('permohonan.download-sertifikat');
 
-    // TESTING ONLY: Simulasi selesai permohonan (bypass Restriction RBAC agar tidak 401 Unauthorized)
-    Route::match(['get', 'post'], '{id}/simulasi-selesai', [PermohonanController::class, 'simulasiSelesai'])
-        ->withoutMiddleware([Restriction::class])
-        ->name('permohonan.simulasi-selesai');
+    if (!app()->isProduction()) {
+        // TESTING ONLY: Simulasi selesai permohonan (bypass Restriction RBAC agar tidak 401 Unauthorized)
+        Route::match(['get', 'post'], '{id}/simulasi-selesai', [PermohonanController::class, 'simulasiSelesai'])
+            ->withoutMiddleware([Restriction::class])
+            ->name('permohonan.simulasi-selesai');
+    }
 
 
     Route::post('layanan/tte/request-otp', [InvoiceController::class, 'requestOtp'])

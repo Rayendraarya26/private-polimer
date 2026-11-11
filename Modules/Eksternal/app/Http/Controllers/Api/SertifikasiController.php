@@ -1112,6 +1112,8 @@ class SertifikasiController extends Controller
      */
     public function simulasiBayar(Request $request, string $id): JsonResponse
     {
+        abort_if(app()->isProduction(), 403, 'Aksi simulasi bayar dinonaktifkan di lingkungan produksi.');
+
         $userId = auth()->id();
         $permohonan = Permohonan::where('id', $id)
             ->where('created_by', $userId)
@@ -1271,70 +1273,7 @@ class SertifikasiController extends Controller
         }
     }
 
-    /**
-     * Rollback status dan riwayat Audit Tahap 1 pada Polimer
-     */
-    public function rollbackAuditTahap1(Request $request, string $id): JsonResponse
-    {
-        $permohonan = Permohonan::where('id', $id)
-            ->orWhere('no_permohonan', $id)
-            ->orWhere('kode_order', $id)
-            ->firstOrFail();
 
-        try {
-            DB::beginTransaction();
-
-            // 1. Hapus riwayat permohonan terkait persetujuan temuan / verifikasi tahap 1
-            $permohonan->riwayatPermohonan()
-                ->whereIn('keterangan', [
-                    'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
-                    'AUDIT_TAHAP_1_VERIFIED',
-                    'LAPORAN_AUDIT_TAHAP_1_SUBMITTED'
-                ])
-                ->orWhere(function ($q) use ($permohonan) {
-                    $q->where('permohonan_id', $permohonan->id)
-                        ->where('catatan', 'like', '%menyetujui temuan%');
-                })
-                ->delete();
-
-            // 2. Hapus tracking log terkait
-            PermohonanTrackingLog::where('permohonan_id', $permohonan->id)
-                ->whereIn('milestone_code', [
-                    'AUDIT_TAHAP_1_TEMUAN_DISETUJUI',
-                    'AUDIT_TAHAP_1_VERIFIED',
-                    'LAPORAN_AUDIT_TAHAP_1_SUBMITTED'
-                ])
-                ->delete();
-
-            // 3. Pastikan status workflow tetap di tahap audit
-            if (in_array($permohonan->status_workflow, ['PROCESS', 'AUDIT_TAHAP_2', 'DONE'])) {
-                $permohonan->update([
-                    'status_workflow' => 'AUDIT_TAHAP_1',
-                ]);
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => "Riwayat & hasil Audit Tahap 1 untuk permohonan {$permohonan->no_permohonan} berhasil di-rollback.",
-                'data' => [
-                    'permohonan_id' => $permohonan->id,
-                    'no_permohonan' => $permohonan->no_permohonan,
-                    'status_workflow' => $permohonan->status_workflow,
-                ],
-            ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Error rollbackAuditTahap1: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal rollback riwayat audit tahap 1: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
 
     /**
      * Unduh berkas sertifikat resmi (dari webhook SIS atau TTE lokal)
@@ -1490,8 +1429,8 @@ class SertifikasiController extends Controller
             }
         }
 
-        // 4. Fallback jika status sudah selesai/terbit namun fisik file mock (misal testing environment)
-        if ($permohonan->nomor_sertifikat || in_array($permohonan->status_workflow, ['DONE', 'SELESAI', 'PENERBITAN_SERTIFIKAT']) || $sertifikat) {
+        // 4. Fallback jika status sudah selesai/terbit namun fisik file mock (khusus testing/non-production environment)
+        if (!app()->isProduction() && ($permohonan->nomor_sertifikat || in_array($permohonan->status_workflow, ['DONE', 'SELESAI', 'PENERBITAN_SERTIFIKAT']) || $sertifikat)) {
             $dummyPdf = "%PDF-1.4\n1 0 obj\n<< /Title (Sertifikat {$nomorClean}) /Author (BBSPJIKKP Kemenperin) >>\nendobj\n2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n5 0 obj\n<< /Length 120 >>\nstream\nBT /F1 12 Tf 50 750 Td (SERTIFIKAT KESESUAIAN PENGGUNAAN TANDA SNI) Tj 0 -30 Td (Nomor: {$nomorClean}) Tj ET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000080 00000 n \n0000000130 00000 n \n0000000190 00000 n \n0000000280 00000 n \ntrailer\n<< /Size 6 /Root 2 0 R >>\nstartxref\n450\n%%EOF";
             return response($dummyPdf, 200, [
                 'Content-Type' => 'application/pdf',
@@ -1569,12 +1508,16 @@ class SertifikasiController extends Controller
             }
         }
 
-        // Fallback LHU dummy PDF untuk pratinjau testing
-        $dummyPdf = "%PDF-1.4\n1 0 obj\n<< /Title (Laporan Hasil Uji {$nomorRef}) /Author (Laboratorium Pengujian BBSPJIKKP) >>\nendobj\n2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n5 0 obj\n<< /Length 140 >>\nstream\nBT /F1 14 Tf 50 770 Td (BBSPJIKKP - LAPORAN HASIL PENGUJIAN) Tj 0 -30 Td /F1 11 Tf (No. Referensi: {$nomorRef}) Tj 0 -25 Td (Status: Pengujian Laboratorium Terverifikasi Sesuai SNI) Tj ET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000080 00000 n \n0000000130 00000 n \n0000000190 00000 n \n0000000280 00000 n \ntrailer\n<< /Size 6 /Root 2 0 R >>\nstartxref\n470\n%%EOF";
-        return response($dummyPdf, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ]);
+        // Fallback LHU dummy PDF untuk pratinjau testing (khusus non-production)
+        if (!app()->isProduction()) {
+            $dummyPdf = "%PDF-1.4\n1 0 obj\n<< /Title (Laporan Hasil Uji {$nomorRef}) /Author (Laboratorium Pengujian BBSPJIKKP) >>\nendobj\n2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n5 0 obj\n<< /Length 140 >>\nstream\nBT /F1 14 Tf 50 770 Td (BBSPJIKKP - LAPORAN HASIL PENGUJIAN) Tj 0 -30 Td /F1 11 Tf (No. Referensi: {$nomorRef}) Tj 0 -25 Td (Status: Pengujian Laboratorium Terverifikasi Sesuai SNI) Tj ET\nendstream\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000080 00000 n \n0000000130 00000 n \n0000000190 00000 n \n0000000280 00000 n \ntrailer\n<< /Size 6 /Root 2 0 R >>\nstartxref\n470\n%%EOF";
+            return response($dummyPdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            ]);
+        }
+
+        abort(404, 'Berkas Laporan Hasil Pengujian (LHU) belum tersedia.');
     }
 }
 

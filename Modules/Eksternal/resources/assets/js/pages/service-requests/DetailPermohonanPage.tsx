@@ -111,7 +111,6 @@ export const DetailPermohonanPage: React.FC = () => {
     lingkup,
     requestingTte,
     approvalLoading,
-    bayarLoading,
     showRejectModal,
     setShowRejectModal,
     rejectCatatan,
@@ -119,7 +118,6 @@ export const DetailPermohonanPage: React.FC = () => {
     handleRequestTteInvoice,
     handleRequestTteKuitansi,
     handleApprovalPenawaran,
-    handleSimulasiBayar,
   } = useDetailPermohonan(id)
 
   // UI-only state — tetap di sini karena tidak perlu di-share atau di-test secara terpisah
@@ -221,19 +219,6 @@ export const DetailPermohonanPage: React.FC = () => {
               className="bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
             >
               {isRevisi ? "Perbaiki Permohonan" : "Lanjutkan Draf"}
-            </Button>
-          )}
-
-          {permohonan?.status_bayar !== "LUNAS" && (
-            <Button
-              size="sm"
-              variant="primary"
-              leftIcon={<CreditCard className="w-3.5 h-3.5" />}
-              onClick={handleSimulasiBayar}
-              isLoading={bayarLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-semibold"
-            >
-              Simulasi Bayar (Testing)
             </Button>
           )}
 

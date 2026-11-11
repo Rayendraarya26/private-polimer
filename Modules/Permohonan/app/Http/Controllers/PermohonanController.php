@@ -1112,6 +1112,8 @@ class PermohonanController extends Controller
      */
     public function simulasiSelesai(Request $request, $id)
     {
+        abort_if(app()->isProduction(), 403, 'Fitur simulasi selesai dinonaktifkan di lingkungan produksi.');
+
         $permohonan = Permohonan::findOrFail($id);
 
         DB::beginTransaction();

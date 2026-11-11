@@ -40,7 +40,6 @@ const PembayaranPage: React.FC = () => {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [currentPage, setCurrentPage] = useState(1)
-  const [simulasiLoadingId, setSimulasiLoadingId] = useState<string | null>(null)
 
   const { data: rawData = [], isLoading: loading, refetch: fetchData } = usePembayaranQuery()
   const { openInvoice, openKuitansi, openSuratPenawaran, PdfPreviewModal } = usePembayaran()
@@ -168,32 +167,6 @@ const PembayaranPage: React.FC = () => {
       toast.error(err?.response?.data?.message || "Gagal mengajukan permintaan tanda tangan kuitansi")
     } finally {
       setRequestingTteId(null)
-    }
-  }
-
-  const handleSimulasiBayar = async (row: PembayaranItem) => {
-    if (!row.id) return
-    const result = await Swal.fire({
-      title: "Konfirmasi Simulasi Bayar?",
-      text: `Status pembayaran untuk permohonan #${row.no_permohonan} akan diubah menjadi LUNAS.`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Simulasikan",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#059669",
-    })
-
-    if (!result.isConfirmed) return
-
-    try {
-      setSimulasiLoadingId(row.id)
-      const res = await api.post(`/eksternal/sertifikasi/${row.id}/simulasi-bayar`)
-      toast.success(res?.data?.message || "Pembayaran berhasil diverifikasi.")
-      fetchData()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal melakukan simulasi pembayaran")
-    } finally {
-      setSimulasiLoadingId(null)
     }
   }
 
@@ -441,19 +414,6 @@ const PembayaranPage: React.FC = () => {
                 {/* Card Footer: Document Action Buttons */}
                 <div className="px-4 sm:px-5 py-3 bg-slate-50/40 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center flex-wrap gap-2.5">
-                    {!isPaid && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        leftIcon={<CreditCard className="w-3.5 h-3.5" />}
-                        onClick={() => handleSimulasiBayar(row)}
-                        isLoading={simulasiLoadingId === row.id}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-semibold h-8 text-xs cursor-pointer"
-                      >
-                        Simulasi Bayar (Testing)
-                      </Button>
-                    )}
-
                     {pendingDocs.length > 0 && (
                       <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                         <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />

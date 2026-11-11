@@ -41,7 +41,6 @@ export const useDetailPermohonan = (id: string | undefined) => {
   // ── Loading / submitting flags ────────────────────────────────────────────
   const [requestingTte, setRequestingTte]       = useState<"invoice" | "kuitansi" | null>(null)
   const [approvalLoading, setApprovalLoading]   = useState<boolean>(false)
-  const [bayarLoading, setBayarLoading]         = useState<boolean>(false)
   const [temuanSubmitting, setTemuanSubmitting] = useState<boolean>(false)
 
   // ── Modal: Reject / Negosiasi Penawaran Biaya ─────────────────────────────
@@ -191,28 +190,6 @@ export const useDetailPermohonan = (id: string | undefined) => {
     }
   }
 
-  // ── Handler: Simulasi Bayar (mode testing) ────────────────────────────────
-
-  const handleSimulasiBayar = async () => {
-    if (!id) return
-    const confirmed = window.confirm(
-      "Konfirmasi simulasi pembayaran?\n\n" +
-      "Status permohonan akan diubah menjadi LUNAS."
-    )
-    if (!confirmed) return
-
-    try {
-      setBayarLoading(true)
-      const res = await api.post(`/eksternal/sertifikasi/${id}/simulasi-bayar`)
-      toast.success(res?.data?.message || "Pembayaran berhasil diverifikasi.")
-      await fetchData()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal melakukan simulasi pembayaran")
-    } finally {
-      setBayarLoading(false)
-    }
-  }
-
   // ── Handler: Approve Temuan & Upload Berkas Perbaikan Tahap 1 ─────────────
 
   /**
@@ -267,7 +244,6 @@ export const useDetailPermohonan = (id: string | undefined) => {
     // Loading flags
     requestingTte,
     approvalLoading,
-    bayarLoading,
     temuanSubmitting,
 
     // Modal: Reject Penawaran
@@ -288,7 +264,6 @@ export const useDetailPermohonan = (id: string | undefined) => {
     handleRequestTteInvoice,
     handleRequestTteKuitansi,
     handleApprovalPenawaran,
-    handleSimulasiBayar,
     handleApproveTemuanTahap1,
   }
 }

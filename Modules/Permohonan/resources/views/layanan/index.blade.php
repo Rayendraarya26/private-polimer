@@ -294,7 +294,7 @@ PHP vars dipakai di konten DAN di script section
                                 <label class="form-label fw-semibold fs-6">Passphrase BSrE</label>
                                 <input type="password" id="input_passphrase" class="form-control form-control-solid"
                                     placeholder="Masukkan passphrase sertifikat elektronik" {{ !$pegawai?->nik ? 'disabled' : '' }} />
-                                <div class="text-muted fs-7 mt-1">Passphrase sertifikat elektronik BSRE Anda</div>
+                                <div class="text-muted fs-7 mt-1">Passphrase serFtifikat elektronik BSRE Anda</div>
                             </div>
 
                             <div class="separator separator-content my-3 text-muted fs-8 fw-bold">ATAU OTP EMAIL (BSrE v2)
@@ -481,6 +481,67 @@ PHP vars dipakai di konten DAN di script section
                     </div>
                 </div>
             </div>
+
+            {{-- Modal Input Virtual Account (VA) Bank BNI --}}
+            <div class="modal fade" id="modalInputVa" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered mw-600px">
+                    <div class="modal-content rounded">
+                        <div class="modal-header">
+                            <h2 class="fw-bold">Input Virtual Account
+                                (VA)</h2>
+                            <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                                <i class="fa-duotone fa-xmark fs-1"></i>
+                            </div>
+                        </div>
+
+                        <div class="modal-body py-8 px-lg-12">
+                            {{-- Info Permohonan --}}
+                            <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed p-5 mb-6">
+                                <i class="fa-duotone fa-file-invoice-dollar fs-2tx text-primary me-4"></i>
+                                <div class="d-flex flex-column flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fs-7 text-muted">Nomor Permohonan:</span>
+                                        <span class="fs-6 fw-bold text-dark font-monospace" id="modalVaNoPermohonan">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fs-7 text-muted">Pemohon:</span>
+                                        <span class="fs-6 fw-semibold text-gray-800 text-end" id="modalVaPemohon">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fs-7 text-muted">Total Tagihan:</span>
+                                        <span class="fs-5 fw-bold text-primary" id="modalVaTotalTagihan">Rp 0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Input VA --}}
+                            <div class="mb-5">
+                                <label class="form-label required fw-bold fs-6">Nomor Virtual Account (VA) Bank BNI</label>
+                                <div class="position-relative">
+                                    <input type="text" id="input_nomor_va"
+                                        class="form-control form-control-solid font-monospace fs-5 fw-bold"
+                                        placeholder="Contoh: 9881240820350290" maxlength="30" />
+                                </div>
+                                <div id="vaInputError" class="text-danger fs-7 mt-2 d-none">
+                                    Nomor Virtual Account wajib diisi.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer d-flex justify-content-between">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btnSimpanVaOnly" class="btn btn-light-primary">
+                                    <i class="fa-duotone fa-floppy-disk me-1"></i>Simpan VA
+                                </button>
+                                <button type="button" id="btnLanjutKeTte" class="btn btn-primary">
+                                    <span>Terbitkan Invoice</span><i class="fa-duotone fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         @endif
 
 @endsection
@@ -615,11 +676,11 @@ PHP vars dipakai di konten DAN di script section
                                 if (isBendahara) {
                                     if (data === 'generated')
                                         return `<span class="badge badge-light-success">
-                                                                        <i class="fa-duotone fa-file-check me-1"></i>Sudah Generate
-                                                                    </span>`;
+                                                                            <i class="fa-duotone fa-file-check me-1"></i>Sudah Generate
+                                                                        </span>`;
                                     return `<span class="badge badge-light-warning">
-                                                                    <i class="fa-duotone fa-file-xmark me-1"></i>Belum Generate
-                                                                </span>`;
+                                                                        <i class="fa-duotone fa-file-xmark me-1"></i>Belum Generate
+                                                                    </span>`;
                                 } else {
                                     if (data == 1 || data === true)
                                         return `<span class="badge badge-light-info">Sudah Mengisi</span>`;
@@ -644,28 +705,57 @@ PHP vars dipakai di konten DAN di script section
                                 // Cek apakah invoice sudah di-TTE atau sudah di-generate
                                 const hasTte = isBendahara && Boolean(row.has_tte || row.pdf_tte_val);
                                 const hasInvoice = isBendahara && Boolean(row.invoice_file_val || hasTte);
+                                const currentVa = row.va_val || '';
+                                const cleanUser = (row.user || '').replace(/<[^>]*>?/gm, '').trim();
+                                const totalNominal = row.nominal_val ? new Intl.NumberFormat('id-ID').format(row.nominal_val) : '-';
+
+                                // Menu Input / Ubah VA untuk Bendahara
+                                const inputVaItem = isBendahara ? `
+                                                            <div class="menu-item px-3">
+                                                                <a href="#"
+                                                                   class="menu-link px-3 btn-open-modal-va"
+                                                                   data-id="${row.id}"
+                                                                   data-no="${row.no_permohonan || ''}"
+                                                                   data-user="${cleanUser}"
+                                                                   data-nominal="${totalNominal}"
+                                                                   data-va="${currentVa}"
+                                                                   data-url="${urlApproval}"
+                                                                   data-mode="${hasTte ? 'regenerate' : 'tte'}">
+                                                                    Input / Ubah VA
+                                                                </a>
+                                                            </div>` : '';
 
                                 // Tampilkan TTE Invoice HANYA jika invoice belum di-TTE
                                 const tteInvoiceItem = (isBendahara && !hasTte) ? `
-                                                        <div class="menu-item px-3">
-                                                            <a href="#"
-                                                               class="menu-link px-3 btn-approval-invoice"
-                                                               data-url="${urlApproval}"
-                                                               data-mode="tte">
-                                                                TTE Invoice
-                                                            </a>
-                                                        </div>` : '';
+                                                            <div class="menu-item px-3">
+                                                                <a href="#"
+                                                                   class="menu-link px-3 btn-approval-invoice"
+                                                                   data-id="${row.id}"
+                                                                   data-no="${row.no_permohonan || ''}"
+                                                                   data-user="${cleanUser}"
+                                                                   data-nominal="${totalNominal}"
+                                                                   data-va="${currentVa}"
+                                                                   data-url="${urlApproval}"
+                                                                   data-mode="tte">
+                                                                    TTE Invoice
+                                                                </a>
+                                                            </div>` : '';
 
                                 // Tampilkan Regenerate Invoice jika invoice sudah di-TTE / di-generate
                                 const regenerateInvoiceItem = (isBendahara && hasTte) ? `
-                                                        <div class="menu-item px-3">
-                                                            <a href="#"
-                                                               class="menu-link px-3 btn-approval-invoice"
-                                                               data-url="${urlApproval}"
-                                                               data-mode="regenerate">
-                                                                Regenerate Invoice
-                                                            </a>
-                                                        </div>` : '';
+                                                            <div class="menu-item px-3">
+                                                                <a href="#"
+                                                                   class="menu-link px-3 btn-approval-invoice"
+                                                                   data-id="${row.id}"
+                                                                   data-no="${row.no_permohonan || ''}"
+                                                                   data-user="${cleanUser}"
+                                                                   data-nominal="${totalNominal}"
+                                                                   data-va="${currentVa}"
+                                                                   data-url="${urlApproval}"
+                                                                   data-mode="regenerate">
+                                                                    Regenerate Invoice
+                                                                </a>
+                                                            </div>` : '';
 
                                 // Konfirmasi Pembayaran untuk Bendahara
                                 const uStatus = (row.status_workflow || '').toUpperCase();
@@ -674,14 +764,14 @@ PHP vars dipakai di konten DAN di script section
                                 const urlKonfirmasi = `/permohonan/layanan/${row.id}/konfirmasi-pembayaran-manual`;
 
                                 const konfirmasiBayarItem = (isBendahara && isBelumLunas) ? `
-                                                        <div class="menu-item px-3">
-                                                            <a href="#"
-                                                               class="menu-link px-3 btn-konfirmasi-bayar"
-                                                               data-url="${urlKonfirmasi}"
-                                                               data-no="${row.no_permohonan || ''}">
-                                                                Konfirmasi Pembayaran
-                                                            </a>
-                                                        </div>` : '';
+                                                            <div class="menu-item px-3">
+                                                                <a href="#"
+                                                                   class="menu-link px-3 btn-konfirmasi-bayar"
+                                                                   data-url="${urlKonfirmasi}"
+                                                                   data-no="${row.no_permohonan || ''}">
+                                                                    Konfirmasi Pembayaran
+                                                                </a>
+                                                            </div>` : '';
 
                                 // TTE Kuitansi untuk Bendahara jika sudah LUNAS dan kuitansi belum di-TTE
                                 const isLunas = uBayar === 'LUNAS';
@@ -689,34 +779,35 @@ PHP vars dipakai di konten DAN di script section
                                 const urlApprovalKuitansi = `/permohonan/layanan/${row.id}/approval-kuitansi-tte`;
 
                                 const tteKuitansiItem = (isBendahara && isLunas && !hasKuitansiTte) ? `
-                                                        <div class="menu-item px-3">
-                                                            <a href="#"
-                                                               class="menu-link px-3 btn-approval-invoice"
-                                                               data-url="${urlApprovalKuitansi}"
-                                                               data-mode="kuitansi">
-                                                                TTE Kuitansi
-                                                            </a>
-                                                        </div>` : '';
+                                                            <div class="menu-item px-3">
+                                                                <a href="#"
+                                                                   class="menu-link px-3 btn-approval-invoice"
+                                                                   data-url="${urlApprovalKuitansi}"
+                                                                   data-mode="kuitansi">
+                                                                    TTE Kuitansi
+                                                                </a>
+                                                            </div>` : '';
 
 
                                 return `
-                                                    <a href="#"
-                                                       class="btn btn-light btn-active-light-primary btn-sm"
-                                                       data-kt-menu-trigger="hover"
-                                                       data-kt-menu-placement="bottom-end">
-                                                        Actions <i class="fa-duotone fa-chevron-down ms-2 fs-7"></i>
-                                                    </a>
-                                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded
-                                                                menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-200px py-4"
-                                                         data-kt-menu="true">
-                                                        <div class="menu-item px-3">
-                                                            <a href="${urlDetail}" class="menu-link px-3">Detail</a>
-                                                        </div>
-                                                        ${tteInvoiceItem}
-                                                        ${regenerateInvoiceItem}
-                                                        ${konfirmasiBayarItem}
-                                                        ${tteKuitansiItem}
-                                                    </div>`;
+                                                        <a href="#"
+                                                           class="btn btn-light btn-active-light-primary btn-sm"
+                                                           data-kt-menu-trigger="hover"
+                                                           data-kt-menu-placement="bottom-end">
+                                                            Actions <i class="fa-duotone fa-chevron-down ms-2 fs-7"></i>
+                                                        </a>
+                                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded
+                                                                    menu-gray-600 menu-state-bg-light-primary fw-bold fs-7 w-200px py-4"
+                                                             data-kt-menu="true">
+                                                            <div class="menu-item px-3">
+                                                                <a href="${urlDetail}" class="menu-link px-3">Detail</a>
+                                                            </div>
+                                                            ${inputVaItem}
+                                                            ${tteInvoiceItem}
+                                                            ${regenerateInvoiceItem}
+                                                            ${konfirmasiBayarItem}
+                                                            ${tteKuitansiItem}
+                                                        </div>`;
                             }
                         }
                         ]
@@ -823,13 +914,152 @@ PHP vars dipakai di konten DAN di script section
                     const btnSubmitLabel = document.getElementById('btnSubmitLabel');
                     const btnSubmitLoading = document.getElementById('btnSubmitLoadingText');
 
+                    const modalVaEl = document.getElementById('modalInputVa');
+                    const inputNomorVa = document.getElementById('input_nomor_va');
+                    const vaInputError = document.getElementById('vaInputError');
+                    const btnSimpanVaOnly = document.getElementById('btnSimpanVaOnly');
+                    const btnLanjutKeTte = document.getElementById('btnLanjutKeTte');
+                    const tteVaNotice = document.getElementById('tteVaNotice');
+                    const tteModalVaDisplay = document.getElementById('tteModalVaDisplay');
+
                     let currentApprovalUrl = null;
+                    let currentPermohonanId = null;
                     let currentIsRegenerate = false;
                     let currentMode = 'tte';
+                    let currentSelectedVa = '';
 
                     // ── Helpers ───────────────────────────────────────────────────
                     const loadingSection = document.getElementById('approvalLoadingSection');
                     const tteStepIds = ['tteStep1', 'tteStep2', 'tteStep3', 'tteStep4'];
+
+                    if (inputNomorVa) {
+                        inputNomorVa.addEventListener('input', function () {
+                            if (this.value.trim()) {
+                                this.classList.remove('is-invalid');
+                                if (vaInputError) vaInputError.classList.add('d-none');
+                            }
+                        });
+                    }
+
+                    const openTteModal = () => {
+                        // Update judul modal, teks tombol submit, dan step sesuai mode
+                        const step2El = document.querySelector('#tteStep2 span');
+                        if (currentMode === 'kuitansi') {
+                            modalTitle.textContent = 'TTE Kuitansi (BSrE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Kuitansi';
+                            btnSubmitLoading.textContent = 'Memproses TTE Kuitansi...';
+                            if (step2El) step2El.textContent = 'Generate dokumen kuitansi PDF';
+                            tteMessages[1].label = 'Membuat dokumen kuitansi...';
+                            if (tteVaNotice) tteVaNotice.classList.add('d-none');
+                        } else if (currentIsRegenerate) {
+                            modalTitle.textContent = 'Regenerate Invoice (TTE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-rotate-right me-2"></i>Regenerate & Tanda Tangan';
+                            btnSubmitLoading.textContent = 'Memproses Regenerate...';
+                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
+                            tteMessages[1].label = 'Membuat dokumen invoice...';
+                            if (tteVaNotice) {
+                                tteVaNotice.classList.remove('d-none');
+                                if (tteModalVaDisplay) tteModalVaDisplay.textContent = currentSelectedVa || '-';
+                            }
+                        } else {
+                            modalTitle.textContent = 'TTE Invoice (BSrE)';
+                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Elektronik';
+                            btnSubmitLoading.textContent = 'Memproses TTE...';
+                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
+                            tteMessages[1].label = 'Membuat dokumen invoice...';
+                            if (tteVaNotice) {
+                                tteVaNotice.classList.remove('d-none');
+                                if (tteModalVaDisplay) tteModalVaDisplay.textContent = currentSelectedVa || '-';
+                            }
+                        }
+
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    };
+
+                    // ── Listener Modal Input VA (Simpan Saja / Lanjut TTE) ─────────
+                    if (btnSimpanVaOnly) {
+                        btnSimpanVaOnly.addEventListener('click', async function () {
+                            const vaVal = inputNomorVa ? inputNomorVa.value.trim() : '';
+                            if (!vaVal) {
+                                if (inputNomorVa) inputNomorVa.classList.add('is-invalid');
+                                if (vaInputError) {
+                                    vaInputError.textContent = 'Nomor Virtual Account (VA) wajib diisi.';
+                                    vaInputError.classList.remove('d-none');
+                                }
+                                if (inputNomorVa) inputNomorVa.focus();
+                                return;
+                            }
+
+                            btnSimpanVaOnly.disabled = true;
+                            btnSimpanVaOnly.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+
+                            try {
+                                const res = await fetch(`/permohonan/layanan/${currentPermohonanId}/update-va`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json',
+                                    },
+                                    body: JSON.stringify({ va: vaVal }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok || !data.success) {
+                                    throw new Error(data.message || 'Gagal menyimpan nomor VA');
+                                }
+
+                                if (typeof Swal !== 'undefined') {
+                                    Swal.fire({
+                                        text: data.message || 'Nomor VA berhasil disimpan!',
+                                        icon: 'success',
+                                        buttonsStyling: false,
+                                        confirmButtonText: 'OK',
+                                        customClass: { confirmButton: 'btn btn-primary' }
+                                    });
+                                }
+
+                                if (modalVaEl) {
+                                    const modalInstance = bootstrap.Modal.getInstance(modalVaEl);
+                                    if (modalInstance) modalInstance.hide();
+                                }
+                                dt.draw(false);
+                            } catch (err) {
+                                if (vaInputError) {
+                                    vaInputError.textContent = err.message || 'Gagal menyimpan VA';
+                                    vaInputError.classList.remove('d-none');
+                                }
+                            } finally {
+                                btnSimpanVaOnly.disabled = false;
+                                btnSimpanVaOnly.innerHTML = '<i class="fa-duotone fa-floppy-disk me-1"></i>Simpan VA Saja';
+                            }
+                        });
+                    }
+
+                    if (btnLanjutKeTte) {
+                        btnLanjutKeTte.addEventListener('click', function () {
+                            const vaVal = inputNomorVa ? inputNomorVa.value.trim() : '';
+                            if (!vaVal) {
+                                if (inputNomorVa) inputNomorVa.classList.add('is-invalid');
+                                if (vaInputError) {
+                                    vaInputError.textContent = 'Nomor Virtual Account (VA) wajib diisi sebelum lanjut ke TTE.';
+                                    vaInputError.classList.remove('d-none');
+                                }
+                                if (inputNomorVa) inputNomorVa.focus();
+                                return;
+                            }
+
+                            currentSelectedVa = vaVal;
+
+                            if (modalVaEl) {
+                                const modalInstance = bootstrap.Modal.getInstance(modalVaEl);
+                                if (modalInstance) modalInstance.hide();
+                            }
+
+                            setTimeout(() => {
+                                openTteModal();
+                            }, 350);
+                        });
+                    }
 
                     // ── Request OTP Listener ──────────────────────────────────────
                     if (btnRequestOtpBlade) {
@@ -938,6 +1168,7 @@ PHP vars dipakai di konten DAN di script section
 
                     // Tampilkan hasil sukses — file_link dari InvoiceController response
                     const showSuccess = (verifyUrl, isRegenerate, isKuitansi) => {
+                        currentSelectedVa = '';
                         formSection.classList.add('d-none');
                         resultSection.classList.remove('d-none');
                         resultSuccess.classList.remove('d-none');
@@ -972,40 +1203,53 @@ PHP vars dipakai di konten DAN di script section
 
                     // ── Delegated click — tombol di dalam baris DataTable ─────────
                     document.addEventListener('click', function (e) {
-                        const btn = e.target.closest('.btn-approval-invoice');
-                        if (!btn) return;
+                        const btnTte = e.target.closest('.btn-approval-invoice');
+                        const btnVa = e.target.closest('.btn-open-modal-va');
+                        if (!btnTte && !btnVa) return;
 
                         e.preventDefault();
                         e.stopPropagation(); // cegah KTMenu intercept
 
+                        const btn = btnTte || btnVa;
                         currentApprovalUrl = btn.dataset.url;
+                        currentPermohonanId = btn.dataset.id;
                         currentMode = btn.dataset.mode || 'tte';
                         currentIsRegenerate = currentMode === 'regenerate';
 
-                        // Update judul modal, teks tombol submit, dan step sesuai mode
-                        const step2El = document.querySelector('#tteStep2 .tte-step-label') || document.querySelector('#tteStep2 > span:last-child');
                         if (currentMode === 'kuitansi') {
-                            modalTitle.textContent = 'TTE Kuitansi (BSrE)';
-                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Kuitansi';
-                            btnSubmitLoading.textContent = 'Memproses TTE Kuitansi...';
-                            if (step2El) step2El.textContent = 'Generate dokumen kuitansi PDF';
-                            tteMessages[1].label = 'Membuat dokumen kuitansi...';
-                        } else if (currentIsRegenerate) {
-                            modalTitle.textContent = 'Regenerate Invoice (TTE)';
-                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-rotate-right me-2"></i>Regenerate & Tanda Tangan';
-                            btnSubmitLoading.textContent = 'Memproses Regenerate...';
-                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
-                            tteMessages[1].label = 'Membuat dokumen invoice...';
-                        } else {
-                            modalTitle.textContent = 'TTE Invoice (BSrE)';
-                            btnSubmitLabel.innerHTML = '<i class="fa-duotone fa-signature me-2"></i>Tanda Tangan Elektronik';
-                            btnSubmitLoading.textContent = 'Memproses TTE...';
-                            if (step2El) step2El.textContent = 'Generate dokumen invoice PDF';
-                            tteMessages[1].label = 'Membuat dokumen invoice...';
+                            openTteModal();
+                            return;
                         }
 
-                        // getOrCreateInstance: cegah multiple Bootstrap Modal instance
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        // Jika Invoice (TTE / Regenerate / Tombol Input VA):
+                        // Buka Modal Input VA terlebih dahulu!
+                        if (modalVaEl) {
+                            const noPermohonan = btn.dataset.no || '-';
+                            const namaUser = btn.dataset.user || '-';
+                            const nominal = btn.dataset.nominal || '-';
+                            const existingVa = btn.dataset.va || '';
+
+                            const elNo = document.getElementById('modalVaNoPermohonan');
+                            const elUser = document.getElementById('modalVaPemohon');
+                            const elNominal = document.getElementById('modalVaTotalTagihan');
+
+                            if (elNo) elNo.textContent = noPermohonan;
+                            if (elUser) elUser.textContent = namaUser;
+                            if (elNominal) elNominal.textContent = 'Rp ' + nominal;
+
+                            if (inputNomorVa) {
+                                inputNomorVa.value = existingVa;
+                                inputNomorVa.classList.remove('is-invalid');
+                            }
+                            if (vaInputError) {
+                                vaInputError.classList.add('d-none');
+                            }
+
+                            currentSelectedVa = existingVa;
+                            bootstrap.Modal.getOrCreateInstance(modalVaEl).show();
+                        } else {
+                            openTteModal();
+                        }
                     });
 
                     // ── Submit ────────────────────────────────────────────────────
@@ -1044,7 +1288,8 @@ PHP vars dipakai di konten DAN di script section
                                 },
                                 body: JSON.stringify({
                                     passphrase: passphrase || undefined,
-                                    totp: totp || undefined
+                                    totp: totp || undefined,
+                                    va: currentSelectedVa || undefined
                                 }),
                             });
 

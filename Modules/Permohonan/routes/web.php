@@ -80,6 +80,12 @@ Route::prefix('/permohonan')->middleware([CustomAuthMiddleware::class, Restricti
         ->name('permohonan.approval-invoice');
 
     Route::post(
+        'layanan/{id}/update-va',
+        [InvoiceController::class, 'updateVa']
+    )->withoutMiddleware([Restriction::class])
+        ->name('permohonan.invoice.update-va');
+
+    Route::post(
         'layanan/{id}/konfirmasi-pembayaran-manual',
         [PermohonanController::class, 'konfirmasiPembayaranManual']
     )->withoutMiddleware([Restriction::class])

@@ -264,7 +264,7 @@ export const DetailPermohonanPage: React.FC = () => {
             const hasKuitansi = isLunas && Boolean(permohonan?.kuitansi_pdf_tte)
             const pending: string[] = []
 
-            if ((isWaitingPayment || isLunas || permohonan?.status_workflow === "PEMBAYARAN") && !hasInvoice) {
+            if ((isSiapBayar || isLunas || permohonan?.status_workflow === "PEMBAYARAN") && !hasInvoice) {
               pending.push("Invoice")
             }
             if (isLunas && !hasKuitansi) {

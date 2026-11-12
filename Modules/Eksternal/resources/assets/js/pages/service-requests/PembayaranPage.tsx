@@ -388,7 +388,7 @@ const PembayaranPage: React.FC = () => {
                   <div>{renderStatusBadge(row.status_bayar)}</div>
                 </div>
 
-                {/* Card Body: Nomor Permohonan, Layanan & Total Tagihan */}
+                {/* Card Body: Nomor Permohonan, Layanan, Virtual Account & Total Tagihan */}
                 <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   {/* Left: Nomor Permohonan & Layanan */}
                   <div className="space-y-1 min-w-0 flex-1">
@@ -398,6 +398,39 @@ const PembayaranPage: React.FC = () => {
                     <p className="text-xs sm:text-sm font-medium text-slate-600">
                       {row.nama_permohonan}
                     </p>
+                  </div>
+
+                  {/* Middle: Virtual Account BNI */}
+                  <div className="sm:px-6 sm:border-l sm:border-slate-100 shrink-0">
+                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                      Virtual Account BNI
+                    </p>
+                    {row.va ? (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-mono text-sm sm:text-base font-bold text-slate-800 tracking-wider">
+                          {row.va}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyVa(row.va!)}
+                          className="p-1 rounded-md text-slate-400 hover:text-brand-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title="Salin Nomor Virtual Account"
+                        >
+                          {copiedVa === row.va ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic mt-0.5">Belum terbit</p>
+                    )}
+                    {row.va_expired_at && !isPaid && (
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Berlaku s/d {formatDate(row.va_expired_at)}
+                      </p>
+                    )}
                   </div>
 
                   {/* Right: Total Tagihan */}

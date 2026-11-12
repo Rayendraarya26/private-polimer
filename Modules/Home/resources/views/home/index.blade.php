@@ -189,7 +189,7 @@
                         class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
                         <span>Penyelesaian layanan</span>
                         <span class="badge badge-light-success fw-bold">
-                            <i class="fa-solid fa-file-signature me-1 text-success"></i>Siap TTE
+                            <i class="fa-solid fa-circle-check me-1 text-success"></i>Layanan Selesai
                         </span>
                     </div>
                 </div>

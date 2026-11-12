@@ -117,8 +117,8 @@
                     </div>
                     <div
                         class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
-                        <span>Total antrean aktif</span>
-                        <span class="badge badge-light-success fw-bold">{{ $kpi['growth'] ?? '+14%' }}</span>
+                        <span>Total permohonan layanan terdaftar</span>
+                        <span class="badge badge-light-primary fw-bold">{{ number_format($kpi['total_tahun_ini'] ?? $kpi['total_all'] ?? 0) }}</span>
                     </div>
                 </div>
             </div>
@@ -139,9 +139,10 @@
                     </div>
                     <div
                         class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
-                        <span>Perlu tindakan segera</span>
-                        <span class="text-warning fw-semibold"><i
-                                class="fa-solid fa-arrow-up-right-dots text-warning me-1"></i>Antrean</span>
+                        <span>Pemeriksaan administrasi</span>
+                        <span class="badge badge-light-warning fw-bold">
+                            <i class="fa-solid fa-clock me-1 text-warning"></i>Perlu Ditinjau
+                        </span>
                     </div>
                 </div>
             </div>
@@ -151,7 +152,7 @@
                 <div class="kpi-card p-5 h-100 d-flex flex-column justify-content-between shadow-xs">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <span class="text-muted fs-7 fw-semibold d-block">Sedang Uji Lab / Asesmen</span>
+                            <span class="text-muted fs-7 fw-semibold d-block">Proses</span>
                             <h3 class="fs-2x fw-bolder text-info mt-1 mb-0">{{ number_format($kpi['sedang_proses'] ?? 0) }}
                             </h3>
                         </div>
@@ -162,9 +163,10 @@
                     </div>
                     <div
                         class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
-                        <span>Proses teknis pengujian</span>
-                        <span class="text-info fw-semibold"><i class="fa-solid fa-gear fa-spin me-1 text-info"></i>In
-                            Progress</span>
+                        <span>Pelaksanaan Layanan</span>
+                        <span class="badge badge-light-info fw-bold">
+                            <i class="fa-solid fa-gear fa-spin me-1 text-info"></i>Sedang Berjalan
+                        </span>
                     </div>
                 </div>
             </div>
@@ -174,7 +176,7 @@
                 <div class="kpi-card p-5 h-100 d-flex flex-column justify-content-between shadow-xs">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <span class="text-muted fs-7 fw-semibold d-block">Siap Terbit Sertifikat TTE</span>
+                            <span class="text-muted fs-7 fw-semibold d-block">Selesai</span>
                             <h3 class="fs-2x fw-bolder text-success mt-1 mb-0">{{ number_format($kpi['siap_terbit'] ?? 0) }}
                             </h3>
                         </div>
@@ -185,8 +187,60 @@
                     </div>
                     <div
                         class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
-                        <span>Selesai verifikasi & tanda</span>
-                        <span class="badge badge-light-success fw-bold">Siap TTE</span>
+                        <span>Penyelesaian layanan</span>
+                        <span class="badge badge-light-success fw-bold">
+                            <i class="fa-solid fa-file-signature me-1 text-success"></i>Siap TTE
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Card 5: Realisasi Pendapatan PNBP (Permohonan Lunas) --}}
+            <div class="col-sm-6 col-xl-6">
+                <div class="kpi-card p-5 h-100 d-flex flex-column justify-content-between shadow-xs">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted fs-7 fw-semibold d-block">Pendapatan PNBP</span>
+                            <h3 class="fs-2x fw-bolder text-success mt-1 mb-0">
+                                Rp {{ number_format($kpi['realisasi_pnbp'] ?? ($pnbp['realisasi'] ?? 0), 0, ',', '.') }}
+                            </h3>
+                        </div>
+                        <div
+                            class="symbol symbol-45px rounded-3 bg-light-success d-flex align-items-center justify-content-center">
+                            <i class="fa-duotone fa-money-bill-trend-up fs-2 text-success"></i>
+                        </div>
+                    </div>
+                    <div
+                        class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
+                        <span>Realisasi penerimaan kas negara terverifikasi</span>
+                        <span class="badge badge-light-success fw-bold">
+                            <i class="fa-solid fa-check-double me-1 text-success"></i>{{ number_format($kpi['realisasi_count'] ?? ($pnbp['realisasi_count'] ?? 0)) }} Lunas
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Card 6: Piutang PNBP (Permohonan Belum Lunas) --}}
+            <div class="col-sm-6 col-xl-6">
+                <div class="kpi-card p-5 h-100 d-flex flex-column justify-content-between shadow-xs">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted fs-7 fw-semibold d-block">Piutang PNBP</span>
+                            <h3 class="fs-2x fw-bolder text-danger mt-1 mb-0">
+                                Rp {{ number_format($kpi['piutang_pnbp'] ?? ($pnbp['piutang'] ?? 0), 0, ',', '.') }}
+                            </h3>
+                        </div>
+                        <div
+                            class="symbol symbol-45px rounded-3 bg-light-danger d-flex align-items-center justify-content-center">
+                            <i class="fa-duotone fa-hand-holding-dollar fs-2 text-danger"></i>
+                        </div>
+                    </div>
+                    <div
+                        class="d-flex align-items-center justify-content-between text-muted fs-8 pt-2 border-top border-gray-100">
+                        <span>Kewajiban pembayaran belum diselesaikan</span>
+                        <span class="badge badge-light-danger fw-bold">
+                            <i class="fa-solid fa-clock-rotate-left me-1 text-danger"></i>{{ number_format($kpi['piutang_count'] ?? ($pnbp['piutang_count'] ?? 0)) }} Belum Lunas
+                        </span>
                     </div>
                 </div>
             </div>
@@ -197,23 +251,17 @@
         {{-- ======================================================== --}}
         <div class="row g-6">
             {{-- Left: Antrean Mendesak SLA --}}
-            <div class="col-xl-8">
+            <div class="col-xl-12">
                 <div class="card card-flush shadow-sm h-100">
                     <div class="card-header pt-6 pb-4 border-0">
                         <div class="card-title d-flex flex-column">
                             <div class="d-flex align-items-center gap-2">
-                                <span
-                                    class="symbol symbol-30px rounded-circle bg-light-warning d-flex align-items-center justify-content-center">
-                                    <i class="fa-duotone fa-triangle-exclamation text-warning fs-5"></i>
-                                </span>
-                                <h3 class="fw-bold text-gray-900 fs-5 mb-0">Antrean Mendesak (Batas Waktu SLA)</h3>
+                                <h3 class="fw-bold text-gray-900 fs-5 mb-0">Permohonan Baru</h3>
                             </div>
-                            <span class="text-muted fs-8 mt-1">Daftar permohonan yang memerlukan tindak lanjut verifikator
-                                sebelum tenggat waktu</span>
                         </div>
                         <div class="card-toolbar">
                             <a href="{{ url('/permohonan/layanan') }}" class="btn btn-sm btn-light-primary fw-semibold">
-                                Lihat Semua Antrean <i class="fa-solid fa-arrow-right ms-1"></i>
+                                Lihat Semua Permohonan <i class="fa-solid fa-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>
@@ -224,10 +272,9 @@
                                 <thead>
                                     <tr class="fs-8 fw-bolder text-muted text-uppercase bg-light rounded-2">
                                         <th class="ps-3 min-w-120px py-3">No. Permohonan</th>
-                                        <th class="min-w-150px py-3">Pemohon / Perusahaan</th>
+                                        <th class="min-w-150px py-3">Pemohon</th>
                                         <th class="min-w-130px py-3">Layanan</th>
                                         <th class="min-w-140px py-3">Status Workflow</th>
-                                        <th class="min-w-100px py-3">Batas Waktu</th>
                                         <th class="text-end pe-3 min-w-80px py-3">Aksi</th>
                                     </tr>
                                 </thead>
@@ -256,11 +303,6 @@
                                                     {{ $item['status'] }}
                                                 </span>
                                             </td>
-                                            <td>
-                                                <span class="badge badge-light-{{ $item['deadline_badge'] }} fw-bold fs-8">
-                                                    <i class="fa-regular fa-clock me-1"></i>{{ $item['deadline'] }}
-                                                </span>
-                                            </td>
                                             <td class="text-end pe-3">
                                                 <a href="{{ $item['detail_url'] }}"
                                                     class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
@@ -271,12 +313,11 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center py-8 text-muted">
+                                            <td colspan="5" class="text-center py-8 text-muted">
                                                 <div class="d-flex flex-column align-items-center">
                                                     <i class="fa-duotone fa-check-double fs-2tx text-success mb-2"></i>
                                                     <span class="fw-semibold fs-6">Semua Antrean Telah Diproses</span>
-                                                    <span class="fs-8 text-muted">Tidak ada permohonan yang mendesak atau
-                                                        melewati batas SLA.</span>
+                                                    <span class="fs-8 text-muted">Tidak ada permohonan baru dalam antrean.</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -288,107 +329,7 @@
                 </div>
             </div>
 
-            {{-- Right: Status Summary & PNBP Realization --}}
-            <div class="col-xl-4">
-                <div class="d-flex flex-column gap-6">
-
-                    {{-- PNBP Card --}}
-                    <div class="card card-flush shadow-sm">
-                        <div class="card-header pt-5 pb-3 border-0">
-                            <div class="card-title">
-                                <span
-                                    class="symbol symbol-30px rounded-circle bg-light-success me-2 d-flex align-items-center justify-content-center">
-                                    <i class="fa-duotone fa-wallet text-success fs-5"></i>
-                                </span>
-                                <h3 class="fw-bold text-gray-900 fs-6 mb-0">Realisasi PNBP Balai</h3>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="d-flex align-items-baseline justify-content-between mb-2">
-                                <span class="fs-2x fw-bolder text-gray-900">
-                                    Rp {{ number_format($pnbp['realisasi'] ?? 0, 0, ',', '.') }}
-                                </span>
-                                <span class="badge badge-light-success fw-bold">{{ $pnbp['persentase'] ?? 82 }}%
-                                    Target</span>
-                            </div>
-                            <div class="progress h-8px bg-light-success mb-4 rounded-pill">
-                                <div class="progress-bar bg-success rounded-pill" role="progressbar"
-                                    style="width: {{ $pnbp['persentase'] ?? 82 }}%"
-                                    aria-valuenow="{{ $pnbp['persentase'] ?? 82 }}" aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between fs-8 text-muted">
-                                <span>Target Bulanan:</span>
-                                <span class="fw-semibold text-gray-700">Rp
-                                    {{ number_format($pnbp['target'] ?? 180000000, 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Status Workflow Distribution Card --}}
-                    <div class="card card-flush shadow-sm">
-                        <div class="card-header pt-5 pb-3 border-0">
-                            <div class="card-title">
-                                <span
-                                    class="symbol symbol-30px rounded-circle bg-light-primary me-2 d-flex align-items-center justify-content-center">
-                                    <i class="fa-duotone fa-chart-pie-simple text-primary fs-5"></i>
-                                </span>
-                                <h3 class="fw-bold text-gray-900 fs-6 mb-0">Distribusi Status Antrean</h3>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="d-flex flex-column gap-3">
-                                <div
-                                    class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light-warning">
-                                    <span class="fs-8 fw-semibold text-warning-darker"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-warning"></i>Permohonan Baru</span>
-                                    <span
-                                        class="badge bg-warning text-white fw-bold">{{ $statusCounts['permohonan'] ?? 0 }}</span>
-                                </div>
-                                <div
-                                    class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light-primary">
-                                    <span class="fs-8 fw-semibold text-primary"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-primary"></i>Verifikasi Berkas
-                                        APL</span>
-                                    <span
-                                        class="badge bg-primary text-white fw-bold">{{ $statusCounts['in_review'] ?? 0 }}</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light-info">
-                                    <span class="fs-8 fw-semibold text-info"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-info"></i>Menunggu
-                                        Pembayaran</span>
-                                    <span
-                                        class="badge bg-info text-white fw-bold">{{ $statusCounts['pembayaran'] ?? 0 }}</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
-                                    <span class="fs-8 fw-semibold text-gray-700"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-gray-500"></i>Sedang Pengujian /
-                                        Audit</span>
-                                    <span
-                                        class="badge bg-secondary text-gray-800 fw-bold">{{ $statusCounts['process'] ?? 0 }}</span>
-                                </div>
-                                <div
-                                    class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light-danger">
-                                    <span class="fs-8 fw-semibold text-danger"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-danger"></i>Perlu Revisi
-                                        Dokumen</span>
-                                    <span
-                                        class="badge bg-danger text-white fw-bold">{{ $statusCounts['revisi'] ?? 0 }}</span>
-                                </div>
-                                <div
-                                    class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light-success">
-                                    <span class="fs-8 fw-semibold text-success"><i
-                                            class="fa-solid fa-circle-dot fs-9 me-2 text-success"></i>Selesai / Terbit
-                                        Sertifikat</span>
-                                    <span
-                                        class="badge bg-success text-white fw-bold">{{ $statusCounts['selesai'] ?? 0 }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            
         </div>
 
         {{-- ======================================================== --}}

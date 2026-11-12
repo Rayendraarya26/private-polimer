@@ -26,10 +26,15 @@ class DashboardController
         $totalMasukBulanLalu = Permohonan::whereMonth('created_at', $prevMonth->month)
             ->whereYear('created_at', $prevMonth->year)
             ->count();
+        $totalMasukTahunIni = Permohonan::whereYear('created_at', $currentYear)->count();
         $totalAll = Permohonan::count();
 
         if ($totalMasukBulanIni === 0) {
             $totalMasukBulanIni = $totalAll;
+        }
+
+        if ($totalMasukTahunIni === 0) {
+            $totalMasukTahunIni = $totalAll;
         }
 
         $trendGrowth = '+14%';
@@ -132,14 +137,29 @@ class DashboardController
             ];
         });
 
-        // 3. PNBP Realization Data
-        $realisasiTotal = (float) DetailPembayaran::whereHas('permohonan', function ($q) {
-            $q->where('status_bayar', 'LUNAS');
-        })->sum('subtotal');
+        // 3. Statistik Realisasi PNBP (Lunas) & Piutang (Belum Lunas)
+        $permohonanLunas = Permohonan::with(['detailPembayaran', 'billing'])
+            ->where('status_bayar', 'LUNAS')
+            ->whereNotIn('status_workflow', ['BATAL', 'DITOLAK', 'ditolak', 'batal', 'rejected'])
+            ->get();
 
-        if ($realisasiTotal == 0) {
-            $realisasiTotal = (float) DetailPembayaran::sum('subtotal') ?: 148650000;
-        }
+        $realisasiTotal = (float) $permohonanLunas->sum(function ($p) {
+            return (float) ($p->detailPembayaran->sum('subtotal') ?: ($p->billing?->total_nominal ?? $p->harga_permohonan ?? 0));
+        });
+        $realisasiCount = $permohonanLunas->count();
+
+        $permohonanBelumLunas = Permohonan::with(['detailPembayaran', 'billing'])
+            ->where(function ($q) {
+                $q->whereNull('status_bayar')
+                  ->orWhere('status_bayar', '!=', 'LUNAS');
+            })
+            ->whereNotIn('status_workflow', ['BATAL', 'DITOLAK', 'ditolak', 'batal', 'rejected'])
+            ->get();
+
+        $piutangTotal = (float) $permohonanBelumLunas->sum(function ($p) {
+            return (float) ($p->detailPembayaran->sum('subtotal') ?: ($p->billing?->total_nominal ?? $p->harga_permohonan ?? 0));
+        });
+        $piutangCount = $permohonanBelumLunas->count();
 
         $targetBulanan = 180000000;
         $persentaseCapaian = min(100, round(($realisasiTotal / $targetBulanan) * 100));
@@ -169,6 +189,7 @@ class DashboardController
             'primaryRole'        => $primaryRole,
             'kpi'                => [
                 'total_masuk'        => $totalMasukBulanIni,
+                'total_tahun_ini'    => $totalMasukTahunIni,
                 'total_all'          => $totalAll,
                 'growth'             => $trendGrowth,
                 'menunggu_verifikasi'=> $menungguVerifikasi,
@@ -176,10 +197,17 @@ class DashboardController
                 'siap_terbit'        => $siapTerbit,
                 'menunggu_bayar'     => $menungguBayar,
                 'revisi'             => $permohonanRevisi,
+                'realisasi_pnbp'     => $realisasiTotal,
+                'realisasi_count'    => $realisasiCount,
+                'piutang_pnbp'       => $piutangTotal,
+                'piutang_count'      => $piutangCount,
             ],
             'urgentList'         => $urgentList,
             'pnbp'               => [
                 'realisasi'          => $realisasiTotal,
+                'realisasi_count'    => $realisasiCount,
+                'piutang'            => $piutangTotal,
+                'piutang_count'      => $piutangCount,
                 'target'             => $targetBulanan,
                 'persentase'         => $persentaseCapaian,
             ],

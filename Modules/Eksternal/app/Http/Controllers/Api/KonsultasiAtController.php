@@ -248,4 +248,359 @@ class KonsultasiAtController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Menampilkan detail permohonan Konsultasi dan Audit Teknologi.
+     */
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $form = FormKonsultasiAt::with([
+                'permohonan',
+                'permohonan.creator',
+                'permohonan.penawaranBiaya',
+                'permohonan.trackingLogs',
+                'master',
+                'dokumen',
+            ])
+                ->where('id', $id)
+                ->orWhere('permohonan_id', $id)
+                ->first();
+
+            if (!$form) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Data permohonan konsultasi dan audit teknologi tidak ditemukan.',
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $form,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat detail permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Memperbarui permohonan Konsultasi dan Audit Teknologi (Draft / Revisi / Permohonan).
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $formById = FormKonsultasiAt::where('id', $id)->first();
+            $permohonan = $formById ? Permohonan::find($formById->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Permohonan konsultasi dan audit teknologi tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki hak akses untuk mengubah permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['DRAFT', 'REVISI', 'PERMOHONAN'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Permohonan dengan status {$permohonan->status_workflow} tidak dapat diubah.",
+            ], 400);
+        }
+
+        $form = FormKonsultasiAt::where('permohonan_id', $permohonan->id)->first();
+        if (!$form) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Form konsultasi dan audit teknologi tidak ditemukan.',
+            ], 404);
+        }
+
+        $isDraft = $request->boolean('is_draft') || $request->input('aksi') === 'draft';
+        $isAjukan = !$isDraft;
+
+        $request->validate([
+            'layanan_kode' => 'required|string|exists:master_konsultasi_at,kode',
+            'layanan_lainnya' => 'nullable|required_if:layanan_kode,lainnya|string|max:255',
+            'catatan_dokumen' => 'nullable|string',
+            'dokumen' => 'nullable|array',
+            'dokumen.*' => 'file|max:51200',
+            'deleted_dokumen_ids' => 'nullable|array',
+            'deleted_dokumen_ids.*' => 'string',
+        ], [
+            'layanan_kode.required' => 'Layanan wajib dipilih.',
+            'layanan_kode.exists' => 'Layanan yang dipilih tidak valid.',
+            'layanan_lainnya.required_if' => 'Sebutkan layanan lainnya yang Anda perlukan.',
+            'dokumen.*.max' => 'Ukuran setiap berkas maksimal 50 MB.',
+        ]);
+
+        $master = MasterKonsultasiAt::active()->where('kode', $request->input('layanan_kode'))->first();
+        if (!$master) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Layanan yang dipilih tidak aktif.',
+                'errors' => ['layanan_kode' => ['Layanan yang dipilih tidak aktif.']],
+            ], 422);
+        }
+
+        $profil = $this->resolveProfilPemohon($currentUser);
+        if ($isAjukan && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            $kosong = array_keys(array_filter(
+                ['nama' => $profil['nama_pemohon'], 'no. telepon/WhatsApp' => $profil['no_telp'], 'alamat' => $profil['alamat_pemohon']],
+                fn ($v) => blank($v)
+            ));
+            if (!empty($kosong)) {
+                $pesan = 'Profil Anda belum lengkap (' . implode(', ', $kosong) . '). Lengkapi profil terlebih dahulu sebelum mengajukan permohonan.';
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $pesan,
+                    'errors' => ['profil' => [$pesan]],
+                ], 422);
+            }
+        }
+
+        $deletedIds = array_values(array_filter((array) $request->input('deleted_dokumen_ids', [])));
+        $existingRemainingCount = FormKonsultasiAtDokumen::where('form_konsultasi_at_id', $form->id)
+            ->when(!empty($deletedIds), fn ($q) => $q->whereNotIn('id', $deletedIds))
+            ->count();
+        $newFiles = $request->file('dokumen', []);
+        $newFilesCount = is_array($newFiles) ? count($newFiles) : 0;
+
+        if ($isAjukan && ($existingRemainingCount + $newFilesCount) < 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unggah minimal satu berkas permohonan.',
+                'errors' => ['dokumen' => ['Unggah minimal satu berkas permohonan.']],
+            ], 422);
+        }
+
+        $isLainnya = $master->kode === 'lainnya';
+        $storedPaths = [];
+        $pathsToDelete = [];
+
+        DB::beginTransaction();
+        try {
+            $form->update([
+                'master_konsultasi_at_id' => $master->id,
+                'nama_pemohon' => $profil['nama_pemohon'] ?: $form->nama_pemohon,
+                'no_telp' => $profil['no_telp'] ?: $form->no_telp,
+                'email_pemohon' => $profil['email_pemohon'] ?: $form->email_pemohon,
+                'alamat_pemohon' => $profil['alamat_pemohon'] ?: $form->alamat_pemohon,
+                'layanan_kode' => $master->kode,
+                'layanan_nama' => $master->nama,
+                'layanan_lainnya' => $isLainnya ? $request->input('layanan_lainnya') : null,
+                'catatan_dokumen' => $request->input('catatan_dokumen'),
+                'status_layanan' => $isAjukan ? 'pengajuan' : 'draft',
+            ]);
+
+            if (!empty($deletedIds)) {
+                $docsToDelete = FormKonsultasiAtDokumen::where('form_konsultasi_at_id', $form->id)
+                    ->whereIn('id', $deletedIds)
+                    ->get();
+
+                foreach ($docsToDelete as $doc) {
+                    if ($doc->file_path) {
+                        $pathsToDelete[] = $doc->file_path;
+                    }
+                    $doc->delete();
+                }
+            }
+
+            $dir = 'konsultasi_at/' . now()->format('Y/m');
+            foreach ($newFiles as $file) {
+                $ext = strtolower($file->getClientOriginalExtension());
+                $path = $file->storeAs($dir, (string) Str::uuid() . ($ext ? ".{$ext}" : ''), self::DISK);
+                $storedPaths[] = $path;
+
+                FormKonsultasiAtDokumen::create([
+                    'id' => (string) Str::uuid(),
+                    'form_konsultasi_at_id' => $form->id,
+                    'nama_file_asli' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_extension' => $ext,
+                    'file_mime_type' => $file->getClientMimeType() ?: 'application/octet-stream',
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+
+            if ($isAjukan && in_array($permohonan->status_workflow, ['DRAFT', 'REVISI'])) {
+                $wasRevisi = $permohonan->status_workflow === 'REVISI';
+                $permohonan->status_workflow = 'PERMOHONAN';
+                $permohonan->tgl_order = $permohonan->tgl_order ?? now();
+
+                PermohonanTrackingLog::create([
+                    'id' => (string) Str::uuid(),
+                    'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
+                    'milestone_code' => $wasRevisi ? 'PERMOHONAN_DIAJUKAN_ULANG' : 'PERMOHONAN_MASUK',
+                    'judul' => $wasRevisi ? 'Permohonan Konsultasi dan Audit Teknologi Diajukan Ulang' : 'Permohonan Konsultasi dan Audit Teknologi Diajukan',
+                    'deskripsi' => 'Permohonan #' . $permohonan->no_permohonan . ' (' . $master->nama . ') berhasil diajukan dan menunggu verifikasi petugas.',
+                ]);
+            }
+
+            $permohonan->save();
+            DB::commit();
+
+            if (!empty($pathsToDelete)) {
+                try {
+                    Storage::disk(self::DISK)->delete($pathsToDelete);
+                } catch (\Throwable $th) {
+                    Log::warning('Gagal menghapus berkas lama konsultasi AT: ' . $th->getMessage());
+                }
+            }
+
+            if ($isAjukan) {
+                try {
+                    NotifHelper::notifyMany(
+                        NotifHelper::getAdminUserIds(),
+                        'Permohonan Konsultasi dan Audit Teknologi Baru',
+                        'Permohonan #' . $permohonan->no_permohonan . ': ' . $master->nama,
+                        '/admin/permohonan'
+                    );
+                } catch (\Throwable $th) {
+                    Log::warning('Gagal kirim notif internal konsultasi AT update: ' . $th->getMessage());
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => $isAjukan
+                    ? 'Permohonan konsultasi dan audit teknologi #' . $permohonan->no_permohonan . ' berhasil diajukan!'
+                    : 'Perubahan draft permohonan #' . $permohonan->no_permohonan . ' berhasil disimpan!',
+                'data' => [
+                    'id' => $permohonan->id,
+                    'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
+                    'form_konsultasi_at_id' => $form->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            if (!empty($storedPaths)) {
+                Storage::disk(self::DISK)->delete($storedPaths);
+            }
+            Log::error('KonsultasiAtController::update Error: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui permohonan konsultasi dan audit teknologi: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengajukan ulang permohonan Konsultasi dan Audit Teknologi (REVISI / DRAFT -> PERMOHONAN).
+     */
+    public function ajukanUlang(Request $request, string $id): JsonResponse
+    {
+        if ($request->has('layanan_kode')) {
+            $request->merge(['aksi' => 'ajukan', 'is_draft' => false]);
+            return $this->update($request, $id);
+        }
+
+        $permohonan = Permohonan::where('id', $id)
+            ->orWhere('no_permohonan', $id)
+            ->first();
+
+        if (!$permohonan) {
+            $formById = FormKonsultasiAt::where('id', $id)->first();
+            $permohonan = $formById ? Permohonan::find($formById->permohonan_id) : null;
+        }
+
+        if (!$permohonan) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Permohonan konsultasi dan audit teknologi tidak ditemukan.',
+            ], 404);
+        }
+
+        $userId = auth()->id();
+        $currentUser = auth()->user();
+
+        if ($permohonan->created_by !== $userId && (!$currentUser || !method_exists($currentUser, 'isPegawai') || !$currentUser->isPegawai())) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki hak akses untuk mengajukan permohonan ini.',
+            ], 403);
+        }
+
+        if (!in_array($permohonan->status_workflow, ['REVISI', 'DRAFT'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya permohonan dengan status REVISI atau DRAFT yang dapat diajukan ulang.',
+            ], 400);
+        }
+
+        $form = FormKonsultasiAt::where('permohonan_id', $permohonan->id)->first();
+        $docCount = $form ? FormKonsultasiAtDokumen::where('form_konsultasi_at_id', $form->id)->count() : 0;
+        if ($docCount < 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unggah minimal satu berkas permohonan sebelum mengajukan.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $permohonan->update([
+                'status_workflow' => 'PERMOHONAN',
+                'tgl_order' => $permohonan->tgl_order ?? now(),
+            ]);
+
+            if ($form) {
+                $form->update(['status_layanan' => 'pengajuan']);
+            }
+
+            PermohonanTrackingLog::create([
+                'id' => (string) Str::uuid(),
+                'permohonan_id' => $permohonan->id,
+                'sumber' => 'POLIMER',
+                'milestone_code' => 'PERMOHONAN_DIAJUKAN_ULANG',
+                'judul' => 'Permohonan Konsultasi dan Audit Teknologi Diajukan Ulang',
+                'deskripsi' => 'Pemohon telah mengajukan kembali permohonan #' . $permohonan->no_permohonan . ' untuk diverifikasi.',
+            ]);
+
+            DB::commit();
+
+            try {
+                NotifHelper::notifyMany(
+                    NotifHelper::getAdminUserIds(),
+                    'Permohonan Konsultasi dan Audit Teknologi Diajukan Ulang',
+                    'Permohonan #' . $permohonan->no_permohonan . ' telah diajukan ulang oleh pemohon.',
+                    '/admin/permohonan'
+                );
+            } catch (\Throwable $th) {
+                Log::warning('Gagal kirim notif ajukanUlang konsultasi AT: ' . $th->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Permohonan berhasil diajukan ulang.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengajukan ulang permohonan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

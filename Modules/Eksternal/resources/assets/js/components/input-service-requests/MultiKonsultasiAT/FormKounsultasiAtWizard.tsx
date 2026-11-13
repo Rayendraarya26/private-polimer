@@ -140,7 +140,8 @@ export const FormKonsultasiAtWizard: React.FC = () => {
             draftClearedRef.current = true
             await clearDraft()
             toast.success(res?.message || "Draft permohonan berhasil disimpan di database.")
-            navigate("/permohonan")
+            const createdId = res?.data?.id
+            navigate(createdId ? `/permohonan/detail/${createdId}` : "/permohonan")
         } catch (err: any) {
             const errors = err?.response?.data?.errors
             const firstError = errors ? (Object.values(errors)[0] as string[])?.[0] : null
@@ -200,7 +201,8 @@ export const FormKonsultasiAtWizard: React.FC = () => {
             draftClearedRef.current = true
             await clearDraft()
             toast.success(res?.message || "Permohonan Konsultasi & Audit Teknologi berhasil dikirim!")
-            navigate("/permohonan")
+            const createdId = res?.data?.id
+            navigate(createdId ? `/permohonan/detail/${createdId}` : "/permohonan")
         } catch (err: any) {
             const errors = err?.response?.data?.errors
             const firstError = errors ? (Object.values(errors)[0] as string[])?.[0] : null

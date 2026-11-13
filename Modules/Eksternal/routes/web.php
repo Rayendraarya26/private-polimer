@@ -254,6 +254,10 @@ Route::middleware([CustomAuthMiddleware::class, SentryContext::class, XMLHttpReq
         Route::prefix('konsultasi-at')->group(function () {
             Route::get('/master', [KonsultasiAtController::class, 'getMaster']);
             Route::post('/', [KonsultasiAtController::class, 'store']);
+            Route::get('/{id}', [KonsultasiAtController::class, 'show']);
+            Route::put('/{id}', [KonsultasiAtController::class, 'update']);
+            Route::post('/{id}', [KonsultasiAtController::class, 'update']);
+            Route::post('/{id}/ajukan-ulang', [KonsultasiAtController::class, 'ajukanUlang']);
         });
 
         Route::prefix('pup')->group(function () {

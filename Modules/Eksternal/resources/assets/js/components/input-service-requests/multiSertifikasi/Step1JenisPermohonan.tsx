@@ -18,8 +18,9 @@ import {
 interface Props {
   formData: SertifikasiFormData
   setFormData: React.Dispatch<React.SetStateAction<SertifikasiFormData>>
-  onNext: () => void
+  onNext?: () => void
   onBack?: () => void
+  hideActions?: boolean
 }
 
 export interface SertifikatRiwayatOption {
@@ -54,7 +55,7 @@ export interface SertifikatRiwayatOption {
   pabrik?: any[]
 }
 
-export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, onNext, onBack }) => {
+export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, onNext, onBack, hideActions = false }) => {
   const [riwayatSertifikat, setRiwayatSertifikat] = useState<SertifikatRiwayatOption[]>([])
   const [isLoadingRiwayat, setIsLoadingRiwayat] = useState(false)
 
@@ -402,13 +403,15 @@ export const Step1JenisPermohonan: React.FC<Props> = ({ formData, setFormData, o
       </StepPanel>
 
       {/* Navigation */}
-      <FormWizardActions
-        canGoBack={!!onBack}
-        onBack={onBack}
-        onNext={onNext}
-        backLabel="Kembali"
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={!!onBack}
+          onBack={onBack}
+          onNext={onNext}
+          backLabel="Kembali"
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

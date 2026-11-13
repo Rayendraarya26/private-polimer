@@ -33,8 +33,9 @@ interface Props {
   formData: SertifikasiFormData
   setFormData: React.Dispatch<React.SetStateAction<SertifikasiFormData>>
   skemaList?: any[]
-  onNext: () => void
-  onBack: () => void
+  onNext?: () => void
+  onBack?: () => void
+  hideActions?: boolean
 }
 
 interface KomoditiMasterItem {
@@ -49,6 +50,7 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
   setFormData,
   onNext,
   onBack,
+  hideActions = false,
 }) => {
   const [activePengajuanIdx, setActivePengajuanIdx] = useState<number>(0)
   const { data: kategoriList = [] } = useKategoriSertifikatQuery()
@@ -1017,13 +1019,15 @@ export const Step2KategoriDanKomoditi: React.FC<Props> = ({
       </StepPanel>
 
       {/* Navigasi Lanjut & Kembali */}
-      <FormWizardActions
-        canGoBack={true}
-        onBack={onBack}
-        onNext={onNext}
-        backLabel="Sebelumnya"
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={true}
+          onBack={onBack}
+          onNext={onNext}
+          backLabel="Sebelumnya"
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

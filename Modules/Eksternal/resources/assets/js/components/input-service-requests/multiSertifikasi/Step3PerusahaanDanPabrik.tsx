@@ -39,8 +39,9 @@ interface Props {
   setFormData: React.Dispatch<React.SetStateAction<SertifikasiFormData>>
   provinces?: any[]
   regencies?: any[]
-  onNext: () => void
-  onBack: () => void
+  onNext?: () => void
+  onBack?: () => void
+  hideActions?: boolean
 }
 
 const DAFTAR_NEGARA = [
@@ -392,6 +393,7 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
   setFormData,
   onNext,
   onBack,
+  hideActions = false,
 }) => {
   const { profile: queryProfile } = useProfileQuery()
   const { profile: reduxProfile } = useProfile()
@@ -1361,13 +1363,15 @@ export const Step3PerusahaanDanPabrik: React.FC<Props> = ({
       </StepPanel>
 
       {/* Navigasi Lanjut & Kembali */}
-      <FormWizardActions
-        canGoBack={true}
-        onBack={onBack}
-        onNext={onNext}
-        backLabel="Sebelumnya"
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={true}
+          onBack={onBack}
+          onNext={onNext}
+          backLabel="Sebelumnya"
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

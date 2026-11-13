@@ -315,9 +315,9 @@
                                         <tr>
                                             <td colspan="5" class="text-center py-8 text-muted">
                                                 <div class="d-flex flex-column align-items-center">
-                                                    <i class="fa-duotone fa-check-double fs-2tx text-success mb-2"></i>
-                                                    <span class="fw-semibold fs-6">Semua Antrean Telah Diproses</span>
-                                                    <span class="fs-8 text-muted">Tidak ada permohonan baru dalam antrean.</span>
+                                                    <i class="fa-duotone fa-inbox fs-2tx text-gray-400 mb-2"></i>
+                                                    <span class="fw-semibold fs-6 text-gray-700">Belum Ada Permohonan Baru</span>
+                                                    <span class="fs-8 text-muted">Saat ini belum ada permohonan layanan baru yang masuk.</span>
                                                 </div>
                                             </td>
                                         </tr>

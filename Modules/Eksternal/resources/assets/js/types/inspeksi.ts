@@ -54,6 +54,8 @@ export interface InspeksiFormData {
   dataPic: InspeksiDataPic
   file_surat_permohonan: File | null
   setuju_pernyataan: boolean
+  aksi?: "draft" | "ajukan"
+  is_draft?: boolean
 }
 
 export const getTodayDateString = (): string => {

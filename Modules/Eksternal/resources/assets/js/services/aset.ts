@@ -16,13 +16,20 @@ export const getJenisSewaAset = async (): Promise<JenisSewaOption[]> => {
 export const submitPermohonanAset = async (form: FormAsetPayload): Promise<any> => {
   const formData = new FormData()
 
-  formData.append('jenis_sewa', form.jenis_sewa)
-  formData.append('tanggal_mulai', form.tanggal_mulai)
-  formData.append('tanggal_selesai', form.tanggal_selesai)
-  if (form.durasi_hari) {
+  if (form.aksi) {
+    formData.append('aksi', form.aksi)
+  }
+  if (form.is_draft !== undefined) {
+    formData.append('is_draft', form.is_draft ? '1' : '0')
+  }
+
+  if (form.jenis_sewa !== undefined && form.jenis_sewa !== null) formData.append('jenis_sewa', form.jenis_sewa)
+  if (form.tanggal_mulai !== undefined && form.tanggal_mulai !== null) formData.append('tanggal_mulai', form.tanggal_mulai)
+  if (form.tanggal_selesai !== undefined && form.tanggal_selesai !== null) formData.append('tanggal_selesai', form.tanggal_selesai)
+  if (form.durasi_hari !== undefined && form.durasi_hari !== null) {
     formData.append('durasi_hari', String(form.durasi_hari))
   }
-  formData.append('keperluan_penggunaan', form.keperluan_penggunaan)
+  if (form.keperluan_penggunaan !== undefined && form.keperluan_penggunaan !== null) formData.append('keperluan_penggunaan', form.keperluan_penggunaan)
   if (form.catatan_tambahan) {
     formData.append('catatan_tambahan', form.catatan_tambahan)
   }
@@ -33,7 +40,9 @@ export const submitPermohonanAset = async (form: FormAsetPayload): Promise<any> 
   if (form.pemohon_telepon) formData.append('pemohon_telepon', form.pemohon_telepon)
   if (form.pemohon_email) formData.append('pemohon_email', form.pemohon_email)
 
-  formData.append('setuju_pernyataan', form.setuju_pernyataan ? '1' : '0')
+  if (form.setuju_pernyataan !== undefined) {
+    formData.append('setuju_pernyataan', form.setuju_pernyataan ? '1' : '0')
+  }
 
   if (form.file_surat_permohonan) {
     formData.append('file_surat_permohonan', form.file_surat_permohonan)

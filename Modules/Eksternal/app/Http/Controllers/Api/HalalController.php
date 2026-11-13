@@ -86,51 +86,54 @@ class HalalController extends Controller
             'dataProduk' => $dataProduk,
         ]);
 
+        $isDraft = (bool) ($request->input('is_draft') ?? $request->input('isDraft', false)) || ($request->input('aksi') === 'draft');
+        $isAjukan = !$isDraft;
+
         $request->validate([
             // 1. Data Pengajuan
             'dataPengajuan' => 'required|array',
-            'dataPengajuan.jalur_pendaftaran' => 'required|in:reguler,self_declare',
-            'dataPengajuan.jenis_pendaftaran' => 'required|in:baru,pengembangan',
+            'dataPengajuan.jalur_pendaftaran' => $isAjukan ? 'required|in:reguler,self_declare' : 'nullable|in:reguler,self_declare',
+            'dataPengajuan.jenis_pendaftaran' => $isAjukan ? 'required|in:baru,pengembangan' : 'nullable|in:baru,pengembangan',
             'dataPengajuan.kode_fasilitasi' => 'nullable|string|max:100',
 
             // 2. Data Pelaku Usaha
             'dataPelakuUsaha' => 'required|array',
-            'dataPelakuUsaha.nama_usaha' => 'required|string|max:255',
-            'dataPelakuUsaha.skala_usaha' => 'required|in:mikro,kecil,menengah,besar,luar_negeri',
-            'dataPelakuUsaha.nib' => 'required|string|max:50',
+            'dataPelakuUsaha.nama_usaha' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataPelakuUsaha.skala_usaha' => $isAjukan ? 'required|in:mikro,kecil,menengah,besar,luar_negeri' : 'nullable|string|max:50',
+            'dataPelakuUsaha.nib' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
             'dataPelakuUsaha.npwp' => 'nullable|string|max:50',
-            'dataPelakuUsaha.pj_nama' => 'required|string|max:255',
-            'dataPelakuUsaha.pj_kontak' => 'required|string|max:50',
+            'dataPelakuUsaha.pj_nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataPelakuUsaha.pj_kontak' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
             'dataPelakuUsaha.pj_email' => 'nullable|email|max:255',
             'dataPelakuUsaha.pj_alamat' => 'nullable|string',
 
             // 3. Data Fasilitas Pabrik & Outlet
-            'dataFasilitas' => 'required|array',
-            'dataFasilitas.pabrik' => 'required|array|min:1',
-            'dataFasilitas.pabrik.*.nama' => 'required|string|max:255',
-            'dataFasilitas.pabrik.*.alamat' => 'required|string',
+            'dataFasilitas' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataFasilitas.pabrik' => $isAjukan ? 'required|array|min:1' : 'nullable|array',
+            'dataFasilitas.pabrik.*.nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataFasilitas.pabrik.*.alamat' => $isAjukan ? 'required|string' : 'nullable|string',
             'dataFasilitas.pabrik.*.status_pabrik' => 'nullable|string',
             'dataFasilitas.outlet' => 'nullable|array',
 
             // 4. Data Penyelia Halal
-            'dataPenyelia' => 'required|array',
-            'dataPenyelia.penyelia_nama' => 'required|string|max:255',
-            'dataPenyelia.penyelia_nik' => 'required|string|max:50',
-            'dataPenyelia.penyelia_agama' => 'required|string|max:50',
-            'dataPenyelia.penyelia_kontak' => 'required|string|max:50',
+            'dataPenyelia' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataPenyelia.penyelia_nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataPenyelia.penyelia_nik' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
+            'dataPenyelia.penyelia_agama' => 'nullable|string|max:50',
+            'dataPenyelia.penyelia_kontak' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
             'dataPenyelia.penyelia_no_sk' => 'nullable|string|max:100',
             'dataPenyelia.penyelia_tgl_sk' => 'nullable|date',
             'dataPenyelia.penyelia_no_sertifikat' => 'nullable|string|max:100',
             'dataPenyelia.penyelia_tgl_sertifikat' => 'nullable|date',
 
             // 5. Data Bahan
-            'dataBahan' => 'required|array|min:1',
-            'dataBahan.*.nama_bahan' => 'required|string|max:255',
-            'dataBahan.*.jenis_bahan' => 'required|string',
+            'dataBahan' => $isAjukan ? 'required|array|min:1' : 'nullable|array',
+            'dataBahan.*.nama_bahan' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataBahan.*.jenis_bahan' => $isAjukan ? 'required|string' : 'nullable|string',
 
             // 6. Data Produk
-            'dataProduk' => 'required|array|min:1',
-            'dataProduk.*.nama_produk' => 'required|string|max:255',
+            'dataProduk' => $isAjukan ? 'required|array|min:1' : 'nullable|array',
+            'dataProduk.*.nama_produk' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
             'dataProduk.*.klasifikasi' => 'nullable|string',
 
             // Berkas Upload
@@ -143,8 +146,8 @@ class HalalController extends Controller
             'file_manual_sjph' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
 
             // Pernyataan
-            'pernyataan_bebas_babi' => 'required|boolean|accepted',
-            'pernyataan_komitmen_sjph' => 'required|boolean|accepted',
+            'pernyataan_bebas_babi' => $isAjukan ? 'required|boolean|accepted' : 'nullable',
+            'pernyataan_komitmen_sjph' => $isAjukan ? 'required|boolean|accepted' : 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -194,15 +197,17 @@ class HalalController extends Controller
             $pathSuratPermohonan = $uploadFile('file_surat_permohonan', 'surat_halal');
             $pathManualSjph = $uploadFile('file_manual_sjph', 'manual_sjph');
 
+            $user = auth()->user();
+
             // 1. Simpan Header Permohonan
             $permohonan = Permohonan::create([
                 'id' => (string) Str::uuid(),
                 'id_pt_ins' => null,
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
-                'tgl_order' => now(),
+                'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
@@ -214,21 +219,21 @@ class HalalController extends Controller
                 'jalur_pendaftaran' => $dataPengajuan['jalur_pendaftaran'] ?? 'reguler',
                 'jenis_pendaftaran' => $dataPengajuan['jenis_pendaftaran'] ?? 'baru',
                 'kode_fasilitasi' => !empty($dataPengajuan['kode_fasilitasi']) ? $dataPengajuan['kode_fasilitasi'] : null,
-                'nama_usaha' => $dataPelakuUsaha['nama_usaha'],
+                'nama_usaha' => !empty($dataPelakuUsaha['nama_usaha']) ? $dataPelakuUsaha['nama_usaha'] : ($user?->pelanggan?->detail?->nama_perusahaan ?? $user?->name ?? 'Draft Usaha'),
                 'skala_usaha' => $dataPelakuUsaha['skala_usaha'] ?? 'mikro',
-                'nib' => $dataPelakuUsaha['nib'],
+                'nib' => !empty($dataPelakuUsaha['nib']) ? $dataPelakuUsaha['nib'] : ($user?->pelanggan?->detail?->nib ?? '-'),
                 'npwp' => !empty($dataPelakuUsaha['npwp']) ? $dataPelakuUsaha['npwp'] : null,
-                'pj_nama' => $dataPelakuUsaha['pj_nama'],
-                'pj_kontak' => $dataPelakuUsaha['pj_kontak'],
+                'pj_nama' => !empty($dataPelakuUsaha['pj_nama']) ? $dataPelakuUsaha['pj_nama'] : ($user?->name ?? 'Draft Pemohon'),
+                'pj_kontak' => !empty($dataPelakuUsaha['pj_kontak']) ? $dataPelakuUsaha['pj_kontak'] : ($user?->pelanggan?->detail?->no_hp ?? '-'),
                 'pj_email' => !empty($dataPelakuUsaha['pj_email']) ? $dataPelakuUsaha['pj_email'] : null,
                 'pj_alamat' => !empty($dataPelakuUsaha['pj_alamat']) ? $dataPelakuUsaha['pj_alamat'] : null,
                 'pabrik_json' => $dataFasilitas['pabrik'] ?? [],
                 'outlet_json' => $dataFasilitas['outlet'] ?? [],
                 'file_denah_lokasi' => $pathDenah,
-                'penyelia_nama' => $dataPenyelia['penyelia_nama'],
-                'penyelia_nik' => $dataPenyelia['penyelia_nik'],
+                'penyelia_nama' => !empty($dataPenyelia['penyelia_nama']) ? $dataPenyelia['penyelia_nama'] : ($user?->name ?? 'Draft Penyelia'),
+                'penyelia_nik' => !empty($dataPenyelia['penyelia_nik']) ? $dataPenyelia['penyelia_nik'] : '-',
                 'penyelia_agama' => $dataPenyelia['penyelia_agama'] ?? 'Islam',
-                'penyelia_kontak' => $dataPenyelia['penyelia_kontak'],
+                'penyelia_kontak' => !empty($dataPenyelia['penyelia_kontak']) ? $dataPenyelia['penyelia_kontak'] : '-',
                 'penyelia_no_sk' => !empty($dataPenyelia['penyelia_no_sk']) ? $dataPenyelia['penyelia_no_sk'] : null,
                 'penyelia_tgl_sk' => !empty($dataPenyelia['penyelia_tgl_sk']) ? $dataPenyelia['penyelia_tgl_sk'] : null,
                 'penyelia_no_sertifikat' => !empty($dataPenyelia['penyelia_no_sertifikat']) ? $dataPenyelia['penyelia_no_sertifikat'] : null,
@@ -242,9 +247,9 @@ class HalalController extends Controller
                 'file_alur_proses' => $pathAlurProses,
                 'file_surat_permohonan' => $pathSuratPermohonan,
                 'file_manual_sjph' => $pathManualSjph,
-                'pernyataan_bebas_babi' => true,
-                'pernyataan_komitmen_sjph' => true,
-                'pernyataan_at' => now(),
+                'pernyataan_bebas_babi' => $isAjukan ? true : (bool) ($request->input('pernyataan_bebas_babi') ?? false),
+                'pernyataan_komitmen_sjph' => $isAjukan ? true : (bool) ($request->input('pernyataan_komitmen_sjph') ?? false),
+                'pernyataan_at' => $isAjukan ? now() : null,
             ]);
 
             // 3. Hubungkan ke Master Lingkup Layanan
@@ -292,33 +297,38 @@ class HalalController extends Controller
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
                 'sumber' => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul' => 'Permohonan Sertifikasi Halal Diajukan',
-                'deskripsi' => 'Permohonan pemeriksaan halal LPH #' . $permohonan->no_permohonan . ' (' . ($isSelfDeclare ? 'Self Declare' : 'Reguler') . ') berhasil diajukan dan menunggu verifikasi petugas LPH.',
+                'milestone_code' => $isAjukan ? 'PERMOHONAN_MASUK' : 'PERMOHONAN_DRAFT',
+                'judul' => $isAjukan ? 'Permohonan Sertifikasi Halal Diajukan' : 'Draft Permohonan Sertifikasi Halal Disimpan',
+                'deskripsi' => $isAjukan
+                    ? 'Permohonan pemeriksaan halal LPH #' . $permohonan->no_permohonan . ' (' . ($isSelfDeclare ? 'Self Declare' : 'Reguler') . ') berhasil diajukan dan menunggu verifikasi petugas LPH.'
+                    : 'Permohonan pemeriksaan halal LPH #' . $permohonan->no_permohonan . ' disimpan sebagai draft oleh pemohon.',
             ]);
 
             DB::commit();
 
-            // 5. Kirim Notifikasi Internal Admin
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Permohonan Halal Baru',
-                    'Permohonan pemeriksaan halal #' . $permohonan->no_permohonan . ' dari ' . $dataPelakuUsaha['nama_usaha'],
-                    route('permohonan.layanan.detail', $permohonan->id)
-                );
-            } catch (\Exception $notifEx) {
-                Log::warning('Gagal kirim notifikasi admin Halal: ' . $notifEx->getMessage());
+            // 5. Kirim Notifikasi Internal Admin jika bukan draft
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Halal Baru',
+                        'Permohonan pemeriksaan halal #' . $permohonan->no_permohonan . ' dari ' . $formHalal->nama_usaha,
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin Halal: ' . $notifEx->getMessage());
+                }
             }
 
             return response()->json([
                 'success' => true,
                 'status' => 'success',
-                'message' => 'Permohonan sertifikasi halal berhasil diajukan!',
+                'message' => $isAjukan ? 'Permohonan sertifikasi halal berhasil diajukan!' : 'Draft permohonan sertifikasi halal berhasil disimpan!',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

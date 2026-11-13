@@ -98,6 +98,8 @@ export interface FormHalalPayload {
   file_manual_sjph: File | null
   pernyataan_bebas_babi: boolean
   pernyataan_komitmen_sjph: boolean
+  aksi?: "draft" | "ajukan"
+  is_draft?: boolean
 }
 
 export const initialFormHalalPayload: FormHalalPayload = {

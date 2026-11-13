@@ -12,6 +12,8 @@ export interface JenisSewaOption {
 }
 
 export interface FormAsetPayload {
+  aksi?: 'draft' | 'ajukan'
+  is_draft?: boolean
   jenis_sewa: string
   tanggal_mulai: string
   tanggal_selesai: string

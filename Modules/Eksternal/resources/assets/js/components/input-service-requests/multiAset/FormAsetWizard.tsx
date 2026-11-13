@@ -14,6 +14,8 @@ import { Modal } from '../../ui/Modal'
 import { useAset } from '../../../hooks/service-requests/useAset'
 import { useAsetDraft } from '../../../hooks/useAsetDraft'
 import { useProfileQuery } from '../../../hooks/queries/useProfileQuery'
+import { submitPermohonanAset } from '../../../services/aset'
+import { FormAsetPayload } from '../../../types/aset'
 import { Step1JenisDanPeriode } from './Step1JenisDanPeriode'
 import { Step2DataPemohon } from './Step2DataPemohon'
 import { Step3UnggahBerkasDanPernyataan } from './Step3UnggahBerkasDanPernyataan'
@@ -217,31 +219,39 @@ export const FormAsetWizard: React.FC = () => {
     toast.success('Draf permohonan sewa aset berhasil direset.')
   }
 
-  // Simpan Draf Manual
+  // Simpan Draf Manual ke Database
   const handleSaveDraftManual = async () => {
     setIsSavingDraft(true)
     try {
-      const ok = await saveManual({
-        jenisSewa,
-        tanggalMulai,
-        tanggalSelesai,
-        durasiHari,
-        keperluanPenggunaan,
-        catatanTambahan,
-        pemohonNama,
-        pemohonNikNib,
-        pemohonAlamat,
-        pemohonTelepon,
-        pemohonEmail,
-        fileSuratPermohonan,
-        setujuPernyataan,
-        currentStep,
-      })
-      if (ok) {
-        toast.success('Draf permohonan sewa aset berhasil disimpan ke browser!')
-      } else {
-        toast.error('Gagal menyimpan draf')
+      const payload: FormAsetPayload = {
+        aksi: 'draft',
+        is_draft: true,
+        jenis_sewa: jenisSewa,
+        tanggal_mulai: tanggalMulai,
+        tanggal_selesai: tanggalSelesai,
+        durasi_hari: durasiHari,
+        keperluan_penggunaan: keperluanPenggunaan,
+        catatan_tambahan: catatanTambahan,
+        pemohon_nama: pemohonNama,
+        pemohon_nik_nib: pemohonNikNib,
+        pemohon_alamat: pemohonAlamat,
+        pemohon_telepon: pemohonTelepon,
+        pemohon_email: pemohonEmail,
+        file_surat_permohonan: fileSuratPermohonan,
+        setuju_pernyataan: setujuPernyataan,
       }
+      const res = await submitPermohonanAset(payload)
+      draftClearedRef.current = true
+      await clearDraft()
+      toast.success('Draf permohonan sewa aset berhasil disimpan!')
+      const permohonanId = res?.data?.id || res?.data?.permohonan_id || res?.id
+      if (permohonanId) {
+        navigate(`/permohonan/detail/${permohonanId}`)
+      } else {
+        navigate('/permohonan')
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Gagal menyimpan draf')
     } finally {
       setIsSavingDraft(false)
     }
@@ -515,11 +525,12 @@ export const FormAsetWizard: React.FC = () => {
         backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
         onBack={handleBack}
         onNext={handleNext}
-        onSaveDraft={currentStep === STEPS.length - 1 ? handleSaveDraftManual : undefined}
+        onSaveDraft={handleSaveDraftManual}
+        isSavingDraft={isSavingDraft}
+        saveDraftLabel="Simpan Draft"
         isLastStep={currentStep === STEPS.length - 1}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        isSavingDraft={isSavingDraft}
         nextLabel="Selanjutnya"
         submitLabel="Kirim"
       />

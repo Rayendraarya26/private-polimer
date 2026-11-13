@@ -92,6 +92,7 @@ export const FormPupWizard: React.FC = () => {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [isLoadingStep1, setIsLoadingStep1] = useState(true)
 
   // Auto-save ke localStorage saat ada perubahan data
@@ -234,6 +235,47 @@ export const FormPupWizard: React.FC = () => {
     }
   }
 
+  const handleSaveDraftDatabase = async () => {
+    try {
+      setIsSavingDraft(true)
+      const res = await api.post("/eksternal/pup", {
+        ...formData,
+        aksi: "draft",
+        is_draft: true,
+      })
+      const resData = res?.data?.data || res?.data
+
+      try {
+        localStorage.removeItem(STORAGE_KEY)
+      } catch (e) {
+        console.error("Gagal menghapus draf storage:", e)
+      }
+
+      toast.success(res?.data?.message || "Draft pendaftaran Uji Profisiensi berhasil disimpan di database!")
+      if (resData?.id) {
+        navigate(`/permohonan/detail/${resData.id}`)
+      } else {
+        navigate("/permohonan")
+      }
+    } catch (err: any) {
+      console.error("Gagal menyimpan draft permohonan PUP:", err)
+      const validationErrors = err?.response?.data?.errors
+      if (validationErrors && typeof validationErrors === "object") {
+        const firstKey = Object.keys(validationErrors)[0]
+        const firstMsg = Array.isArray(validationErrors[firstKey])
+          ? validationErrors[firstKey][0]
+          : validationErrors[firstKey]
+        toast.error(firstMsg || "Validasi draft gagal.")
+      } else {
+        toast.error(
+          err?.response?.data?.message || "Terjadi kesalahan saat menyimpan draft pendaftaran."
+        )
+      }
+    } finally {
+      setIsSavingDraft(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Tombol Reset Draft */}
@@ -356,6 +398,9 @@ export const FormPupWizard: React.FC = () => {
         backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
         onBack={handleBack}
         onNext={handleNext}
+        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? handleSaveDraftDatabase : undefined}
+        isSavingDraft={isSavingDraft}
+        saveDraftLabel="Simpan Draft"
         isLastStep={currentStep === TOTAL_STEPS - 1}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}

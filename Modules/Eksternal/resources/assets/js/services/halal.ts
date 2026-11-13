@@ -82,6 +82,13 @@ export const submitPermohonanHalal = async (payload: FormHalalPayload) => {
   formData.append("pernyataan_bebas_babi", payload.pernyataan_bebas_babi ? "1" : "0")
   formData.append("pernyataan_komitmen_sjph", payload.pernyataan_komitmen_sjph ? "1" : "0")
 
+  if (payload.aksi) {
+    formData.append("aksi", payload.aksi)
+  }
+  if (payload.is_draft !== undefined) {
+    formData.append("is_draft", payload.is_draft ? "1" : "0")
+  }
+
   const response = await api.post("/eksternal/halal", formData, {
     headers: {
       "Content-Type": "multipart/form-data",

@@ -34,6 +34,7 @@ const STEPS = [
 export const FormInspeksiWizard: React.FC = () => {
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [setujuPernyataan, setSetujuPernyataan] = useState(false)
 
   // Inisialisasi step dari localStorage
@@ -217,7 +218,12 @@ export const FormInspeksiWizard: React.FC = () => {
         }
 
         toast.success(res.message || "Permohonan inspeksi berhasil dikirim!")
-        navigate("/dashboard")
+        const redirectId = res?.data?.id || res?.data?.permohonan_id
+        if (redirectId) {
+          navigate(`/permohonan/detail/${redirectId}`)
+        } else {
+          navigate("/permohonan")
+        }
       } else {
         toast.error(res?.message || "Gagal mengajukan permohonan inspeksi")
       }
@@ -235,6 +241,50 @@ export const FormInspeksiWizard: React.FC = () => {
       }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleSaveDraft = async () => {
+    try {
+      setIsSavingDraft(true)
+      const res = await submitPermohonanInspeksi({
+        ...formData,
+        setuju_pernyataan: setujuPernyataan,
+        aksi: "draft",
+        is_draft: true,
+      })
+
+      if (res?.success) {
+        try {
+          localStorage.removeItem(STORAGE_KEY)
+        } catch (e) {
+          console.error("Gagal menghapus draf storage:", e)
+        }
+
+        toast.success(res.message || "Draft permohonan inspeksi berhasil disimpan di database!")
+        const createdId = res?.data?.id || res?.data?.permohonan_id
+        if (createdId) {
+          navigate(`/permohonan/detail/${createdId}`)
+        } else {
+          navigate("/permohonan")
+        }
+      } else {
+        toast.error(res?.message || "Gagal menyimpan draft permohonan inspeksi")
+      }
+    } catch (err: any) {
+      console.error("Error saving draft inspeksi:", err)
+      const validationErrors = err?.response?.data?.errors
+      if (validationErrors && typeof validationErrors === "object") {
+        const firstKey = Object.keys(validationErrors)[0]
+        const firstMsg = Array.isArray(validationErrors[firstKey])
+          ? validationErrors[firstKey][0]
+          : validationErrors[firstKey]
+        toast.error(firstMsg || "Validasi draft gagal.")
+      } else {
+        toast.error(err?.response?.data?.message || "Terjadi kesalahan saat menyimpan draft permohonan")
+      }
+    } finally {
+      setIsSavingDraft(false)
     }
   }
 
@@ -357,6 +407,9 @@ export const FormInspeksiWizard: React.FC = () => {
         isLastStep={currentStep === TOTAL_STEPS - 1}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
+        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? handleSaveDraft : undefined}
+        isSavingDraft={isSavingDraft}
+        saveDraftLabel="Simpan Draft"
         backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
       />
     </div>

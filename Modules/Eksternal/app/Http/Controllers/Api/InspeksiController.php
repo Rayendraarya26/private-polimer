@@ -60,48 +60,51 @@ class InspeksiController extends Controller
             'dataPic' => $dataPic,
         ]);
 
+        $isDraft = (bool) ($request->input('is_draft') ?? $request->input('isDraft', false)) || ($request->input('aksi') === 'draft');
+        $isAjukan = !$isDraft;
+
         $request->validate([
             // 1. Data Permohonan
-            'dataPermohonan' => 'required|array',
+            'dataPermohonan' => $isAjukan ? 'required|array' : 'nullable|array',
             'dataPermohonan.no_surat_pemohon' => 'nullable|string|max:100',
             'dataPermohonan.tgl_surat_pemohon' => 'nullable|date',
-            'dataPermohonan.tujuan_inspeksi' => 'required|string',
+            'dataPermohonan.tujuan_inspeksi' => $isAjukan ? 'required|string' : 'nullable|string',
 
             // 2. Data Spesifikasi Karung
-            'dataSpesifikasi' => 'required|array',
-            'dataSpesifikasi.jenis_inspeksi' => 'required|array|min:1',
-            'dataSpesifikasi.komoditas' => 'required|string|max:255',
-            'dataSpesifikasi.kapasitas_karung' => 'required|string|max:50',
+            'dataSpesifikasi' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataSpesifikasi.jenis_inspeksi' => $isAjukan ? 'required|array|min:1' : 'nullable|array',
+            'dataSpesifikasi.komoditas' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataSpesifikasi.kapasitas_karung' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
             'dataSpesifikasi.spesifikasi_dimensi' => 'nullable|string',
-            'dataSpesifikasi.jumlah_partai_lot' => 'required|integer|min:1',
+            'dataSpesifikasi.jumlah_partai_lot' => $isAjukan ? 'required|integer|min:1' : 'nullable|integer|min:1',
 
             // 3. Data Pelaksanaan
-            'dataPelaksanaan' => 'required|array',
-            'dataPelaksanaan.tgl_rencana_inspeksi' => 'required|date',
-            'dataPelaksanaan.lokasi_inspeksi' => 'required|string',
-            'dataPelaksanaan.bahasa_laporan' => 'required|in:indonesia,inggris',
+            'dataPelaksanaan' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataPelaksanaan.tgl_rencana_inspeksi' => $isAjukan ? 'required|date' : 'nullable|date',
+            'dataPelaksanaan.lokasi_inspeksi' => $isAjukan ? 'required|string' : 'nullable|string',
+            'dataPelaksanaan.bahasa_laporan' => $isAjukan ? 'required|in:indonesia,inggris' : 'nullable|in:indonesia,inggris',
 
             // 4. Data Penerima Hasil Inspeksi
-            'dataPenerima' => 'required|array',
-            'dataPenerima.penerima_hasil_nama' => 'required|string|max:255',
+            'dataPenerima' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataPenerima.penerima_hasil_nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
             'dataPenerima.penerima_hasil_alamat' => 'nullable|string',
             'dataPenerima.penerima_hasil_email' => 'nullable|email|max:255',
 
             // 5. Data Penanggung Biaya
-            'dataBiaya' => 'required|array',
-            'dataBiaya.biaya_nama' => 'required|string|max:255',
+            'dataBiaya' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataBiaya.biaya_nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
             'dataBiaya.biaya_alamat' => 'nullable|string',
             'dataBiaya.biaya_email' => 'nullable|email|max:255',
 
             // 6. Data PIC
-            'dataPic' => 'required|array',
-            'dataPic.pemohon_pic_nama' => 'required|string|max:255',
-            'dataPic.pemohon_pic_kontak' => 'required|string|max:50',
+            'dataPic' => $isAjukan ? 'required|array' : 'nullable|array',
+            'dataPic.pemohon_pic_nama' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataPic.pemohon_pic_kontak' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
             'dataPic.pemohon_pic_alamat' => 'nullable|string',
 
             // Berkas Upload & Pernyataan
             'file_surat_permohonan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'setuju_pernyataan' => 'required|boolean|accepted',
+            'setuju_pernyataan' => $isAjukan ? 'required|boolean|accepted' : 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -141,15 +144,17 @@ class InspeksiController extends Controller
                 $fileSuratPath = $file->storeAs('permohonan/inspeksi', $filename, 'public');
             }
 
+            $user = auth()->user();
+
             // 1. Simpan Header Permohonan
             $permohonan = Permohonan::create([
                 'id' => (string) Str::uuid(),
                 'id_pt_ins' => null,
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
-                'tgl_order' => now(),
+                'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
@@ -160,27 +165,27 @@ class InspeksiController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'no_surat_pemohon' => $dataPermohonan['no_surat_pemohon'] ?? null,
                 'tgl_surat_pemohon' => $dataPermohonan['tgl_surat_pemohon'] ?? null,
-                'tujuan_inspeksi' => $dataPermohonan['tujuan_inspeksi'],
-                'jenis_inspeksi' => $dataSpesifikasi['jenis_inspeksi'],
-                'komoditas' => $dataSpesifikasi['komoditas'],
-                'kapasitas_karung' => $dataSpesifikasi['kapasitas_karung'],
+                'tujuan_inspeksi' => !empty($dataPermohonan['tujuan_inspeksi']) ? $dataPermohonan['tujuan_inspeksi'] : 'Draft Permohonan Inspeksi',
+                'jenis_inspeksi' => !empty($dataSpesifikasi['jenis_inspeksi']) ? $dataSpesifikasi['jenis_inspeksi'] : ['kuantitas'],
+                'komoditas' => !empty($dataSpesifikasi['komoditas']) ? $dataSpesifikasi['komoditas'] : 'Karung Plastik Beras Bantuan Pangan',
+                'kapasitas_karung' => !empty($dataSpesifikasi['kapasitas_karung']) ? $dataSpesifikasi['kapasitas_karung'] : '10 kg',
                 'spesifikasi_dimensi' => $dataSpesifikasi['spesifikasi_dimensi'] ?? null,
                 'jumlah_partai_lot' => (int) ($dataSpesifikasi['jumlah_partai_lot'] ?? 1),
-                'tgl_rencana_inspeksi' => $dataPelaksanaan['tgl_rencana_inspeksi'],
-                'lokasi_inspeksi' => $dataPelaksanaan['lokasi_inspeksi'],
+                'tgl_rencana_inspeksi' => !empty($dataPelaksanaan['tgl_rencana_inspeksi']) ? $dataPelaksanaan['tgl_rencana_inspeksi'] : now()->toDateString(),
+                'lokasi_inspeksi' => !empty($dataPelaksanaan['lokasi_inspeksi']) ? $dataPelaksanaan['lokasi_inspeksi'] : '-',
                 'bahasa_laporan' => $dataPelaksanaan['bahasa_laporan'] ?? 'indonesia',
-                'penerima_hasil_nama' => $dataPenerima['penerima_hasil_nama'],
+                'penerima_hasil_nama' => !empty($dataPenerima['penerima_hasil_nama']) ? $dataPenerima['penerima_hasil_nama'] : 'Perum BULOG',
                 'penerima_hasil_alamat' => $dataPenerima['penerima_hasil_alamat'] ?? null,
                 'penerima_hasil_email' => $dataPenerima['penerima_hasil_email'] ?? null,
-                'biaya_nama' => $dataBiaya['biaya_nama'],
+                'biaya_nama' => !empty($dataBiaya['biaya_nama']) ? $dataBiaya['biaya_nama'] : ($user?->pelanggan?->detail?->nama_perusahaan ?? $user?->name ?? 'Draft Penanggung Biaya'),
                 'biaya_alamat' => $dataBiaya['biaya_alamat'] ?? null,
                 'biaya_email' => $dataBiaya['biaya_email'] ?? null,
-                'pemohon_pic_nama' => $dataPic['pemohon_pic_nama'],
-                'pemohon_pic_kontak' => $dataPic['pemohon_pic_kontak'],
+                'pemohon_pic_nama' => !empty($dataPic['pemohon_pic_nama']) ? $dataPic['pemohon_pic_nama'] : ($user?->name ?? 'Draft PIC'),
+                'pemohon_pic_kontak' => !empty($dataPic['pemohon_pic_kontak']) ? $dataPic['pemohon_pic_kontak'] : ($user?->pelanggan?->detail?->no_hp ?? '-'),
                 'pemohon_pic_alamat' => $dataPic['pemohon_pic_alamat'] ?? null,
                 'file_surat_permohonan' => $fileSuratPath,
-                'setuju_pernyataan' => true,
-                'pernyataan_at' => now(),
+                'setuju_pernyataan' => $isAjukan ? true : (bool) ($request->input('setuju_pernyataan') ?? false),
+                'pernyataan_at' => $isAjukan ? now() : null,
             ]);
 
             // 3. Hubungkan ke Master Lingkup Layanan
@@ -226,32 +231,37 @@ class InspeksiController extends Controller
                 'id' => (string) Str::uuid(),
                 'permohonan_id' => $permohonan->id,
                 'sumber' => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul' => 'Permohonan Inspeksi Diajukan',
-                'deskripsi' => 'Permohonan inspeksi karung plastik #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi petugas.',
+                'milestone_code' => $isAjukan ? 'PERMOHONAN_MASUK' : 'PERMOHONAN_DRAFT',
+                'judul' => $isAjukan ? 'Permohonan Inspeksi Diajukan' : 'Draft Permohonan Inspeksi Disimpan',
+                'deskripsi' => $isAjukan
+                    ? 'Permohonan inspeksi karung plastik #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi petugas.'
+                    : 'Permohonan inspeksi karung plastik #' . $permohonan->no_permohonan . ' disimpan sebagai draft oleh pemohon.',
             ]);
 
             DB::commit();
 
-            // 5. Kirim Notifikasi Internal Admin
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Permohonan Inspeksi Baru',
-                    'Permohonan inspeksi karung plastik #' . $permohonan->no_permohonan . ' dari ' . $dataPic['pemohon_pic_nama'],
-                    route('permohonan.layanan.detail', $permohonan->id)
-                );
-            } catch (\Exception $notifEx) {
-                Log::warning('Gagal kirim notifikasi admin Inspeksi: ' . $notifEx->getMessage());
+            // 5. Kirim Notifikasi Internal Admin jika bukan draft
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Inspeksi Baru',
+                        'Permohonan inspeksi karung plastik #' . $permohonan->no_permohonan . ' dari ' . $dataPic['pemohon_pic_nama'],
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin Inspeksi: ' . $notifEx->getMessage());
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan jasa inspeksi berhasil diajukan!',
+                'message' => $isAjukan ? 'Permohonan jasa inspeksi berhasil diajukan!' : 'Draft permohonan jasa inspeksi berhasil disimpan!',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

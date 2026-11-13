@@ -389,32 +389,35 @@ class PupController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $isDraft = (bool) ($request->input('is_draft') ?? $request->input('isDraft', false)) || ($request->input('aksi') === 'draft');
+        $isAjukan = !$isDraft;
+
         $request->validate([
             // Identitas & Narahubung
-            'nama_pengisi'             => 'required|string|max:255',
-            'email_pemohon'            => 'required|email|max:255',
-            'nama_narahubung'          => 'required|string|max:255',
-            'no_wa_narahubung'         => 'required|string|max:50',
+            'nama_pengisi'             => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'email_pemohon'            => $isAjukan ? 'required|email|max:255' : 'nullable|email|max:255',
+            'nama_narahubung'          => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'no_wa_narahubung'         => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
 
             // Profil Lab
-            'nama_lab_kalibrasi'       => 'required|string|max:255',
-            'alamat_lab_kalibrasi'     => 'required|string',
-            'kota_kabupaten_lab'       => 'required|string|max:255',
-            'email_official_lab'       => 'required|email|max:255',
+            'nama_lab_kalibrasi'       => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'alamat_lab_kalibrasi'     => $isAjukan ? 'required|string' : 'nullable|string',
+            'kota_kabupaten_lab'       => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'email_official_lab'       => $isAjukan ? 'required|email|max:255' : 'nullable|email|max:255',
 
             // Pengesah
-            'nama_personil_pengesah'   => 'required|string|max:255',
-            'jabatan_personil_pengesah'=> 'required|string|max:255',
+            'nama_personil_pengesah'   => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'jabatan_personil_pengesah'=> $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
 
             // Skema Terpilih
-            'skema_items'              => 'required|array|min:1',
-            'skema_items.*.kode_skema' => 'required|string',
-            'skema_items.*.nama_skema' => 'required|string',
-            'skema_items.*.tarif_pnbp' => 'required|numeric|min:0',
+            'skema_items'              => $isAjukan ? 'required|array|min:1' : 'nullable|array',
+            'skema_items.*.kode_skema' => $isAjukan ? 'required|string' : 'nullable|string',
+            'skema_items.*.nama_skema' => $isAjukan ? 'required|string' : 'nullable|string',
+            'skema_items.*.tarif_pnbp' => $isAjukan ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
 
             // Pernyataan
-            'pernyataan_en_score'      => 'required|boolean|accepted',
-            'pernyataan_proposal'      => 'required|boolean|accepted',
+            'pernyataan_en_score'      => $isAjukan ? 'required|boolean|accepted' : 'nullable',
+            'pernyataan_proposal'      => $isAjukan ? 'required|boolean|accepted' : 'nullable',
         ]);
 
         DB::beginTransaction();
@@ -453,9 +456,9 @@ class PupController extends Controller
                 'id_pt_ins'        => $user?->id_pt_ins ?? null,
                 'no_permohonan'    => $noPermohonan,
                 'is_split_bill'    => false,
-                'status_workflow'  => 'PERMOHONAN',
+                'status_workflow'  => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar'     => 'BELUM',
-                'tgl_order'        => now(),
+                'tgl_order'        => $isAjukan ? now() : null,
                 'harga_permohonan' => $totalBiayaBersih,
                 'created_by'       => $userId,
                 'ip_address'       => $request->ip(),
@@ -465,25 +468,25 @@ class PupController extends Controller
             $formPup = FormPup::create([
                 'id'                      => (string) Str::uuid(),
                 'permohonan_id'           => $permohonan->id,
-                'nama_pengisi'            => $request->input('nama_pengisi'),
-                'email_pemohon'           => $request->input('email_pemohon'),
-                'nama_narahubung'         => $request->input('nama_narahubung'),
-                'no_wa_narahubung'        => $request->input('no_wa_narahubung'),
-                'nama_lab_kalibrasi'      => $request->input('nama_lab_kalibrasi'),
-                'alamat_lab_kalibrasi'    => $request->input('alamat_lab_kalibrasi'),
-                'kota_kabupaten_lab'      => $request->input('kota_kabupaten_lab'),
-                'email_official_lab'      => $request->input('email_official_lab'),
-                'nama_personil_pengesah'  => $request->input('nama_personil_pengesah'),
-                'jabatan_personil_pengesah'=> $request->input('jabatan_personil_pengesah'),
+                'nama_pengisi'            => $request->input('nama_pengisi') ?: ($user?->name ?? 'Draft Pemohon'),
+                'email_pemohon'           => $request->input('email_pemohon') ?: ($user?->email ?? 'draft@example.com'),
+                'nama_narahubung'         => $request->input('nama_narahubung') ?: ($user?->name ?? 'Draft Narahubung'),
+                'no_wa_narahubung'        => $request->input('no_wa_narahubung') ?: ($user?->pelanggan?->detail?->no_hp ?? '-'),
+                'nama_lab_kalibrasi'      => $request->input('nama_lab_kalibrasi') ?: ($user?->pelanggan?->detail?->nama_perusahaan ?? 'Draft Lab Kalibrasi'),
+                'alamat_lab_kalibrasi'    => $request->input('alamat_lab_kalibrasi') ?: '-',
+                'kota_kabupaten_lab'      => $request->input('kota_kabupaten_lab') ?: '-',
+                'email_official_lab'      => $request->input('email_official_lab') ?: ($user?->email ?? 'draft@example.com'),
+                'nama_personil_pengesah'  => $request->input('nama_personil_pengesah') ?: ($user?->name ?? 'Draft Pengesah'),
+                'jabatan_personil_pengesah'=> $request->input('jabatan_personil_pengesah') ?: 'Draft Jabatan',
                 'periode_pendaftaran'     => $request->input('periode_pendaftaran', 'EARLY_BIRD'),
                 'total_biaya_kotor'       => $totalBiayaKotor,
                 'diskon_nominal'          => $diskonNominal,
                 'total_biaya_bersih'      => $totalBiayaBersih,
                 'catatan_diskon'          => $catatanDiskon,
                 'konfirmasi_equipment'    => $request->input('konfirmasi_equipment', []),
-                'pernyataan_en_score'     => (bool) $request->input('pernyataan_en_score', true),
-                'pernyataan_proposal'     => (bool) $request->input('pernyataan_proposal', true),
-                'disetujui_pada'          => now(),
+                'pernyataan_en_score'     => (bool) $request->input('pernyataan_en_score', false),
+                'pernyataan_proposal'     => (bool) $request->input('pernyataan_proposal', false),
+                'disetujui_pada'          => $isAjukan ? now() : null,
             ]);
 
             // 5. Simpan Rincian Skema Item
@@ -547,33 +550,38 @@ class PupController extends Controller
                 'id'             => (string) Str::uuid(),
                 'permohonan_id'  => $permohonan->id,
                 'sumber'         => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul'          => 'Pendaftaran Uji Profisiensi (PUP) Diajukan',
-                'deskripsi'      => 'Permohonan pendaftaran Uji Profisiensi #' . $permohonan->no_permohonan . ' berhasil diajukan untuk ' . count($skemaItems) . ' skema artefak kalibrasi.',
+                'milestone_code' => $isAjukan ? 'PERMOHONAN_MASUK' : 'PERMOHONAN_DRAFT',
+                'judul'          => $isAjukan ? 'Pendaftaran Uji Profisiensi (PUP) Diajukan' : 'Draft Pendaftaran Uji Profisiensi Disimpan',
+                'deskripsi'      => $isAjukan
+                    ? 'Permohonan pendaftaran Uji Profisiensi #' . $permohonan->no_permohonan . ' berhasil diajukan untuk ' . count($skemaItems) . ' skema artefak kalibrasi.'
+                    : 'Pendaftaran Uji Profisiensi #' . $permohonan->no_permohonan . ' disimpan sebagai draft oleh pemohon.',
             ]);
 
             DB::commit();
 
-            // 9. Kirim Notifikasi ke Admin Marketing
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Pendaftaran Uji Profisiensi Baru',
-                    'Pendaftaran #' . $permohonan->no_permohonan . ' dari ' . $formPup->nama_lab_kalibrasi,
-                    route('permohonan.layanan.detail', $permohonan->id)
-                );
-            } catch (\Exception $notifEx) {
-                Log::warning('Gagal kirim notifikasi admin PUP: ' . $notifEx->getMessage());
+            // 9. Kirim Notifikasi ke Admin Marketing jika bukan draft
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Pendaftaran Uji Profisiensi Baru',
+                        'Pendaftaran #' . $permohonan->no_permohonan . ' dari ' . $formPup->nama_lab_kalibrasi,
+                        route('permohonan.layanan.detail', $permohonan->id)
+                    );
+                } catch (\Exception $notifEx) {
+                    Log::warning('Gagal kirim notifikasi admin PUP: ' . $notifEx->getMessage());
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pendaftaran Uji Profisiensi berhasil diajukan!',
+                'message' => $isAjukan ? 'Pendaftaran Uji Profisiensi berhasil diajukan!' : 'Draft pendaftaran Uji Profisiensi berhasil disimpan!',
                 'data'    => [
                     'id'            => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
                     'total_biaya'   => $totalBiayaBersih,
+                    'status_workflow' => $permohonan->status_workflow,
                 ],
             ], 201);
         } catch (\Exception $e) {

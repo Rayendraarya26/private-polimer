@@ -16,6 +16,13 @@ export const submitPermohonanInspeksi = async (form: InspeksiFormData): Promise<
   formData.append("dataPic", JSON.stringify(form.dataPic))
   formData.append("setuju_pernyataan", form.setuju_pernyataan ? "1" : "0")
 
+  if (form.aksi) {
+    formData.append("aksi", form.aksi)
+  }
+  if (form.is_draft !== undefined) {
+    formData.append("is_draft", form.is_draft ? "1" : "0")
+  }
+
   if (form.file_surat_permohonan) {
     formData.append("file_surat_permohonan", form.file_surat_permohonan)
   }

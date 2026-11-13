@@ -50,6 +50,7 @@ export const FormHalalWizard: React.FC = () => {
   const { existingDraft, autoSave, saveManual, clearDraft, isSaving } = useHalalDraft(String(userId))
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [maxStepReached, setMaxStepReached] = useState<number>(0)
   const [payload, setPayload] = useState<FormHalalPayload>(initialFormHalalPayload)
@@ -356,7 +357,12 @@ export const FormHalalWizard: React.FC = () => {
         } catch (e) {
           console.error("Gagal menghapus draf storage:", e)
         }
-        navigate("/dashboard")
+        const redirectId = response?.data?.id || response?.data?.permohonan_id
+        if (redirectId) {
+          navigate(`/permohonan/detail/${redirectId}`)
+        } else {
+          navigate("/permohonan")
+        }
       } else {
         toast.error(response?.message || "Terjadi kesalahan saat memproses permohonan.")
       }
@@ -373,11 +379,44 @@ export const FormHalalWizard: React.FC = () => {
   }
 
   const handleSaveDraft = async () => {
-    const success = await saveManual({ currentStep, payload })
-    if (success) {
-      toast.success("Draf permohonan sertifikasi halal (termasuk berkas) berhasil disimpan ke IndexedDB!")
-    } else {
-      toast.error("Gagal menyimpan draf.")
+    setIsSavingDraft(true)
+    const loadingToast = toast.loading("Menyimpan draft permohonan ke database...")
+
+    try {
+      const response = await submitPermohonanHalal({
+        ...payload,
+        aksi: "draft",
+        is_draft: true,
+      })
+      toast.dismiss(loadingToast)
+
+      if (response?.success || response?.status === "success") {
+        toast.success(response?.message || "Draft permohonan sertifikasi halal berhasil disimpan di database!")
+        draftClearedRef.current = true
+        await clearDraft()
+        try {
+          localStorage.removeItem("DRAFT_PERMOHONAN_HALAL")
+        } catch (e) {
+          console.error("Gagal menghapus draf storage:", e)
+        }
+        const createdId = response?.data?.id || response?.data?.permohonan_id
+        if (createdId) {
+          navigate(`/permohonan/detail/${createdId}`)
+        } else {
+          navigate("/permohonan")
+        }
+      } else {
+        toast.error(response?.message || "Terjadi kesalahan saat menyimpan draft.")
+      }
+    } catch (error: any) {
+      toast.dismiss(loadingToast)
+      console.error("Gagal menyimpan draft permohonan halal:", error)
+      const errorMsg =
+        error.response?.data?.message ||
+        "Gagal menyimpan draft permohonan ke database."
+      toast.error(errorMsg)
+    } finally {
+      setIsSavingDraft(false)
     }
   }
 
@@ -504,6 +543,8 @@ export const FormHalalWizard: React.FC = () => {
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         onSaveDraft={currentStep === TOTAL_STEPS - 1 ? handleSaveDraft : undefined}
+        isSavingDraft={isSavingDraft}
+        saveDraftLabel="Simpan Draft"
         nextLabel="Selanjutnya"
         submitLabel="Kirim"
       />

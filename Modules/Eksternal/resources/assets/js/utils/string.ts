@@ -46,3 +46,50 @@ export const titleCase = (str?: string | null): string => {
  * Alias untuk capitalizeFirst jika pengguna terbiasa dengan nama `ucfirst`
  */
 export const ucfirst = capitalizeFirst
+
+const UPPERCASE_ABBREVIATIONS = new Set([
+  "PT",
+  "CV",
+  "UD",
+  "TBK",
+  "PD",
+  "FA",
+  "RT",
+  "RW",
+  "DKI",
+  "DIY",
+  "RI",
+  "LHU",
+])
+
+/**
+ * Memformat string alamat agar tidak full kapital (Title Case),
+ * sambil mempertahankan tanda hubung, singkatan umum (PT, CV, RT, RW, dll.),
+ * serta merapikan koma berulang.
+ */
+export const formatAddress = (str?: string | null): string => {
+  if (!str) return ""
+  const cleaned = String(str)
+    .replace(/,{2,}/g, ",")
+    .replace(/\s*,\s*/g, ", ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (!cleaned) return ""
+
+  return cleaned
+    .split(" ")
+    .map((token) => {
+      const upper = token.replace(/[.,/()]+$/g, "").toUpperCase()
+      if (UPPERCASE_ABBREVIATIONS.has(upper)) {
+        return token.toUpperCase()
+      }
+      return token
+        .split("-")
+        .map((part) =>
+          part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part
+        )
+        .join("-")
+    })
+    .join(" ")
+}

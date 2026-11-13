@@ -348,7 +348,7 @@ const PembayaranPage: React.FC = () => {
         <div className="space-y-3.5">
           {paginatedData.map((row) => {
             const hasPenawaran = Boolean(row.file_surat_penawaran)
-            const isInvoiceReady = Boolean(row.pdf_tte || row.invoice_file)
+            const isInvoiceReady = Boolean(row.pdf_tte)
             const isPaid = row.status_bayar === "LUNAS"
             const isKuitansiReady = isPaid && Boolean(row.kuitansi_pdf_tte || row.kuitansi_file)
             const hasAnyDocument = hasPenawaran || isInvoiceReady || isKuitansiReady

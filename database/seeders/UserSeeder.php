@@ -25,27 +25,34 @@ class UserSeeder extends Seeder
             ['name' => 'Pegawai', 'email' => 'pegawai@mailinator.com', 'password' => 'password', 'group' => SysGroup::PEGAWAI, 'nip' => '198706192009012001', 'nik' => '1290412412120932'],
             ['name' => 'Dolkode', 'email' => 'dolkodesolutions@gmail.com', 'password' => 'password', 'group' => SysGroup::ROOT, 'nip' => '199104282018012001', 'nik' => '0803202100007062'],
             ['name' => 'Bendahara', 'email' => 'bendahara@mailinator.com', 'password' => 'password', 'group' => SysGroup::BENDAHARA, 'nip' => '199203120101801001', 'nik' => '1234567890123452'],
-            ['name' => 'Marketing', 'email' => 'marketing@mailinator.com', 'password' => 'password', 'group' => SysGroup::MARKETING, 'nip' => '193563032012031003', 'nik' => '7524567890123453'],
+            ['name' => 'Tim Marketing & Verifikasi', 'email' => 'marketing@mailinator.com', 'password' => 'password', 'group' => SysGroup::MARKETING, 'nip' => '199001012015011001', 'nik' => '3271012345670009'],
         ];
 
         foreach ($data as $item) {
-            $user = SysUser::query()->create([
-                'name' => $item['name'],
-                'email' => $item['email'],
-                'password' => bcrypt($item['password']),
-                'email_verified_at' => now(),
-                'nip' => $item['nip'] ?? null,
-            ]);
+            $user = SysUser::query()->firstOrCreate(
+                ['email' => $item['email']],
+                [
+                    'name' => $item['name'],
+                    'password' => bcrypt($item['password']),
+                    'email_verified_at' => now(),
+                    'nip' => $item['nip'] ?? null,
+                ]
+            );
 
-            SysUserGroup::query()->create([
-                'user_id' => $user->id,
-                'group_id' => $item['group'],
-                'is_default' => 'yes',
-            ]);
+            SysUserGroup::query()->firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'group_id' => $item['group']->value,
+                ],
+                [
+                    'is_default' => 'yes',
+                ]
+            );
 
-            $user->pegawai()->create([
-                'nik' => $item['nik'] ?? null,
-            ]);
+            $user->pegawai()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['nik' => $item['nik'] ?? null]
+            );
         }
 
         $this->createPelangganPerorangan();

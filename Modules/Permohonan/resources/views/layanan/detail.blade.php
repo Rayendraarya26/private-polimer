@@ -4,8 +4,90 @@
 
 @section('content')
 
+    <style>
+        .permohonan-group-row {
+            border-bottom: 1px solid var(--bs-border-color, #f1f5f9);
+            background: var(--bs-card-bg, #fff);
+        }
+        .permohonan-group-row.is-active {
+            background: #eff6ff;
+        }
+        [data-bs-theme="dark"] .permohonan-group-row.is-active {
+            background: rgba(59, 130, 246, 0.14);
+        }
 
-    <div class="container-fluid py-4">
+        [data-bs-theme="dark"] .permohonan-detail-scope .card {
+            background-color: var(--bs-card-bg, #15171c);
+            border-color: var(--bs-border-color, #26272f);
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .bg-white {
+            background-color: var(--bs-card-bg, #15171c) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .bg-light {
+            background-color: var(--bs-tertiary-bg, #1b1d24) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .text-dark {
+            color: var(--bs-heading-color, #f1f5f9) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .text-secondary {
+            color: var(--bs-secondary-color, #9ca3af) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .nav-tabs .nav-link.active {
+            background-color: var(--bs-card-bg, #15171c);
+            border-color: var(--bs-border-color, #26272f) var(--bs-border-color, #26272f) transparent;
+            color: var(--bs-heading-color, #f8fafc);
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--bs-body-color, #e2e8f0);
+            --bs-table-border-color: var(--bs-border-color, #26272f);
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .table thead th,
+        [data-bs-theme="dark"] .permohonan-detail-scope .table thead tr {
+            background-color: var(--bs-tertiary-bg, #1b1d24) !important;
+            color: var(--bs-heading-color, #e2e8f0) !important;
+        }
+        /* Override inline light-only styles inside service form partials */
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background:#fff"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background: #fff"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background:#ffffff"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background: #ffffff"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background-color: #ffffff"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background:#f8fafc"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background: #f8fafc"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background-color: #f8fafc"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background:#fafbfc"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="background-color: #f1f5f9"] {
+            background-color: var(--bs-tertiary-bg, #1b1d24) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color:#0f172a"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color: #0f172a"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color:#1e293b"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color: #1e293b"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color:#334155"],
+        [data-bs-theme="dark"] .permohonan-detail-scope [style*="color: #334155"] {
+            color: var(--bs-heading-color, #e2e8f0) !important;
+        }
+        /* Service form partial custom classes */
+        [data-bs-theme="dark"] .permohonan-detail-scope .detail-label {
+            color: var(--bs-secondary-color, #9ca3af) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .detail-value,
+        [data-bs-theme="dark"] .permohonan-detail-scope .kal-value,
+        [data-bs-theme="dark"] .permohonan-detail-scope .kal-section-title {
+            color: var(--bs-heading-color, #f1f5f9) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .kal-label {
+            color: var(--bs-secondary-color, #9ca3af) !important;
+        }
+        [data-bs-theme="dark"] .permohonan-detail-scope .kal-card,
+        [data-bs-theme="dark"] .permohonan-detail-scope .kal-box {
+            background-color: var(--bs-tertiary-bg, #1b1d24) !important;
+            border-color: var(--bs-border-color, #26272f) !important;
+        }
+    </style>
+
+    <div class="container-fluid py-4 permohonan-detail-scope">
 
 
         {{-- INFO HEADER --}}
@@ -31,7 +113,7 @@
         <div class="card border-0 shadow-sm rounded-3">
 
 
-            <div class="px-4 pt-3 border-bottom bg-light">
+            <div class="px-4 pt-3 border-bottom bg-body-tertiary">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
                         <a class="nav-link {{ $detail == 'overview' || $detail == '' ? 'active' : '' }}"
@@ -125,12 +207,11 @@
                         @endphp
 
                         {{-- ── BLOK UTAMA ── --}}
-                        <div class="rounded-3 overflow-hidden mb-4" style="border:1px solid #e2e8f0">
+                        <div class="rounded-3 overflow-hidden mb-4 border">
                             {{-- Header blok --}}
-                            <div class="px-4 py-3 d-flex align-items-center justify-content-between"
-                                style="background:#f8fafc;border-bottom:1px solid #e2e8f0">
+                            <div class="px-4 py-3 d-flex align-items-center justify-content-between bg-body-tertiary border-bottom">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="fw-semibold text-dark" style="font-size:14px">{{ $namaLayanan }}</span>
+                                    <span class="fw-semibold text-body-emphasis" style="font-size:14px">{{ $namaLayanan }}</span>
                                     @if($grupPermohonan->count() === 1)
                                         <span class="badge rounded-pill"
                                             style="background:#f1f5f9;color:#475569;font-size:11px">Perorangan</span>
@@ -158,7 +239,7 @@
 
 
                             {{-- Stat row --}}
-                            <div class="d-flex border-bottom" style="background:#fff">
+                            <div class="d-flex flex-wrap border-bottom bg-body">
                                 <div class="px-4 py-3 border-end flex-fill">
                                     <div class="text-uppercase text-muted mb-1" style="font-size:10px;letter-spacing:.06em">Peserta
                                     </div>
@@ -198,9 +279,8 @@
 
                             {{-- Daftar peserta dalam grup (together & > 1) — tanpa checkbox, hanya info --}}
                             @if(!$isSplit && $grupPermohonan->count() > 1)
-                                <div class="px-4 py-2"
-                                    style="background:#fafbfc;border-bottom:1px solid #e2e8f0;
-                                                                                                                    font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8">
+                                <div class="px-4 py-2 bg-body-tertiary border-bottom"
+                                    style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--bs-secondary-color, #94a3b8)">
                                     Peserta dalam satu tagihan ini
                                 </div>
                                 @foreach($grupPermohonan as $gp)
@@ -219,9 +299,7 @@
                                         ];
                                         $gpSw = $gpSwMap[$gp->status_workflow] ?? ['#f1f5f9', '#475569', $gp->status_workflow];
                                     @endphp
-                                    <div class="d-flex align-items-center px-4 py-2"
-                                        style="border-bottom:1px solid #f1f5f9;
-                                                                                                                                            background:{{ $isAktif ? '#eff6ff' : '#fff' }}">
+                                    <div class="d-flex align-items-center px-4 py-2 permohonan-group-row {{ $isAktif ? 'is-active' : '' }}">
                                         <div class="me-3 rounded-circle flex-shrink-0"
                                             style="width:6px;height:6px;
                                                                                                                                                 background:{{ $isAktif ? '#3b82f6' : '#cbd5e1' }}">

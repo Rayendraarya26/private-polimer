@@ -29,23 +29,28 @@
 @push('styles')
     <style>
         .feedback-card-item {
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--bs-border-color, #e2e8f0);
             border-radius: 10px;
             padding: 16px;
             margin-bottom: 12px;
-            background: #ffffff;
+            background: var(--bs-tertiary-bg, #ffffff);
             transition: all 0.2s ease;
         }
 
+        [data-bs-theme="dark"] .feedback-card-item {
+            background: var(--bs-tertiary-bg, #1b1d24);
+            border-color: var(--bs-border-color, #26272f);
+        }
+
         .feedback-card-item:hover {
-            border-color: #cbd5e1;
+            border-color: var(--bs-border-color-translucent, #cbd5e1);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .feedback-child-list {
             margin-top: 12px;
             padding-left: 18px;
-            border-left: 2px solid #e2e8f0;
+            border-left: 2px solid var(--bs-border-color, #e2e8f0);
         }
     </style>
 @endpush
@@ -53,7 +58,7 @@
 <div class="card border-0 shadow-sm rounded-4 mb-4" id="app-feedback">
     {{-- Card Header --}}
     <div
-        class="card-header bg-white border-bottom py-4 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        class="card-header border-bottom py-4 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div class="d-flex align-items-center gap-3">
             <div class="d-flex align-items-center justify-content-center rounded-3"
                 style="width:44px; height:44px; background:#eff6ff; color:#2563eb;">
@@ -71,16 +76,16 @@
         {{-- Metadata Bar --}}
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                <div class="p-3 rounded-3 border bg-body-tertiary">
                     <div class="text-uppercase text-muted fw-semibold" style="font-size:11px; letter-spacing:.05em;">
                         Waktu Pengisian</div>
-                    <div class="fw-bold fs-6 text-dark mt-1">
+                    <div class="fw-bold fs-6 text-body-emphasis mt-1">
                         {{ $feedbackAt ? $feedbackAt->format('d M Y, H:i:s') : '-' }}
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                <div class="p-3 rounded-3 border bg-body-tertiary">
                     <div class="text-uppercase text-muted fw-semibold" style="font-size:11px; letter-spacing:.05em;">
                         Status Pengisian</div>
                     <div class="fw-bold fs-6 mt-1">
@@ -93,10 +98,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                <div class="p-3 rounded-3 border bg-body-tertiary">
                     <div class="text-uppercase text-muted fw-semibold" style="font-size:11px; letter-spacing:.05em;">No.
                         Permohonan</div>
-                    <div class="fw-bold fs-6 text-dark mt-1">
+                    <div class="fw-bold fs-6 text-body-emphasis mt-1">
                         {{ $permohonan->no_permohonan ?? '-' }}
                     </div>
                 </div>
@@ -105,7 +110,7 @@
 
         {{-- Jika format simple testimoni & rating --}}
         @if($isSimpleFeedback)
-            <div class="border rounded-3 p-4 bg-light mb-3">
+            <div class="border rounded-3 p-4 bg-body-tertiary mb-3">
                 <h6 class="fw-bold mb-3">Penilaian & Ulasan</h6>
                 @if(isset($rawFeedback['rating']))
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -115,13 +120,13 @@
                                 <i class="{{ $i <= (int) $rawFeedback['rating'] ? 'fas' : 'far' }} fa-star"></i>
                             @endfor
                         </span>
-                        <span class="fw-bold text-dark ms-1">({{ $rawFeedback['rating'] }}/5)</span>
+                        <span class="fw-bold text-body-emphasis ms-1">({{ $rawFeedback['rating'] }}/5)</span>
                     </div>
                 @endif
                 @if(!empty($rawFeedback['testimoni']))
                     <div class="mt-2">
                         <span class="fw-semibold text-muted d-block mb-1">Testimoni:</span>
-                        <p class="fst-italic text-dark mb-0 bg-white p-3 rounded border">"{{ $rawFeedback['testimoni'] }}"</p>
+                        <p class="fst-italic text-body-emphasis mb-0 bg-body p-3 rounded border">"{{ $rawFeedback['testimoni'] }}"</p>
                     </div>
                 @endif
             </div>

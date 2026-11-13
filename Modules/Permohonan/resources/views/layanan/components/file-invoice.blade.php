@@ -54,7 +54,7 @@
         {{-- ============================================================
         1. FILE INVOICE PEMBAYARAN
         ============================================================ --}}
-        <div class="border rounded-4 p-4 mb-4" style="border-color:#e2e8f0 !important; background:#fafafa">
+        <div class="border rounded-4 p-4 mb-4 bg-body-tertiary">
             <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-start gap-3">
                     <div class="d-flex align-items-center justify-content-center rounded-3" style="
@@ -182,7 +182,7 @@
         {{-- ============================================================
         2. FILE KUITANSI PEMBAYARAN
         ============================================================ --}}
-        <div class="border rounded-4 p-4" style="border-color:#e2e8f0 !important; background:#fafafa">
+        <div class="border rounded-4 p-4 bg-body-tertiary">
             <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-start gap-3">
                     <div class="d-flex align-items-center justify-content-center rounded-3"

@@ -1,12 +1,12 @@
 <div class="card border-0 shadow-sm rounded-3 mb-4">
-    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between">
         <!-- GROUP KIRI -->
         <div class="d-flex align-items-center gap-2">
-            <div class="bg-light text-secondary d-flex align-items-center justify-content-center rounded-2"
+            <div class="bg-body-secondary text-secondary d-flex align-items-center justify-content-center rounded-2"
                  style="width: 32px; height: 32px;">
                 <i class="fas fa-file-alt text-primary"></i>
             </div>
-            <h6 class="mb-0 fw-bold text-dark">
+            <h6 class="mb-0 fw-bold text-body-emphasis">
                 Info Permohonan & Tagihan
             </h6>
         </div>
@@ -62,7 +62,7 @@
                 <div class="border rounded-3 p-3 h-100">
                     <div class="text-muted small">Virtual Account (BNI)</div>
                     <div class="d-flex align-items-center justify-content-between mt-1">
-                        <span class="fw-bold font-monospace text-dark" style="letter-spacing: 0.5px;">
+                        <span class="fw-bold font-monospace text-body-emphasis" style="letter-spacing: 0.5px;">
                             {{ $permohonan->va ?: '-' }}
                         </span>
                         @if($permohonan->status_bayar === 'LUNAS')

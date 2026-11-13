@@ -145,7 +145,7 @@ const EditFormPelatihan: React.FC = () => {
     try {
       await updatePelatihan(id, payload)
       toast.success("Perubahan data pelatihan berhasil disimpan")
-      navigate("/permohonan")
+      navigate(`/permohonan/detail/${id}`)
     } catch (error) {
       console.error(error)
       toast.error("Gagal menyimpan perbaikan formulir")
@@ -458,7 +458,7 @@ const EditFormPelatihan: React.FC = () => {
           submitLabel="Simpan Perubahan Koreksi"
           isLastStep={true}
           isSubmitting={submitting}
-          isSticky={true}
+          isSticky={false}
         />
       </form>
     </div>

@@ -333,13 +333,17 @@ export const EditFormKalibrasi: React.FC = () => {
       </Card>
 
       {/* Action Footer Buttons */}
-      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <BackButton
-          to={`/permohonan/detail/${id}`}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate(`/permohonan/detail/${id}`)}
           disabled={submitting}
+          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          className="h-[42px] px-5 rounded-xl font-medium"
         >
-          Batalkan Perubahan
-        </BackButton>
+          Batal
+        </Button>
 
         <div className="flex items-center gap-3">
           <Button
@@ -362,7 +366,7 @@ export const EditFormKalibrasi: React.FC = () => {
             leftIcon={<Send className="w-4 h-4" />}
             className="h-[42px] px-6 rounded-xl font-semibold shadow-md shadow-brand-500/15"
           >
-            {isRevisi ? "Kirimkan Perbaikan ke Petugas" : "Ajukan Kalibrasi"}
+            {isRevisi ? "Kirimkan Perbaikan ke Petugas" : "Ajukan Permohonan"}
           </Button>
         </div>
       </div>

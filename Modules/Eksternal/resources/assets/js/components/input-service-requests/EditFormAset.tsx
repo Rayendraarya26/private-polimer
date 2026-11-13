@@ -277,7 +277,7 @@ export const EditFormAset: React.FC = () => {
           submitLabel="Simpan & Ajukan Ulang"
           isSubmitting={submitting}
           isLastStep={true}
-          isSticky
+          isSticky={false}
         />
       </div>
     </div>

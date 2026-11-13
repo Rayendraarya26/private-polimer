@@ -5,6 +5,10 @@ import EditFormPelatihan from "./EditFormPelatihan"
 import EditFormLSP from "./EditFormLSP"
 import EditFormSertifikasi from "./EditFormSertifikasi"
 import EditFormKalibrasi from "./EditFormKalibrasi"
+import EditFormMiniplant from "./EditFormMiniplant"
+import EditFormKonsultasiAt from "./EditFormKonsultasiAt"
+import EditFormGrkVerifikasi from "./EditFormGrkVerifikasi"
+import EditFormGrkValidasi from "./EditFormGrkValidasi"
 import EditFormAset from "./EditFormAset"
 import Head from "../common/Head"
 import { Card } from "../ui/Card"
@@ -37,6 +41,13 @@ const EditFormRouter: React.FC = () => {
           else if (noPermohonan.startsWith("LSP")) detectedType = "FormLsp"
           else if (noPermohonan.startsWith("REG") || noPermohonan.startsWith("TRN") || noPermohonan.startsWith("UMK")) detectedType = "FormPelatihan"
           else if (noPermohonan.includes("LABKAL") || noPermohonan.startsWith("KAL")) detectedType = "FormKalibrasi"
+          else if (
+            noPermohonan.endsWith("/F") ||
+            noPermohonan.endsWith("/RPK") ||
+            noPermohonan.endsWith("/PA") ||
+            noPermohonan.endsWith("/MKP")
+          ) detectedType = "FormMiniplant"
+          else if (noPermohonan.endsWith("/KAT") || noPermohonan.includes("/KAT")) detectedType = "FormKonsultasiAt"
         }
 
         // Deteksi dari form_data jika formable_type tidak terdefinisi
@@ -65,6 +76,8 @@ const EditFormRouter: React.FC = () => {
           else if (lNama.includes("pelatihan") || lNama.includes("bimtek")) detectedType = "FormPelatihan"
           else if (lNama.includes("sertifikasi") || lNama.includes("sni")) detectedType = "FormSertifikasi"
           else if (lNama.includes("kalibrasi") || lNama.includes("labkal")) detectedType = "FormKalibrasi"
+          else if (lNama.includes("miniplant")) detectedType = "FormMiniplant"
+          else if (lNama.includes("konsultasi") || lNama.includes("audit teknologi")) detectedType = "FormKonsultasiAt"
         }
 
         // Fallback: probing endpoint spesifik
@@ -93,7 +106,21 @@ const EditFormRouter: React.FC = () => {
                     detectedType = "FormKalibrasi"
                   }
                 } catch (e2) {
-                  // ignore
+                  try {
+                    const miniRes = await api.get(`/eksternal/miniplant/${id}`)
+                    if (miniRes?.data?.status === "success" || miniRes?.data?.data) {
+                      detectedType = "FormMiniplant"
+                    }
+                  } catch (e3) {
+                    try {
+                      const katRes = await api.get(`/eksternal/konsultasi-at/${id}`)
+                      if (katRes?.data?.status === "success" || katRes?.data?.data) {
+                        detectedType = "FormKonsultasiAt"
+                      }
+                    } catch (e4) {
+                      // ignore
+                    }
+                  }
                 }
               }
             }
@@ -136,14 +163,12 @@ const EditFormRouter: React.FC = () => {
 
   // FORM GRK VALIDASI
   if (normalizedType.includes("grkvalidasi") || normalizedType.includes("grk-val")) {
-    navigate(`/permohonan/grk/validasi?id=${id}`, { replace: true })
-    return null
+    return <EditFormGrkValidasi />
   }
 
   // FORM GRK VERIFIKASI
   if (normalizedType.includes("grkverifikasi") || normalizedType.includes("grk-ver") || normalizedType.includes("grk")) {
-    navigate(`/permohonan/grk/verifikasi?id=${id}`, { replace: true })
-    return null
+    return <EditFormGrkVerifikasi />
   }
 
   // FORM SEWA ASET
@@ -168,6 +193,22 @@ const EditFormRouter: React.FC = () => {
     normalizedType.includes("formkalibrasi")
   ) {
     return <EditFormKalibrasi />
+  }
+
+  // FORM MINIPLANT
+  if (
+    normalizedType.includes("miniplant") ||
+    normalizedType.includes("formminiplant")
+  ) {
+    return <EditFormMiniplant />
+  }
+
+  // FORM KONSULTASI & AUDIT TEKNOLOGI
+  if (
+    normalizedType.includes("konsultasi") ||
+    normalizedType.includes("formkonsultasiat")
+  ) {
+    return <EditFormKonsultasiAt />
   }
 
   // FORM SERTIFIKASI

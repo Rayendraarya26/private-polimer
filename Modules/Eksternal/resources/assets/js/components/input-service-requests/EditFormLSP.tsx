@@ -153,7 +153,7 @@ const EditFormLSP: React.FC = () => {
     try {
       await updateLSP(id, payload)
       toast.success("Perubahan data sertifikasi LSP berhasil disimpan")
-      navigate("/permohonan")
+      navigate(`/permohonan/detail/${id}`)
     } catch (error) {
       console.error(error)
       toast.error("Gagal memperbarui data LSP")
@@ -514,7 +514,7 @@ const EditFormLSP: React.FC = () => {
           submitLabel="Simpan Perubahan Koreksi"
           isLastStep={true}
           isSubmitting={submitting}
-          isSticky={true}
+          isSticky={false}
         />
       </form>
     </div>

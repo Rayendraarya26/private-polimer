@@ -200,7 +200,7 @@ export const DetailPermohonanPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            size="sm"
+            size="md"
             onClick={() => navigate("/dashboard")}
             leftIcon={<ArrowLeft className="w-4 h-4" />}
           >
@@ -212,9 +212,9 @@ export const DetailPermohonanPage: React.FC = () => {
         <div className="flex items-center gap-2 flex-wrap">
           {(isRevisi || isDraft) && (
             <Button
-              size="sm"
+              size="md"
               variant="primary"
-              leftIcon={<Edit3 className="w-3.5 h-3.5" />}
+              leftIcon={<Edit3 className="w-4 h-4" />}
               onClick={() => navigate(`/permohonan/edit/${id}`)}
               className="bg-amber-600 hover:bg-amber-700 text-white shadow-xs"
             >
@@ -224,9 +224,9 @@ export const DetailPermohonanPage: React.FC = () => {
 
           {Boolean(permohonan?.pdf_tte) && (
             <Button
-              size="sm"
+              size="md"
               variant="outline"
-              leftIcon={<FileText className="w-3.5 h-3.5" />}
+              leftIcon={<FileText className="w-4 h-4" />}
               onClick={() => openInvoice({ id, no_permohonan: noOrder, pdf_tte: permohonan?.pdf_tte })}
             >
               Invoice
@@ -235,9 +235,9 @@ export const DetailPermohonanPage: React.FC = () => {
 
           {isLunas && Boolean(permohonan?.kuitansi_pdf_tte) && (
             <Button
-              size="sm"
+              size="md"
               variant="success"
-              leftIcon={<FileCheck2 className="w-3.5 h-3.5" />}
+              leftIcon={<FileCheck2 className="w-4 h-4" />}
               onClick={() => openKuitansi({ id, no_permohonan: noOrder, kuitansi_pdf_tte: permohonan?.kuitansi_pdf_tte })}
             >
               Kuitansi

@@ -58,6 +58,7 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
 }) => {
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [setujuPernyataan, setSetujuPernyataan] = useState(false)
 
   // Inisialisasi state dari localStorage jika ada draf tersimpan
@@ -304,21 +305,45 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
     }
   }
 
-  const handleSubmit = async () => {
-    if (!setujuPernyataan) {
-      toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
-      return
+  const handleSubmit = async (aksi: "draft" | "ajukan" = "ajukan") => {
+    const isAjukan = aksi === "ajukan"
+
+    if (isAjukan) {
+      if (!setujuPernyataan) {
+        toast.error("Harap setujui pernyataan pemohon sebelum mengirim permohonan")
+        return
+      }
+    } else {
+      if (!selectedLayanan && !detailPermohonan.jenisBarang?.trim() && !dataPelanggan.namaPemohon?.trim()) {
+        toast.error("Harap isi minimal jenis layanan, detail barang, atau nama pemohon untuk disimpan sebagai draft.")
+        return
+      }
     }
 
     try {
-      setIsSubmitting(true)
+      if (isAjukan) {
+        setIsSubmitting(true)
+      } else {
+        setIsSavingDraft(true)
+      }
+
       const payload = {
-        jenis_layanan: selectedLayanan,
-        fasilitas: selectedLayanan,
-        detailPermohonan,
+        aksi,
+        jenis_layanan: selectedLayanan || "MKP",
+        fasilitas: selectedLayanan || "MKP",
+        detailPermohonan: {
+          ...detailPermohonan,
+          jenisBarang: detailPermohonan.jenisBarang?.trim() || "Barang Miniplant (Draft)",
+          jumlahBarang: detailPermohonan.jumlahBarang || 1,
+        },
         selectedPerlakuan,
-        dataPelanggan,
-        setujuPernyataan,
+        dataPelanggan: {
+          ...dataPelanggan,
+          namaPemohon: dataPelanggan.namaPemohon?.trim() || "Draft Pemohon",
+          no_telp: dataPelanggan.no_telp?.trim() || "-",
+          alamat: dataPelanggan.alamat?.trim() || "-",
+        },
+        setujuPernyataan: isAjukan ? true : Boolean(setujuPernyataan),
       }
 
       const res = await api.post("/eksternal/miniplant", payload)
@@ -331,14 +356,19 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
         console.error("Gagal menghapus draf storage:", e)
       }
 
-      toast.success(res?.data?.message || "Permohonan miniplant berhasil dikirim!")
+      toast.success(
+        res?.data?.message ||
+          (isAjukan
+            ? "Permohonan miniplant berhasil dikirim!"
+            : "Draft permohonan miniplant berhasil disimpan di server.")
+      )
       if (resData?.id) {
         navigate(`/permohonan/detail/${resData.id}`)
       } else {
         navigate("/permohonan")
       }
     } catch (error: any) {
-      console.error("Gagal mengirim permohonan miniplant:", error)
+      console.error("Gagal memproses permohonan miniplant:", error)
       const validationErrors = error?.response?.data?.errors
       if (validationErrors && typeof validationErrors === "object") {
         const firstKey = Object.keys(validationErrors)[0]
@@ -347,10 +377,11 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
           : validationErrors[firstKey]
         toast.error(firstMsg || "Validasi data gagal.")
       } else {
-        toast.error(error?.response?.data?.message || "Terjadi kesalahan saat mengirim permohonan")
+        toast.error(error?.response?.data?.message || "Terjadi kesalahan saat memproses permohonan")
       }
     } finally {
       setIsSubmitting(false)
+      setIsSavingDraft(false)
     }
   }
 
@@ -513,11 +544,12 @@ export const FormMiniplantWizard: React.FC<FormMiniplantWizardProps> = ({
         backLabel={currentStep === 0 ? "Kembali" : "Sebelumnya"}
         onBack={handleBack}
         onNext={handleNext}
-        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? () => toast.success("Draf permohonan berhasil disimpan") : undefined}
+        onSaveDraft={currentStep === TOTAL_STEPS - 1 ? () => handleSubmit("draft") : undefined}
         isLastStep={currentStep === TOTAL_STEPS - 1}
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit("ajukan")}
         isSubmitting={isSubmitting}
-        disabled={isSubmitting || (currentStep === TOTAL_STEPS - 1 && !setujuPernyataan)}
+        isSavingDraft={isSavingDraft}
+        disabled={isSubmitting || isSavingDraft || (currentStep === TOTAL_STEPS - 1 && !setujuPernyataan)}
         nextLabel="Selanjutnya"
         submitLabel="Kirim"
       />

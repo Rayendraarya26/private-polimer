@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->string('jenis_layanan_nama', 150)->nullable()->comment('Snapshot nama jenis layanan miniplant');
 
             // Detail Permohonan (Langkah 2)
-            $table->string('jasa_diminta', 20)->comment('Jenis jasa: proses / mesin');
+            $table->string('jasa_diminta', 20)->nullable()->comment('Jenis jasa: proses / mesin');
             $table->string('jenis_barang', 255)->comment('Nama bahan/sampel/barang');
             $table->integer('jumlah_barang')->default(1)->comment('Jumlah spesimen/barang');
             $table->text('perlakuan_diminta')->nullable()->comment('Uraian proses/perlakuan yang diminta');

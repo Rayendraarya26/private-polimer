@@ -55,7 +55,11 @@ class MiniplantController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $aksi = $request->input('aksi', 'ajukan');
+        $isAjukan = $aksi === 'ajukan';
+
         $request->validate([
+            'aksi' => 'nullable|in:draft,ajukan',
             // Pilihan Jenis Layanan
             'jenis_layanan' => 'nullable|string|in:F,RPK,PA,MKP',
             'fasilitas' => 'nullable|string|in:F,RPK,PA,MKP',
@@ -63,8 +67,8 @@ class MiniplantController extends Controller
             // Detail Permohonan
             'detailPermohonan' => 'required|array',
             'detailPermohonan.jasaDiminta' => 'nullable|string|in:proses,mesin',
-            'detailPermohonan.jenisBarang' => 'required|string|max:255',
-            'detailPermohonan.jumlahBarang' => 'required|numeric|min:1',
+            'detailPermohonan.jenisBarang' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'detailPermohonan.jumlahBarang' => $isAjukan ? 'required|numeric|min:1' : 'nullable|numeric|min:1',
             'detailPermohonan.perlakuanDiminta' => 'nullable|string',
             'detailPermohonan.tekananNilai' => 'nullable|string|max:50',
             'detailPermohonan.tekananSatuan' => 'nullable|string|max:20',
@@ -74,16 +78,16 @@ class MiniplantController extends Controller
             'detailPermohonan.temperaturSatuan' => 'nullable|string|max:20',
 
             // Rincian Perlakuan yang Dipilih
-            'selectedPerlakuan' => 'required|array',
+            'selectedPerlakuan' => $isAjukan ? 'required|array' : 'nullable|array',
 
             // Data Pemohon
             'dataPelanggan' => 'required|array',
-            'dataPelanggan.namaPemohon' => 'required|string|max:255',
-            'dataPelanggan.no_telp' => 'required|string|max:50',
-            'dataPelanggan.alamat' => 'required|string',
+            'dataPelanggan.namaPemohon' => $isAjukan ? 'required|string|max:255' : 'nullable|string|max:255',
+            'dataPelanggan.no_telp' => $isAjukan ? 'required|string|max:50' : 'nullable|string|max:50',
+            'dataPelanggan.alamat' => $isAjukan ? 'required|string' : 'nullable|string',
 
             // Persetujuan Pernyataan
-            'setujuPernyataan' => 'required|boolean|accepted',
+            'setujuPernyataan' => $isAjukan ? 'required|boolean|accepted' : 'nullable',
         ], [
             'detailPermohonan.jenisBarang.required' => 'Jenis bahan/barang wajib diisi.',
             'detailPermohonan.jumlahBarang.min' => 'Jumlah barang minimal 1.',
@@ -95,12 +99,16 @@ class MiniplantController extends Controller
         ]);
 
         $jenisLayananKode = strtoupper($request->input('jenis_layanan', $request->input('fasilitas', '')));
-        if (!$jenisLayananKode || !in_array($jenisLayananKode, ['F', 'RPK', 'PA', 'MKP'])) {
+        if ($isAjukan && (!$jenisLayananKode || !in_array($jenisLayananKode, ['F', 'RPK', 'PA', 'MKP']))) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Jenis layanan wajib dipilih.',
                 'errors' => ['jenis_layanan' => ['Jenis layanan wajib dipilih.']],
             ], 422);
+        }
+
+        if (!$jenisLayananKode || !in_array($jenisLayananKode, ['F', 'RPK', 'PA', 'MKP'])) {
+            $jenisLayananKode = 'MKP';
         }
 
         $selectedPerlakuan = $request->input('selectedPerlakuan', []);
@@ -111,7 +119,7 @@ class MiniplantController extends Controller
             return (bool) $item;
         });
 
-        if (empty($activeItems)) {
+        if ($isAjukan && empty($activeItems)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Harap pilih minimal 1 item perlakuan yang diinginkan.',
@@ -121,10 +129,11 @@ class MiniplantController extends Controller
         DB::beginTransaction();
 
         try {
+            $user = auth()->user();
             $userId = auth()->id() ?? '00000000-0000-0000-0000-000000000000';
             $detailPermohonan = $request->input('detailPermohonan');
             $dataPelanggan = $request->input('dataPelanggan');
-            $kodeLayanan = $request->input('jenis_layanan');
+            $kodeLayanan = $jenisLayananKode;
 
             $jenisLayananMap = [
                 'F' => 'Finishing Karet / Kulit',
@@ -172,9 +181,9 @@ class MiniplantController extends Controller
                 'id_pt_ins' => null,
                 'no_permohonan' => $noPermohonan,
                 'is_split_bill' => false,
-                'status_workflow' => 'PERMOHONAN',
+                'status_workflow' => $isAjukan ? 'PERMOHONAN' : 'DRAFT',
                 'status_bayar' => 'BELUM',
-                'tgl_order' => now(),
+                'tgl_order' => $isAjukan ? now() : null,
                 'created_by' => $userId,
                 'ip_address' => $request->ip(),
             ]);
@@ -185,9 +194,9 @@ class MiniplantController extends Controller
                 'permohonan_id' => $permohonan->id,
                 'jenis_layanan_kode' => $jenisLayananKode,
                 'jenis_layanan_nama' => $jenisLayananMap[$jenisLayananKode] ?? $jenisLayananKode,
-                'jasa_diminta' => $detailPermohonan['jasaDiminta'] ?? null,
-                'jenis_barang' => $detailPermohonan['jenisBarang'],
-                'jumlah_barang' => (int) $detailPermohonan['jumlahBarang'],
+                'jasa_diminta' => !empty($detailPermohonan['jasaDiminta']) ? $detailPermohonan['jasaDiminta'] : null,
+                'jenis_barang' => !empty($detailPermohonan['jenisBarang']) ? $detailPermohonan['jenisBarang'] : 'Barang Miniplant (Draft)',
+                'jumlah_barang' => (int) ($detailPermohonan['jumlahBarang'] ?? 1),
                 'perlakuan_diminta' => $detailPermohonan['perlakuanDiminta'] ?? null,
                 'tekanan_nilai' => $detailPermohonan['tekananNilai'] ?? null,
                 'tekanan_satuan' => $detailPermohonan['tekananSatuan'] ?? null,
@@ -195,12 +204,12 @@ class MiniplantController extends Controller
                 'waktu_satuan' => $detailPermohonan['waktuSatuan'] ?? null,
                 'temperatur_nilai' => $detailPermohonan['temperaturNilai'] ?? null,
                 'temperatur_satuan' => $detailPermohonan['temperaturSatuan'] ?? null,
-                'nama_pemohon' => $dataPelanggan['namaPemohon'],
-                'no_telp' => $dataPelanggan['no_telp'],
-                'alamat_pemohon' => $dataPelanggan['alamat'],
+                'nama_pemohon' => !empty($dataPelanggan['namaPemohon']) ? $dataPelanggan['namaPemohon'] : ($user->name ?? 'Draft Pemohon'),
+                'no_telp' => !empty($dataPelanggan['no_telp']) ? $dataPelanggan['no_telp'] : '-',
+                'alamat_pemohon' => !empty($dataPelanggan['alamat']) ? $dataPelanggan['alamat'] : '-',
                 'estimasi_total_biaya' => 0,
-                'setuju_pernyataan' => true,
-                'pernyataan_at' => now(),
+                'setuju_pernyataan' => $isAjukan ? true : (bool) $request->input('setujuPernyataan', false),
+                'pernyataan_at' => $isAjukan ? now() : null,
             ]);
 
             // 4. Kaitkan ke Master Lingkup Layanan & Detail Permohonan (Polymorphic)
@@ -287,37 +296,44 @@ class MiniplantController extends Controller
                 'subtotal' => $totalEstimasiBiaya,
             ]);
 
-            // 8. Catat Log Timeline Pelacakan Permohonan
-            PermohonanTrackingLog::create([
-                'id' => (string) Str::uuid(),
-                'permohonan_id' => $permohonan->id,
-                'sumber' => 'POLIMER',
-                'milestone_code' => 'PERMOHONAN_MASUK',
-                'judul' => 'Permohonan Miniplant Diajukan',
-                'deskripsi' => 'Permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi petugas.',
-            ]);
+            // 8. Catat Log Timeline Pelacakan Permohonan hanya jika diajukan
+            if ($isAjukan) {
+                PermohonanTrackingLog::create([
+                    'id' => (string) Str::uuid(),
+                    'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
+                    'milestone_code' => 'PERMOHONAN_MASUK',
+                    'judul' => 'Permohonan Miniplant Diajukan',
+                    'deskripsi' => 'Permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi petugas.',
+                ]);
+            }
 
             DB::commit();
 
-            // 9. Kirim Notifikasi Internal ke Admin/Petugas
-            try {
-                $adminIds = NotifHelper::getAdminUserIds();
-                NotifHelper::notifyMany(
-                    $adminIds,
-                    'Permohonan Miniplant Baru',
-                    'Permohonan baru #' . $permohonan->no_permohonan . ' dari ' . $dataPelanggan['namaPemohon'],
-                    '/admin/permohonan'
-                );
-            } catch (\Throwable $th) {
-                Log::warning('Gagal kirim notif internal miniplant: ' . $th->getMessage());
+            // 9. Kirim Notifikasi Internal ke Admin/Petugas hanya jika diajukan
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Miniplant Baru',
+                        'Permohonan baru #' . $permohonan->no_permohonan . ' dari ' . ($dataPelanggan['namaPemohon'] ?? 'Pemohon'),
+                        '/admin/permohonan'
+                    );
+                } catch (\Throwable $th) {
+                    Log::warning('Gagal kirim notif internal miniplant: ' . $th->getMessage());
+                }
             }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil dikirim.',
+                'message' => $isAjukan
+                    ? 'Permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil dikirim.'
+                    : 'Draft permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil disimpan.',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                     'form_miniplant_id' => $formMiniplant->id,
                 ],
             ]);
@@ -424,33 +440,98 @@ class MiniplantController extends Controller
             ], 404);
         }
 
+        $aksi = $request->input('aksi', 'draft');
+        $isAjukan = $aksi === 'ajukan';
+
+        if ($isAjukan) {
+            $request->validate([
+                'jenis_layanan' => 'nullable|string|in:F,RPK,PA,MKP',
+                'fasilitas' => 'nullable|string|in:F,RPK,PA,MKP',
+                'detailPermohonan' => 'required|array',
+                'detailPermohonan.jenisBarang' => 'required|string|max:255',
+                'detailPermohonan.jumlahBarang' => 'required|numeric|min:1',
+                'dataPelanggan' => 'required|array',
+                'dataPelanggan.namaPemohon' => 'required|string|max:255',
+                'dataPelanggan.no_telp' => 'required|string|max:50',
+                'dataPelanggan.alamat' => 'required|string',
+                'setujuPernyataan' => 'required|boolean|accepted',
+            ], [
+                'detailPermohonan.jenisBarang.required' => 'Jenis bahan/barang wajib diisi.',
+                'detailPermohonan.jumlahBarang.min' => 'Jumlah barang minimal 1.',
+                'dataPelanggan.namaPemohon.required' => 'Nama pemohon wajib diisi.',
+                'dataPelanggan.no_telp.required' => 'Nomor telepon/WA pemohon wajib diisi.',
+                'dataPelanggan.alamat.required' => 'Alamat pemohon wajib diisi.',
+                'setujuPernyataan.accepted' => 'Anda harus menyetujui pernyataan pemohon sebelum mengirim formulir.',
+            ]);
+        }
+
         DB::beginTransaction();
         try {
             $detail = $request->input('detailPermohonan', []);
             $dataPelanggan = $request->input('dataPelanggan', []);
 
-            if ($request->has('jenis_layanan')) $formMiniplant->jenis_layanan = $request->input('jenis_layanan');
-            if ($request->has('fasilitas')) $formMiniplant->fasilitas = $request->input('fasilitas');
+            $jenisLayananMap = [
+                'F' => 'Finishing Karet / Kulit',
+                'RPK' => 'Riset Penyamakan Kulit',
+                'PA' => 'Produk Kulit dan Alas Kaki',
+                'MKP' => 'Miniplant Karet dan Plastik',
+            ];
 
-            if (!empty($detail['jasaDiminta'])) $formMiniplant->jasa_diminta = $detail['jasaDiminta'];
+            $kodeLayanan = strtoupper($request->input('jenis_layanan', $request->input('fasilitas', $formMiniplant->jenis_layanan_kode ?? '')));
+            if ($kodeLayanan && in_array($kodeLayanan, ['F', 'RPK', 'PA', 'MKP'])) {
+                $formMiniplant->jenis_layanan_kode = $kodeLayanan;
+                $formMiniplant->jenis_layanan_nama = $jenisLayananMap[$kodeLayanan] ?? $kodeLayanan;
+            }
+
+            if (array_key_exists('jasaDiminta', $detail)) {
+                $formMiniplant->jasa_diminta = !empty($detail['jasaDiminta']) ? $detail['jasaDiminta'] : null;
+            }
             if (!empty($detail['jenisBarang'])) $formMiniplant->jenis_barang = $detail['jenisBarang'];
-            if (!empty($detail['jumlahBarang'])) $formMiniplant->jumlah_barang = $detail['jumlahBarang'];
-            if (isset($detail['perlakuanDiminta'])) $formMiniplant->perlakuan_diminta = $detail['perlakuanDiminta'];
-            if (isset($detail['tekananNilai'])) $formMiniplant->tekanan_nilai = $detail['tekananNilai'];
-            if (isset($detail['tekananSatuan'])) $formMiniplant->tekanan_satuan = $detail['tekananSatuan'];
-            if (isset($detail['suhuNilai'])) $formMiniplant->suhu_nilai = $detail['suhuNilai'];
-            if (isset($detail['suhuSatuan'])) $formMiniplant->suhu_satuan = $detail['suhuSatuan'];
-            if (isset($detail['waktuNilai'])) $formMiniplant->waktu_nilai = $detail['waktuNilai'];
-            if (isset($detail['waktuSatuan'])) $formMiniplant->waktu_satuan = $detail['waktuSatuan'];
-            if (isset($detail['instruksiKhusus'])) $formMiniplant->instruksi_khusus = $detail['instruksiKhusus'];
+            if (!empty($detail['jumlahBarang'])) $formMiniplant->jumlah_barang = (int) $detail['jumlahBarang'];
+            if (array_key_exists('perlakuanDiminta', $detail)) $formMiniplant->perlakuan_diminta = $detail['perlakuanDiminta'];
+            if (array_key_exists('tekananNilai', $detail)) $formMiniplant->tekanan_nilai = $detail['tekananNilai'];
+            if (array_key_exists('tekananSatuan', $detail)) $formMiniplant->tekanan_satuan = $detail['tekananSatuan'];
+            if (array_key_exists('waktuNilai', $detail)) $formMiniplant->waktu_nilai = $detail['waktuNilai'];
+            if (array_key_exists('waktuSatuan', $detail)) $formMiniplant->waktu_satuan = $detail['waktuSatuan'];
+            if (array_key_exists('temperaturNilai', $detail)) {
+                $formMiniplant->temperatur_nilai = $detail['temperaturNilai'];
+            } elseif (array_key_exists('suhuNilai', $detail)) {
+                $formMiniplant->temperatur_nilai = $detail['suhuNilai'];
+            }
+            if (array_key_exists('temperaturSatuan', $detail)) {
+                $formMiniplant->temperatur_satuan = $detail['temperaturSatuan'];
+            } elseif (array_key_exists('suhuSatuan', $detail)) {
+                $formMiniplant->temperatur_satuan = $detail['suhuSatuan'];
+            }
 
             if (!empty($dataPelanggan['namaPemohon'])) $formMiniplant->nama_pemohon = $dataPelanggan['namaPemohon'];
             if (!empty($dataPelanggan['no_telp'])) $formMiniplant->no_telp = $dataPelanggan['no_telp'];
             if (!empty($dataPelanggan['alamat'])) $formMiniplant->alamat_pemohon = $dataPelanggan['alamat'];
 
+            if ($request->has('setujuPernyataan')) {
+                $agreed = (bool) $request->input('setujuPernyataan');
+                $formMiniplant->setuju_pernyataan = $agreed;
+                $formMiniplant->pernyataan_at = $agreed ? ($formMiniplant->pernyataan_at ?? now()) : null;
+            }
+
             // Update items jika diberikan
-            $activeItems = $request->input('activeItems') ?? $request->input('itemPerlakuan');
-            if (is_array($activeItems) && !empty($activeItems)) {
+            $rawItems = $request->input('selectedPerlakuan') ?? $request->input('activeItems') ?? $request->input('itemPerlakuan');
+            if (is_array($rawItems)) {
+                $activeItems = array_filter($rawItems, function ($item) {
+                    if (is_array($item)) {
+                        return !empty($item['checked']);
+                    }
+                    return (bool) $item;
+                });
+
+                if ($isAjukan && empty($activeItems)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Harap pilih minimal 1 item perlakuan yang diinginkan.',
+                    ], 422);
+                }
+
                 FormMiniplantItem::where('form_miniplant_id', $formMiniplant->id)->delete();
                 $totalEstimasiBiaya = 0;
                 foreach ($activeItems as $masterId => $itemData) {
@@ -481,18 +562,58 @@ class MiniplantController extends Controller
                 }
 
                 $formMiniplant->estimasi_total_biaya = $totalEstimasiBiaya;
+
+                DetailPembayaran::where('permohonan_id', $permohonan->id)->update([
+                    'item_bayar' => 'Biaya Layanan Miniplant (' . ($formMiniplant->jenis_layanan_nama ?? 'Miniplant') . ')',
+                    'harga_satuan' => $totalEstimasiBiaya,
+                    'subtotal' => $totalEstimasiBiaya,
+                ]);
             }
 
             $formMiniplant->save();
+
+            if ($isAjukan && in_array($permohonan->status_workflow, ['DRAFT', 'REVISI'])) {
+                $wasRevisi = $permohonan->status_workflow === 'REVISI';
+                $permohonan->status_workflow = 'PERMOHONAN';
+                $permohonan->tgl_order = $permohonan->tgl_order ?? now();
+
+                PermohonanTrackingLog::create([
+                    'id' => (string) Str::uuid(),
+                    'permohonan_id' => $permohonan->id,
+                    'sumber' => 'POLIMER',
+                    'milestone_code' => $wasRevisi ? 'PERMOHONAN_DIAJUKAN_ULANG' : 'PERMOHONAN_MASUK',
+                    'judul' => $wasRevisi ? 'Permohonan Miniplant Diajukan Ulang' : 'Permohonan Miniplant Diajukan',
+                    'deskripsi' => 'Permohonan layanan miniplant #' . $permohonan->no_permohonan . ' berhasil diajukan dan menunggu verifikasi petugas.',
+                ]);
+            }
+
             $permohonan->save();
             DB::commit();
 
+            if ($isAjukan) {
+                try {
+                    $adminIds = NotifHelper::getAdminUserIds();
+                    NotifHelper::notifyMany(
+                        $adminIds,
+                        'Permohonan Miniplant Baru',
+                        'Permohonan #' . $permohonan->no_permohonan . ' dari ' . ($formMiniplant->nama_pemohon ?? 'Pemohon'),
+                        '/admin/permohonan'
+                    );
+                } catch (\Throwable $th) {
+                    Log::warning('Gagal kirim notif internal miniplant update: ' . $th->getMessage());
+                }
+            }
+
             return response()->json([
+                'success' => true,
                 'status' => 'success',
-                'message' => 'Permohonan miniplant berhasil diperbarui!',
+                'message' => $isAjukan
+                    ? 'Permohonan miniplant berhasil diajukan!'
+                    : 'Perubahan draft permohonan miniplant berhasil disimpan!',
                 'data' => [
                     'id' => $permohonan->id,
                     'no_permohonan' => $permohonan->no_permohonan,
+                    'status_workflow' => $permohonan->status_workflow,
                     'total_harga' => $formMiniplant->estimasi_total_biaya,
                 ],
             ]);

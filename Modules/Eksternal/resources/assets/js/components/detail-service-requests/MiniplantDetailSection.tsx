@@ -146,7 +146,7 @@ export const MiniplantDetailPermohonanTab: React.FC<MiniplantDetailSectionProps>
                     variant="primary"
                     className="uppercase font-bold tracking-wide px-2.5 py-0.5"
                   >
-                    {formMiniplant?.jasa_diminta || "Proses"}
+                    {formMiniplant?.jasa_diminta || "-"}
                   </Badge>
                 </span>
               </div>

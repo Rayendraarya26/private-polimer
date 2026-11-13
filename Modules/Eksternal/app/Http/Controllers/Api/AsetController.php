@@ -48,13 +48,15 @@ class AsetController extends Controller
     public function store(Request $request): JsonResponse
     {
         // Decode nested JSON jika dikirim dalam FormData multipart
-        $dataIdentitas = is_string($request->input('dataIdentitas'))
-            ? json_decode($request->input('dataIdentitas'), true)
-            : $request->input('dataIdentitas', []);
+        $rawIdentitas = $request->input('dataIdentitas');
+        $dataIdentitas = is_string($rawIdentitas)
+            ? (json_decode($rawIdentitas, true) ?? [])
+            : (is_array($rawIdentitas) ? $rawIdentitas : []);
 
-        $dataSewa = is_string($request->input('dataSewa'))
-            ? json_decode($request->input('dataSewa'), true)
-            : $request->input('dataSewa', []);
+        $rawSewa = $request->input('dataSewa');
+        $dataSewa = is_string($rawSewa)
+            ? (json_decode($rawSewa, true) ?? [])
+            : (is_array($rawSewa) ? $rawSewa : []);
 
         $request->merge([
             'dataIdentitas' => $dataIdentitas,
@@ -175,7 +177,7 @@ class AsetController extends Controller
 
             // 2. Simpan Form Aset
             $formAset = FormAset::create([
-                'id' => (string) Str::uuid(),
+                'id' => (string) Str::uuid(),`
                 'permohonan_id' => $permohonan->id,
                 'jenis_sewa' => $jenisSewa,
                 'tanggal_mulai' => $tglMulai->toDateString(),
@@ -363,13 +365,15 @@ class AsetController extends Controller
             ], 400);
         }
 
-        $dataIdentitas = is_string($request->input('dataIdentitas'))
-            ? json_decode($request->input('dataIdentitas'), true)
-            : $request->input('dataIdentitas', []);
+        $rawIdentitas = $request->input('dataIdentitas');
+        $dataIdentitas = is_string($rawIdentitas)
+            ? (json_decode($rawIdentitas, true) ?? [])
+            : (is_array($rawIdentitas) ? $rawIdentitas : []);
 
-        $dataSewa = is_string($request->input('dataSewa'))
-            ? json_decode($request->input('dataSewa'), true)
-            : $request->input('dataSewa', []);
+        $rawSewa = $request->input('dataSewa');
+        $dataSewa = is_string($rawSewa)
+            ? (json_decode($rawSewa, true) ?? [])
+            : (is_array($rawSewa) ? $rawSewa : []);
 
         $request->merge([
             'dataIdentitas' => $dataIdentitas,

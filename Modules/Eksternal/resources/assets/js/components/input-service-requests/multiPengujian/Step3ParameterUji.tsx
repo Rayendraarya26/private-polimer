@@ -24,8 +24,9 @@ interface Step3ParameterUjiProps {
   setSamples: React.Dispatch<React.SetStateAction<PengujianSampleItem[]>>
   kategoriTarif: KategoriTarif
   setKategoriTarif: (kategori: KategoriTarif) => void
-  onNext: () => void
-  onBack: () => void
+  onNext?: () => void
+  onBack?: () => void
+  hideActions?: boolean
 }
 
 const TarifIcon: React.FC<{ icon: React.ElementType; active: boolean }> = ({ icon: Icon, active }) => (
@@ -48,6 +49,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
   setKategoriTarif,
   onNext,
   onBack,
+  hideActions = false,
 }) => {
   // Fetch master komoditas aktif
   const { data: komoditiList = [] } = useMasterKomoditiQuery()
@@ -99,7 +101,7 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
       }
     }
 
-    onNext()
+    onNext?.()
   }
 
   const isMahasiswa = kategoriTarif === "mahasiswa_pp54"
@@ -201,13 +203,15 @@ export const Step3ParameterUji: React.FC<Step3ParameterUjiProps> = ({
         </div>
       </StepPanel>
 
-      <FormWizardActions
-        canGoBack={true}
-        onBack={onBack}
-        onNext={handleValidateAndNext}
-        backLabel="Sebelumnya"
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={true}
+          onBack={onBack}
+          onNext={handleValidateAndNext}
+          backLabel="Sebelumnya"
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

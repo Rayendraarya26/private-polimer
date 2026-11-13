@@ -1043,11 +1043,15 @@ class PengujianController extends Controller
                 $formPengujian->menyaksikan_uji = filter_var($request->input('menyaksikan_uji'), FILTER_VALIDATE_BOOLEAN);
             }
 
-            // Update samples jika payload samples disertakan
-            if ($request->has('samples') && is_array($request->input('samples'))) {
-                $samplesData = $request->input('samples');
+            // Update samples jika payload samples disertakan (mendukung array maupun JSON string dari FormData)
+            $rawSamples = $request->input('samples');
+            $samplesData = is_string($rawSamples)
+                ? json_decode($rawSamples, true)
+                : $rawSamples;
+
+            if ($request->has('samples') && is_array($samplesData)) {
                 $kategoriTarif = $request->input('kategori_tarif', $formPengujian->kategori_tarif ?? 'umum');
-                $isMahasiswa = $kategoriTarif === 'mahasiswa';
+                $isMahasiswa = in_array($kategoriTarif, ['mahasiswa', 'mahasiswa_pp54'], true);
 
                 // Hapus sampel lama beserta parameter
                 $oldSamples = FormPengujianSample::where('form_pengujian_id', $formPengujian->id)->get();

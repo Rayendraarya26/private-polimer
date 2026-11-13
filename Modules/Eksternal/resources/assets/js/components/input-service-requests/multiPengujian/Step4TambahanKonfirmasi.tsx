@@ -42,8 +42,11 @@ interface Step4TambahanKonfirmasiProps {
   setSharedData: React.Dispatch<React.SetStateAction<PengujianSharedData>>
   samples: PengujianSampleItem[]
   submitting: boolean
-  onBack: () => void
+  onBack?: () => void
   onSubmit: (aksi: "draft" | "ajukan") => void
+  existingSuratPengantarPath?: string | null
+  existingKtmPath?: string | null
+  hideActions?: boolean
 }
 
 export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = ({
@@ -53,6 +56,9 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
   submitting,
   onBack,
   onSubmit,
+  existingSuratPengantarPath,
+  existingKtmPath,
+  hideActions = false,
 }) => {
   const isMahasiswa = sharedData.kategori_tarif === "mahasiswa_pp54"
   const grandTotal = calculateGrandTotal(samples, sharedData.kategori_tarif)
@@ -67,7 +73,7 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
         toast.error("Silakan tuliskan perkiraan tanggal hadir dan nama personil yang akan menyaksikan pengujian")
         return
       }
-      if (isMahasiswa && !sharedData.file_ktm) {
+      if (isMahasiswa && !sharedData.file_ktm && !existingKtmPath) {
         toast.error("Anda memilih Tarif Mahasiswa. Wajib mengunggah berkas Kartu Tanda Mahasiswa (KTM)")
         return
       }
@@ -439,6 +445,11 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
             <div className="space-y-4">
               <div>
                 <FieldLabel optional>Berkas Surat Pengantar</FieldLabel>
+                {existingSuratPengantarPath && !sharedData.file_surat_pengantar && (
+                  <p className="text-[11px] text-emerald-700 font-medium mb-1.5">
+                    Berkas surat pengantar sebelumnya sudah tersimpan. Unggah berkas baru jika ingin mengganti.
+                  </p>
+                )}
                 <DropzoneUploader
                   label="Pilih atau tarik berkas surat pengantar di sini"
                   helperText="Format didukung: PDF, PNG, JPG (Maksimal 5 MB)"
@@ -456,9 +467,14 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
 
               {isMahasiswa && (
                 <div className="pt-3 border-t border-slate-100 animate-[wizardFadeUp_.25s_ease-out]">
-                  <FieldLabel required>
+                  <FieldLabel required={!existingKtmPath}>
                     Kartu Tanda Mahasiswa (KTM) Aktif
                   </FieldLabel>
+                  {existingKtmPath && !sharedData.file_ktm && (
+                    <p className="text-[11px] text-emerald-700 font-medium mb-1.5">
+                      Berkas KTM sebelumnya sudah tersimpan. Unggah berkas baru jika ingin mengganti.
+                    </p>
+                  )}
                   <DropzoneUploader
                     label="Unggah scan / foto Kartu Tanda Mahasiswa (KTM)"
                     helperText="Wajib untuk verifikasi tarif pendidikan penelitian mahasiswa (Maksimal 5 MB)"
@@ -649,16 +665,18 @@ export const Step4TambahanKonfirmasi: React.FC<Step4TambahanKonfirmasiProps> = (
       </StepPanel>
 
       {/* Tombol Aksi Navigasi (Tidak Sticky Bottom) */}
-      <FormWizardActions
-        canGoBack={true}
-        backLabel="Sebelumnya"
-        onBack={onBack}
-        onSaveDraft={() => handleTriggerSubmit("draft")}
-        onSubmit={() => handleTriggerSubmit("ajukan")}
-        isLastStep={true}
-        isSubmitting={submitting}
-        isSticky={false}
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={true}
+          backLabel="Sebelumnya"
+          onBack={onBack}
+          onSaveDraft={() => handleTriggerSubmit("draft")}
+          onSubmit={() => handleTriggerSubmit("ajukan")}
+          isLastStep={true}
+          isSubmitting={submitting}
+          isSticky={false}
+        />
+      )}
     </div>
   )
 }

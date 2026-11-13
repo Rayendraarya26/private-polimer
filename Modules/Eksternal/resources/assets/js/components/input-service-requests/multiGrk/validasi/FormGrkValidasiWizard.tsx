@@ -233,7 +233,8 @@ export const FormGrkValidasiWizard: React.FC = () => {
                             ? "Permohonan validasi GRK berhasil diajukan!"
                             : "Draft permohonan validasi GRK berhasil disimpan!")
                 )
-                navigate("/permohonan")
+                const createdId = response.data?.data?.id || permohonanId
+                navigate(createdId ? `/permohonan/detail/${createdId}` : "/permohonan")
             } else {
                 toast.error(response.data?.message || "Gagal memproses permohonan validasi GRK.")
             }

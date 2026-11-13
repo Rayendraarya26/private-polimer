@@ -345,19 +345,50 @@ class GrkValidasiController extends Controller
 
         DB::beginTransaction();
         try {
-            $fillable = [
-                'merek_sample', 'acuan_peraturan', 'ruang_lingkup_diajukan', 'uraian_kebutuhan',
-                'nama_pemilik', 'nama_pimpinan', 'nama_pj', 'deskripsi_aktivitas', 'batasan_proyek',
-                'periode_mulai', 'periode_selesai', 'kriteria_verifikasi', 'kriteria_lainnya',
-                'jumlah_karyawan', 'metodologi_pengumpulan', 'estimasi_penurunan_ton_co2e',
-                'tingkat_jaminan', 'materialitas_tipe', 'materialitas_custom', 'konsultan_nama',
-                'konsultan_institusi', 'pihak_eksternal'
+            $fieldMap = [
+                'merek_sample' => 'merekSample',
+                'acuan_peraturan' => 'acuan',
+                'ruang_lingkup_diajukan' => 'keterangan',
+                'uraian_kebutuhan' => 'uraianKebutuhan',
+                'nama_pemilik' => 'namaPemilik',
+                'nama_pimpinan' => 'namaPimpinan',
+                'nama_pj' => 'namaPj',
+                'deskripsi_aktivitas' => 'deskripsiAktivitas',
+                'batasan_proyek' => 'batasanProyek',
+                'periode_mulai' => 'periodeMulai',
+                'periode_selesai' => 'periodeSelesai',
+                'kriteria_verifikasi' => 'kriteriaVerifikasi',
+                'kriteria_lainnya' => 'kriteriaLainnyaText',
+                'jumlah_karyawan' => 'jumlahKaryawan',
+                'ssr_kuantifikasi' => 'ssrKuantifikasi',
+                'metodologi_pengumpulan' => 'metodologiPengumpulan',
+                'jumlah_emisi_proyek_kgco2e' => 'jumlahEmisiProyek',
+                'jumlah_emisi_baseline_kgco2e' => 'jumlahEmisiBaseline',
+                'estimasi_penurunan_ton_co2e' => 'estimasiPenurunanTonCo2e',
+                'tingkat_jaminan' => 'tingkatJaminan',
+                'materialitas_tipe' => 'materialitas',
+                'materialitas_custom' => 'materialitasCustom',
+                'konsultan_nama' => 'konsultanNama',
+                'konsultan_institusi' => 'konsultanInstitusi',
+                'pihak_eksternal' => 'pihakEksternal',
             ];
 
-            foreach ($fillable as $col) {
+            foreach ($fieldMap as $col => $camel) {
                 if ($request->has($col)) {
                     $form->{$col} = $request->input($col);
+                } elseif ($request->has($camel)) {
+                    $form->{$col} = $request->input($camel);
                 }
+            }
+
+            if ($request->has('jenisGasEmisi') || $request->has('jenis_gas_emisi')) {
+                $form->jenis_gas_emisi = (array) ($request->input('jenisGasEmisi') ?? $request->input('jenis_gas_emisi'));
+            }
+            if ($request->has('pernyataanPerubahan') || $request->has('pernyataan_perubahan')) {
+                $form->pernyataan_perubahan = filter_var($request->input('pernyataanPerubahan') ?? $request->input('pernyataan_perubahan'), FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($request->has('pernyataanPemohon') || $request->has('pernyataan_pemohon')) {
+                $form->pernyataan_pemohon = filter_var($request->input('pernyataanPemohon') ?? $request->input('pernyataan_pemohon'), FILTER_VALIDATE_BOOLEAN);
             }
 
             if ($request->has('jenisProyekGrk') || $request->has('jenis_proyek_grk')) {
@@ -392,19 +423,20 @@ class GrkValidasiController extends Controller
             }
 
             $aksi = $request->input('aksi');
-            if ($aksi === 'ajukan' && $permohonan->status_workflow === 'DRAFT') {
+            if ($aksi === 'ajukan' && in_array($permohonan->status_workflow, ['DRAFT', 'REVISI'])) {
+                $wasRevisi = $permohonan->status_workflow === 'REVISI';
                 $permohonan->update([
                     'status_workflow' => 'PERMOHONAN',
-                    'tgl_order' => now(),
+                    'tgl_order' => $permohonan->tgl_order ?? now(),
                 ]);
 
                 PermohonanTrackingLog::create([
                     'id'             => (string) Str::uuid(),
                     'permohonan_id'  => $permohonan->id,
                     'sumber'         => 'POLIMER',
-                    'milestone_code' => 'PERMOHONAN_MASUK',
-                    'judul'          => 'Permohonan Diajukan',
-                    'deskripsi'      => 'Permohonan validasi proyek GRK #' . $permohonan->no_permohonan . ' resmi diajukan dari status draft.',
+                    'milestone_code' => $wasRevisi ? 'PERMOHONAN_DIAJUKAN_ULANG' : 'PERMOHONAN_MASUK',
+                    'judul'          => $wasRevisi ? 'Permohonan Diajukan Ulang' : 'Permohonan Diajukan',
+                    'deskripsi'      => 'Permohonan validasi proyek GRK #' . $permohonan->no_permohonan . ($wasRevisi ? ' berhasil diajukan ulang setelah revisi.' : ' resmi diajukan dari status draft.'),
                 ]);
 
                 try {

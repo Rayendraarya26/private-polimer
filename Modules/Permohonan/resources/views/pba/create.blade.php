@@ -5,18 +5,18 @@
     <style>
         .pba-card-section {
             border-left: 4px solid #0270c7;
-            background-color: #f8fafc;
+            background-color: var(--bs-tertiary-bg, #f8fafc);
             border-radius: 8px;
             padding: 16px 20px;
             margin-bottom: 24px;
         }
         .pba-product-card {
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--bs-border-color, #e2e8f0);
             border-radius: 12px;
             padding: 16px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            background: #fff;
+            background: var(--bs-card-bg, #fff);
             height: 100%;
         }
         .pba-product-card:hover {
@@ -28,6 +28,9 @@
             border-color: #0270c7;
             background-color: #f0f7ff;
             box-shadow: 0 4px 14px rgba(2, 112, 199, 0.12);
+        }
+        [data-bs-theme="dark"] .pba-product-card.selected {
+            background-color: rgba(2, 112, 199, 0.16);
         }
         .pba-product-card input[type="radio"] {
             margin-top: 3px;
@@ -74,7 +77,7 @@
 
             {{-- ── 1. IDENTITAS PELANGGAN & PERUSAHAAN ── --}}
             <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-0 pt-5 pb-0">
+                <div class="card-header border-0 pt-5 pb-0">
                     <h5 class="card-title fw-bold text-gray-900">
                         <i class="fa-duotone fa-building text-primary me-2"></i> 1. Identitas Pelanggan & Perusahaan Pemohon
                     </h5>
@@ -191,7 +194,7 @@
 
             {{-- ── 2. ALAMAT PENGIRIMAN & TUJUAN EKSPEDISI ── --}}
             <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-0 pt-5 pb-0">
+                <div class="card-header border-0 pt-5 pb-0">
                     <h5 class="card-title fw-bold text-gray-900">
                         <i class="fa-duotone fa-truck text-success me-2"></i> 2. Alamat & Wilayah Pengiriman Sampel
                     </h5>
@@ -267,7 +270,7 @@
 
             {{-- ── 3. DETAIL PRODUK BAHAN ACUAN ── --}}
             <div class="card border-0 shadow-sm rounded-3 mb-4">
-                <div class="card-header bg-white border-0 pt-5 pb-0">
+                <div class="card-header border-0 pt-5 pb-0">
                     <h5 class="card-title fw-bold text-gray-900">
                         <i class="fa-duotone fa-flask-vial text-info me-2"></i> 3. Detail Produk Bahan Acuan yang Dipesan
                     </h5>
@@ -298,7 +301,7 @@
                                         <p class="text-muted small mb-0">{{ $prod['deskripsi'] }}</p>
                                     </div>
                                     <div class="mt-3 pt-2 border-top text-muted small">
-                                        Satuan: <span class="fw-semibold text-dark">{{ $prod['satuan'] }}</span>
+                                        Satuan: <span class="fw-semibold text-body-emphasis">{{ $prod['satuan'] }}</span>
                                     </div>
                                 </label>
                             </div>
@@ -355,7 +358,7 @@
 
             {{-- ── 4. BERKAS SURAT PERMOHONAN / PURCHASE ORDER (PO) ── --}}
             <div class="card border-0 shadow-sm rounded-3 mb-5">
-                <div class="card-header bg-white border-0 pt-5 pb-0">
+                <div class="card-header border-0 pt-5 pb-0">
                     <h5 class="card-title fw-bold text-gray-900">
                         <i class="fa-duotone fa-file-invoice text-warning me-2"></i> 4. Berkas Surat Permohonan / Purchase Order (PO)
                     </h5>

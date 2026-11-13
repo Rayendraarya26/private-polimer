@@ -214,3 +214,306 @@ button:active,
 [role="checkbox"]:focus-visible {
   box-shadow: none !important;
 }
+
+/* ============================================================================
+ * Modern SweetAlert2 Theme — Unified with Polimer BBKKP Design System
+ * ========================================================================== */
+.swal2-container.swal2-backdrop-show {
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(4px);
+}
+
+.swal2-popup {
+  width: min(26rem, calc(100vw - 2rem)) !important;
+  padding: 1.75rem 1.75rem 1.5rem !important;
+  border-radius: 1rem !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow:
+    0 20px 25px -5px rgba(15, 23, 42, 0.1),
+    0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+  font-family: inherit !important;
+}
+
+.swal2-popup .swal2-close {
+  color: #94a3b8 !important;
+  font-size: 1.5rem !important;
+  transition: color 0.15s ease !important;
+}
+
+.swal2-popup .swal2-close:hover {
+  color: #334155 !important;
+}
+
+.swal2-popup .swal2-icon {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  margin: 0 auto 1rem !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  animation: swalIconPop 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.swal2-popup .swal2-icon .swal2-icon-content {
+  font-size: 1.65rem !important;
+  font-weight: 700 !important;
+  animation: swalGlyphPop 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+/* Success Icon */
+.swal2-popup .swal2-icon.swal2-success {
+  position: relative !important;
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+}
+
+.swal2-popup .swal2-icon.swal2-success .swal2-success-ring,
+.swal2-popup .swal2-icon.swal2-success .swal2-success-fix,
+.swal2-popup .swal2-icon.swal2-success [class^="swal2-success-circular-line"],
+.swal2-popup .swal2-icon.swal2-success [class^="swal2-success-line"] {
+  display: none !important;
+}
+
+.swal2-popup .swal2-icon.swal2-success::after {
+  content: "";
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 0.65rem;
+  height: 1.2rem;
+  border-right: 3px solid #059669;
+  border-bottom: 3px solid #059669;
+  border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(42deg);
+  animation: swalCheckPop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+/* Error / Danger Icon */
+.swal2-popup .swal2-icon.swal2-error {
+  position: relative !important;
+  background: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+  animation:
+    swalIconPop 0.34s cubic-bezier(0.22, 1, 0.36, 1) both,
+    swalErrorShake 0.42s ease-in-out 0.2s both;
+}
+
+.swal2-popup .swal2-icon.swal2-error .swal2-x-mark {
+  display: none !important;
+}
+
+.swal2-popup .swal2-icon.swal2-error::before,
+.swal2-popup .swal2-icon.swal2-error::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.35rem;
+  height: 3px;
+  border-radius: 9999px;
+  background-color: #e11d48;
+}
+
+.swal2-popup .swal2-icon.swal2-error::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+  animation: swalCrossLineLeft 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+.swal2-popup .swal2-icon.swal2-error::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+  animation: swalCrossLineRight 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+@keyframes swalIconPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes swalGlyphPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(4px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes swalCheckPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(25deg) scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(42deg) scale(1);
+  }
+}
+
+@keyframes swalCrossLineLeft {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg) scaleX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scaleX(1);
+  }
+}
+
+@keyframes swalCrossLineRight {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-45deg) scaleX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes swalErrorShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+/* Warning Icon */
+.swal2-popup .swal2-icon.swal2-warning {
+  background: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #d97706 !important;
+}
+
+/* Info Icon */
+.swal2-popup .swal2-icon.swal2-info {
+  background: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0284c7 !important;
+}
+
+/* Question Icon */
+.swal2-popup .swal2-icon.swal2-question {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4f46e5 !important;
+}
+
+.swal2-popup .swal2-title {
+  font-size: 1.125rem !important;
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  padding: 0 !important;
+  margin: 0 0 0.4rem !important;
+  letter-spacing: -0.01em;
+}
+
+.swal2-popup .swal2-html-container {
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  color: #475569 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-popup .swal2-input,
+.swal2-popup .swal2-textarea,
+.swal2-popup .swal2-select {
+  margin: 1rem 0 0 !important;
+  width: 100% !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+.swal2-popup .swal2-input:focus,
+.swal2-popup .swal2-textarea:focus,
+.swal2-popup .swal2-select:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.18) !important;
+}
+
+.swal2-popup .swal2-actions {
+  margin: 1.5rem 0 0 !important;
+  gap: 0.625rem !important;
+  width: 100% !important;
+}
+
+.swal2-popup .swal2-styled {
+  border-radius: 0.75rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  padding: 0.625rem 1.25rem !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+}
+
+.swal2-popup .swal2-styled:focus {
+  box-shadow: none !important;
+}
+
+.swal2-popup .swal2-confirm {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+}
+
+.swal2-popup .swal2-confirm:hover {
+  filter: brightness(0.95);
+}
+
+.swal2-popup .swal2-cancel {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.swal2-popup .swal2-cancel:hover {
+  background-color: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.swal2-popup .swal2-deny {
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+  border: 1px solid #fecdd3 !important;
+}
+
+.swal2-popup .swal2-loader {
+  border-color: #0284c7 transparent #0284c7 transparent !important;
+}

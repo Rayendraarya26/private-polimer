@@ -19,8 +19,9 @@ import {
 interface Step2DataPermintaanProps {
   sharedData: PengujianSharedData
   setSharedData: React.Dispatch<React.SetStateAction<PengujianSharedData>>
-  onNext: () => void
-  onBack: () => void
+  onNext?: () => void
+  onBack?: () => void
+  hideActions?: boolean
 }
 
 const OptionIcon: React.FC<{ icon: React.ElementType; active: boolean }> = ({ icon: Icon, active }) => (
@@ -41,6 +42,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
   setSharedData,
   onNext,
   onBack,
+  hideActions = false,
 }) => {
   const { profile } = useProfile()
   const userObj = profile as Record<string, any> | null
@@ -118,7 +120,7 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
       laporan_dialamatkan_kepada: finalAlamat,
     }))
 
-    onNext()
+    onNext?.()
   }
 
   const handleSelectBiaya = (isPemohon: boolean) =>
@@ -310,13 +312,15 @@ export const Step2DataPermintaan: React.FC<Step2DataPermintaanProps> = ({
         </div>
       </StepPanel>
 
-      <FormWizardActions
-        canGoBack={true}
-        onBack={onBack}
-        onNext={handleValidateAndNext}
-        backLabel="Sebelumnya"
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && (
+        <FormWizardActions
+          canGoBack={true}
+          onBack={onBack}
+          onNext={handleValidateAndNext}
+          backLabel="Sebelumnya"
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

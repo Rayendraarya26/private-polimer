@@ -10,6 +10,7 @@ import EditFormKonsultasiAt from "./EditFormKonsultasiAt"
 import EditFormGrkVerifikasi from "./EditFormGrkVerifikasi"
 import EditFormGrkValidasi from "./EditFormGrkValidasi"
 import EditFormAset from "./EditFormAset"
+import EditFormPengujian from "./EditFormPengujian"
 import Head from "../common/Head"
 import { Card } from "../ui/Card"
 import { Button } from "../ui/Button"
@@ -48,6 +49,7 @@ const EditFormRouter: React.FC = () => {
             noPermohonan.endsWith("/MKP")
           ) detectedType = "FormMiniplant"
           else if (noPermohonan.endsWith("/KAT") || noPermohonan.includes("/KAT")) detectedType = "FormKonsultasiAt"
+          else if (noPermohonan.includes("UJI") || noPermohonan.includes("PENGUJIAN")) detectedType = "FormPengujian"
         }
 
         // Deteksi dari form_data jika formable_type tidak terdefinisi
@@ -56,6 +58,8 @@ const EditFormRouter: React.FC = () => {
             detectedType = "FormLsp"
           } else if (detail.form_data.skema_pelatihan_id || detail.form_data.jadwal_pelatihan) {
             detectedType = "FormPelatihan"
+          } else if (Array.isArray(detail.form_data.samples) || detail.form_data.bahasa_laporan) {
+            detectedType = "FormPengujian"
           } else if (
             detail.form_data.jenis_pengajuan ||
             detail.form_data.pabrik_json ||
@@ -78,6 +82,7 @@ const EditFormRouter: React.FC = () => {
           else if (lNama.includes("kalibrasi") || lNama.includes("labkal")) detectedType = "FormKalibrasi"
           else if (lNama.includes("miniplant")) detectedType = "FormMiniplant"
           else if (lNama.includes("konsultasi") || lNama.includes("audit teknologi")) detectedType = "FormKonsultasiAt"
+          else if (lNama.includes("pengujian") || lNama.includes("uji")) detectedType = "FormPengujian"
         }
 
         // Fallback: probing endpoint spesifik
@@ -209,6 +214,14 @@ const EditFormRouter: React.FC = () => {
     normalizedType.includes("formkonsultasiat")
   ) {
     return <EditFormKonsultasiAt />
+  }
+
+  // FORM PENGUJIAN LABORATORIUM
+  if (
+    normalizedType.includes("pengujian") ||
+    normalizedType.includes("formpengujian")
+  ) {
+    return <EditFormPengujian />
   }
 
   // FORM SERTIFIKASI

@@ -36,7 +36,8 @@ const UKFlag: React.FC<{ className?: string }> = ({ className = "w-full h-full" 
 interface Step1BahasaProps {
   sharedData: PengujianSharedData
   setSharedData: React.Dispatch<React.SetStateAction<PengujianSharedData>>
-  onNext: () => void
+  onNext?: () => void
+  hideActions?: boolean
 }
 
 const BAHASA_OPTIONS: {
@@ -71,6 +72,7 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
   sharedData,
   setSharedData,
   onNext,
+  hideActions = false,
 }) => {
   const handleSelectBahasa = (lang: BahasaLaporan) => {
     setSharedData((prev) => ({
@@ -187,11 +189,13 @@ export const Step1Bahasa: React.FC<Step1BahasaProps> = ({
       </section>
 
       {/* Navigasi Selanjutnya */}
-      <FormWizardActions
-        canGoBack={false}
-        onNext={onNext}
-        nextLabel="Selanjutnya"
-      />
+      {!hideActions && onNext && (
+        <FormWizardActions
+          canGoBack={false}
+          onNext={onNext}
+          nextLabel="Selanjutnya"
+        />
+      )}
     </div>
   )
 }

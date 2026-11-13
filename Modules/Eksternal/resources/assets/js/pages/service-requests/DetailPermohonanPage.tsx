@@ -48,7 +48,7 @@ import {
   KalibrasiDetailSection,
 } from "../../components/detail-service-requests/KalibrasiDetailSection"
 import {
-  PengujianDetailPermohonanTab,
+  PengujianDetailSection,
 } from "../../components/detail-service-requests/PengujianDetailSection"
 import {
   InspeksiDetailPermohonanTab,
@@ -511,6 +511,15 @@ export const DetailPermohonanPage: React.FC = () => {
             formatIndoDate={formatIndoDate}
           />
         )
+      ) : isPengujian ? (
+        <div className="w-full space-y-6">
+          <PengujianDetailSection
+            permohonan={permohonan}
+            formPengujian={formPengujianData || formData}
+            formatIndoDate={formatIndoDate}
+            openPdfDoc={openPdfDoc}
+          />
+        </div>
       ) : (
         <>
           {/* TAB NAVIGATION (Model Grid Responsif - Menyesuaikan Jenis Layanan) */}
@@ -527,11 +536,9 @@ export const DetailPermohonanPage: React.FC = () => {
                 <div className="flex items-center gap-2 truncate">
                   <Package className="w-4 h-4 shrink-0" />
                   <span className="truncate">
-                    {isPengujian
-                      ? "Sampel & Parameter Uji"
-                      : isPup
-                        ? "Skema & Artefak UP"
-                        : isPelatihan
+                    {isPup
+                      ? "Skema & Artefak UP"
+                      : isPelatihan
                           ? "Data Pelatihan & Peserta"
                           : isLsp
                             ? "Skema & Calon Asesi"
@@ -552,10 +559,8 @@ export const DetailPermohonanPage: React.FC = () => {
                 </div>
                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${activeTab === "permohonan" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                   }`}>
-                  {isPengujian
-                    ? (formPengujianData?.samples?.length || 1)
-                    : isPup
-                      ? (formPupData?.items?.length || 1)
+                  {isPup
+                    ? (formPupData?.items?.length || 1)
                       : isHalal
                         ? (formHalalData?.produk_json?.length || 1)
                         : isMiniplant
@@ -649,12 +654,6 @@ export const DetailPermohonanPage: React.FC = () => {
                 <AsetDetailSection
                   permohonan={permohonan}
                   formAset={formAsetData}
-                  formatIndoDate={formatIndoDate}
-                />
-              ) : isPengujian ? (
-                <PengujianDetailPermohonanTab
-                  permohonan={permohonan}
-                  formPengujian={formPengujianData}
                   formatIndoDate={formatIndoDate}
                 />
               ) : isPup ? (

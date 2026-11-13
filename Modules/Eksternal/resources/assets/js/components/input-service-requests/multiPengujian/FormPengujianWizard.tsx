@@ -333,17 +333,12 @@ export const FormPengujianWizard: React.FC = () => {
         console.error("Gagal membersihkan draft storage setelah submit:", e)
       }
 
-      await Swal.fire({
-        title: aksi === "draft" ? "Draft Berhasil Disimpan!" : "Permohonan Berhasil Diajukan!",
-        text:
-          result?.message ||
-          `Permohonan pengujian laboratorium telah berhasil ${
-            aksi === "draft" ? "disimpan sebagai draft" : "dikirim ke Balai Besar"
-          }.`,
-        icon: "success",
-        confirmButtonColor: "#059669",
-        confirmButtonText: "Lihat Daftar Permohonan",
-      })
+      toast.success(
+        result?.message ||
+          `Permohonan pengujian laboratorium berhasil ${
+            aksi === "draft" ? "disimpan sebagai draf" : "diajukan ke Balai Besar"
+          }.`
+      )
 
       // Redirect ke riwayat permohonan atau detail
       const redirectId = result?.data?.permohonan_id || result?.data?.id

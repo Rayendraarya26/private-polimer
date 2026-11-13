@@ -448,7 +448,7 @@ const DashboardPage: React.FC = () => {
                             </Button>
 
                             <Button
-                              variant="outline"
+                              variant="danger"
                               size="sm"
                               className="w-18"
                               leftIcon={<Trash2 className="w-3.5 h-3.5" />}

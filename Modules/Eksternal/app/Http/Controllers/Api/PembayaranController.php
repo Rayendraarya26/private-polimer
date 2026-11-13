@@ -29,14 +29,24 @@ class PembayaranController extends Controller
                 'penawaranBiaya'
             ])
             ->where('created_by', $userId)
-            // Tampilkan permohonan yang sudah tahap pembayaran, sudah lunas/proses/selesai, atau sudah memiliki tagihan/billing/invoice/VA
+            // Tampilkan hanya permohonan yang sudah memiliki invoice
             ->where(function ($q) {
-                $q->whereIn('status_workflow', ['PEMBAYARAN', 'PROSES', 'PROCESS', 'DONE', 'SELESAI'])
-                  ->orWhere('status_bayar', 'LUNAS')
-                  ->orWhereNotNull('invoice_number')
-                  ->orWhereNotNull('va')
-                  ->orHas('billing')
-                  ->orHas('detailPembayaran');
+                $q->where(function ($inv) {
+                    $inv->whereNotNull('invoice_number')
+                        ->where('invoice_number', '!=', '');
+                })
+                ->orWhere(function ($inv) {
+                    $inv->whereNotNull('invoice_file')
+                        ->where('invoice_file', '!=', '');
+                })
+                ->orWhere(function ($inv) {
+                    $inv->whereNotNull('pdf_tte')
+                        ->where('pdf_tte', '!=', '');
+                })
+                ->orWhereHas('billing', function ($b) {
+                    $b->whereNotNull('no_billing')
+                      ->orWhereNotNull('file_invoice');
+                });
             })
             // Kecualikan permohonan yang ditolak atau dibatalkan
             ->whereNotIn('status_workflow', [

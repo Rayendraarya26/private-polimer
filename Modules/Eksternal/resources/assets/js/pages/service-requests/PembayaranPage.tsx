@@ -66,13 +66,11 @@ const PembayaranPage: React.FC = () => {
         return false
       }
 
-      // Tampilkan jika sudah tahap pembayaran, lunas/proses/selesai, atau sudah memiliki tagihan/invoice/VA
+      // Tampilkan hanya permohonan yang sudah memiliki invoice
       return (
-        ["PEMBAYARAN", "PROSES", "PROCESS", "DONE", "SELESAI"].includes(wf) ||
-        sb === "LUNAS" ||
         Boolean(item.invoice_number) ||
-        Boolean(item.va) ||
-        (typeof item.total_tagihan === "number" && item.total_tagihan > 0)
+        Boolean(item.invoice_file) ||
+        Boolean(item.pdf_tte)
       )
     })
   }, [rawData])
